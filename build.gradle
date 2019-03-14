@@ -1,0 +1,68 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+        google()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'org.owasp:dependency-check-gradle:4.0.2'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+subprojects {
+    repositories {
+        jcenter()
+        maven { url "https://maven.google.com" }
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+ext {
+    versionNum = 2
+    versionName = "0.2.0"
+    versionDate = new Date()
+
+    // These properties should remain in sync with the values from the AppAuth SDK
+    minSdkVersion = 16
+    compileSdkVersion = 28
+    buildToolsVersion = "28.0.3"
+    browserVersion = "28.0.0"
+    appcompatVersion = "28.0.0"
+    // SDK dependency versions
+    bintrayVersion = "1.7.3"
+    gradlePluginVersion = "1.5"
+
+    // Test dependency versions
+    junitVersion = "4.12"
+    mockitoVersion = "2.8.47"
+    robolectricVersion = "4.0.2"
+    assertjVersion = "1.2.0"
+    okhttpVersion = "3.12.0"
+    jsonWebTokenVersion = "0.10.5"
+    assertjCoreVersion = "3.10.0"
+
+    // Gradle plugin version
+    checkstyleVersion = "8.6"
+    saxonVersion = "8.7"
+}
+
+task showVersion {
+    doLast {
+        logger.lifecycle("Version ID: " + project.versionNum)
+        logger.lifecycle("Version Name: " + project.versionName)
+        logger.lifecycle("Version Date: " + project.versionDate)
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

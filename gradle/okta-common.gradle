@@ -1,0 +1,14 @@
+apply plugin: 'org.owasp.dependencycheck'
+check.dependsOn dependencyCheckAggregate
+
+dependencyCheck {
+    failOnError = true
+    failBuildOnCVSS = 0
+    scanConfigurations = [
+            'api',
+            'archives',
+            'compile',
+            'releaseCompileClasspath',
+            'releaseRuntimeClasspath'
+    ]
+}

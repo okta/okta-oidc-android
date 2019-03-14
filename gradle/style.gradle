@@ -1,0 +1,44 @@
+apply plugin: "checkstyle"
+
+checkstyle {
+    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    configProperties = ["checkstyle.java.header": file("${rootDir}/config/checkstyle/java.header").getAbsolutePath()]
+    toolVersion = "${rootProject.checkstyleVersion}"
+}
+
+configurations{
+    xslt
+}
+
+dependencies{
+    xslt "net.sf.saxon:saxon:${rootProject.saxonVersion}"
+}
+
+task checkAllSource(type: Checkstyle) {
+    source "src/main/java"
+    include "**/*.java"
+    classpath = project.configurations.compile
+}
+
+task failOnCheckstyleWarning {
+    def checkstyleWarningsFile = "${buildDir}/reports/checkstyle/checkAllSource.xml"
+    doLast {
+        File warningsFile = file(checkstyleWarningsFile)
+        ant.xslt(in: warningsFile,
+                style: new File("${rootDir}/config/checkstyle/checkstyle-android-studio.xsl"),
+                out: new File(warningsFile.parent, "checkAllSource-Styled.html"),
+                classpath: configurations.xslt.asPath)
+
+        if (warningsFile.exists() && warningsFile.text.contains("<error ")) {
+            throw new GradleException(
+                    "There were checkstyle warnings. For more details check: " \
+                     + file(checkstyleWarningsFile))
+        }
+    }
+}
+
+// ensure that there are no style warnings
+failOnCheckstyleWarning.dependsOn checkAllSource
+
+// run checkstyle as part of the standard set of checks
+check.dependsOn failOnCheckstyleWarning

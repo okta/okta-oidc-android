@@ -1,0 +1,96 @@
+apply plugin: "com.android.library"
+apply from: "${rootDir}/gradle/okta-common.gradle"
+apply from: "${rootDir}/gradle/android-common.gradle"
+apply from: "${rootDir}/gradle/style.gradle"
+apply plugin: 'com.jfrog.bintray'
+apply plugin: "com.github.dcendents.android-maven"
+
+group = "com.okta.android"
+version = "${rootProject.versionName}"
+
+android {
+
+    defaultConfig {
+        project.archivesBaseName = "oidc-android"
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir "src/main/java"
+            }
+        }
+        test {
+            manifest {
+                srcFile "${rootDir.absolutePath}/library/src/test/AndroidManifest.xml"
+            }
+        }
+        androidTest {
+            manifest {
+                srcFile "${rootDir.absolutePath}/library/src/test/AndroidManifest.xml"
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${rootProject.bintrayVersion}"
+        classpath "com.github.dcendents:android-maven-gradle-plugin:${rootProject.gradlePluginVersion}"
+    }
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation "com.android.support:customtabs:${rootProject.browserVersion}"
+    testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
+    testImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
+    testImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"
+    testImplementation "io.jsonwebtoken:jjwt-jackson:${rootProject.jsonWebTokenVersion}"
+    testImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
+        exclude group: 'org.json', module: 'json'
+    }
+    testImplementation "junit:junit:${rootProject.junitVersion}"
+    testImplementation "org.mockito:mockito-core:${rootProject.mockitoVersion}"
+    testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
+    testImplementation "com.squareup.assertj:assertj-android:${rootProject.assertjVersion}"
+    testImplementation "com.squareup.okhttp3:mockwebserver:${rootProject.okhttpVersion}"
+    testImplementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
+    testImplementation 'org.assertj:assertj-core:3.10.0'
+}
+
+bintray {
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
+    configurations = ["archives"]
+    pkg {
+        repo = "com.okta.android"
+        name = "okta-sdk-appauth-android"
+        desc = "Okta Authentication using AppAuth"
+        userOrg = "okta"
+        licenses = ["Apache-2.0"]
+        websiteUrl = "https://github.com/okta/okta-sdk-appauth-android"
+        vcsUrl = "https://github.com/okta/okta-sdk-appauth-android.git"
+        issueTrackerUrl = "https://github.com/okta/okta-sdk-appauth-android/issues"
+        version {
+            name = "${rootProject.versionName}"
+            desc = "Okta Authentication using AppAuth"
+            vcsTag = "${rootProject.versionName}"
+        }
+    }
+}
