@@ -35,8 +35,6 @@ import java.util.List;
 
 /**
  * Utility class to obtain the browser package name to be used for
- * {@link AuthorizationService#performAuthorizationRequest(
- * AuthorizationRequest,
  * android.app.PendingIntent)} calls. It prioritizes browsers which support
  * [custom tabs](https://developer.chrome.com/multidevice/android/customtabs). To mitigate
  * man-in-the-middle attacks by malicious apps pretending to be browsers for the specific URI we

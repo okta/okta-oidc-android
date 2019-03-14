@@ -45,7 +45,8 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<JSONObject, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<JSONObject, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 JSONObject json = executeRequest();

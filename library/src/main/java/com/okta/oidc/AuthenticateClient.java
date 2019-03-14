@@ -250,7 +250,7 @@ public final class AuthenticateClient {
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
-            Intent intent = new Intent(mActivity.get(), OktaAuthenticationActivity.class);
+            Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
             intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             mActivity.get().startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
@@ -343,7 +343,7 @@ public final class AuthenticateClient {
                 Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
                 mErrorActivityResult = INVALID_REDIRECT_URI;
             }
-        } else {
+        } else if (mErrorActivityResult == null) {
             mErrorActivityResult = AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
         }
         activity.startActivityForResult(createAuthIntent(), REQUEST_CODE_SIGN_IN);
@@ -417,7 +417,8 @@ public final class AuthenticateClient {
                         activityInfo.packageName.equals(mActivity.get().getPackageName())) {
                     found = true;
                 } else {
-                    Log.w(TAG, "Warning! Multiple applications found registered with same scheme");
+                    Log.w(TAG, "Warning! Multiple " +
+                            "applications found registered with same scheme");
                     //Another installed app have same url scheme.
                     //return false as if no activity found to prevent hijacking of redirect.
                     return false;

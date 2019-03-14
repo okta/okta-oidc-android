@@ -32,7 +32,8 @@ import java.io.IOException;
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
-public final class ConfigurationRequest extends BaseRequest<ProviderConfiguration, AuthorizationException> {
+public final class ConfigurationRequest extends
+        BaseRequest<ProviderConfiguration, AuthorizationException> {
     ConfigurationRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
@@ -44,7 +45,9 @@ public final class ConfigurationRequest extends BaseRequest<ProviderConfiguratio
     }
 
     @Override
-    public void dispatchRequest(final RequestDispatcher dispatcher, final RequestCallback<ProviderConfiguration, AuthorizationException> callback) {
+    public void dispatchRequest(final RequestDispatcher dispatcher,
+                                final RequestCallback<ProviderConfiguration,
+                                        AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 ProviderConfiguration config = executeRequest();
@@ -67,7 +70,9 @@ public final class ConfigurationRequest extends BaseRequest<ProviderConfiguratio
         try {
             response = openConnection();
             JSONObject json = response.asJson();
-            ProviderConfiguration configuration = new Gson().fromJson(json.toString(), ProviderConfiguration.class);
+            ProviderConfiguration configuration = new Gson().
+                    fromJson(json.toString(), ProviderConfiguration.class);
+
             configuration.validate();
             return configuration;
         } catch (IOException ex) {

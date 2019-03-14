@@ -59,7 +59,7 @@ public class SampleActivity extends AppCompatActivity {
             }
         });
 
-        mButton.setOnClickListener(v -> signIn());
+        mButton.setOnClickListener(v -> mOktaAuth.logIn(this));
         mTvStatus = findViewById(R.id.status);
 
         //samples sdk test
@@ -80,49 +80,45 @@ public class SampleActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, String.format("onActivityResult requestCode=%d resultCode=%d PID=%d", requestCode, resultCode, android.os.Process.myPid()));
+        Log.d(TAG, String.format("onActivityResult requestCode=%d resultCode=%d PID=%d",
+                requestCode, resultCode, android.os.Process.myPid()));
         super.onActivityResult(requestCode, resultCode, data);
 
         // Pass result to AuthenticateClient for processing
-        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode, resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
-            @Override
-            public void onSuccess(@NonNull Boolean success) {
-                Log.d("SampleActivity", "SUCCESS");
-                if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_OUT) {
-                    mTvStatus.setText("sign out success");
-                    mButton.setText("Sign In");
-                    mButton.setOnClickListener(v -> signIn());
-                    mSignOut.setVisibility(View.INVISIBLE);
-                } else if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_IN) {
-                    mTvStatus.setText("authentication success");
-                    mButton.setText("Get profile");
-                    mButton.setOnClickListener(v -> getProfile());
-                    mSignOut.setVisibility(View.VISIBLE);
-                }
-            }
+        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode,
+                resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull Boolean success) {
+                        Log.d(TAG, "SUCCESS");
+                        if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_OUT) {
+                            mTvStatus.setText("sign out success");
+                            mButton.setText("Sign In");
+                            mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this));
+                            mSignOut.setVisibility(View.INVISIBLE);
+                        } else if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_IN) {
+                            mTvStatus.setText("authentication success");
+                            mButton.setText("Get profile");
+                            mButton.setOnClickListener(v -> getProfile());
+                            mSignOut.setVisibility(View.VISIBLE);
+                        }
+                    }
 
-            @Override
-            public void onCancel() {
-                Log.d("SampleActivity", "CANCELED!");
-                mTvStatus.setText("canceled");
-            }
+                    @Override
+                    public void onCancel() {
+                        Log.d(TAG, "CANCELED!");
+                        mTvStatus.setText("canceled");
+                    }
 
-            @Override
-            public void onError(@NonNull String msg, AuthorizationException error) {
-                Log.d("SampleActivity", error.error + " onActivityResult onError " + msg, error);
-                mTvStatus.setText(msg);
-            }
-        });
+                    @Override
+                    public void onError(@NonNull String msg, AuthorizationException error) {
+                        Log.d(TAG, error.error +
+                                " onActivityResult onError " + msg, error);
+                        mTvStatus.setText(msg);
+                    }
+                });
         if (codeExchange) {
             //TODO show loading dialog
         }
-    }
-
-
-    private void signIn() {
-        mOktaAuth.logIn(this);
-        //testing config change.
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     private void getProfile() {

@@ -16,8 +16,26 @@ package com.okta.oidc;
 
 import android.support.annotation.NonNull;
 
+/**
+ * Callback for a authorize request that does not use the Chrome custom tabs as a user agent.
+ * Requests such as getting provider configuration, user profiles, token requests.
+ *
+ * @param <T> the type this request will return on success.
+ * @param <U> the {@link com.okta.oidc.util.AuthorizationException} type of exception in error
+ */
 public interface RequestCallback<T, U extends Exception> {
+    /**
+     * Method called on success with a result
+     *
+     * @param result Result of the authorized request.
+     */
     void onSuccess(@NonNull T result);
 
+    /**
+     * Method called on error with a the authorized request call
+     *
+     * @param error     error string result.
+     * @param exception The {@link com.okta.oidc.util.AuthorizationException} type of exception
+     */
     void onError(String error, U exception);
 }

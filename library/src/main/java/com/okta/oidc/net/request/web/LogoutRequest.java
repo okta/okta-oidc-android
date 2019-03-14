@@ -64,7 +64,8 @@ public class LogoutRequest implements WebRequest {
             Uri.Builder uriBuilder = Uri.parse(end_session_endpoint).buildUpon()
                     .appendQueryParameter("client_id", client_id)
                     .appendQueryParameter("id_token_hint", id_token_hint);
-            appendOptionalParams(uriBuilder, "post_logout_redirect_uri", post_logout_redirect_uri);
+            appendOptionalParams(uriBuilder, "post_logout_redirect_uri",
+                    post_logout_redirect_uri);
             appendOptionalParams(uriBuilder, "state", state);
             return uriBuilder.build();
         }

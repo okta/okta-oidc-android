@@ -17,10 +17,32 @@ package com.okta.oidc;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+/**
+ * A callback that handles a Authorization response returned by Chrome Tabs.
+ * Used in onActivityResult to handle the Authorization response.
+ *
+ * @param <T> the type this request will return on success.
+ * @param <U> the {@link com.okta.oidc.util.AuthorizationException} type of exception in error
+ */
 public interface ResultCallback<T, U extends Exception> {
+
+    /**
+     * Method called on success with a result
+     *
+     * @param result Result of the authorized request.
+     */
     void onSuccess(@NonNull T result);
 
+    /**
+     * Method called when login is canceled with a result
+     */
     void onCancel();
 
+    /**
+     * Method called on error with a the authorized request call
+     *
+     * @param msg       error message
+     * @param exception The {@link com.okta.oidc.util.AuthorizationException} type of exception
+     */
     void onError(@Nullable String msg, @Nullable U exception);
 }

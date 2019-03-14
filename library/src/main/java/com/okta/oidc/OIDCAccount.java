@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 /*
     Okta OIDC application information
@@ -111,7 +112,8 @@ public class OIDCAccount {
     }
 
     public boolean isLoggedIn() {
-        return mTokenResponse != null && (mTokenResponse.getAccessToken() != null || mTokenResponse.getIdToken() != null);
+        return mTokenResponse != null && (mTokenResponse.getAccessToken() != null
+                || mTokenResponse.getIdToken() != null);
     }
 
     public @Nullable
@@ -201,7 +203,8 @@ public class OIDCAccount {
         public Builder withResId(Context context, @RawRes int Id) {
             try (InputStream inputStream = context.getResources().openRawResource(Id)) {
                 Writer writer = new StringWriter();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                 String line = reader.readLine();
                 while (line != null) {
                     writer.write(line);

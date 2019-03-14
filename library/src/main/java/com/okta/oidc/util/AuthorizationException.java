@@ -32,16 +32,6 @@ import static com.okta.oidc.util.Preconditions.checkNotNull;
 
 /**
  * Returned as a response to OAuth2 requests if they fail. Specifically:
- * <p/>
- * - The {@link AuthorizationService.TokenResponseCallback response} to
- * {@link AuthorizationService#performTokenRequest(TokenRequest,
- * AuthorizationService.TokenResponseCallback) token requests},
- * <p/>
- * - The {@link AuthorizationServiceConfiguration.RetrieveConfigurationCallback
- * response}
- * to
- * {@link AuthorizationServiceConfiguration#fetchFromUrl(android.net.Uri,
- * AuthorizationServiceConfiguration.RetrieveConfigurationCallback) configuration retrieval}.
  */
 @SuppressWarnings({"ThrowableInstanceNeverThrown", "ThrowableResultOfMethodCallIgnored"})
 public final class AuthorizationException extends Exception {
@@ -210,7 +200,7 @@ public final class AuthorizationException extends Exception {
                 generalEx(5, "JSON deserialization error");
 
         /**
-         * Indicates a problem occurred constructing a {@link TokenResponse token response} object
+         * Indicates a problem occurred constructing a token response object
          * from the JSON provided by the server.
          */
         public static final AuthorizationException TOKEN_RESPONSE_CONSTRUCTION_ERROR =
@@ -587,8 +577,7 @@ public final class AuthorizationException extends Exception {
 
     /**
      * Extracts an {@link AuthorizationException} from an intent produced by {@link #toIntent()}.
-     * This is used to retrieve an error response in the handler registered for a call to
-     * {@link AuthorizationService#performAuthorizationRequest}.
+     * This is used to retrieve an error response in the handler registered for a call to.
      */
     @Nullable
     public static AuthorizationException fromIntent(Intent data) {
@@ -698,7 +687,7 @@ public final class AuthorizationException extends Exception {
 
     /**
      * Creates an intent from this exception. Used to carry error responses to the handling activity
-     * specified in calls to {@link AuthorizationService#performAuthorizationRequest}.
+     * specified in calls to.
      */
     @NonNull
     public Intent toIntent() {
@@ -717,7 +706,7 @@ public final class AuthorizationException extends Exception {
             return true;
         }
 
-        if (obj == null || !(obj instanceof AuthorizationException)) {
+        if (!(obj instanceof AuthorizationException)) {
             return false;
         }
 

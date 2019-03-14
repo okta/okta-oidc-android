@@ -28,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -39,7 +40,8 @@ public class HttpConnection {
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String DEFAULT_CONTENT_TYPE =
             String.format("application/x-www-form-urlencoded; charset=%s", DEFAULT_ENCODING);
-    public static final String JSON_CONTENT_TYPE = String.format("application/json; charset=%s", DEFAULT_ENCODING);
+    public static final String JSON_CONTENT_TYPE = String.format("application/json; charset=%s",
+            DEFAULT_ENCODING);
     public static final String USER_AGENT = "User-Agent";
     public static final String USER_AGENT_HEADER = "Android/" + Build.VERSION.SDK_INT + " " +
             BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_NAME;
@@ -100,7 +102,9 @@ public class HttpConnection {
     private byte[] encodePostParameters() {
         StringBuilder encodedParams = new StringBuilder();
         try {
-            for (Map.Entry<String, String> entry : mPostParameters.entrySet()) {
+            for (Iterator<Map.Entry<String, String>> iterator =
+                 mPostParameters.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, String> entry = iterator.next();
                 if (entry.getKey() == null || entry.getValue() == null) {
                     throw new IllegalArgumentException(
                             String.format(
@@ -111,7 +115,9 @@ public class HttpConnection {
                 encodedParams.append(URLEncoder.encode(entry.getKey(), DEFAULT_ENCODING));
                 encodedParams.append('=');
                 encodedParams.append(URLEncoder.encode(entry.getValue(), DEFAULT_ENCODING));
-                encodedParams.append('&');
+                if (iterator.hasNext()) {
+                    encodedParams.append('&');
+                }
             }
             return encodedParams.toString().getBytes(DEFAULT_ENCODING);
         } catch (UnsupportedEncodingException uee) {
@@ -155,7 +161,8 @@ public class HttpConnection {
             return this;
         }
 
-        public HttpConnection.Builder setRequestProperty(@NonNull String key, @NonNull String value) {
+        public HttpConnection.Builder setRequestProperty(@NonNull String key,
+                                                         @NonNull String value) {
             if (mRequestProperties == null) {
                 mRequestProperties = new HashMap<>();
             }

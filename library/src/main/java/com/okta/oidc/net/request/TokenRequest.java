@@ -74,7 +74,9 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     }
 
     @Override
-    public void dispatchRequest(final RequestDispatcher dispatcher, final RequestCallback<TokenResponse, AuthorizationException> callback) {
+    public void dispatchRequest(final RequestDispatcher dispatcher,
+                                final RequestCallback<TokenResponse,
+                                        AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 final TokenResponse response = executeRequest();
@@ -109,7 +111,8 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
                     throw AuthorizationException.fromOAuthTemplate(
                             AuthorizationException.TokenRequestErrors.byString(error),
                             error,
-                            json.optString(AuthorizationException.PARAM_ERROR_DESCRIPTION, null),
+                            json.optString(AuthorizationException.PARAM_ERROR_DESCRIPTION,
+                                    null),
                             UriUtil.parseUriIfAvailable(
                                     json.optString(AuthorizationException.PARAM_ERROR_URI)));
                 } catch (JSONException jsonEx) {
