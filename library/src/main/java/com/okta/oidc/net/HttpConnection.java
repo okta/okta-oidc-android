@@ -39,7 +39,8 @@ public class HttpConnection {
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String DEFAULT_CONTENT_TYPE =
             String.format("application/x-www-form-urlencoded; charset=%s", DEFAULT_ENCODING);
-    public static final String JSON_CONTENT_TYPE = String.format("application/json; charset=%s", DEFAULT_ENCODING);
+    public static final String JSON_CONTENT_TYPE = String.format("application/json; charset=%s",
+            DEFAULT_ENCODING);
     public static final String USER_AGENT = "User-Agent";
     public static final String USER_AGENT_HEADER = "Android/" + Build.VERSION.SDK_INT + " " +
             BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_NAME;
@@ -155,7 +156,8 @@ public class HttpConnection {
             return this;
         }
 
-        public HttpConnection.Builder setRequestProperty(@NonNull String key, @NonNull String value) {
+        public HttpConnection.Builder setRequestProperty(@NonNull String key,
+                                                         @NonNull String value) {
             if (mRequestProperties == null) {
                 mRequestProperties = new HashMap<>();
             }

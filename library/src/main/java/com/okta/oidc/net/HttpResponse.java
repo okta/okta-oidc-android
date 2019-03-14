@@ -59,7 +59,8 @@ public final class HttpResponse {
      * @param connection an {@link HttpURLConnection} httpUrlconnection.
      */
     public HttpResponse(
-            int statusCode, Map<String, List<String>> headers, int length, HttpURLConnection connection) {
+            int statusCode, Map<String, List<String>> headers,
+            int length, HttpURLConnection connection) {
         mStatusCode = statusCode;
         mHeaders = headers;
         mLength = length;
@@ -103,7 +104,8 @@ public final class HttpResponse {
 
     public JSONObject asJson() throws IOException, JSONException {
         JSONObject json;
-        if (mStatusCode < HttpURLConnection.HTTP_OK || mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
+        if (mStatusCode < HttpURLConnection.HTTP_OK ||
+                mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
             throw new IOException("Invalid status code " + mStatusCode);
         }
         InputStream is = getContent();

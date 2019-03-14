@@ -116,7 +116,7 @@ public class BrowserDescriptor {
             return true;
         }
 
-        if (obj == null || !(obj instanceof BrowserDescriptor)) {
+        if (!(obj instanceof BrowserDescriptor)) {
             return false;
         }
 

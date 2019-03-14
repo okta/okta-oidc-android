@@ -417,7 +417,8 @@ public final class AuthenticateClient {
                         activityInfo.packageName.equals(mActivity.get().getPackageName())) {
                     found = true;
                 } else {
-                    Log.w(TAG, "Warning! Multiple applications found registered with same scheme");
+                    Log.w(TAG, "Warning! Multiple " +
+                            "applications found registered with same scheme");
                     //Another installed app have same url scheme.
                     //return false as if no activity found to prevent hijacking of redirect.
                     return false;

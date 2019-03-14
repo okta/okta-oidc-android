@@ -19,7 +19,7 @@ import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.util.AuthorizationException;
 
 public interface HttpRequest<T, U extends AuthorizationException> {
-    public enum Type {
+    enum Type {
         CONFIGURATION,
         TOKEN_EXCHANGE,
         AUTHORIZED,

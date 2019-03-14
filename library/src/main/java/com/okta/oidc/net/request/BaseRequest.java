@@ -31,7 +31,8 @@ import java.net.URL;
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
-public abstract class BaseRequest<T, U extends AuthorizationException> implements HttpRequest<T, U> {
+public abstract class BaseRequest<T, U extends AuthorizationException>
+        implements HttpRequest<T, U> {
     protected HttpRequest.Type mRequestType;
     private static final String HTTPS_SCHEME = "https";
     private static final int HTTP_CONTINUE = 100;
@@ -45,7 +46,8 @@ public abstract class BaseRequest<T, U extends AuthorizationException> implement
 
     @WorkerThread
     protected HttpResponse openConnection() throws IOException {
-        Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()), "only https connections are permitted");
+        Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
+                "only https connections are permitted");
         HttpURLConnection conn = mConnection.openConnection(new URL(mUri.toString()));
         conn.connect();
         if (mCanceled) {

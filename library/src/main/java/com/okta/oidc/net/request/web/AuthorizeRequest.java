@@ -141,7 +141,8 @@ public class AuthorizeRequest implements WebRequest {
             }
             CodeVerifierUtil.checkCodeVerifier(verifier);
             mParameters.code_verifier = verifier;
-            mParameters.code_challenge = CodeVerifierUtil.deriveCodeVerifierChallenge(mParameters.code_verifier);
+            mParameters.code_challenge = CodeVerifierUtil.
+                    deriveCodeVerifierChallenge(mParameters.code_verifier);
             mParameters.code_challenge_method = CodeVerifierUtil.getCodeVerifierChallengeMethod();
         }
 
@@ -191,8 +192,10 @@ public class AuthorizeRequest implements WebRequest {
         }
 
         /*
-        A space delimited list of scopes to be provided to the Social Identity Provider when performing Social Login.
-        These scopes are used in addition to the scopes already configured on the Identity Provider.
+        A space delimited list of scopes to be provided to the
+        Social Identity Provider when performing Social Login.
+        These scopes are used in addition to the scopes
+        already configured on the Identity Provider.
          */
         public Builder idpScopes(@Nullable String idp_scope) {
             mParameters.idp_scope = idp_scope;
@@ -201,7 +204,8 @@ public class AuthorizeRequest implements WebRequest {
 
         public Builder idpScopes(@Nullable String... idp_scope) {
             if (idp_scope != null) {
-                mParameters.idp_scope = AsciiStringListUtil.iterableToString(Arrays.asList(idp_scope));
+                mParameters.idp_scope = AsciiStringListUtil.
+                        iterableToString(Arrays.asList(idp_scope));
             }
             return this;
         }

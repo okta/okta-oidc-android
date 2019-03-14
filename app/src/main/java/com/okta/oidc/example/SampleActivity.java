@@ -84,7 +84,8 @@ public class SampleActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Pass result to AuthenticateClient for processing
-        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode, resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
+        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode,
+                resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull Boolean success) {
                 Log.d("SampleActivity", "SUCCESS");
@@ -109,7 +110,8 @@ public class SampleActivity extends AppCompatActivity {
 
             @Override
             public void onError(@NonNull String msg, AuthorizationException error) {
-                Log.d("SampleActivity", error.error + " onActivityResult onError " + msg, error);
+                Log.d("SampleActivity", error.error +
+                        " onActivityResult onError " + msg, error);
                 mTvStatus.setText(msg);
             }
         });

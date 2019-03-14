@@ -98,11 +98,7 @@ public class VersionRange {
             return false;
         }
 
-        if (mUpperBound != null && mUpperBound.compareTo(version) < 0) {
-            return false;
-        }
-
-        return true;
+        return mUpperBound == null || mUpperBound.compareTo(version) >= 0;
     }
 
     @Override

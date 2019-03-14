@@ -64,7 +64,7 @@ public class DelimitedVersion implements Comparable<DelimitedVersion> {
             return true;
         }
 
-        if (obj == null || !(obj instanceof DelimitedVersion)) {
+        if (!(obj instanceof DelimitedVersion)) {
             return false;
         }
 
