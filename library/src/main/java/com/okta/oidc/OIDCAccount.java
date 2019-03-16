@@ -27,6 +27,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.Persistable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +57,7 @@ public class OIDCAccount {
         mAccount = account;
     }
 
+    /*
     void persist(SharedPreferences.Editor editor) {
         Gson gson = new Gson();
         editor.putString(KEY_PREFS_ACCOUNT, gson.toJson(mAccount));
@@ -74,6 +77,9 @@ public class OIDCAccount {
             mProviderConfig = gson.fromJson(config, ProviderConfiguration.class);
         }
     }
+    */
+
+
 
     void setTokenResponse(TokenResponse token) {
         mTokenResponse = token;

@@ -12,42 +12,32 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.net.response.web;
+package com.okta.oidc.storage;
 
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class LogoutResponse extends WebResponse {
-    private String state;
+public class SimpleOktaStorage implements OktaStorage {
+    private SharedPreferences prefs;
 
-    private LogoutResponse() {
-    }
-
-    public static LogoutResponse fromUri(Uri uri) {
-        LogoutResponse response = new LogoutResponse();
-        response.state = uri.getQueryParameter("state");
-        return response;
+    public SimpleOktaStorage(SharedPreferences prefs) {
+        this.prefs = prefs;
     }
 
     @Override
-    public String getState() {
-        return state;
+    public void save(@NonNull String key, @NonNull String value) {
+        prefs.edit().putString(key, value).apply();
     }
 
-    @NonNull
+    @Nullable
     @Override
-    public String getKey() {
-        return RESTORE_ME.getKey();
-    }
-
-    @Override
-    public String persist() {
-        return state;
+    public String get(@NonNull String key) {
+        return prefs.getString(key, null);
     }
 
     @Override
-    public boolean encrypt() {
-        return RESTORE_ME.encrypted();
+    public void delete(@NonNull String key) {
+        prefs.edit().remove(key).apply();
     }
 }

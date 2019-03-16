@@ -31,6 +31,7 @@ import com.okta.oidc.AuthenticateClient;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
+import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -73,6 +74,7 @@ public class SampleActivity extends AppCompatActivity {
 
         mOktaAuth = new AuthenticateClient.Builder()
                 .withAccount(mOktaAccount)
+                .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)), this)
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
     }
@@ -80,12 +82,12 @@ public class SampleActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, String.format("onActivityResult requestCode=%d resultCode=%d PID=%d",
-                requestCode, resultCode, android.os.Process.myPid()));
+        Log.d(TAG, String.format("onActivityResult requestCode=%d" +
+                "resultCode=%d PID=%d", requestCode, resultCode, android.os.Process.myPid()));
         super.onActivityResult(requestCode, resultCode, data);
 
         // Pass result to AuthenticateClient for processing
-        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode,
+        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(requestCode,
                 resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
                     @Override
                     public void onSuccess(@NonNull Boolean success) {

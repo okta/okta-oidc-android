@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.params.ResponseType;
+import com.okta.oidc.storage.Persistable;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -29,17 +30,11 @@ import java.util.Map;
 
 //https://developer.okta.com/docs/api/resources/oidc#authorize
 @SuppressWarnings("unused")
-public class AuthorizeRequest implements WebRequest {
+public class AuthorizeRequest extends WebRequest {
     private Parameters mParameters;
 
     private AuthorizeRequest(Parameters parameters) {
         mParameters = parameters;
-    }
-
-    //Convert the parameters as json to save
-    @Override
-    public String asJson() {
-        return new Gson().toJson(mParameters);
     }
 
     @Override
@@ -48,11 +43,6 @@ public class AuthorizeRequest implements WebRequest {
             return mParameters.state;
         }
         return null;
-    }
-
-    public static AuthorizeRequest fromJson(String json) {
-        Parameters params = new Gson().fromJson(json, Parameters.class);
-        return new AuthorizeRequest(params);
     }
 
     public String getCodeVerifier() {
@@ -64,8 +54,25 @@ public class AuthorizeRequest implements WebRequest {
     }
 
     @Override
+    @NonNull
     public Uri toUri() {
         return mParameters.toUri();
+    }
+
+    @NonNull
+    public String getKey() {
+        return RESTORE_ME.getKey();
+    }
+
+    @Override
+    public String persist() {
+        mParameters.request_type = "authorize";
+        return new Gson().toJson(mParameters);
+    }
+
+    @Override
+    public boolean encrypt() {
+        return RESTORE_ME.encrypted();
     }
 
     static class Parameters {
@@ -73,6 +80,7 @@ public class AuthorizeRequest implements WebRequest {
             //NO-OP
         }
 
+        String request_type; //for serializing
         String authorize_endpoint; //required
         String client_id; //required
         String code_challenge; //required

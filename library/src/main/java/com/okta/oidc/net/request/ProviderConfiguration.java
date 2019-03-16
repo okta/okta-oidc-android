@@ -14,12 +14,19 @@
  */
 package com.okta.oidc.net.request;
 
-@SuppressWarnings("unused")
-public class ProviderConfiguration {
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import com.google.gson.Gson;
+import com.okta.oidc.storage.Persistable;
+
+@SuppressWarnings("unused")
+public class ProviderConfiguration implements Persistable {
     public static final String OPENID_CONFIGURATION_RESOURCE = "/.well-known/openid-configuration";
 
-    static final String OAUTH2_CONFIGURATION_RESOURCE = "/.well-known/oauth-authorization-server";
+    public static final String OAUTH2_CONFIGURATION_RESOURCE = "/.well-known/oauth-authorization-server";
 
     public String authorization_endpoint;
 
@@ -74,6 +81,46 @@ public class ProviderConfiguration {
             throw new MissingArgumentException("endpoint");
         }
         //TODO add more checks
+    }
+
+    public static final Persistable.Restore<ProviderConfiguration> RESTORE =
+            new Persistable.Restore<ProviderConfiguration>() {
+                private static final String KEY = "ProviderConfiguration";
+
+                @NonNull
+                @Override
+                public String getKey() {
+                    return KEY;
+                }
+
+                @Override
+                public ProviderConfiguration restore(@Nullable String data) {
+                    if (data != null) {
+                        return new Gson().fromJson(data, ProviderConfiguration.class);
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean encrypted() {
+                    return false;
+                }
+            };
+
+    @Override
+    public boolean encrypt() {
+        return RESTORE.encrypted();
+    }
+
+    @NonNull
+    @Override
+    public String getKey() {
+        return RESTORE.getKey();
+    }
+
+    @Override
+    public String persist() {
+        return new Gson().toJson(this);
     }
 
     public static class MissingArgumentException extends Exception {

@@ -48,6 +48,8 @@ import com.okta.oidc.net.request.web.LogoutRequest;
 import com.okta.oidc.net.response.web.LogoutResponse;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.WebResponse;
+import com.okta.oidc.storage.OktaRepository;
+import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -80,6 +82,7 @@ public final class AuthenticateClient {
     private int mCustomTabColor;
     private String mState;
     private String mLoginHint;
+    private OktaRepository mOktaRepo;
 
     private RequestDispatcher mDispatcher;
     private WebRequest mAuthorizeRequest;
@@ -101,6 +104,7 @@ public final class AuthenticateClient {
         mAdditionalParams = builder.mAdditionalParams;
         mState = builder.mState;
         mLoginHint = builder.mLoginHint;
+        mOktaRepo = builder.mOktaRepo;
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
     }
 
@@ -124,51 +128,19 @@ public final class AuthenticateClient {
         });
     }
 
-    //TODO move saving request to a request objects
     private void persist() {
-        SharedPreferences prefs = mActivity.get().getSharedPreferences(AuthenticateClient.class.getCanonicalName(), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(AUTH_RESTORE_PREF, true);
-        if (mAuthorizeRequest != null) {
-            editor.putString(AUTH_REQUEST_PREF, mAuthorizeRequest.asJson());
-        }
-        if (mAuthResponse != null) {
-            editor.putString(AUTH_RESPONSE_PREF, mAuthResponse.asJson());
-        }
-        if (mOIDCAccount != null) {
-            mOIDCAccount.persist(editor);
-        }
-        editor.apply();
+        mOktaRepo.save(mAuthorizeRequest);
+        mOktaRepo.save(mAuthResponse);
     }
 
-    private void restore(Activity activity) {
-        SharedPreferences prefs = activity.getSharedPreferences(AuthenticateClient.class.getCanonicalName(), Context.MODE_PRIVATE);
-        if (prefs.getBoolean(AUTH_RESTORE_PREF, false)) {
-            try {
-                String json = prefs.getString(AUTH_REQUEST_PREF, null);
-                if (json != null) {
-                    mAuthorizeRequest = AuthorizeRequest.fromJson(json);
-                }
-                json = prefs.getString(AUTH_RESPONSE_PREF, null);
-                if (json != null) {
-                    mAuthResponse = new Gson().fromJson(json, AuthorizeResponse.class);
-                }
-                mOIDCAccount.restore(prefs);
-                clearPreferences();
-            } catch (JSONException ex) {
-                //NO-OP
-            }
-        }
+    private void restore() {
+        mAuthorizeRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE_ME);
+        mAuthResponse = (AuthorizeResponse) mOktaRepo.restore(WebResponse.RESTORE_ME);
     }
 
     private void clearPreferences() {
-        SharedPreferences prefs = mActivity.get()
-                .getSharedPreferences(AuthenticateClient.class.getCanonicalName(),
-                        Context.MODE_PRIVATE);
-        prefs.edit().remove(AUTH_RESPONSE_PREF)
-                .remove(AUTH_REQUEST_PREF)
-                .remove(AUTH_RESTORE_PREF)
-                .apply();
+        mOktaRepo.delete(mAuthorizeRequest);
+        mOktaRepo.delete(mAuthResponse);
     }
     //end
 
@@ -259,7 +231,7 @@ public final class AuthenticateClient {
         return true;
     }
 
-    private boolean validateResponse(Activity activity, Uri responseUri, int requestCode) {
+    private boolean validateResponse(Uri responseUri, int requestCode) {
         boolean result = true;
         if (responseUri.getQueryParameterNames().contains(AuthorizationException.PARAM_ERROR)) {
             AuthorizationException exception = AuthorizationException.fromOAuthRedirect(responseUri);
@@ -267,7 +239,7 @@ public final class AuthenticateClient {
             return false;
         } else {
             if (mAuthorizeRequest == null) {
-                restore(activity);
+                restore();
                 if (mAuthorizeRequest == null) {
                     mResultCb.onError("Response error", USER_CANCELED_AUTH_FLOW);
                     return false;
@@ -289,7 +261,7 @@ public final class AuthenticateClient {
     }
 
     //true indicates that code exchange will be done in background.
-    public boolean handleAuthorizationResponse(Activity activity, int requestCode, int resultCode, Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
+    public boolean handleAuthorizationResponse(int requestCode, int resultCode, Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
         boolean exchange = false;
         //TODO clean up
         if ((requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT) && !sResultHandled) {
@@ -298,7 +270,7 @@ public final class AuthenticateClient {
             } else {
                 mResultCb = cb;
                 Uri response = data.getData();
-                if (response != null && validateResponse(activity, response, requestCode)) {
+                if (response != null && validateResponse(response, requestCode)) {
                     if (requestCode == REQUEST_CODE_SIGN_OUT) {
                         mResultCb.onSuccess(true);
                     } else {
@@ -436,6 +408,7 @@ public final class AuthenticateClient {
         private int mCustomTabColor;
         private String mState;
         private String mLoginHint;
+        private OktaRepository mOktaRepo;
 
         public Builder() {
         }
@@ -456,6 +429,11 @@ public final class AuthenticateClient {
 
         public Builder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
+            return this;
+        }
+
+        public Builder withStorage(OktaStorage storage, Context context) {
+            mOktaRepo = new OktaRepository(storage, context);
             return this;
         }
 

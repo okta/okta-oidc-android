@@ -15,15 +15,43 @@
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-public interface WebRequest {
-    /**
-     * provide URI.
-     */
-    Uri toUri();
+import com.google.gson.Gson;
+import com.okta.oidc.net.response.web.LogoutResponse;
+import com.okta.oidc.storage.Persistable;
 
-    String asJson();
+public abstract class WebRequest implements Persistable {
+    @NonNull
+    public abstract Uri toUri();
 
-    String getState();
+    public abstract String getState();
 
+    public static final Persistable.Restore<WebRequest> RESTORE_ME = new Persistable.Restore<WebRequest>() {
+        private final String KEY = "WebRequest";
+
+        @NonNull
+        @Override
+        public String getKey() {
+            return KEY;
+        }
+
+        @Override
+        public WebRequest restore(@Nullable String data) {
+            if (data != null) {
+                if (data.startsWith("authorize")) {
+                    return new Gson().fromJson(data, AuthorizeRequest.class);
+                } else {
+                    return new Gson().fromJson(data, LogoutRequest.class);
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public boolean encrypted() {
+            return false;
+        }
+    };
 }
