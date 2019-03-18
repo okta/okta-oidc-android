@@ -223,6 +223,12 @@ public final class AuthorizationException extends Exception {
          */
         public static final AuthorizationException ID_TOKEN_VALIDATION_ERROR =
                 generalEx(9, "Invalid ID Token");
+
+        /**
+         * Indicates that no compatible browser for custom tabs.
+         */
+        public static final AuthorizationException NO_BROWSER_FOUND =
+                generalEx(10, "No compatible browser found");
     }
 
     /**
