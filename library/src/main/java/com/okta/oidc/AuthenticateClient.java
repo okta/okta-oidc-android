@@ -142,7 +142,6 @@ public final class AuthenticateClient {
         mOktaRepo.delete(mAuthorizeRequest);
         mOktaRepo.delete(mAuthResponse);
     }
-    //end
 
     private void cancelCurrentRequest() {
         if (mCurrentHttpRequest != null) {
@@ -260,38 +259,58 @@ public final class AuthenticateClient {
         return result;
     }
 
+    @Nullable
+    private AuthorizationException parseException(Bundle bundle) {
+        String json = bundle.getString(EXTRA_EXCEPTION, null);
+        if (json != null) {
+            try {
+                return AuthorizationException.fromJson(json);
+            } catch (JSONException e) {
+                return AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR;
+            }
+        }
+        return null;
+    }
+
+    private void handleCancelled(Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
+        if (data == null) {
+            cb.onCancel();
+            return;
+        }
+        Bundle bundle = data.getExtras();
+        if (bundle != null) {
+            String json = bundle.getString(EXTRA_EXCEPTION, null);
+            if (json != null) {
+                try {
+                    AuthorizationException exception = AuthorizationException.fromJson(json);
+                    cb.onError(exception.errorDescription, exception);
+                } catch (JSONException e) {
+                    cb.onError("Json error", AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
+                }
+            }
+        } else {
+            cb.onCancel();
+        }
+    }
+
     //true indicates that code exchange will be done in background.
     public boolean handleAuthorizationResponse(int requestCode, int resultCode, Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
+        if (sResultHandled) {
+            return false;
+        }
         boolean exchange = false;
-        //TODO clean up
-        if ((requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT) && !sResultHandled) {
-            if (resultCode == RESULT_CANCELED) {
-                cb.onCancel();
-            } else {
-                mResultCb = cb;
-                Uri response = data.getData();
-                if (response != null && validateResponse(response, requestCode)) {
-                    if (requestCode == REQUEST_CODE_SIGN_OUT) {
-                        mResultCb.onSuccess(true);
-                    } else {
-                        tokenExchange();
-                        exchange = true;
-                    }
+        if (resultCode == RESULT_CANCELED && (requestCode == REQUEST_CODE_SIGN_IN
+                || requestCode == REQUEST_CODE_SIGN_OUT)) {
+            handleCancelled(data, cb);
+        } else if (requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT) {
+            mResultCb = cb;
+            Uri response = data.getData();
+            if (response != null && validateResponse(response, requestCode)) {
+                if (requestCode == REQUEST_CODE_SIGN_OUT) {
+                    mResultCb.onSuccess(true);
                 } else {
-                    Bundle bundle = data.getExtras();
-                    if (bundle != null) {
-                        String json = bundle.getString(EXTRA_EXCEPTION, null);
-                        if (json != null) {
-                            try {
-                                AuthorizationException exception = AuthorizationException.fromJson(json);
-                                mResultCb.onError(exception.errorDescription, exception);
-                            } catch (JSONException e) {
-                                mResultCb.onError("Json error", AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
-                            }
-                        }
-                    } else {
-                        mResultCb.onError("Empty response", AuthorizationException.GeneralErrors.INVALID_REGISTRATION_RESPONSE);
-                    }
+                    tokenExchange();
+                    exchange = true;
                 }
             }
             clearPreferences();
