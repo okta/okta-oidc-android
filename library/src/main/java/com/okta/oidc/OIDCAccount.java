@@ -15,7 +15,6 @@
 package com.okta.oidc;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,8 +26,6 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
-import com.okta.oidc.storage.OktaStorage;
-import com.okta.oidc.storage.Persistable;
 
 import org.json.JSONException;
 import org.json.JSONObject;

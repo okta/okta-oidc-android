@@ -71,12 +71,35 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Sign out"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/revoke_token"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/revoke_refresh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Revoke refresh token" />
+
+                <Button
+                    android:id="@+id/revoke_access"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Revoke access token" />
 
             </LinearLayout>
 

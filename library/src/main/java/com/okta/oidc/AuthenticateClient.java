@@ -39,6 +39,7 @@ import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -168,6 +169,16 @@ public final class AuthenticateClient {
         return (AuthorizedRequest) mCurrentHttpRequest;
     }
 
+    public RevokeTokenRequest revokeTokenRequest(String token) {
+        cancelCurrentRequest();
+        mCurrentHttpRequest = HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.REVOKE_TOKEN)
+                .connectionFactory(mConnectionFactory)
+                .tokenToRevoke(token)
+                .account(mOIDCAccount).createRequest();
+        return (RevokeTokenRequest) mCurrentHttpRequest;
+    }
+
     public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
                                                @NonNull HttpConnection.RequestMethod method) {
         cancelCurrentRequest();
@@ -183,8 +194,12 @@ public final class AuthenticateClient {
     }
 
     public void getUserProfile(final RequestCallback<JSONObject, AuthorizationException> cb) {
-        cancelCurrentRequest();
         AuthorizedRequest request = userProfileRequest();
+        request.dispatchRequest(mDispatcher, cb);
+    }
+
+    public void revokeToken(String token, final RequestCallback<Boolean, AuthorizationException> cb) {
+        RevokeTokenRequest request = revokeTokenRequest(token);
         request.dispatchRequest(mDispatcher, cb);
     }
 

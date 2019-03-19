@@ -40,6 +40,7 @@ public class HttpRequestBuilder {
     Map<String, String> mProperties;
     Uri mUri;
     HttpConnection.RequestMethod mRequestMethod;
+    String mTokenToRevoke;
 
     private HttpRequestBuilder() {
     }
@@ -66,6 +67,11 @@ public class HttpRequestBuilder {
                     throw new IllegalArgumentException("Not authorized or invalid service");
                 }
                 break;
+            case REVOKE_TOKEN:
+                if (!mAccount.haveConfiguration() || mTokenToRevoke == null) {
+                    throw new IllegalArgumentException("Invalid config or token");
+                }
+                break;
             default:
         }
     }
@@ -87,6 +93,8 @@ public class HttpRequestBuilder {
                 mUri = Uri.parse(mAccount.getProviderConfig().userinfo_endpoint);
                 mRequestMethod = HttpConnection.RequestMethod.POST;
                 return new AuthorizedRequest(this);
+            case REVOKE_TOKEN:
+                return new RevokeTokenRequest(this);
             default:
                 throw new IllegalArgumentException("Invalid request of type: " + mRequestType);
         }
@@ -134,6 +142,11 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder httpRequestMethod(HttpConnection.RequestMethod requestMethod) {
         mRequestMethod = requestMethod;
+        return this;
+    }
+
+    public HttpRequestBuilder tokenToRevoke(String token) {
+        mTokenToRevoke = token;
         return this;
     }
 }

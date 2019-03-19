@@ -106,7 +106,8 @@ public final class HttpResponse {
         JSONObject json;
         if (mStatusCode < HttpURLConnection.HTTP_OK ||
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-            throw new IOException("Invalid status code " + mStatusCode);
+            throw new IOException("Invalid status code " + mStatusCode +
+                    " " + mConnection.getResponseMessage());
         }
         InputStream is = getContent();
         if (is == null) {
