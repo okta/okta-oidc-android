@@ -19,7 +19,5 @@ public interface Prompt {
     String NONE = "none";
     String LOGIN = "login";
     String CONSENT = "consent";
-    //TODO is this supported? not documented on okta api page.
-    //https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1
     String SELECT_ACCOUNT = "select_account";
 }

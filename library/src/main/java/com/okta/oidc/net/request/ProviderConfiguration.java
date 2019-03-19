@@ -16,6 +16,7 @@ package com.okta.oidc.net.request;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
@@ -74,11 +75,34 @@ public class ProviderConfiguration implements Persistable {
         //NO-OP
     }
 
-    void validate() throws MissingArgumentException {
-        if (authorization_endpoint == null) {
-            throw new MissingArgumentException("endpoint");
+    void validate() throws IllegalArgumentException {
+        if (TextUtils.isEmpty(authorization_endpoint)) {
+            throw new IllegalArgumentException("authorization_endpoint is missing");
         }
-        //TODO add more checks
+        if (TextUtils.isEmpty(end_session_endpoint)) {
+            throw new IllegalArgumentException("end_session_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(introspection_endpoint)) {
+            throw new IllegalArgumentException("introspection_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(issuer)) {
+            throw new IllegalArgumentException("issuer is missing");
+        }
+        if (TextUtils.isEmpty(jwks_uri)) {
+            throw new IllegalArgumentException("jwks_uri is missing");
+        }
+        if (TextUtils.isEmpty(registration_endpoint)) {
+            throw new IllegalArgumentException("registration_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(revocation_endpoint)) {
+            throw new IllegalArgumentException("revocation_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(token_endpoint)) {
+            throw new IllegalArgumentException("token_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(userinfo_endpoint)) {
+            throw new IllegalArgumentException("userinfo_endpoint is missing");
+        }
     }
 
     public static final Persistable.Restore<ProviderConfiguration> RESTORE =
@@ -119,18 +143,5 @@ public class ProviderConfiguration implements Persistable {
     @Override
     public String persist() {
         return new Gson().toJson(this);
-    }
-
-    public static class MissingArgumentException extends Exception {
-        private String mMissingField;
-
-        public MissingArgumentException(String field) {
-            super("Missing mandatory configuration field: " + field);
-            mMissingField = field;
-        }
-
-        public String getMissingField() {
-            return mMissingField;
-        }
     }
 }

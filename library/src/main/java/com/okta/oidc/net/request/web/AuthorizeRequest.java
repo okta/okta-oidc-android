@@ -17,6 +17,7 @@ package com.okta.oidc.net.request.web;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
@@ -155,7 +156,30 @@ public class AuthorizeRequest extends WebRequest {
         }
 
         private void validate() {
-            //TODO validate all parameters
+            if (TextUtils.isEmpty(mParameters.authorize_endpoint)) {
+                throw new IllegalArgumentException("authorize_endpoint missing");
+            }
+            if (TextUtils.isEmpty(mParameters.code_challenge)) {
+                throw new IllegalArgumentException("code_challenge missing");
+            }
+            if (TextUtils.isEmpty(mParameters.code_challenge_method)) {
+                throw new IllegalArgumentException("code_challenge_method missing");
+            }
+            if (TextUtils.isEmpty(mParameters.nonce)) {
+                throw new IllegalArgumentException("nonce missing");
+            }
+            if (TextUtils.isEmpty(mParameters.redirect_uri)) {
+                throw new IllegalArgumentException("redirect_uri missing");
+            }
+            if (TextUtils.isEmpty(mParameters.response_type)) {
+                throw new IllegalArgumentException("response_type missing");
+            }
+            if (TextUtils.isEmpty(mParameters.scope)) {
+                throw new IllegalArgumentException("scope missing");
+            }
+            if (TextUtils.isEmpty(mParameters.state)) {
+                throw new IllegalArgumentException("state missing");
+            }
         }
 
         public Builder() {
@@ -228,7 +252,6 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        //TODO enforce interface for prompt
         public Builder prompt(@Nullable String prompt) {
             mParameters.prompt = prompt;
             return this;
@@ -249,7 +272,6 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        //TODO
         public Builder responseMode(@Nullable String responseMode) {
             mParameters.response_mode = responseMode;
             return this;

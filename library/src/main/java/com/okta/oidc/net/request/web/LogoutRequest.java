@@ -17,10 +17,10 @@ package com.okta.oidc.net.request.web;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
-import com.okta.oidc.storage.Persistable;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
@@ -65,7 +65,6 @@ public class LogoutRequest extends WebRequest {
             //NO-OP
         }
 
-        String request_type;
         String end_session_endpoint; //required
         String client_id; //required
         String id_token_hint; //required
@@ -91,9 +90,19 @@ public class LogoutRequest extends WebRequest {
 
     public static final class Builder {
         private Parameters mParameters;
-
         private void validate() {
-            //TODO validate all parameters
+            if (TextUtils.isEmpty(mParameters.end_session_endpoint)) {
+                throw new IllegalArgumentException("end_session_endpoint missing");
+            }
+            if (TextUtils.isEmpty(mParameters.client_id)) {
+                throw new IllegalArgumentException("client_id missing");
+            }
+            if (TextUtils.isEmpty(mParameters.id_token_hint)) {
+                throw new IllegalArgumentException("id_token_hint missing");
+            }
+            if (TextUtils.isEmpty(mParameters.post_logout_redirect_uri)) {
+                throw new IllegalArgumentException("post_logout_redirect_uri missing");
+            }
         }
 
         public Builder() {

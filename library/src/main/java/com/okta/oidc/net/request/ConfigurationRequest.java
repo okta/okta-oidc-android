@@ -83,7 +83,7 @@ public final class ConfigurationRequest extends
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR,
                     ex);
-        } catch (ProviderConfiguration.MissingArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT,
                     ex);
