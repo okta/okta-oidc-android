@@ -16,7 +16,6 @@
 package com.okta.oidc.example;
 
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorRes;
@@ -53,10 +52,10 @@ public class SampleActivity extends AppCompatActivity {
         mButton = findViewById(R.id.start_button);
         mSignOut = findViewById(R.id.logout_button);
         mSignOut.setOnClickListener(v -> {
-            if (mOktaAuth.logOut(this)) {
-                //already logged out
-                Log.d(TAG, "Already logged out");
-            }
+//            if (mOktaAuth.logOut(this)) {
+//                //already logged out
+//                Log.d(TAG, "Already logged out");
+//            }
         });
 
         mButton.setOnClickListener(v -> signIn());
@@ -75,31 +74,15 @@ public class SampleActivity extends AppCompatActivity {
                 .withAccount(mOktaAccount)
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
-    }
 
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, String.format("onActivityResult requestCode=%d resultCode=%d PID=%d", requestCode, resultCode, android.os.Process.myPid()));
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Pass result to AuthenticateClient for processing
-        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(this, requestCode,
-                resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
+        mOktaAuth.registerCallback(new ResultCallback<Boolean, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull Boolean success) {
                 Log.d("SampleActivity", "SUCCESS");
-                if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_OUT) {
-                    mTvStatus.setText("sign out success");
-                    mButton.setText("Sign In");
-                    mButton.setOnClickListener(v -> signIn());
-                    mSignOut.setVisibility(View.INVISIBLE);
-                } else if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_IN) {
                     mTvStatus.setText("authentication success");
                     mButton.setText("Get profile");
                     mButton.setOnClickListener(v -> getProfile());
                     mSignOut.setVisibility(View.VISIBLE);
-                }
             }
 
             @Override
@@ -114,10 +97,7 @@ public class SampleActivity extends AppCompatActivity {
                         " onActivityResult onError " + msg, error);
                 mTvStatus.setText(msg);
             }
-        });
-        if (codeExchange) {
-            //TODO show loading dialog
-        }
+        }, this);
     }
 
 

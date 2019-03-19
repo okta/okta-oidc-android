@@ -28,6 +28,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
+import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -45,7 +46,6 @@ import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.request.web.LogoutRequest;
-import com.okta.oidc.net.response.web.LogoutResponse;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.WebResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -59,12 +59,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_AUTH_URI;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_TAB_OPTIONS;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
-import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
 public final class AuthenticateClient {
@@ -87,7 +85,6 @@ public final class AuthenticateClient {
 
     private HttpConnectionFactory mConnectionFactory;
     private ResultCallback<Boolean, AuthorizationException> mResultCb;
-    private static boolean sResultHandled = false;
     private HttpRequest mCurrentHttpRequest;
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 101;
@@ -102,6 +99,14 @@ public final class AuthenticateClient {
         mState = builder.mState;
         mLoginHint = builder.mLoginHint;
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
+    }
+
+    public void registerCallback(ResultCallback<Boolean, AuthorizationException> resultCallback, FragmentActivity activity) {
+        mResultCb = resultCallback;
+        registerActivityLifeCycle(activity);
+        if (OktaResultFragment.hasRequestInProgress(activity)) {
+            OktaResultFragment.setAuthenticationClient(activity, this);
+        }
     }
 
     private void registerActivityLifeCycle(@NonNull final Activity activity) {
@@ -218,7 +223,7 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public void logIn(@NonNull final Activity activity) {
+    public void logIn(@NonNull final FragmentActivity activity) {
         if (!mOIDCAccount.haveConfiguration()) {
             ConfigurationRequest request = configurationRequest();
             mCurrentHttpRequest = request;
@@ -244,7 +249,6 @@ public final class AuthenticateClient {
 
     @AnyThread
     public boolean logOut(@NonNull final Activity activity) {
-        sResultHandled = false;
         if (mOIDCAccount.isLoggedIn()) {
             registerActivityLifeCycle(activity);
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
@@ -259,95 +263,60 @@ public final class AuthenticateClient {
         return true;
     }
 
-    private boolean validateResponse(Activity activity, Uri responseUri, int requestCode) {
-        boolean result = true;
-        if (responseUri.getQueryParameterNames().contains(AuthorizationException.PARAM_ERROR)) {
-            AuthorizationException exception = AuthorizationException.fromOAuthRedirect(responseUri);
-            mResultCb.onError("Response error", exception);
-            return false;
-        } else {
-            if (mAuthorizeRequest == null) {
-                restore(activity);
-                if (mAuthorizeRequest == null) {
-                    mResultCb.onError("Response error", USER_CANCELED_AUTH_FLOW);
-                    return false;
-                }
-            }
-            mAuthResponse = requestCode == REQUEST_CODE_SIGN_IN ?
-                    AuthorizeResponse.fromUri(responseUri) : LogoutResponse.fromUri(responseUri);
-
-            String requestState = mAuthorizeRequest.getState();
-            String responseState = mAuthResponse.getState();
-            if (requestState == null && responseState != null
-                    || (requestState != null && !requestState
-                    .equals(responseState))) {
-                mResultCb.onError("Mismatch states", AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH);
-                result = false;
-            }
-        }
-        return result;
-    }
-
-    //true indicates that code exchange will be done in background.
-    public boolean handleAuthorizationResponse(Activity activity, int requestCode, int resultCode, Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
-        boolean exchange = false;
-        //TODO clean up
-        if ((requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT) && !sResultHandled) {
-            if (resultCode == RESULT_CANCELED) {
-                cb.onCancel();
-            } else {
-                mResultCb = cb;
-                Uri response = data.getData();
-                if (response != null && validateResponse(activity, response, requestCode)) {
-                    if (requestCode == REQUEST_CODE_SIGN_OUT) {
-                        mResultCb.onSuccess(true);
-                    } else {
-                        tokenExchange();
-                        exchange = true;
-                    }
-                } else {
-                    Bundle bundle = data.getExtras();
-                    if (bundle != null) {
-                        String json = bundle.getString(EXTRA_EXCEPTION, null);
-                        if (json != null) {
-                            try {
-                                AuthorizationException exception = AuthorizationException.fromJson(json);
-                                mResultCb.onError(exception.errorDescription, exception);
-                            } catch (JSONException e) {
-                                mResultCb.onError("Json error", AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
-                            }
-                        }
-                    } else {
-                        mResultCb.onError("Empty response", AuthorizationException.GeneralErrors.INVALID_REGISTRATION_RESPONSE);
-                    }
-                }
-            }
-            clearPreferences();
-            sResultHandled = true;
-        }
-        return exchange;
-    }
-
-    private void stop() {
-        mResultCb = null;
-        cancelCurrentRequest();
-        mDispatcher.shutdown();
-    }
-
-    private void authorizationRequest(Activity activity) {
-        sResultHandled = false;
+    private void authorizationRequest(FragmentActivity activity) {
         registerActivityLifeCycle(activity);
         if (mOIDCAccount.haveConfiguration()) {
             mAuthorizeRequest = createAuthorizeRequest();
             if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
                 Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
+                //FIXME move error to listener
                 mErrorActivityResult = INVALID_REDIRECT_URI;
             }
+            OktaResultFragment.createLoginFragment(mAuthorizeRequest, mCustomTabColor,
+                    activity, this);
         } else {
             mErrorActivityResult = AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
         }
-        activity.startActivityForResult(createAuthIntent(), REQUEST_CODE_SIGN_IN);
     }
+
+    void postResult(OktaResultFragment.Result result) {
+        if (mResultCb != null) {
+            switch (result.getStatus()) {
+                case CANCELED:
+                    mResultCb.onCancel();
+                    break;
+                case ERROR:
+                    mResultCb.onError("Login error", result.getException());
+                    break;
+                case SUCCESS:
+                    if (validateResult(result.getAuthorizationResponse())) {
+                        tokenExchange();
+                    }
+                    break;
+            }
+        }
+    }
+
+    private boolean validateResult(WebResponse authResponse) {
+        if (mAuthorizeRequest == null && mActivity.get() != null) {
+            restore(mActivity.get());
+            if (mAuthorizeRequest == null) {
+                mResultCb.onError("Response error", AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW);
+                return false;
+            }
+        }
+
+        String requestState = mAuthorizeRequest.getState();
+        String responseState = authResponse.getState();
+        if (requestState == null && responseState != null
+                || (requestState != null && !requestState
+                .equals(responseState))) {
+            mResultCb.onError("Mismatch states", AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH);
+            return false;
+        }
+        return true;
+    }
+
 
     private AuthorizeRequest createAuthorizeRequest() {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
@@ -362,6 +331,12 @@ public final class AuthenticateClient {
             builder.state(mLoginHint);
         }
         return builder.create();
+    }
+
+    private void stop() {
+        mResultCb = null;
+        cancelCurrentRequest();
+        mDispatcher.shutdown();
     }
 
     @WorkerThread
@@ -478,5 +453,6 @@ public final class AuthenticateClient {
             mConnectionFactory = connectionFactory;
             return this;
         }
+
     }
 }
