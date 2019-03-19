@@ -16,7 +16,6 @@
 package com.okta.oidc.example;
 
 import android.annotation.TargetApi;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorRes;
@@ -95,10 +94,10 @@ public class SampleActivity extends AppCompatActivity {
                 }));
 
         mSignOut.setOnClickListener(v -> {
-            if (mOktaAuth.logOut(this)) {
-                //already logged out
-                Log.d(TAG, "Already logged out");
-            }
+//            if (mOktaAuth.logOut(this)) {
+//                //already logged out
+//                Log.d(TAG, "Already logged out");
+//            }
         });
 
         mButton.setOnClickListener(v -> mOktaAuth.logIn(this));
@@ -125,35 +124,17 @@ public class SampleActivity extends AppCompatActivity {
             mSignOut.setVisibility(View.VISIBLE);
             mRevokeContainer.setVisibility(View.VISIBLE);
         }
-    }
 
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, String.format("onActivityResult requestCode=%d" +
-                "resultCode=%d PID=%d", requestCode, resultCode, android.os.Process.myPid()));
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Pass result to AuthenticateClient for processing
-        boolean codeExchange = mOktaAuth.handleAuthorizationResponse(requestCode,
-                resultCode, data, new ResultCallback<Boolean, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean success) {
-                        Log.d(TAG, "SUCCESS");
-                        if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_OUT) {
-                            mTvStatus.setText("sign out success");
-                            mButton.setText("Sign In");
-                            mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this));
-                            mSignOut.setVisibility(View.INVISIBLE);
-                            mRevokeContainer.setVisibility(View.GONE);
-                        } else if (requestCode == AuthenticateClient.REQUEST_CODE_SIGN_IN) {
-                            mTvStatus.setText("authentication success");
-                            mButton.setText("Get profile");
-                            mButton.setOnClickListener(v -> getProfile());
-                            mSignOut.setVisibility(View.VISIBLE);
-                            mRevokeContainer.setVisibility(View.VISIBLE);
-                        }
-                    }
+        mOktaAuth.registerCallback(new ResultCallback<Boolean, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull Boolean success) {
+                Log.d("SampleActivity", "SUCCESS");
+                    mTvStatus.setText("authentication success");
+                    mButton.setText("Get profile");
+                    mButton.setOnClickListener(v -> getProfile());
+                    mSignOut.setVisibility(View.VISIBLE);
+            }
 
                     @Override
                     public void onCancel() {
@@ -161,16 +142,13 @@ public class SampleActivity extends AppCompatActivity {
                         mTvStatus.setText("canceled");
                     }
 
-                    @Override
-                    public void onError(@NonNull String msg, AuthorizationException error) {
-                        Log.d(TAG, error.error +
-                                " onActivityResult onError " + msg, error);
-                        mTvStatus.setText(msg);
-                    }
-                });
-        if (codeExchange) {
-            //TODO show loading dialog
-        }
+            @Override
+            public void onError(@NonNull String msg, AuthorizationException error) {
+                Log.d("SampleActivity", error.error +
+                        " onActivityResult onError " + msg, error);
+                mTvStatus.setText(msg);
+            }
+        }, this);
     }
 
     private void getProfile() {
