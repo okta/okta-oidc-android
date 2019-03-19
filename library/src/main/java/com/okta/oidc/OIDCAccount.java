@@ -57,30 +57,6 @@ public class OIDCAccount {
         mAccount = account;
     }
 
-    /*
-    void persist(SharedPreferences.Editor editor) {
-        Gson gson = new Gson();
-        editor.putString(KEY_PREFS_ACCOUNT, gson.toJson(mAccount));
-        if (mProviderConfig != null) {
-            editor.putString(KEY_PREFS_CONFIG, gson.toJson(mProviderConfig));
-        }
-    }
-
-    void restore(SharedPreferences prefs) throws JSONException {
-        Gson gson = new Gson();
-        String account = prefs.getString(KEY_PREFS_ACCOUNT, null);
-        String config = prefs.getString(KEY_PREFS_CONFIG, null);
-        if (account != null) {
-            gson.fromJson(account, AccountInfo.class);
-        }
-        if (config != null) {
-            mProviderConfig = gson.fromJson(config, ProviderConfiguration.class);
-        }
-    }
-    */
-
-
-
     void setTokenResponse(TokenResponse token) {
         mTokenResponse = token;
     }
