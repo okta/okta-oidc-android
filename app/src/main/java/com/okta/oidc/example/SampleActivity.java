@@ -117,6 +117,13 @@ public class SampleActivity extends AppCompatActivity {
                 .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)), this)
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
+
+        if (mOktaAccount.isLoggedIn()) {
+            mButton.setText("Get profile");
+            mButton.setOnClickListener(v -> getProfile());
+            mSignOut.setVisibility(View.VISIBLE);
+            mRevokeContainer.setVisibility(View.VISIBLE);
+        }
     }
 
 

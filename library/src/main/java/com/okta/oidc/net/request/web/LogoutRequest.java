@@ -47,7 +47,7 @@ public class LogoutRequest extends WebRequest {
 
     @NonNull
     public String getKey() {
-        return RESTORE_ME.getKey();
+        return RESTORE.getKey();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class LogoutRequest extends WebRequest {
 
     @Override
     public boolean encrypt() {
-        return RESTORE_ME.encrypted();
+        return RESTORE.encrypted();
     }
 
     static class Parameters {

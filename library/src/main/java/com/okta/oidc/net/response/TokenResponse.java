@@ -56,7 +56,7 @@ public class TokenResponse implements Persistable {
         //NO-OP
     }
 
-    public static final Persistable.Restore<TokenResponse> RESTORE_ME =
+    public static final Persistable.Restore<TokenResponse> RESTORE =
             new Persistable.Restore<TokenResponse>() {
                 private static final String KEY = "TokenResponse";
 
@@ -83,7 +83,7 @@ public class TokenResponse implements Persistable {
     @NonNull
     @Override
     public String getKey() {
-        return RESTORE_ME.getKey();
+        return RESTORE.getKey();
     }
 
     @Override
@@ -93,6 +93,6 @@ public class TokenResponse implements Persistable {
 
     @Override
     public boolean encrypt() {
-        return RESTORE_ME.encrypted();
+        return RESTORE.encrypted();
     }
 }

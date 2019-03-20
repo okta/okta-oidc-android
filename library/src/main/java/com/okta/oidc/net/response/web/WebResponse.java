@@ -27,7 +27,7 @@ public abstract class WebResponse implements Persistable {
 
     public abstract String getState();
 
-    public static final Persistable.Restore<WebResponse> RESTORE_ME = new Persistable.Restore<WebResponse>() {
+    public static final Persistable.Restore<WebResponse> RESTORE = new Persistable.Restore<WebResponse>() {
         private final String KEY = "WebResponse";
 
         @NonNull

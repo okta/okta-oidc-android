@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -31,7 +30,6 @@ import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
@@ -135,8 +133,8 @@ public final class AuthenticateClient {
     }
 
     private void restore() {
-        mAuthorizeRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE_ME);
-        mAuthResponse = (AuthorizeResponse) mOktaRepo.restore(WebResponse.RESTORE_ME);
+        mAuthorizeRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE);
+        mAuthResponse = (AuthorizeResponse) mOktaRepo.restore(WebResponse.RESTORE);
     }
 
     private void clearPreferences() {
@@ -205,12 +203,13 @@ public final class AuthenticateClient {
 
     @AnyThread
     public void logIn(@NonNull final Activity activity) {
-        if (!mOIDCAccount.haveConfiguration()) {
+        if (mOIDCAccount.obtainNewConfiguration()) {
             ConfigurationRequest request = configurationRequest();
             mCurrentHttpRequest = request;
             request.dispatchRequest(mDispatcher, new RequestCallback<ProviderConfiguration, AuthorizationException>() {
                 @Override
                 public void onSuccess(@NonNull ProviderConfiguration result) {
+                    mOktaRepo.save(result);
                     mOIDCAccount.setProviderConfig(result);
                     authorizationRequest(activity);
                 }
@@ -322,6 +321,7 @@ public final class AuthenticateClient {
             Uri response = data.getData();
             if (response != null && validateResponse(response, requestCode)) {
                 if (requestCode == REQUEST_CODE_SIGN_OUT) {
+                    mOktaRepo.delete(mOIDCAccount.getTokenResponse());
                     mResultCb.onSuccess(true);
                 } else {
                     tokenExchange();
@@ -343,7 +343,7 @@ public final class AuthenticateClient {
     private void authorizationRequest(Activity activity) {
         sResultHandled = false;
         registerActivityLifeCycle(activity);
-        if (mOIDCAccount.haveConfiguration()) {
+        if (mOIDCAccount.getProviderConfig() != null) {
             mAuthorizeRequest = createAuthorizeRequest();
             if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
                 Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
@@ -380,6 +380,7 @@ public final class AuthenticateClient {
         ((TokenRequest) mCurrentHttpRequest).dispatchRequest(mDispatcher, new RequestCallback<TokenResponse, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull TokenResponse result) {
+                mOktaRepo.save(result);
                 mOIDCAccount.setTokenResponse(result);
                 mResultCb.onSuccess(true);
             }
@@ -448,6 +449,10 @@ public final class AuthenticateClient {
         }
 
         public AuthenticateClient create() {
+            ProviderConfiguration configuration = (ProviderConfiguration) mOktaRepo.restore(ProviderConfiguration.RESTORE);
+            TokenResponse response = (TokenResponse) mOktaRepo.restore(TokenResponse.RESTORE);
+            mOIDCAccount.setProviderConfig(configuration);
+            mOIDCAccount.setTokenResponse(response);
             return new AuthenticateClient(this);
         }
 

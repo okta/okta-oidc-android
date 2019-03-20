@@ -53,7 +53,7 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 break; //NO-OP
             case TOKEN_EXCHANGE:
-                if (!mAccount.haveConfiguration()) {
+                if (mAccount.getProviderConfig() == null) {
                     throw new IllegalStateException("Account is missing or invalid service config");
                 }
                 break;
@@ -63,12 +63,12 @@ public class HttpRequestBuilder {
                 }
                 break;
             case PROFILE:
-                if (!mAccount.isLoggedIn() || !mAccount.haveConfiguration()) {
+                if (!mAccount.isLoggedIn() || mAccount.getProviderConfig() == null) {
                     throw new IllegalArgumentException("Not authorized or invalid service");
                 }
                 break;
             case REVOKE_TOKEN:
-                if (!mAccount.haveConfiguration() || mTokenToRevoke == null) {
+                if (mAccount.getProviderConfig() == null || mTokenToRevoke == null) {
                     throw new IllegalArgumentException("Invalid config or token");
                 }
                 break;

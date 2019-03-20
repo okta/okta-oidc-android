@@ -43,8 +43,6 @@ import java.nio.charset.StandardCharsets;
  */
 public class OIDCAccount {
     private static final String TAG = OIDCAccount.class.getSimpleName();
-    private static final String KEY_PREFS_CONFIG = "provider_config";
-    private static final String KEY_PREFS_ACCOUNT = "account_info";
 
     private TokenResponse mTokenResponse;
     private AccountInfo mAccount;
@@ -78,8 +76,8 @@ public class OIDCAccount {
         return mAccount.mScopes;
     }
 
-    public boolean haveConfiguration() {
-        return mProviderConfig != null;
+    public boolean obtainNewConfiguration() {
+        return (mProviderConfig == null || !mProviderConfig.issuer.equals(mAccount.mDiscoveryUri));
     }
 
     public ProviderConfiguration getProviderConfig() {
@@ -108,6 +106,11 @@ public class OIDCAccount {
     public @Nullable
     String getRefreshToken() {
         return mTokenResponse.getRefreshToken();
+    }
+
+    public @Nullable
+    TokenResponse getTokenResponse() {
+        return mTokenResponse;
     }
 
     private static class AccountInfo {

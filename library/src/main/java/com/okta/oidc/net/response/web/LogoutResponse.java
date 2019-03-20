@@ -16,7 +16,6 @@ package com.okta.oidc.net.response.web;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 public class LogoutResponse extends WebResponse {
     private String state;
@@ -38,7 +37,7 @@ public class LogoutResponse extends WebResponse {
     @NonNull
     @Override
     public String getKey() {
-        return RESTORE_ME.getKey();
+        return RESTORE.getKey();
     }
 
     @Override
@@ -48,6 +47,6 @@ public class LogoutResponse extends WebResponse {
 
     @Override
     public boolean encrypt() {
-        return RESTORE_ME.encrypted();
+        return RESTORE.encrypted();
     }
 }

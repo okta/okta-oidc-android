@@ -22,7 +22,6 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.params.ResponseType;
-import com.okta.oidc.storage.Persistable;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -62,7 +61,7 @@ public class AuthorizeRequest extends WebRequest {
 
     @NonNull
     public String getKey() {
-        return RESTORE_ME.getKey();
+        return RESTORE.getKey();
     }
 
     @Override
@@ -73,7 +72,7 @@ public class AuthorizeRequest extends WebRequest {
 
     @Override
     public boolean encrypt() {
-        return RESTORE_ME.encrypted();
+        return RESTORE.encrypted();
     }
 
     static class Parameters {
