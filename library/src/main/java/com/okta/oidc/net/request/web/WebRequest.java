@@ -40,8 +40,8 @@ public abstract class WebRequest implements Persistable {
         @Override
         public WebRequest restore(@Nullable String data) {
             if (data != null) {
-                if (data.startsWith("authorize")) {
-                    return new Gson().fromJson(data, AuthorizeRequest.class);
+                if (data.contains("authorize")) {
+                    return new AuthorizeRequest(new Gson().fromJson(data, AuthorizeRequest.Parameters.class));
                 } else {
                     return new Gson().fromJson(data, LogoutRequest.class);
                 }

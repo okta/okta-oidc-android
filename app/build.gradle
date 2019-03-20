@@ -4,7 +4,7 @@ apply from: "${rootDir}/gradle/style.gradle"
 
 android {
     defaultConfig {
-        applicationId "com.okta.appauth.android.example"
+        applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
 
         // Make sure this is consistent with the redirect URI used in

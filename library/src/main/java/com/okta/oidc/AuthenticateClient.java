@@ -129,17 +129,14 @@ public final class AuthenticateClient {
 
     private void persist() {
         mOktaRepo.save(mAuthorizeRequest);
-        mOktaRepo.save(mAuthResponse);
     }
 
     private void restore() {
         mAuthorizeRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE);
-        mAuthResponse = (AuthorizeResponse) mOktaRepo.restore(WebResponse.RESTORE);
     }
 
     private void clearPreferences() {
         mOktaRepo.delete(mAuthorizeRequest);
-        mOktaRepo.delete(mAuthResponse);
     }
 
     private void cancelCurrentRequest() {

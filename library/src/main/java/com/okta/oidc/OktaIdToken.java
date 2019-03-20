@@ -105,6 +105,13 @@ public class OktaIdToken {
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
         OIDCAccount account = request.getAccount();
         ProviderConfiguration config = account.getProviderConfig();
+
+        if (!"RS256".equals(mHeader.alg)) {
+            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                    new IllegalStateException("JWT Header 'alg' of [" + mHeader.alg + "] " +
+                            "is not supported, only RSA256 signatures are supported"));
+        }
+
         if (!mClaims.iss.equals(config.issuer)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issuer mismatch"));
@@ -115,30 +122,36 @@ public class OktaIdToken {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issuer must be an https URL"));
         }
+
         if (TextUtils.isEmpty(issuerUri.getHost())) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issuer host can not be empty"));
         }
+
         if (issuerUri.getFragment() != null || issuerUri.getQueryParameterNames().size() > 0) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException(
                             "Issuer URL contains query parameters or fragment components"));
         }
+
         String clientId = account.getClientId();
         if (!this.mClaims.aud.contains(clientId)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Audience mismatch"));
         }
+
         long nowInSeconds = clock.getCurrentTimeMillis() / MILLIS_PER_SECOND;
         if (nowInSeconds > mClaims.exp) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("ID Token expired"));
         }
+
         if (Math.abs(nowInSeconds - mClaims.iat) > TEN_MINUTES_IN_SECONDS) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issued at time is more than 10 minutes "
                             + "before or after the current time"));
         }
+
         if (GrantTypes.AUTHORIZATION_CODE.equals(request.getGrantType())) {
             String expectedNonce = request.getNonce();
             if (!TextUtils.equals(mClaims.nonce, expectedNonce)) {

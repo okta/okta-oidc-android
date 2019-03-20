@@ -18,7 +18,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
 
-import com.okta.appauth.android.BuildConfig;
+import com.okta.oidc.BuildConfig;
 import com.okta.oidc.util.Preconditions;
 
 import java.io.DataOutputStream;

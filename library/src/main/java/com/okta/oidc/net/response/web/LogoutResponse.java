@@ -17,6 +17,8 @@ package com.okta.oidc.net.response.web;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import com.google.gson.Gson;
+
 public class LogoutResponse extends WebResponse {
     private String state;
 
@@ -42,7 +44,7 @@ public class LogoutResponse extends WebResponse {
 
     @Override
     public String persist() {
-        return state;
+        return new Gson().toJson(this);
     }
 
     @Override

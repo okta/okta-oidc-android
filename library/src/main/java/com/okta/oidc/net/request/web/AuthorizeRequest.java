@@ -33,7 +33,7 @@ import java.util.Map;
 public class AuthorizeRequest extends WebRequest {
     private Parameters mParameters;
 
-    private AuthorizeRequest(Parameters parameters) {
+    AuthorizeRequest(Parameters parameters) {
         mParameters = parameters;
     }
 
