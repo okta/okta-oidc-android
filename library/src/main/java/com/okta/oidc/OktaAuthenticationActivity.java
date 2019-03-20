@@ -53,17 +53,11 @@ public class OktaAuthenticationActivity extends Activity {
     private Uri mAuthUri;
     private int mCustomTabColor;
     private boolean mBound = false;
+    private boolean mResultSent = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //In case redirect activity created a new instance of auth activity.
-        if (OktaRedirectActivity.REDIRECT_ACTION.equals(getIntent().getAction())) {
-            setResult(RESULT_CANCELED);
-            finish();
-            return;
-        }
-
         Bundle bundle;
         if (savedInstanceState == null) {
             bundle = getIntent().getExtras();
@@ -72,22 +66,12 @@ public class OktaAuthenticationActivity extends Activity {
         }
 
         if (bundle != null) {
-            if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
-                //login encountered exception pass same intent back to activity to handle.
-                sendResult(RESULT_CANCELED, getIntent());
-                finish();
-                return;
-            }
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
             mCustomTabColor = bundle.getInt(EXTRA_TAB_OPTIONS, -1);
             mAuthStarted = bundle.getBoolean(EXTRA_AUTH_STARTED, false);
-            String browser = getBrowser();
-            if (browser != null) {
-                bindServiceAndStart(browser);
-            } else {
-                setResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
-                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND));
-                finish();
+            if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
+                //login encountered exception pass same intent back to activity to handle.
+                sendResult(RESULT_CANCELED, getIntent());
             }
         }
     }
@@ -103,11 +87,18 @@ public class OktaAuthenticationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mAuthStarted) {
+        if (mAuthStarted) {
             // The custom tab was closed without getting a result.
             sendResult(RESULT_CANCELED, null);
+        } else {
+            String browser = getBrowser();
+            if (browser != null && !mResultSent) {
+                bindServiceAndStart(browser);
+            } else {
+                sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
+                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND));
+            }
         }
-        mAuthStarted = false;
     }
 
     @Override
@@ -199,20 +190,23 @@ public class OktaAuthenticationActivity extends Activity {
                 customTabsClient.warmup(0);
                 CustomTabsSession session = createSession(customTabsClient);
                 if (session != null) {
+                    mAuthStarted = true;
                     startActivity(createBrowserIntent(browserPackage, session));
                 } else {
-                    setResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
+                    sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
                             AuthorizationException.GeneralErrors.NO_BROWSER_FOUND));
                 }
             }
         };
-        mAuthStarted = true;
         mBound = CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
     }
 
     private void sendResult(int rc, Intent intent) {
-        setResult(rc, intent);
-        finish();
+        if (!mResultSent) {
+            mResultSent = true;
+            setResult(rc, intent);
+            finish();
+        }
     }
 
     @Override
