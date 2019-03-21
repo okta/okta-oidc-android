@@ -73,7 +73,7 @@ public final class AuthenticateClient {
     //need to restore auth.
     private static final String AUTH_RESTORE_PREF = AuthenticateClient.class.getCanonicalName() + ".AuthRestore";
 
-    private WeakReference<Activity> mActivity;
+    private WeakReference<FragmentActivity> mActivity;
     private OIDCAccount mOIDCAccount;
     private Map<String, String> mAdditionalParams;
     private int mCustomTabColor;
@@ -112,7 +112,7 @@ public final class AuthenticateClient {
         }
     }
 
-    private void registerActivityLifeCycle(@NonNull final Activity activity) {
+    private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
         mActivity = new WeakReference<>(activity);
         mActivity.get().getApplication().registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
             @Override
@@ -204,7 +204,7 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public void logIn(@NonNull final Activity activity) {
+    public void logIn(@NonNull final FragmentActivity activity) {
         if (mOIDCAccount.obtainNewConfiguration()) {
             ConfigurationRequest request = configurationRequest();
             mCurrentHttpRequest = request;
@@ -230,7 +230,7 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public boolean logOut(@NonNull final Activity activity) {
+    public boolean logOut(@NonNull final FragmentActivity activity) {
         if (mOIDCAccount.isLoggedIn()) {
             registerActivityLifeCycle(activity);
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
@@ -247,7 +247,7 @@ public final class AuthenticateClient {
 
     private void authorizationRequest(FragmentActivity activity) {
         registerActivityLifeCycle(activity);
-        if (mOIDCAccount.haveConfiguration()) {
+        if (mOIDCAccount.obtainNewConfiguration()) {
             mAuthorizeRequest = createAuthorizeRequest();
             if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
                 Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
@@ -281,7 +281,7 @@ public final class AuthenticateClient {
 
     private boolean validateResult(WebResponse authResponse) {
         if (mAuthorizeRequest == null && mActivity.get() != null) {
-            restore(mActivity.get());
+            restore();
             if (mAuthorizeRequest == null) {
                 mResultCb.onError("Response error", AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW);
                 return false;
