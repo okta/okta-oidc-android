@@ -19,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
 
 import com.okta.oidc.BuildConfig;
+import com.okta.oidc.net.request.TLSSocketFactory;
 import com.okta.oidc.util.Preconditions;
 
 import java.io.DataOutputStream;
@@ -27,10 +28,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
@@ -126,10 +131,29 @@ public class HttpConnection {
     }
 
     private static final class DefaultConnectionFactory implements HttpConnectionFactory {
+        /*
+        * TLS v1.1, v1.2 in Android supports starting from API 16. But it enabled by default starting
+        * from API 20.
+        * This method enable these TLS versions on API < 20.
+        * */
+        private void enableTLSv1_2(HttpURLConnection urlConnection) {
+            try {
+                ((HttpsURLConnection) urlConnection)
+                            .setSSLSocketFactory(new TLSSocketFactory());
+            } catch ( NoSuchAlgorithmException | KeyManagementException e ) {
+                throw new RuntimeException("Cannot create SSLContext.", e);
+            }
+        }
+
         @NonNull
         @Override
         public HttpURLConnection build(@NonNull URL url) throws IOException {
-            return (HttpURLConnection) url.openConnection();
+            HttpURLConnection urlConnection = (HttpURLConnection)url.openConnection();
+            if ( urlConnection instanceof HttpsURLConnection &&
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP ) {
+                enableTLSv1_2(urlConnection);
+            }
+            return urlConnection;
         }
     }
 
