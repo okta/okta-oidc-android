@@ -185,14 +185,14 @@ public class AuthorizeRequest extends WebRequest {
             mParameters = new Parameters();
             //Set default params
             mParameters.response_type = ResponseType.CODE;
-            if (mParameters.state == null) {
-                mParameters.state = CodeVerifierUtil.generateRandomState();
-            }
             mParameters.nonce = CodeVerifierUtil.generateRandomState();
             setCodeVerifier(null);
         }
 
         public AuthorizeRequest create() {
+            if (mParameters.state == null) {
+                mParameters.state = CodeVerifierUtil.generateRandomState();
+            }
             validate();
             return new AuthorizeRequest(mParameters);
         }
@@ -228,11 +228,6 @@ public class AuthorizeRequest extends WebRequest {
         These scopes are used in addition to the scopes
         already configured on the Identity Provider.
          */
-        public Builder idpScopes(@Nullable String idp_scope) {
-            mParameters.idp_scope = idp_scope;
-            return this;
-        }
-
         public Builder idpScopes(@Nullable String... idp_scope) {
             if (idp_scope != null) {
                 mParameters.idp_scope = AsciiStringListUtil.
@@ -285,13 +280,8 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder scope(@NonNull String scope) {
-            mParameters.scope = scope;
-            return this;
-        }
-
         public Builder scope(@NonNull String... scopes) {
-            mParameters.idp_scope = AsciiStringListUtil.iterableToString(Arrays.asList(scopes));
+            mParameters.scope = AsciiStringListUtil.iterableToString(Arrays.asList(scopes));
             return this;
         }
 
@@ -300,7 +290,7 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder state(@NonNull String state) {
+        public Builder state(@Nullable String state) {
             mParameters.state = state;
             return this;
         }

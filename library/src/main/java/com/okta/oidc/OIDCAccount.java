@@ -37,6 +37,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /*
     Okta OIDC application information
@@ -142,6 +143,40 @@ public class OIDCAccount {
                 throw new IllegalStateException("No issuer uri specified");
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            AccountInfo that = (AccountInfo) o;
+            if (mClientId != null ? !mClientId.equals(that.mClientId) : that.mClientId != null)
+                return false;
+            if (mRedirectUri != null ? !mRedirectUri.equals(that.mRedirectUri) : that.mRedirectUri != null)
+                return false;
+            if (mEndSessionRedirectUri != null ? !mEndSessionRedirectUri.equals(that.mEndSessionRedirectUri) : that.mEndSessionRedirectUri != null)
+                return false;
+            if (!Arrays.equals(mScopes, that.mScopes)) return false;
+            return mDiscoveryUri != null ? mDiscoveryUri.equals(that.mDiscoveryUri) : that.mDiscoveryUri == null;
+        }
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        boolean result;
+        if (!(obj instanceof OIDCAccount)) {
+            result = false;
+        } else {
+            OIDCAccount other = (OIDCAccount) obj;
+            result = mAccount == null ? other.mAccount == null : mAccount.equals(other.mAccount)
+                    || mProviderConfig == null ? other.mProviderConfig == null
+                    : mProviderConfig.equals(other.mProviderConfig)
+                    || mTokenResponse == null ? other.mTokenResponse == null
+                    : mTokenResponse.equals(other.mTokenResponse);
+        }
+        return result;
     }
 
     public static class Builder {

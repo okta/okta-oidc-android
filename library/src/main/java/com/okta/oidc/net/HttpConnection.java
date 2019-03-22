@@ -17,6 +17,7 @@ package com.okta.oidc.net;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.RestrictTo;
+import android.support.annotation.VisibleForTesting;
 
 import com.okta.oidc.BuildConfig;
 import com.okta.oidc.util.Preconditions;
@@ -125,7 +126,8 @@ public class HttpConnection {
         }
     }
 
-    private static final class DefaultConnectionFactory implements HttpConnectionFactory {
+    @VisibleForTesting
+    public static final class DefaultConnectionFactory implements HttpConnectionFactory {
         @NonNull
         @Override
         public HttpURLConnection build(@NonNull URL url) throws IOException {

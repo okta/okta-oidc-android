@@ -16,10 +16,14 @@ package com.okta.oidc.net.request;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class ProviderConfiguration implements Persistable {
@@ -71,7 +75,8 @@ public class ProviderConfiguration implements Persistable {
 
     public String[] id_token_signing_alg_values_supported;
 
-    ProviderConfiguration() {
+    @VisibleForTesting
+    public ProviderConfiguration() {
         //NO-OP
     }
 
@@ -143,5 +148,64 @@ public class ProviderConfiguration implements Persistable {
     @Override
     public String persist() {
         return new Gson().toJson(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ProviderConfiguration that = (ProviderConfiguration) o;
+
+        if (request_parameter_supported != that.request_parameter_supported) return false;
+        if (authorization_endpoint != null ? !authorization_endpoint.equals(that.authorization_endpoint) : that.authorization_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(claims_supported, that.claims_supported)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(code_challenge_methods_supported, that.code_challenge_methods_supported))
+            return false;
+        if (end_session_endpoint != null ? !end_session_endpoint.equals(that.end_session_endpoint) : that.end_session_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(grant_types_supported, that.grant_types_supported)) return false;
+        if (introspection_endpoint != null ? !introspection_endpoint.equals(that.introspection_endpoint) : that.introspection_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(introspection_endpoint_auth_methods_supported, that.introspection_endpoint_auth_methods_supported))
+            return false;
+        if (issuer != null ? !issuer.equals(that.issuer) : that.issuer != null) return false;
+        if (jwks_uri != null ? !jwks_uri.equals(that.jwks_uri) : that.jwks_uri != null)
+            return false;
+        if (registration_endpoint != null ? !registration_endpoint.equals(that.registration_endpoint) : that.registration_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(request_object_signing_alg_values_supported, that.request_object_signing_alg_values_supported))
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(response_modes_supported, that.response_modes_supported))
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(response_types_supported, that.response_types_supported))
+            return false;
+        if (revocation_endpoint != null ? !revocation_endpoint.equals(that.revocation_endpoint) : that.revocation_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(revocation_endpoint_auth_methods_supported, that.revocation_endpoint_auth_methods_supported))
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(scopes_supported, that.scopes_supported)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(subject_types_supported, that.subject_types_supported))
+            return false;
+        if (token_endpoint != null ? !token_endpoint.equals(that.token_endpoint) : that.token_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(token_endpoint_auth_methods_supported, that.token_endpoint_auth_methods_supported))
+            return false;
+        if (userinfo_endpoint != null ? !userinfo_endpoint.equals(that.userinfo_endpoint) : that.userinfo_endpoint != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(id_token_signing_alg_values_supported, that.id_token_signing_alg_values_supported);
     }
 }

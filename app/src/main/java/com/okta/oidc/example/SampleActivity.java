@@ -112,8 +112,7 @@ public class SampleActivity extends AppCompatActivity {
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
-        mOktaAuth = new AuthenticateClient.Builder()
-                .withAccount(mOktaAccount)
+        mOktaAuth = new AuthenticateClient.Builder(mOktaAccount)
                 .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)), this)
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
