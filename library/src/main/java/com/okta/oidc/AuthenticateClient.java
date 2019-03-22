@@ -272,7 +272,6 @@ public final class AuthenticateClient {
                 case LOGGED_OUT:
                     clearPreferences();
                     mOIDCAccount = null;
-                    m
                     mResultCb.onSuccess(AuthorisationStatus.LOGGED_OUT);
                     break;
             }
