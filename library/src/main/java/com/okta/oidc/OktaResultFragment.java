@@ -36,7 +36,7 @@ public class OktaResultFragment extends Fragment {
                                            AuthenticateClient client) {
 
         OktaResultFragment fragment = new OktaResultFragment();
-        fragment.setAuthenticatioClient(client);
+        fragment.setAuthenticationClient(client);
         fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
 
         activity.getSupportFragmentManager()
@@ -45,13 +45,13 @@ public class OktaResultFragment extends Fragment {
                 .commit();
     }
 
-    public static void createLogouttFragment(WebRequest request,
-                                             int customColor,
-                                             FragmentActivity activity,
-                                             AuthenticateClient client) {
+    public static void createLogoutFragment(WebRequest request,
+                                            int customColor,
+                                            FragmentActivity activity,
+                                            AuthenticateClient client) {
 
         OktaResultFragment fragment = new OktaResultFragment();
-        fragment.setAuthenticatioClient(client);
+        fragment.setAuthenticationClient(client);
         fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
 
         activity.getSupportFragmentManager()
@@ -79,7 +79,7 @@ public class OktaResultFragment extends Fragment {
         OktaResultFragment resultFragment = (OktaResultFragment) activity.getSupportFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
         if (resultFragment != null) {
-            resultFragment.setAuthenticatioClient(client);
+            resultFragment.setAuthenticationClient(client);
         }
     }
 
@@ -88,7 +88,7 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
 
-    private void setAuthenticatioClient(AuthenticateClient client) {
+    private void setAuthenticationClient(AuthenticateClient client) {
         this.client = client;
         postResult();
     }

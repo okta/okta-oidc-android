@@ -234,7 +234,7 @@ public final class AuthenticateClient {
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
-            OktaResultFragment.createLogouttFragment(mAuthorizeRequest, mCustomTabColor,
+            OktaResultFragment.createLogoutFragment(mAuthorizeRequest, mCustomTabColor,
                     activity, this);
         }
     }
@@ -242,6 +242,7 @@ public final class AuthenticateClient {
     private void authorizationRequest(FragmentActivity activity) {
         registerActivityLifeCycle(activity);
         if (mOIDCAccount.obtainNewConfiguration()) {
+            //FIXME if mOIDCAccount.getProviderConfig() == null, receive not handled exception
             mAuthorizeRequest = createAuthorizeRequest();
             if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
                 Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
@@ -251,6 +252,7 @@ public final class AuthenticateClient {
             OktaResultFragment.createLoginFragment(mAuthorizeRequest, mCustomTabColor,
                     activity, this);
         } else {
+            //FIXME lib doesn't notify client about this error. Nothing happen.
             mErrorActivityResult = AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
         }
     }
