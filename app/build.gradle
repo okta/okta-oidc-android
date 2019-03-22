@@ -10,7 +10,7 @@ android {
         // Make sure this is consistent with the redirect URI used in
         // res/raw/okta_app_auth_config.json
         manifestPlaceholders = [
-                "appAuthRedirectScheme": "com.oktapreview.samples-test"
+                "appAuthRedirectScheme": "com.lohika.android.test"
         ]
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

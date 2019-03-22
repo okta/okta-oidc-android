@@ -21,13 +21,13 @@ import android.support.annotation.Nullable;
  * A callback that handles a Authorization response returned by Chrome Tabs.
  * Used in onActivityResult to handle the Authorization response.
  *
- * @param <T> the type this request will return on success.
+ * @param <T> the type this request will return on authorized.
  * @param <U> the {@link com.okta.oidc.util.AuthorizationException} type of exception in error
  */
 public interface ResultCallback<T, U extends Exception> {
 
     /**
-     * Method called on success with a result
+     * Method called on authorized with a result
      *
      * @param result Result of the authorized request.
      */

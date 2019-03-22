@@ -1,15 +1,11 @@
 package com.okta.oidc;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -25,16 +21,14 @@ import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 public class OktaResultFragment extends Fragment {
 
     private static final String AUTHENTICATION_REQUEST = "authRequest";
-    private static final String CUSTOM_COLOR = "customColor";
-
-    public static final String REQUEST_STATUS_KEY = "requestStatus";
 
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 200;
 
     private AuthenticateClient client;
     private Result cashedResult;
-    private boolean requestInProgress;
+    private Intent authIntent;
+    private Intent logoutIntent;
 
     public static void createLoginFragment(WebRequest request,
                                            int customColor,
@@ -42,16 +36,41 @@ public class OktaResultFragment extends Fragment {
                                            AuthenticateClient client) {
 
         OktaResultFragment fragment = new OktaResultFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(AUTHENTICATION_REQUEST, request.toUri());
-        bundle.putInt(CUSTOM_COLOR, customColor);
-        fragment.setArguments(bundle);
         fragment.setAuthenticatioClient(client);
+        fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
 
         activity.getSupportFragmentManager()
                 .beginTransaction()
                 .add(fragment, AUTHENTICATION_REQUEST)
-                .commitNow();
+                .commit();
+    }
+
+    public static void createLogouttFragment(WebRequest request,
+                                             int customColor,
+                                             FragmentActivity activity,
+                                             AuthenticateClient client) {
+
+        OktaResultFragment fragment = new OktaResultFragment();
+        fragment.setAuthenticatioClient(client);
+        fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
+
+        activity.getSupportFragmentManager()
+                .beginTransaction()
+                .add(fragment, AUTHENTICATION_REQUEST)
+                .commit();
+
+    }
+
+    @Override
+    public void onResume() {
+        if (authIntent != null) {
+            startActivityForResult(authIntent, REQUEST_CODE_SIGN_IN);
+            authIntent = null;
+        }
+        if (logoutIntent != null) {
+            startActivityForResult(logoutIntent, REQUEST_CODE_SIGN_OUT);
+        }
+        super.onResume();
     }
 
     public static void setAuthenticationClient(FragmentActivity activity,
@@ -82,40 +101,11 @@ public class OktaResultFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            requestInProgress = savedInstanceState.getBoolean(REQUEST_STATUS_KEY);
-        }
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        outState.putBoolean(REQUEST_STATUS_KEY, requestInProgress);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        if (!requestInProgress) {
-            Intent intent = null;
-            if (getArguments().getParcelable(AUTHENTICATION_REQUEST) != null) {
-                intent = createAuthIntent(getArguments().getParcelable(AUTHENTICATION_REQUEST),
-                        getArguments().getInt(CUSTOM_COLOR));
-            }
-            startActivityForResult(intent, REQUEST_CODE_SIGN_IN);
-            requestInProgress = true;
-        }
-        return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    private Intent createAuthIntent(Uri request, int customColor) {
-        Intent intent = new Intent(getActivity(), OktaAuthenticationActivity.class);
+    private Intent createAuthIntent(Activity activity, Uri request, int customColor) {
+        Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_AUTH_URI, request);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_TAB_OPTIONS, customColor);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         return intent;
     }
 
@@ -147,21 +137,23 @@ public class OktaResultFragment extends Fragment {
             }
         }
         postResult();
-        requestInProgress = false;
     }
 
     private Result retrieveResponse(Uri responseUri, int requestCode) {
         if (responseUri.getQueryParameterNames().contains(AuthorizationException.PARAM_ERROR)) {
             return Result.exception(AuthorizationException.fromOAuthRedirect(responseUri));
         } else {
-            WebResponse response = requestCode == REQUEST_CODE_SIGN_IN ?
-                    AuthorizeResponse.fromUri(responseUri) : LogoutResponse.fromUri(responseUri);
-            return Result.success(response);
+            if (requestCode == REQUEST_CODE_SIGN_IN) {
+                return Result.authorized(AuthorizeResponse.fromUri(responseUri));
+            } else if (requestCode == REQUEST_CODE_SIGN_OUT){
+                return Result.loggeout(LogoutResponse.fromUri(responseUri));
+            }
         }
+        throw new IllegalStateException();
     }
 
     public enum Status {
-        CANCELED, ERROR, SUCCESS
+        CANCELED, ERROR, AUTHORIZED, LOGGED_OUT
     }
 
     public static class Result {
@@ -174,12 +166,16 @@ public class OktaResultFragment extends Fragment {
             return new Result(null, null, Status.CANCELED);
         }
 
-        public static Result success(WebResponse response) {
-            return new Result(null, response, Status.SUCCESS);
+        public static Result authorized(WebResponse response) {
+            return new Result(null, response, Status.AUTHORIZED);
+        }
+
+        public static Result loggeout(WebResponse response) {
+            return new Result(null, response, Status.LOGGED_OUT);
         }
 
         public static Result exception(AuthorizationException exception) {
-            return new Result(exception, null, Status.SUCCESS);
+            return new Result(exception, null, Status.ERROR);
         }
 
         public Result(AuthorizationException exception, WebResponse response, Status status) {
@@ -194,10 +190,6 @@ public class OktaResultFragment extends Fragment {
 
         public WebResponse getAuthorizationResponse() {
             return authorizationResponse;
-        }
-
-        public void setAuthorizationResponse(WebResponse authorizationResponse) {
-            this.authorizationResponse = authorizationResponse;
         }
 
         public Status getStatus() {

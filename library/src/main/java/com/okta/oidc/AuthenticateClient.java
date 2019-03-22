@@ -52,7 +52,6 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
@@ -60,9 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_AUTH_URI;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_TAB_OPTIONS;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
@@ -86,7 +82,7 @@ public final class AuthenticateClient {
     private WebResponse mAuthResponse;
 
     private HttpConnectionFactory mConnectionFactory;
-    private ResultCallback<Boolean, AuthorizationException> mResultCb;
+    private ResultCallback<AuthorisationStatus, AuthorizationException> mResultCb;
     private HttpRequest mCurrentHttpRequest;
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 101;
@@ -104,7 +100,7 @@ public final class AuthenticateClient {
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
     }
 
-    public void registerCallback(ResultCallback<Boolean, AuthorizationException> resultCallback, FragmentActivity activity) {
+    public void registerCallback(ResultCallback<AuthorisationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
         if (OktaResultFragment.hasRequestInProgress(activity)) {
@@ -126,7 +122,7 @@ public final class AuthenticateClient {
             public void onActivityDestroyed(Activity activity) {
                 if (mActivity != null && mActivity.get() == activity) {
                     stop();
-                    mActivity.get().getApplication().unregisterActivityLifecycleCallbacks(this);
+                    activity.getApplication().unregisterActivityLifecycleCallbacks(this);
                 }
             }
         });
@@ -142,6 +138,8 @@ public final class AuthenticateClient {
 
     private void clearPreferences() {
         mOktaRepo.delete(mAuthorizeRequest);
+        mOktaRepo.delete(mAuthResponse);
+
     }
 
     private void cancelCurrentRequest() {
@@ -230,19 +228,15 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public boolean logOut(@NonNull final FragmentActivity activity) {
+    public void logOut(@NonNull final FragmentActivity activity) {
         if (mOIDCAccount.isLoggedIn()) {
             registerActivityLifeCycle(activity);
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
-            Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            mActivity.get().startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
-            return false;
+            OktaResultFragment.createLogouttFragment(mAuthorizeRequest, mCustomTabColor,
+                    activity, this);
         }
-        return true;
     }
 
     private void authorizationRequest(FragmentActivity activity) {
@@ -270,16 +264,23 @@ public final class AuthenticateClient {
                 case ERROR:
                     mResultCb.onError("Login error", result.getException());
                     break;
-                case SUCCESS:
+                case AUTHORIZED:
                     if (validateResult(result.getAuthorizationResponse())) {
                         tokenExchange();
                     }
+                    break;
+                case LOGGED_OUT:
+                    clearPreferences();
+                    mOIDCAccount = null;
+                    m
+                    mResultCb.onSuccess(AuthorisationStatus.LOGGED_OUT);
                     break;
             }
         }
     }
 
     private boolean validateResult(WebResponse authResponse) {
+        mAuthResponse = authResponse;
         if (mAuthorizeRequest == null && mActivity.get() != null) {
             restore();
             if (mAuthorizeRequest == null) {
@@ -333,7 +334,7 @@ public final class AuthenticateClient {
             public void onSuccess(@NonNull TokenResponse result) {
                 mOktaRepo.save(result);
                 mOIDCAccount.setTokenResponse(result);
-                mResultCb.onSuccess(true);
+                mResultCb.onSuccess(AuthorisationStatus.AUTHORIZED);
             }
 
             @Override
@@ -341,20 +342,6 @@ public final class AuthenticateClient {
                 mResultCb.onError("Failed to complete exchange request", exception);
             }
         });
-    }
-
-    private Intent createAuthIntent() {
-        Intent intent = new Intent(mActivity.get(), OktaAuthenticationActivity.class);
-        if (mAuthorizeRequest != null) {
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
-        }
-        intent.putExtra(EXTRA_TAB_OPTIONS, mCustomTabColor);
-        if (mErrorActivityResult != null) {
-            intent.putExtra(EXTRA_EXCEPTION, mErrorActivityResult.toJsonString());
-            mErrorActivityResult = null;
-        }
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        return intent;
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri) {

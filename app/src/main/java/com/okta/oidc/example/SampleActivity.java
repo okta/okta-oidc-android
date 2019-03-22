@@ -25,10 +25,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.okta.oidc.AuthenticateClient;
+import com.okta.oidc.AuthorisationStatus;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
@@ -93,23 +93,18 @@ public class SampleActivity extends AppCompatActivity {
                     }
                 }));
 
-        mSignOut.setOnClickListener(v -> {
-//            if (mOktaAuth.logOut(this)) {
-//                //already logged out
-//                Log.d(TAG, "Already logged out");
-//            }
-        });
+        mSignOut.setOnClickListener(v -> mOktaAuth.logOut(this));
 
         mButton.setOnClickListener(v -> mOktaAuth.logIn(this));
         mTvStatus = findViewById(R.id.status);
 
         //samples sdk test
         mOktaAccount = new OIDCAccount.Builder()
-                .clientId("0oajqehiy6p81NVzA0h7")
-                .redirectUri("com.oktapreview.samples-test:/callback")
-                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+                .clientId("0oahnzhsegzYjqETc0h7")
+                .redirectUri("com.lohika.android.test:/callback")
+                .endSessionRedirectUri("com.lohika.android.test:/logout")
                 .scopes("openid", "profile", "offline_access")
-                .discoveryUri("https://samples-test.oktapreview.com")
+                .discoveryUri("https://lohika-um.oktapreview.com")
                 .create();
 
         mOktaAuth = new AuthenticateClient.Builder()
@@ -126,21 +121,31 @@ public class SampleActivity extends AppCompatActivity {
         }
 
 
-        mOktaAuth.registerCallback(new ResultCallback<Boolean, AuthorizationException>() {
+        mOktaAuth.registerCallback(new ResultCallback<AuthorisationStatus, AuthorizationException>() {
             @Override
-            public void onSuccess(@NonNull Boolean success) {
-                Log.d("SampleActivity", "SUCCESS");
-                    mTvStatus.setText("authentication success");
+            public void onSuccess(@NonNull AuthorisationStatus status) {
+                Log.d("SampleActivity", "AUTHORIZED");
+                if (status == AuthorisationStatus.AUTHORIZED) {
+                    mTvStatus.setText("authentication authorized");
                     mButton.setText("Get profile");
                     mButton.setOnClickListener(v -> getProfile());
                     mSignOut.setVisibility(View.VISIBLE);
+                    mRevokeContainer.setVisibility(View.VISIBLE);
+                } else if (status == AuthorisationStatus.LOGGED_OUT) {
+                    mTvStatus.setText("log out su");
+                    mButton.setText("Log in");
+                    mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this));
+                    mSignOut.setVisibility(View.GONE);
+                    mRevokeContainer.setVisibility(View.GONE);
+                    mTvStatus.setText("");
+                }
             }
 
-                    @Override
-                    public void onCancel() {
-                        Log.d(TAG, "CANCELED!");
-                        mTvStatus.setText("canceled");
-                    }
+            @Override
+            public void onCancel() {
+                Log.d(TAG, "CANCELED!");
+                mTvStatus.setText("canceled");
+            }
 
             @Override
             public void onError(@NonNull String msg, AuthorizationException error) {
