@@ -14,6 +14,7 @@
  */
 package com.okta.oidc.storage;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,9 +26,10 @@ public class SimpleOktaStorage implements OktaStorage {
         this.prefs = prefs;
     }
 
+    @SuppressLint("ApplySharedPref")
     @Override
     public void save(@NonNull String key, @NonNull String value) {
-        prefs.edit().putString(key, value).apply();
+        prefs.edit().putString(key, value).commit();
     }
 
     @Nullable
@@ -36,8 +38,9 @@ public class SimpleOktaStorage implements OktaStorage {
         return prefs.getString(key, null);
     }
 
+    @SuppressLint("ApplySharedPref")
     @Override
     public void delete(@NonNull String key) {
-        prefs.edit().remove(key).apply();
+        prefs.edit().remove(key).commit();
     }
 }
