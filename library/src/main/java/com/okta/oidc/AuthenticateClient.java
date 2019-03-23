@@ -246,10 +246,9 @@ public final class AuthenticateClient {
             mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
-            Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            mActivity.get().startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
+
+            Intent intent = createAuthIntent(mOIDCAccount.getEndSessionRedirectUri());
+            activity.startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
             return false;
         }
         return true;
@@ -282,19 +281,6 @@ public final class AuthenticateClient {
             }
         }
         return result;
-    }
-
-    @Nullable
-    private AuthorizationException parseException(Bundle bundle) {
-        String json = bundle.getString(EXTRA_EXCEPTION, null);
-        if (json != null) {
-            try {
-                return AuthorizationException.fromJson(json);
-            } catch (JSONException e) {
-                return AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR;
-            }
-        }
-        return null;
     }
 
     private void handleCancelled(Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
@@ -358,24 +344,17 @@ public final class AuthenticateClient {
         sResultHandled = false;
         registerActivityLifeCycle(activity);
         if (mOIDCAccount.getProviderConfig() != null) {
-            mAuthorizeRequest = createAuthorizeRequest();
-            if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
-                Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
-                mErrorActivityResult = INVALID_REDIRECT_URI;
-            }
+            mAuthorizeRequest = new AuthorizeRequest.Builder()
+                    .account(mOIDCAccount)
+                    .additionalParams(mAdditionalParams)
+                    .state(mState)
+                    .loginHint(mLoginHint)
+                    .create();
         } else if (mErrorActivityResult == null) {
             mErrorActivityResult = AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
         }
-        activity.startActivityForResult(createAuthIntent(), REQUEST_CODE_SIGN_IN);
-    }
-
-    private AuthorizeRequest createAuthorizeRequest() {
-        AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder()
-                .account(mOIDCAccount)
-                .additionalParams(mAdditionalParams)
-                .state(mState)
-                .loginHint(mLoginHint);
-        return builder.create();
+        activity.startActivityForResult(createAuthIntent(mOIDCAccount.getRedirectUri()),
+                REQUEST_CODE_SIGN_IN);
     }
 
     @WorkerThread
@@ -402,7 +381,13 @@ public final class AuthenticateClient {
         });
     }
 
-    private Intent createAuthIntent() {
+    private Intent createAuthIntent(Uri uri) {
+        if (!isRedirectUrisRegistered(uri)) {
+            Log.e(TAG, "No uri registered to handle redirect or multiple applications" +
+                    " registered");
+            mErrorActivityResult = INVALID_REDIRECT_URI;
+        }
+
         Intent intent = new Intent(mActivity.get(), OktaAuthenticationActivity.class);
         if (mAuthorizeRequest != null) {
             intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
