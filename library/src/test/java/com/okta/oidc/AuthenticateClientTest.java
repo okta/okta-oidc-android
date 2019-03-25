@@ -15,7 +15,9 @@
 package com.okta.oidc;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,13 +25,21 @@ import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
+import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RevokeTokenRequest;
+import com.okta.oidc.net.request.TokenRequest;
+import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.request.web.LogoutRequest;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
+import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.MockResultCallback;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +48,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static android.app.Activity.RESULT_OK;
+import static android.content.Context.MODE_PRIVATE;
+import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
@@ -48,23 +61,34 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 import androidx.test.platform.app.InstrumentationRegistry;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.impl.crypto.MacProvider;
+import io.jsonwebtoken.impl.crypto.RsaProvider;
+import io.jsonwebtoken.security.Keys;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Type;
+import java.security.Key;
+import java.security.KeyPair;
+import java.util.Base64;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.crypto.spec.SecretKeySpec;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -84,7 +108,6 @@ public class AuthenticateClientTest {
     private HttpConnectionFactory mConnectionFactory;
     private MockEndPoint mEndPoint;
 
-    @Mock
     private OktaStorage mStorage;
 
     private OIDCAccount mAccount;
@@ -100,6 +123,8 @@ public class AuthenticateClientTest {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mEndPoint = new MockEndPoint();
         mGson = new Gson();
+        mStorage = new SimpleOktaStorage(mContext.getSharedPreferences("OktaTest",
+                MODE_PRIVATE));
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
         mAccount = new OIDCAccount.Builder()
@@ -287,6 +312,86 @@ public class AuthenticateClientTest {
     }
 
     @Test
+    public void tokenExchangeFailure() throws InterruptedException, JSONException, AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String state = CodeVerifierUtil.generateRandomState();
+
+        AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
+                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
+                .redirectUri(mAccount.getRedirectUri().toString())
+                .scope("openid", "email", "profile")
+                .nonce(nonce)
+                .state(state)
+                .create();
+
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
+
+        mEndPoint.enqueueReturnInvalidClient();
+        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
+                .request(TOKEN_EXCHANGE).account(mAccount)
+                .authRequest(request)
+                .authResponse(response)
+                .createRequest();
+
+        TokenResponse tokenResponse = tokenRequest.executeRequest();
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+        assertThat(recordedRequest.getPath(), equalTo("/token"));
+        assertNull(tokenResponse);
+    }
+
+    @Test
+    public void tokenExchangeSuccess() throws InterruptedException, JSONException, AuthorizationException {
+        String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String state = CodeVerifierUtil.generateRandomState();
+
+        AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
+                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
+                .redirectUri(mAccount.getRedirectUri().toString())
+                .scope("openid", "email", "profile")
+                .nonce(nonce)
+                .state(state)
+                .create();
+
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
+
+        long nowMillis = System.currentTimeMillis();
+        Date now = new Date(nowMillis);
+        Calendar c = Calendar.getInstance();
+        c.setTime(now);
+        c.add(Calendar.DATE, 1);
+        Date tomorrow = c.getTime();
+        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
+
+        String jws = Jwts.builder()
+                .setIssuer(mEndPoint.getUrl())
+                .setSubject("sub")
+                .setAudience(mAccount.getClientId())
+                .setExpiration(tomorrow)
+                .setNotBefore(now)
+                .setIssuedAt(now)
+                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
+                .compact();
+
+        mEndPoint.enqueueTokenSucess(jws);
+        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
+                .request(TOKEN_EXCHANGE).account(mAccount)
+                .authRequest(request)
+                .authResponse(response)
+                .createRequest();
+        TokenResponse tokenResponse = tokenRequest.executeRequest();
+
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+        assertThat(recordedRequest.getPath(), equalTo("/token"));
+        assertNotNull(tokenResponse);
+
+    }
+
+    @Test
     public void getUserProfile() throws InterruptedException, JSONException {
         mEndPoint.enqueueUserInfoSuccess();
         final CountDownLatch latch = new CountDownLatch(1);
@@ -349,17 +454,60 @@ public class AuthenticateClientTest {
     }
 
     @Test
-    public void logIn() {
-
+    public void handleAuthorizationResponseLoginSuccess() {
+        mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
+                .state(CUSTOM_STATE)
+                .create();
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("com.okta.test:/authorize?state=CUSTOM_STATE"));
+        MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
+        boolean exchange = mAuthClient.handleAuthorizationResponse(
+                AuthenticateClient.REQUEST_CODE_SIGN_IN, RESULT_OK, intent, cb);
+        assertTrue(exchange);
     }
 
     @Test
-    public void logOut() {
-
+    public void handleAuthorizationResponseLoginFailed() {
+        mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
+                .state(CUSTOM_STATE)
+                .create();
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("com.okta.test:/authorize?state=MISMATCH_STATE"));
+        MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
+        boolean exchange = mAuthClient.handleAuthorizationResponse(
+                AuthenticateClient.REQUEST_CODE_SIGN_IN, RESULT_OK, intent, cb);
+        assertFalse(exchange);
+        assertNotNull(cb.getException());
+        assertEquals("Mismatch states", cb.getError());
     }
 
     @Test
-    public void handleAuthorizationResponse() {
+    public void handleAuthorizationResponseLogoutSuccess() {
+        mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
+                .state(CUSTOM_STATE)
+                .create();
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("com.okta.test:/logout?state=CUSTOM_STATE"));
+        MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
+        mAuthClient.handleAuthorizationResponse(AuthenticateClient.REQUEST_CODE_SIGN_OUT, RESULT_OK,
+                intent, cb);
+        assertTrue(cb.getResult());
+        assertNull(cb.getException());
+    }
+
+    @Test
+    public void handleAuthorizationResponseLogoutFailed() {
+        mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
+                .state(CUSTOM_STATE)
+                .create();
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("com.okta.test:/logout?state=MISMATCH_STATE"));
+        MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
+        mAuthClient.handleAuthorizationResponse(AuthenticateClient.REQUEST_CODE_SIGN_OUT, RESULT_OK,
+                intent, cb);
+        assertNull(cb.getResult());
+        assertNotNull(cb.getException());
+        assertEquals("Mismatch states", cb.getError());
     }
 
     private Map<String, String> toMap(RecordedRequest request) {

@@ -15,6 +15,21 @@
 package com.okta.oidc.util;
 
 public interface JsonStrings {
+    String TOKEN_SUCCESS = "{\n" +
+            "    \"access_token\" : \"eyJhbGciOiJSUzI1NiJ9.eyJ2ZXIiOjEsImlzcyI6Imh0dHA6Ly9yYWluLm9rdGExLmNvbToxODAyIiwiaWF0IjoxNDQ5Nj\n" +
+            "                      I0MDI2LCJleHAiOjE0NDk2Mjc2MjYsImp0aSI6IlVmU0lURzZCVVNfdHA3N21BTjJxIiwic2NvcGVzIjpbIm9wZW5pZCIsI\n" +
+            "                      mVtYWlsIl0sImNsaWVudF9pZCI6InVBYXVub2ZXa2FESnh1a0NGZUJ4IiwidXNlcl9pZCI6IjAwdWlkNEJ4WHc2STZUVjRt\n" +
+            "                      MGczIn0.HaBu5oQxdVCIvea88HPgr2O5evqZlCT4UXH4UKhJnZ5px-ArNRqwhxXWhHJisslswjPpMkx1IgrudQIjzGYbtLF\n" +
+            "                      jrrg2ueiU5-YfmKuJuD6O2yPWGTsV7X6i7ABT6P-t8PRz_RNbk-U1GXWIEkNnEWbPqYDAm_Ofh7iW0Y8WDA5ez1jbtMvd-o\n" +
+            "                      XMvJLctRiACrTMLJQ2e5HkbUFxgXQ_rFPNHJbNSUBDLqdi2rg_ND64DLRlXRY7hupNsvWGo0gF4WEUk8IZeaLjKw8UoIs-E\n" +
+            "                      TEwJlAMcvkhoVVOsN5dPAaEKvbyvPC1hUGXb4uuThlwdD3ECJrtwgKqLqcWonNtiw\",\n" +
+            "    \"token_type\" : \"Bearer\",\n" +
+            "    \"expires_in\" : 3600,\n" +
+            "    \"scope\"      : \"openid email profile\",\n" +
+            "    \"refresh_token\" : \"a9VpZDRCeFh3Nkk2VdY\",\n" +
+            "    \"id_token\" : \"%s\"" +
+            "}";
+
     String PROVIDER_CONFIG = "{\n" +
             "    \"issuer\": \"https://dev-486177.oktapreview.com/oauth2/default\",\n" +
             "    \"authorization_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/authorize\",\n" +

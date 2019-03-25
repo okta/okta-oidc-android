@@ -28,7 +28,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.support.annotation.WorkerThread;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.okta.oidc.net.HttpConnection;
@@ -89,8 +88,9 @@ public final class AuthenticateClient {
     OktaRepository mOktaRepo;
 
     private RequestDispatcher mDispatcher;
-    private WebRequest mAuthorizeRequest;
-    private WebResponse mAuthResponse;
+    @VisibleForTesting
+    WebRequest mWebRequest;
+    private WebResponse mWebResponse;
 
     private HttpConnectionFactory mConnectionFactory;
     private ResultCallback<Boolean, AuthorizationException> mResultCb;
@@ -134,19 +134,19 @@ public final class AuthenticateClient {
 
     private void persist() {
         if (mOktaRepo != null) {
-            mOktaRepo.save(mAuthorizeRequest);
+            mOktaRepo.save(mWebRequest);
         }
     }
 
     private void restore() {
         if (mOktaRepo != null) {
-            mAuthorizeRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE);
+            mWebRequest = (WebRequest) mOktaRepo.restore(WebRequest.RESTORE);
         }
     }
 
     private void clearPreferences() {
         if (mOktaRepo != null) {
-            mOktaRepo.delete(mAuthorizeRequest);
+            mOktaRepo.delete(mWebRequest);
         }
     }
 
@@ -243,7 +243,7 @@ public final class AuthenticateClient {
         sResultHandled = false;
         if (mOIDCAccount.isLoggedIn()) {
             registerActivityLifeCycle(activity);
-            mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
+            mWebRequest = new LogoutRequest.Builder().account(mOIDCAccount)
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
 
@@ -261,18 +261,18 @@ public final class AuthenticateClient {
             mResultCb.onError("Response error", exception);
             return false;
         } else {
-            if (mAuthorizeRequest == null) {
+            if (mWebRequest == null) {
                 restore();
-                if (mAuthorizeRequest == null) {
+                if (mWebRequest == null) {
                     mResultCb.onError("Response error", USER_CANCELED_AUTH_FLOW);
                     return false;
                 }
             }
-            mAuthResponse = requestCode == REQUEST_CODE_SIGN_IN ?
+            mWebResponse = requestCode == REQUEST_CODE_SIGN_IN ?
                     AuthorizeResponse.fromUri(responseUri) : LogoutResponse.fromUri(responseUri);
 
-            String requestState = mAuthorizeRequest.getState();
-            String responseState = mAuthResponse.getState();
+            String requestState = mWebRequest.getState();
+            String responseState = mWebResponse.getState();
             if (requestState == null && responseState != null
                     || (requestState != null && !requestState
                     .equals(responseState))) {
@@ -344,7 +344,7 @@ public final class AuthenticateClient {
         sResultHandled = false;
         registerActivityLifeCycle(activity);
         if (mOIDCAccount.getProviderConfig() != null) {
-            mAuthorizeRequest = new AuthorizeRequest.Builder()
+            mWebRequest = new AuthorizeRequest.Builder()
                     .account(mOIDCAccount)
                     .additionalParams(mAdditionalParams)
                     .state(mState)
@@ -360,8 +360,8 @@ public final class AuthenticateClient {
     @WorkerThread
     private void tokenExchange() {
         mCurrentHttpRequest = HttpRequestBuilder.newRequest().request(TOKEN_EXCHANGE).account(mOIDCAccount)
-                .authRequest((AuthorizeRequest) mAuthorizeRequest)
-                .authResponse((AuthorizeResponse) mAuthResponse)
+                .authRequest((AuthorizeRequest) mWebRequest)
+                .authResponse((AuthorizeResponse) mWebResponse)
                 .createRequest();
 
         ((TokenRequest) mCurrentHttpRequest).dispatchRequest(mDispatcher, new RequestCallback<TokenResponse, AuthorizationException>() {
@@ -389,8 +389,8 @@ public final class AuthenticateClient {
         }
 
         Intent intent = new Intent(mActivity.get(), OktaAuthenticationActivity.class);
-        if (mAuthorizeRequest != null) {
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
+        if (mWebRequest != null) {
+            intent.putExtra(EXTRA_AUTH_URI, mWebRequest.toUri());
         }
         intent.putExtra(EXTRA_TAB_OPTIONS, mCustomTabColor);
         if (mErrorActivityResult != null) {
