@@ -15,6 +15,8 @@
 package com.okta.oidc;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -44,9 +46,12 @@ public class OktaIdToken {
         long getCurrentTimeMillis();
     }
 
-    private Header mHeader;
-    private Claims mClaims;
-    private String mSignature;
+    @VisibleForTesting
+    Header mHeader;
+    @VisibleForTesting
+    Claims mClaims;
+    @VisibleForTesting
+    String mSignature;
 
     private static final Long MILLIS_PER_SECOND = 1000L;
     private static final Long TEN_MINUTES_IN_SECONDS = 600L;
@@ -164,10 +169,11 @@ public class OktaIdToken {
     /*
      * @param String token based64 encoded idToken
      */
-    public static OktaIdToken parseIdToken(String token) {
+    public static OktaIdToken parseIdToken(@NonNull String token) throws IllegalArgumentException {
         String[] sections = token.split("\\.");
-        if (sections.length <= 1) {
-            throw new IllegalArgumentException("ID Token missing header or claims section");
+        if (sections.length < 3) {
+            throw new IllegalArgumentException("IdToken missing header, claims or" +
+                    " signature section");
         }
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(ArrayTypeAdapter.CREATE).create();
         //decode header
@@ -177,9 +183,7 @@ public class OktaIdToken {
         String claimsSection = new String(Base64.decode(sections[1], Base64.URL_SAFE));
         Claims claims = gson.fromJson(claimsSection, Claims.class);
         String signature = null;
-        if (sections.length > 2) {
-            signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
-        }
+        signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
         return new OktaIdToken(header, claims, signature);
     }
 

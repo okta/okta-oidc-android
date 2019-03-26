@@ -37,9 +37,11 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
+import com.okta.oidc.util.DateUtil;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.MockResultCallback;
+import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +57,10 @@ import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
+import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
+import static com.okta.oidc.util.TestValues.CLIENT_ID;
+import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
+import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
@@ -97,12 +103,7 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class AuthenticateClientTest {
-    private static final String CUSTOM_STATE = "CUSTOM_STATE";
-    private static final String LOGIN_HINT = "LOGIN_HINT";
-    private static final String CLIENT_ID = "CLIENT_ID";
-    private static final String ACCESS_TOKEN = "ACCESS_TOKEN";
-    private static final String ID_TOKEN = "ID_TOKEN";
-    private static final String REFRESH_TOKEN = "REFRESH_TOKEN";
+
     private Context mContext;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private HttpConnectionFactory mConnectionFactory;
@@ -127,13 +128,8 @@ public class AuthenticateClientTest {
                 MODE_PRIVATE));
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
-        mAccount = new OIDCAccount.Builder()
-                .clientId(CLIENT_ID)
-                .redirectUri(url + "callback")
-                .endSessionRedirectUri(url + "logout")
-                .scopes("openid", "profile", "offline_access")
-                .discoveryUri(url)
-                .create();
+        
+        mAccount = TestValues.getAccountWithUrl(url);
 
         ProviderConfiguration configuration = new ProviderConfiguration();
         configuration.issuer = url;
@@ -359,21 +355,15 @@ public class AuthenticateClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
-        long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
-        Calendar c = Calendar.getInstance();
-        c.setTime(now);
-        c.add(Calendar.DATE, 1);
-        Date tomorrow = c.getTime();
         KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
 
         String jws = Jwts.builder()
                 .setIssuer(mEndPoint.getUrl())
                 .setSubject("sub")
                 .setAudience(mAccount.getClientId())
-                .setExpiration(tomorrow)
-                .setNotBefore(now)
-                .setIssuedAt(now)
+                .setExpiration(DateUtil.getTomorrow())
+                .setNotBefore(DateUtil.getNow())
+                .setIssuedAt(DateUtil.getNow())
                 .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
                 .compact();
 
@@ -455,6 +445,7 @@ public class AuthenticateClientTest {
 
     @Test
     public void handleAuthorizationResponseLoginSuccess() {
+        AuthenticateClient.sResultHandled = false;
         mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
                 .state(CUSTOM_STATE)
                 .create();
@@ -468,6 +459,7 @@ public class AuthenticateClientTest {
 
     @Test
     public void handleAuthorizationResponseLoginFailed() {
+        AuthenticateClient.sResultHandled = false;
         mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
                 .state(CUSTOM_STATE)
                 .create();
@@ -483,6 +475,7 @@ public class AuthenticateClientTest {
 
     @Test
     public void handleAuthorizationResponseLogoutSuccess() {
+        AuthenticateClient.sResultHandled = false;
         mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
                 .state(CUSTOM_STATE)
                 .create();
@@ -497,6 +490,7 @@ public class AuthenticateClientTest {
 
     @Test
     public void handleAuthorizationResponseLogoutFailed() {
+        AuthenticateClient.sResultHandled = false;
         mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
                 .state(CUSTOM_STATE)
                 .create();

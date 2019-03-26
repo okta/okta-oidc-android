@@ -94,7 +94,8 @@ public final class AuthenticateClient {
 
     private HttpConnectionFactory mConnectionFactory;
     private ResultCallback<Boolean, AuthorizationException> mResultCb;
-    private static boolean sResultHandled = false;
+    @VisibleForTesting
+    static boolean sResultHandled = false;
     private HttpRequest mCurrentHttpRequest;
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 101;

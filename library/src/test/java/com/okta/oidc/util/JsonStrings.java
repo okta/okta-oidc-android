@@ -15,6 +15,31 @@
 package com.okta.oidc.util;
 
 public interface JsonStrings {
+    String VALID_ID_TOKEN = "eyJraWQiOiJYYjY1b1g0Um5KUXNLUGhiMHg3amVKdkt0MHpkQnM1ZkI2Q0stOEJzdkl" +
+            "nIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVpejBodGJhSkhjVXRmVzBoNyIsIm5hbWUiOiJKb2huIER" +
+            "vZSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9kZXYtNDg2MTc3Lm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZG" +
+            "VmYXVsdCIsImF1ZCI6IjBvYWl2OTR3dGpXN0RIdnZqMGg3IiwiaWF0IjoxNTUwNjA2NjcwLCJleHAiOjE1N" +
+            "TA2MTAyNzAsImp0aSI6IklELlZmVk55RkZtVGtoYnBlMkV5cnljZkI5dUhHXzg4OC00YzZyc0x6OEJlR1ki" +
+            "LCJhbXIiOlsicHdkIl0sImlkcCI6IjAwb2l2Ym9yYW1YR0ZCeXYwMGg3Iiwibm9uY2UiOiJSMnFUUkFDOWZ" +
+            "JeWM1NUFqOEJQODJnIiwicHJlZmVycmVkX3VzZXJuYW1lIjoicGVyY2VwdG9yQGdtYWlsLmNvbSIsImF1dG" +
+            "hfdGltZSI6MTU1MDYwNjY2NywiYXRfaGFzaCI6Ijk2bFc5bWVJUzJBdGtHcXRUOGVRSncifQ.dkh6RYvKhu" +
+            "RGGUih6qCKijG4r4_HaR5_6KfpEQCRUBnWwLkPznxwMy3krZ-gWuSDtj_mFG-LY5TbGn4HnSpCTkK6LiPrg" +
+            "FfHUEclU0_2oT1ygxa4IowZ9mrPMpjIeWruRsjJ88HjddJNkUOnoC2XWtaiVCezA-ngvxG5BhChF_7mQbNJ" +
+            "fSBCBpXEYZY7zb26qGHXusH7MJOG5Ndd253qcSX4PeUAZTXCerEF4xHz1A9bLHDqsotq_IhAiYEiWtHVVu4" +
+            "7FFX4LvCNmxTq0Z8rsnZlKyiD16vN-x4-uIQIdejEpjPcIA3VQqqllwZ3czFtHj9dnAoFjeYtSuUveH8xgQ";
+
+    String INVALID_ID_TOKEN = "eyJzdWIiOiIwMHVpejBodGJhSkhjVXRmVzBoNyIsIm5hbWUiOiJKb2huIER" +
+            "vZSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9kZXYtNDg2MTc3Lm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZG" +
+            "VmYXVsdCIsImF1ZCI6IjBvYWl2OTR3dGpXN0RIdnZqMGg3IiwiaWF0IjoxNTUwNjA2NjcwLCJleHAiOjE1N" +
+            "TA2MTAyNzAsImp0aSI6IklELlZmVk55RkZtVGtoYnBlMkV5cnljZkI5dUhHXzg4OC00YzZyc0x6OEJlR1ki" +
+            "LCJhbXIiOlsicHdkIl0sImlkcCI6IjAwb2l2Ym9yYW1YR0ZCeXYwMGg3Iiwibm9uY2UiOiJSMnFUUkFDOWZ" +
+            "JeWM1NUFqOEJQODJnIiwicHJlZmVycmVkX3VzZXJuYW1lIjoicGVyY2VwdG9yQGdtYWlsLmNvbSIsImF1dG" +
+            "hfdGltZSI6MTU1MDYwNjY2NywiYXRfaGFzaCI6Ijk2bFc5bWVJUzJBdGtHcXRUOGVRSncifQ.dkh6RYvKhu" +
+            "RGGUih6qCKijG4r4_HaR5_6KfpEQCRUBnWwLkPznxwMy3krZ-gWuSDtj_mFG-LY5TbGn4HnSpCTkK6LiPrg" +
+            "FfHUEclU0_2oT1ygxa4IowZ9mrPMpjIeWruRsjJ88HjddJNkUOnoC2XWtaiVCezA-ngvxG5BhChF_7mQbNJ" +
+            "fSBCBpXEYZY7zb26qGHXusH7MJOG5Ndd253qcSX4PeUAZTXCerEF4xHz1A9bLHDqsotq_IhAiYEiWtHVVu4" +
+            "7FFX4LvCNmxTq0Z8rsnZlKyiD16vN-x4-uIQIdejEpjPcIA3VQqqllwZ3czFtHj9dnAoFjeYtSuUveH8xgQ";
+
     String TOKEN_SUCCESS = "{\n" +
             "    \"access_token\" : \"eyJhbGciOiJSUzI1NiJ9.eyJ2ZXIiOjEsImlzcyI6Imh0dHA6Ly9yYWluLm9rdGExLmNvbToxODAyIiwiaWF0IjoxNDQ5Nj\n" +
             "                      I0MDI2LCJleHAiOjE0NDk2Mjc2MjYsImp0aSI6IlVmU0lURzZCVVNfdHA3N21BTjJxIiwic2NvcGVzIjpbIm9wZW5pZCIsI\n" +
@@ -130,7 +155,7 @@ public interface JsonStrings {
             "\"ACCESS_TOKEN\",\n\"token_type\" : " +
             "\"Bearer\",\n \"expires_in\" : 3600,\n " +
             "\"scope\" : \"openid email profile\",\n " +
-            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
+            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"VALID_ID_TOKEN\"\n}";
 
     String INVALID_CLIENT = "{\n" +
             "  \"error\": \"invalid_client\",\n" +
