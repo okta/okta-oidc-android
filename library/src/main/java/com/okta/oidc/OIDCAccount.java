@@ -70,7 +70,8 @@ public class OIDCAccount {
     }
 
     public Uri getDiscoveryUri() {
-        return Uri.parse(mAccount.mDiscoveryUri);
+        return Uri.parse(mAccount.mDiscoveryUri +
+                ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE);
     }
 
     public String[] getScopes() {
@@ -96,17 +97,17 @@ public class OIDCAccount {
 
     public @Nullable
     String getAccessToken() {
-        return mTokenResponse.getAccessToken();
+        return mTokenResponse != null ? mTokenResponse.getAccessToken() : null;
     }
 
     public @Nullable
     String getIdToken() {
-        return mTokenResponse.getIdToken();
+        return mTokenResponse != null ? mTokenResponse.getIdToken() : null;
     }
 
     public @Nullable
     String getRefreshToken() {
-        return mTokenResponse.getRefreshToken();
+        return mTokenResponse != null ? mTokenResponse.getRefreshToken() : null;
     }
 
     public @Nullable
@@ -187,7 +188,6 @@ public class OIDCAccount {
         }
 
         public OIDCAccount create() {
-            mAccountInfo.mDiscoveryUri += ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE;
             mAccountInfo.validate();
             return new OIDCAccount(mAccountInfo);
         }

@@ -155,7 +155,7 @@ public interface JsonStrings {
             "\"ACCESS_TOKEN\",\n\"token_type\" : " +
             "\"Bearer\",\n \"expires_in\" : 3600,\n " +
             "\"scope\" : \"openid email profile\",\n " +
-            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"VALID_ID_TOKEN\"\n}";
+            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
 
     String INVALID_CLIENT = "{\n" +
             "  \"error\": \"invalid_client\",\n" +

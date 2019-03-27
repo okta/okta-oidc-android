@@ -18,11 +18,15 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -30,10 +34,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import okhttp3.tls.internal.TlsUtil;
 
 import static com.okta.oidc.net.HttpConnection.CONTENT_TYPE;
 import static com.okta.oidc.net.HttpConnection.JSON_CONTENT_TYPE;
@@ -54,7 +58,9 @@ public class MockEndPoint {
     private MockWebServer mServer;
     private Gson mGson;
 
-    public MockEndPoint() throws IOException, NoSuchAlgorithmException {
+    public MockEndPoint() throws IOException,
+            UnrecoverableKeyException, CertificateException,
+            NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         mServer = new MockWebServer();
         SSLSocketFactory sslSocketFactory = getSSL();
         HttpsURLConnection.setDefaultSSLSocketFactory(sslSocketFactory);
@@ -68,6 +74,10 @@ public class MockEndPoint {
         return mServer.url("/").toString();
     }
 
+    public HttpUrl getHttpUrl() {
+        return mServer.url("/");
+    }
+
     public void shutDown() throws IOException {
         mServer.shutdown();
     }
@@ -76,34 +86,41 @@ public class MockEndPoint {
         return mServer.takeRequest();
     }
 
-    public void enqueueUserInfoSuccess() {
-        mServer.enqueue(jsonResponse(HTTP_OK, USER_PROFILE));
+    public MockResponse enqueueUserInfoSuccess() {
+        MockResponse response = jsonResponse(HTTP_OK, USER_PROFILE);
+        mServer.enqueue(response);
+        return response;
     }
 
     public void enqueueConfigurationSuccess() {
         mServer.enqueue(jsonResponse(HTTP_OK, PROVIDER_CONFIG));
     }
 
-    public void enqueueConfigurationFailure() {
-        mServer.enqueue(jsonResponse(HTTP_NOT_FOUND, CONFIGURATION_NOT_FOUND));
+    public MockResponse enqueueConfigurationFailure() {
+        MockResponse response = jsonResponse(HTTP_NOT_FOUND, CONFIGURATION_NOT_FOUND);
+        mServer.enqueue(response);
+        return response;
     }
 
     public void enqueueReturnInvalidClient() {
         mServer.enqueue(jsonResponse(HTTP_UNAUTHORIZED, INVALID_CLIENT));
     }
 
-    public void enqueueTokenSucess(String idToken) {
+    public void enqueueTokenSuccess(String idToken) {
         mServer.enqueue(jsonResponse(HTTP_OK, String.format(TOKEN_SUCCESS, idToken)));
     }
 
-    public void enqueueReturnSuccessEmptyBody() {
-        mServer.enqueue(emptyResponse(HTTP_OK));
+    public MockResponse enqueueReturnSuccessEmptyBody() {
+        MockResponse response = emptyResponse(HTTP_OK);
+        mServer.enqueue(response);
+        return response;
     }
 
-    public void enqueueReturnUnauthorizedRevoked() {
+    public MockResponse enqueueReturnUnauthorizedRevoked() {
         MockResponse response = textResponse(HTTP_UNAUTHORIZED, "Unauthorized")
                 .addHeader(WWW_AUTHENTICATE, UNAUTHORIZED_INVALID_TOKEN);
         mServer.enqueue(response);
+        return response;
     }
 
     public void enqueueForbidden() {
@@ -115,7 +132,6 @@ public class MockEndPoint {
     private MockResponse emptyResponse(int code) {
         return new MockResponse().setResponseCode(code);
     }
-
 
     private MockResponse textResponse(int code, String status) {
         return new MockResponse().setResponseCode(code)
@@ -129,33 +145,33 @@ public class MockEndPoint {
                 .setBody(json);
     }
 
-    private SSLSocketFactory getSSL() {
-        try {
-            /*
-             * To generate keystore you should use next command
-             * keytool -genkey -v -keystore mock.keystore.jks -alias okta_android_sdk -keyalg RSA -keysize 2048 -validity 10000
-             * Copy mock.keystore.jks in folder library/src/test/resources
-             * */
-            URL filepath = getClass().getClassLoader().getResource("mock.keystore.jks");
-            File file = new File(filepath.getPath());
+    private SSLSocketFactory getSSL() throws IOException, KeyStoreException,
+            NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException,
+            KeyManagementException {
 
-            FileInputStream stream = new FileInputStream(file);
-            char[] serverKeyStorePassword = "123456".toCharArray();
-            KeyStore serverKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            serverKeyStore.load(stream, serverKeyStorePassword);
+        /*
+         * To generate keystore you should use next command
+         * keytool -genkey -v -keystore mock.keystore.jks -alias okta_android_sdk -keyalg RSA -keysize 2048 -validity 10000
+         * Copy mock.keystore.jks in folder library/src/test/resources
+         * */
+        URL filepath = getClass().getClassLoader().getResource("mock.keystore.jks");
+        File file = new File(filepath.getPath());
 
-            String kmfAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(kmfAlgorithm);
-            kmf.init(serverKeyStore, serverKeyStorePassword);
+        FileInputStream stream = new FileInputStream(file);
+        char[] serverKeyStorePassword = "123456".toCharArray();
+        KeyStore serverKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        serverKeyStore.load(stream, serverKeyStorePassword);
 
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(kmfAlgorithm);
-            trustManagerFactory.init(serverKeyStore);
+        String kmfAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(kmfAlgorithm);
+        kmf.init(serverKeyStore, serverKeyStorePassword);
 
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-            return sslContext.getSocketFactory();
-        } catch (Exception e) {
-            return null;
-        }
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(kmfAlgorithm);
+        trustManagerFactory.init(serverKeyStore);
+
+        SSLContext sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+        return sslContext.getSocketFactory();
+
     }
 }

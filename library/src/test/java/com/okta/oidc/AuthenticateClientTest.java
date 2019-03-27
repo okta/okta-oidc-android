@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -37,7 +36,6 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
-import com.okta.oidc.util.DateUtil;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.MockResultCallback;
@@ -58,21 +56,15 @@ import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
-import static com.okta.oidc.util.TestValues.CLIENT_ID;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
+import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 import androidx.test.platform.app.InstrumentationRegistry;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.crypto.MacProvider;
-import io.jsonwebtoken.impl.crypto.RsaProvider;
-import io.jsonwebtoken.security.Keys;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import org.junit.rules.ExpectedException;
@@ -82,19 +74,12 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Type;
-import java.security.Key;
-import java.security.KeyPair;
-import java.util.Base64;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import javax.crypto.spec.SecretKeySpec;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -120,7 +105,6 @@ public class AuthenticateClientTest {
 
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mEndPoint = new MockEndPoint();
         mGson = new Gson();
@@ -128,17 +112,9 @@ public class AuthenticateClientTest {
                 MODE_PRIVATE));
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
-        
-        mAccount = TestValues.getAccountWithUrl(url);
 
-        ProviderConfiguration configuration = new ProviderConfiguration();
-        configuration.issuer = url;
-        configuration.revocation_endpoint = url + "revoke";
-        configuration.authorization_endpoint = url + "authorize";
-        configuration.token_endpoint = url + "token";
-        configuration.end_session_endpoint = url + "logout";
-        configuration.userinfo_endpoint = url + "userinfo";
-        mAccount.setProviderConfig(configuration);
+        mAccount = TestValues.getAccountWithUrl(url);
+        mAccount.setProviderConfig(TestValues.getProviderConfiguration(url));
 
         TokenResponse tokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
         mAccount.setTokenResponse(tokenResponse);
@@ -317,7 +293,7 @@ public class AuthenticateClientTest {
         AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
                 .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
                 .redirectUri(mAccount.getRedirectUri().toString())
-                .scope("openid", "email", "profile")
+                .scope(SCOPES)
                 .nonce(nonce)
                 .state(state)
                 .create();
@@ -355,19 +331,9 @@ public class AuthenticateClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
-        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), mAccount.getClientId());
 
-        String jws = Jwts.builder()
-                .setIssuer(mEndPoint.getUrl())
-                .setSubject("sub")
-                .setAudience(mAccount.getClientId())
-                .setExpiration(DateUtil.getTomorrow())
-                .setNotBefore(DateUtil.getNow())
-                .setIssuedAt(DateUtil.getNow())
-                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
-                .compact();
-
-        mEndPoint.enqueueTokenSucess(jws);
+        mEndPoint.enqueueTokenSuccess(jws);
         TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE).account(mAccount)
                 .authRequest(request)
@@ -480,7 +446,7 @@ public class AuthenticateClientTest {
                 .state(CUSTOM_STATE)
                 .create();
         Intent intent = new Intent();
-        intent.setData(Uri.parse("com.okta.test:/logout?state=CUSTOM_STATE"));
+        intent.setData(Uri.parse("com.okta.test:/logout?state=" + CUSTOM_STATE));
         MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
         mAuthClient.handleAuthorizationResponse(AuthenticateClient.REQUEST_CODE_SIGN_OUT, RESULT_OK,
                 intent, cb);
