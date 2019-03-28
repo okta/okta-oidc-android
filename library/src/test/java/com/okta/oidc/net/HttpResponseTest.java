@@ -14,24 +14,14 @@
  */
 package com.okta.oidc.net;
 
-import android.net.Uri;
 
 import com.google.gson.Gson;
-import com.okta.oidc.AuthenticateClient;
-import com.okta.oidc.OIDCAccount;
-import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.response.TokenResponse;
-import com.okta.oidc.util.JsonStrings;
-import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.TestValues;
 
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -42,8 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,9 +55,6 @@ import static org.junit.Assert.*;
 public class HttpResponseTest {
     @Rule
     public final MockWebServer mServer = new MockWebServer();
-
-    @Rule
-    public Timeout mGlobalTimeout = Timeout.seconds(30);
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();

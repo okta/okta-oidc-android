@@ -24,6 +24,7 @@ import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
+import com.okta.oidc.net.response.web.LogoutResponse;
 
 import java.security.KeyPair;
 import java.util.Arrays;
@@ -47,8 +48,9 @@ public class TestValues {
     public static final String LOGIN_HINT = "LOGIN_HINT";
     public static final String CLIENT_ID = "CLIENT_ID";
     public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
-    public static final String ID_TOKEN = "VALID_ID_TOKEN";
+    public static final String ID_TOKEN = "ID_TOKEN";
     public static final String REFRESH_TOKEN = "REFRESH_TOKEN";
+    public static final String CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
 
     public static final String REDIRECT_URI = CUSTOM_URL + "callback";
     public static final String END_SESSION_URI = CUSTOM_URL + "logout";
@@ -59,6 +61,14 @@ public class TestValues {
     public static final String TOKEN_ENDPOINT = "token";
     public static final String END_SESSION_ENDPOINT = "logout";
     public static final String USERINFO_ENDPOINT = "userinfo";
+
+    public static final String ERROR = "error";
+    public static final String ERROR_DESCRIPTION = "error_description";
+
+
+    //Token response
+    public static final String TYPE_BEARER = "Bearer";
+    public static final String EXPIRES_IN = "3600";
 
     public static OIDCAccount getAccountWithUrl(String url) {
         return new OIDCAccount.Builder()
@@ -123,6 +133,17 @@ public class TestValues {
     public static AuthorizeResponse getAuthorizeResponse(String state, String code) {
         String uri = String.format("com.okta.test:/callback?code=%s&state=%s", code, state);
         return AuthorizeResponse.fromUri(Uri.parse(uri));
+    }
+
+    public static AuthorizeResponse getInvalidAuthorizeResponse(String error, String desc) {
+        String uri = String.format("com.okta.test:/callback?error=%s&error_description=%s"
+                , error, desc);
+        return AuthorizeResponse.fromUri(Uri.parse(uri));
+    }
+
+    public static LogoutResponse getLogoutResponse(String state) {
+        String uri = String.format("com.okta.test:/logout?state=%s", state);
+        return LogoutResponse.fromUri(Uri.parse(uri));
     }
 
     public static TokenRequest getTokenRequest(OIDCAccount account, AuthorizeRequest request,

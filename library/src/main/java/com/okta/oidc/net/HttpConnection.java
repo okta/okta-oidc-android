@@ -30,6 +30,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -73,11 +74,13 @@ public class HttpConnection {
         conn.setConnectTimeout(mConnectionTimeoutMs);
         conn.setReadTimeout(mReadTimeOutMs);
         conn.setInstanceFollowRedirects(false);
-
-        if (mRequestProperties == null || !mRequestProperties.containsKey(USER_AGENT)) {
+        Map<String, List<String>> properties = conn.getRequestProperties();
+        if (properties.get(USER_AGENT) == null &&
+                (mRequestProperties == null || !mRequestProperties.containsKey(USER_AGENT))) {
             conn.setRequestProperty(USER_AGENT, USER_AGENT_HEADER);
         }
-        if (mRequestProperties == null || !mRequestProperties.containsKey(CONTENT_TYPE)) {
+        if (properties.get(USER_AGENT) == null &&
+                (mRequestProperties == null || !mRequestProperties.containsKey(CONTENT_TYPE))) {
             conn.setRequestProperty(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
         }
         if (mRequestProperties != null) {
@@ -152,9 +155,8 @@ public class HttpConnection {
 
         public HttpConnection create(HttpConnectionFactory connectionFactory) {
             Preconditions.checkNotNull(mRequestMethod);
-            if (connectionFactory == null) {
-                mConnectionFactory = new DefaultConnectionFactory();
-            }
+            mConnectionFactory = connectionFactory == null ?
+                    new DefaultConnectionFactory() : connectionFactory;
             return new HttpConnection(this);
         }
 
@@ -206,4 +208,5 @@ public class HttpConnection {
             return this;
         }
     }
+
 }
