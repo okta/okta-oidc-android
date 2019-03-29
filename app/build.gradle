@@ -1,0 +1,28 @@
+apply plugin: "com.android.application"
+apply from: "${rootDir}/gradle/android-common.gradle"
+apply from: "${rootDir}/gradle/style.gradle"
+
+android {
+    defaultConfig {
+        applicationId "com.okta.appauth.android.example"
+        vectorDrawables.useSupportLibrary = true
+
+        // Make sure this is consistent with the redirect URI used in
+        // res/raw/okta_app_auth_config.json
+        manifestPlaceholders = [
+                "appAuthRedirectScheme": "com.oktapreview.samples-test"
+        ]
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation project(':library')
+    implementation "com.android.support:appcompat-v7:${rootProject.appcompatVersion}"
+    implementation "com.android.support:design:${rootProject.appcompatVersion}"
+}

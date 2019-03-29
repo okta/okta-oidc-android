@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+package com.okta.oidc.net.response;
+
+public class TokenResponse {
+    private String access_token;
+    private String token_type;
+    private String expires_in;
+    private String scope;
+    private String refresh_token;
+    private String id_token;
+
+    public String getAccessToken() {
+        return access_token;
+    }
+
+    public String getTokenType() {
+        return token_type;
+    }
+
+    public String getExpiresIn() {
+        return expires_in;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public String getRefreshToken() {
+        return refresh_token;
+    }
+
+    public String getIdToken() {
+        return id_token;
+    }
+
+    public TokenResponse() {
+        //NO-OP
+    }
+}

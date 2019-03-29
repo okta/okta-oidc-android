@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="UnusedResources">
+        <ignore path="res/raw/okta_app_auth_config.json" />
+    </issue>
+</lint>
