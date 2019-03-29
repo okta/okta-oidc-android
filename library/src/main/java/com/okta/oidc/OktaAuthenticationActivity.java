@@ -96,7 +96,7 @@ public class OktaAuthenticationActivity extends Activity {
                 bindServiceAndStart(browser);
             } else {
                 sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
-                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND));
+                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
             }
         }
     }
@@ -194,7 +194,7 @@ public class OktaAuthenticationActivity extends Activity {
                     startActivity(createBrowserIntent(browserPackage, session));
                 } else {
                     sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
-                            AuthorizationException.GeneralErrors.NO_BROWSER_FOUND));
+                            AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
                 }
             }
         };

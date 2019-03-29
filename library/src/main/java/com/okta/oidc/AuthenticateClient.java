@@ -70,10 +70,6 @@ import static com.okta.oidc.util.AuthorizationException.RegistrationRequestError
 
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();
-    private static final String AUTH_REQUEST_PREF = "AuthRequest";
-    private static final String AUTH_RESPONSE_PREF = "AuthResponse";
-    //need to restore auth.
-    private static final String AUTH_RESTORE_PREF = AuthenticateClient.class.getCanonicalName() + ".AuthRestore";
 
     private WeakReference<Activity> mActivity;
     private OIDCAccount mOIDCAccount;
@@ -299,6 +295,8 @@ public final class AuthenticateClient {
                 } catch (JSONException e) {
                     cb.onError("Json error", AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
                 }
+            } else {
+                cb.onCancel();
             }
         } else {
             cb.onCancel();
