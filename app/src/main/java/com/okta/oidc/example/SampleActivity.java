@@ -49,6 +49,7 @@ public class SampleActivity extends AppCompatActivity {
 
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
+    private static final String FIRE_FOX = "org.mozilla.firefox";
 
     private LinearLayout mRevokeContainer;
 
@@ -115,6 +116,7 @@ public class SampleActivity extends AppCompatActivity {
         mOktaAuth = new AuthenticateClient.Builder(mOktaAccount)
                 .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)), this)
                 .withTabColor(getColorCompat(R.color.colorPrimary))
+                .supportedBrowsers(FIRE_FOX)
                 .create();
 
         if (mOktaAccount.isLoggedIn()) {

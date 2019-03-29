@@ -34,8 +34,12 @@ import android.util.Log;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
@@ -43,10 +47,13 @@ public class OktaAuthenticationActivity extends Activity {
     static final String EXTRA_AUTH_URI = "com.okta.auth.AUTH_URI";
     static final String EXTRA_TAB_OPTIONS = "com.okta.auth.TAB_OPTIONS";
     static final String EXTRA_EXCEPTION = "com.okta.auth.EXCEPTION";
+    static final String EXTRA_BROWSERS = "com.okta.auth.BROWSERS";
 
     private static final String CHROME_STABLE = "com.android.chrome";
     private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
     private static final String CHROME_BETA = "com.android.chrome.beta";
+
+    private Set<String> mSupportedBrowsers = new LinkedHashSet<>();
 
     private CustomTabsServiceConnection mConnection;
     private boolean mAuthStarted = false;
@@ -73,7 +80,12 @@ public class OktaAuthenticationActivity extends Activity {
                 //login encountered exception pass same intent back to activity to handle.
                 sendResult(RESULT_CANCELED, getIntent());
             }
+            String[] list = bundle.getStringArray(EXTRA_BROWSERS);
+            if (list != null) {
+                mSupportedBrowsers.addAll(Arrays.asList(list));
+            }
         }
+        mSupportedBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
     }
 
     @Override
@@ -113,15 +125,7 @@ public class OktaAuthenticationActivity extends Activity {
     @Nullable
     private String getBrowser() {
         PackageManager pm = getPackageManager();
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.example.com"));
-        int queryFlag = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PackageManager.MATCH_ALL
-                : PackageManager.MATCH_DEFAULT_ONLY;
-        ResolveInfo resolveInfo = pm.resolveActivity(browserIntent, queryFlag);
-        String browser = null;
-        if (resolveInfo != null) {
-            browser = resolveInfo.activityInfo.packageName;
-        }
-
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
         List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, 0);
         List<String> customTabsBrowsers = new ArrayList<>();
         for (ResolveInfo info : resolveInfoList) {
@@ -132,20 +136,12 @@ public class OktaAuthenticationActivity extends Activity {
                 customTabsBrowsers.add(info.activityInfo.packageName);
             }
         }
-
-        if (customTabsBrowsers.contains(browser)) {
-            return browser;
-        } else if (customTabsBrowsers.contains(CHROME_STABLE)) {
-            return CHROME_STABLE;
-        } else if (customTabsBrowsers.contains(CHROME_SYSTEM)) {
-            return CHROME_SYSTEM;
-        } else if (customTabsBrowsers.contains(CHROME_BETA)) {
-            return CHROME_BETA;
-        } else if (!customTabsBrowsers.isEmpty()) {
-            return customTabsBrowsers.get(0);
-        } else {
-            return null;
+        for (String browser : mSupportedBrowsers) {
+            if (customTabsBrowsers.contains(browser)) {
+                return browser;
+            }
         }
+        return null;
     }
 
     private Intent createBrowserIntent(String packageName, CustomTabsSession session) {

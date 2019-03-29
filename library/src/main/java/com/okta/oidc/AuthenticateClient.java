@@ -56,12 +56,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_AUTH_URI;
+import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_BROWSERS;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_TAB_OPTIONS;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
@@ -97,6 +99,7 @@ public final class AuthenticateClient {
     public static final int REQUEST_CODE_SIGN_OUT = 101;
     //Hold the exception to send to onActivityResult
     private AuthorizationException mErrorActivityResult;
+    private String[] mSupportedBrowsers;
 
     private AuthenticateClient(@NonNull Builder builder) {
         mConnectionFactory = builder.mConnectionFactory;
@@ -107,6 +110,7 @@ public final class AuthenticateClient {
         mLoginHint = builder.mLoginHint;
         mOktaRepo = builder.mOktaRepo;
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
+        mSupportedBrowsers = builder.mSupportedBrowsers;
     }
 
     private void registerActivityLifeCycle(@NonNull final Activity activity) {
@@ -391,6 +395,9 @@ public final class AuthenticateClient {
         if (mWebRequest != null) {
             intent.putExtra(EXTRA_AUTH_URI, mWebRequest.toUri());
         }
+        if (mSupportedBrowsers != null) {
+            intent.putExtra(EXTRA_BROWSERS, mSupportedBrowsers);
+        }
         intent.putExtra(EXTRA_TAB_OPTIONS, mCustomTabColor);
         if (mErrorActivityResult != null) {
             intent.putExtra(EXTRA_EXCEPTION, mErrorActivityResult.toJsonString());
@@ -440,6 +447,7 @@ public final class AuthenticateClient {
         } else {
             AuthenticateClient other = (AuthenticateClient) obj;
             result = mCustomTabColor == other.mCustomTabColor
+                    || Arrays.equals(mSupportedBrowsers, other.mSupportedBrowsers)
                     || mOIDCAccount.equals(other.mOIDCAccount)
                     || (mState == null ? other.mState == null : mState.equals(other.mState))
                     || (mLoginHint == null ? other.mLoginHint == null
@@ -459,6 +467,7 @@ public final class AuthenticateClient {
         private String mState;
         private String mLoginHint;
         private OktaRepository mOktaRepo;
+        private String[] mSupportedBrowsers;
 
         public Builder(@NonNull OIDCAccount account) {
             mOIDCAccount = account;
@@ -510,6 +519,11 @@ public final class AuthenticateClient {
 
         public Builder httpConnectionFactory(HttpConnectionFactory connectionFactory) {
             mConnectionFactory = connectionFactory;
+            return this;
+        }
+
+        public Builder supportedBrowsers(String... browsers) {
+            mSupportedBrowsers = browsers;
             return this;
         }
     }

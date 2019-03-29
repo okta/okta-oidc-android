@@ -15,6 +15,8 @@
 package com.okta.oidc.util;
 
 public interface JsonStrings {
+    String FIRE_FOX = "org.mozilla.firefox";
+
     String VALID_ID_TOKEN = "eyJraWQiOiJYYjY1b1g0Um5KUXNLUGhiMHg3amVKdkt0MHpkQnM1ZkI2Q0stOEJzdkl" +
             "nIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVpejBodGJhSkhjVXRmVzBoNyIsIm5hbWUiOiJKb2huIER" +
             "vZSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9kZXYtNDg2MTc3Lm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZG" +

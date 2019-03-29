@@ -36,6 +36,7 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
+import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.MockResultCallback;
@@ -165,6 +166,9 @@ public class AuthenticateClientTest {
 
         builder.callbackExecutor(mExecutor);
         verify(builder).callbackExecutor(mExecutor);
+
+        builder.supportedBrowsers(JsonStrings.FIRE_FOX);
+        verify(builder).supportedBrowsers(JsonStrings.FIRE_FOX);
 
         AuthenticateClient client = builder.create();
         verify(builder).create();
