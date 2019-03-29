@@ -22,8 +22,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.okta.oidc.net.response.TokenResponse.RESTORE;
-import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.junit.Assert.*;
 
@@ -31,12 +29,12 @@ import static org.junit.Assert.*;
 @Config(sdk = 27)
 public class WebResponseTest {
     private WebResponse mWebResponseImpl;
+    private static final String KEY = "WebResponseImpl";
 
     @Before
     public void setUp() throws Exception {
         mWebResponseImpl = new WebResponse() {
             private String mState = CUSTOM_STATE;
-            private static final String KEY = "WebResponseImpl";
 
             @Override
             public String getState() {
@@ -68,7 +66,7 @@ public class WebResponseTest {
 
     @Test
     public void getKey() {
-        assertEquals(mWebResponseImpl.getKey(), "WebResponseImpl");
+        assertEquals(mWebResponseImpl.getKey(), KEY);
     }
 
     @Test

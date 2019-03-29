@@ -21,6 +21,7 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -59,8 +60,11 @@ public class TestValues {
     public static final String REVOCATION_ENDPOINT = "revoke";
     public static final String AUTHORIZATION_ENDPOINT = "authorize";
     public static final String TOKEN_ENDPOINT = "token";
+    public static final String INTROSPECT_ENDPOINT = "introspect";
+    public static final String REGISTRATION_ENDPOINT = "registration";
     public static final String END_SESSION_ENDPOINT = "logout";
     public static final String USERINFO_ENDPOINT = "userinfo";
+    public static final String JWKS_ENDPOINT = "keys";
 
     public static final String ERROR = "error";
     public static final String ERROR_DESCRIPTION = "error_description";
@@ -86,24 +90,27 @@ public class TestValues {
         configuration.revocation_endpoint = url + REVOCATION_ENDPOINT;
         configuration.authorization_endpoint = url + AUTHORIZATION_ENDPOINT;
         configuration.token_endpoint = url + TOKEN_ENDPOINT;
+        configuration.introspection_endpoint = url + INTROSPECT_ENDPOINT;
+        configuration.jwks_uri = url + JWKS_ENDPOINT;
+        configuration.registration_endpoint = url + REGISTRATION_ENDPOINT;
         configuration.end_session_endpoint = url + END_SESSION_ENDPOINT;
         configuration.userinfo_endpoint = url + USERINFO_ENDPOINT;
         return configuration;
     }
 
-    public static String getJwt(String issuer, String... audience) {
-        return getJwt(issuer, DateUtil.getTomorrow(), DateUtil.getNow(), audience);
+    public static String getJwt(String issuer, String nonce, String... audience) {
+        return getJwt(issuer, nonce, DateUtil.getTomorrow(), DateUtil.getNow(), audience);
     }
 
-    public static String getExpiredJwt(String issuer, String... audience) {
-        return getJwt(issuer, DateUtil.getYesterday(), DateUtil.getNow(), audience);
+    public static String getExpiredJwt(String issuer, String nonce, String... audience) {
+        return getJwt(issuer, nonce, DateUtil.getYesterday(), DateUtil.getNow(), audience);
     }
 
-    public static String getJwtIssuedAtTimeout(String issuer, String... audience) {
-        return getJwt(issuer, DateUtil.getExpiredFromTomorrow(), DateUtil.getTomorrow(), audience);
+    public static String getJwtIssuedAtTimeout(String issuer, String nonce, String... audience) {
+        return getJwt(issuer, nonce, DateUtil.getExpiredFromTomorrow(), DateUtil.getTomorrow(), audience);
     }
 
-    public static String getJwt(String issuer, Date expiredDate, Date issuedAt,
+    public static String getJwt(String issuer, String nonce, Date expiredDate, Date issuedAt,
                                 String... audience) {
         JwtBuilder builder = Jwts.builder();
         KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
@@ -112,6 +119,7 @@ public class TestValues {
 
         return builder
                 .addClaims(map)
+                .claim("nonce", nonce)
                 .setIssuer(issuer)
                 .setSubject("sub")
                 .setExpiration(expiredDate)
@@ -152,6 +160,14 @@ public class TestValues {
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(request)
                 .authResponse(response)
+                .account(account)
+                .createRequest();
+    }
+
+    public static RevokeTokenRequest getRevokeTokenRequest(OIDCAccount account, String tokenToRevoke) {
+        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.REVOKE_TOKEN)
+                .tokenToRevoke(tokenToRevoke)
                 .account(account)
                 .createRequest();
     }

@@ -69,6 +69,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         code_verifier = b.mAuthRequest.getCodeVerifier();
         nonce = b.mAuthRequest.getNonce();
         code = b.mAuthResponse.getCode();
+        grant_type = GrantTypes.AUTHORIZATION_CODE;
 
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.POST)
@@ -106,7 +107,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     private Map<String, String> buildParameters() {
         Map<String, String> params = new HashMap<>();
         params.put("client_id", client_id);
-        params.put("grant_type", GrantTypes.AUTHORIZATION_CODE);
+        params.put("grant_type", grant_type);
         params.put("redirect_uri", redirect_uri);
         params.put("code_verifier", code_verifier);
         params.put("code", code);

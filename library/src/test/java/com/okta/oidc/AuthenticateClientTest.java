@@ -331,7 +331,7 @@ public class AuthenticateClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
 
         mEndPoint.enqueueTokenSuccess(jws);
         TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
@@ -344,7 +344,7 @@ public class AuthenticateClientTest {
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(), equalTo("/token"));
         assertNotNull(tokenResponse);
-
+        assertEquals(tokenResponse.getIdToken(), jws);
     }
 
     @Test

@@ -30,6 +30,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
+import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
@@ -53,7 +54,8 @@ public class OktaIdTokenTest {
 
     @Test
     public void validate() throws AuthorizationException {
-        String jwt = TestValues.getJwt(CUSTOM_URL, mAccount.getClientId(), "fakeaud");
+        String jwt = TestValues.getJwt(CUSTOM_URL, CUSTOM_NONCE, mAccount.getClientId(),
+                "fakeaud");
         OktaIdToken idToken = OktaIdToken.parseIdToken(jwt);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
 
@@ -66,10 +68,25 @@ public class OktaIdTokenTest {
         assertNotNull(idToken.mClaims);
     }
 
+
+    @Test
+    public void validateInvalidNonce() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        String jwt = TestValues.getJwt(CUSTOM_URL, "invalid", mAccount.getClientId(),
+                "fakeaud");
+        OktaIdToken idToken = OktaIdToken.parseIdToken(jwt);
+        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
+
+        TokenRequest tokenRequest =
+                TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
+                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
+        idToken.validate(tokenRequest, System::currentTimeMillis);
+    }
+
     @Test
     public void validateExpiredToken() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        String jws = TestValues.getExpiredJwt(CUSTOM_URL, mAccount.getClientId());
+        String jws = TestValues.getExpiredJwt(CUSTOM_URL, CUSTOM_NONCE, mAccount.getClientId());
         OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
         TokenRequest tokenRequest =
@@ -83,7 +100,8 @@ public class OktaIdTokenTest {
         mExpectedEx.expect(AuthorizationException.class);
         OktaIdToken token = OktaIdToken.parseIdToken(JsonStrings.VALID_ID_TOKEN);
 
-        String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, mAccount.getClientId());
+        String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, CUSTOM_NONCE,
+                mAccount.getClientId());
         OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
 
@@ -103,7 +121,7 @@ public class OktaIdTokenTest {
     }
 
     @Test
-    public void parseInValidIdToken() {
+    public void parseInvalidIdToken() {
         mExpectedEx.expect(IllegalArgumentException.class);
         OktaIdToken.parseIdToken(JsonStrings.INVALID_ID_TOKEN);
     }

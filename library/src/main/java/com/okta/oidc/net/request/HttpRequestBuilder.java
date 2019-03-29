@@ -49,27 +49,31 @@ public class HttpRequestBuilder {
         if (mAccount == null) {
             throw new IllegalStateException("Invalid account");
         }
+        if (mAccount.getProviderConfig() == null && type != HttpRequest.Type.CONFIGURATION) {
+            throw new IllegalStateException("Missing service configuration");
+        }
         switch (type) {
             case CONFIGURATION:
                 break; //NO-OP
-            case TOKEN_EXCHANGE:
-                if (mAccount.getProviderConfig() == null) {
-                    throw new IllegalStateException("Account is missing or invalid service config");
+            case AUTHORIZED:
+                if (!mAccount.isLoggedIn() || mUri == null) {
+                    throw new IllegalStateException("Not logged in or invalid uri");
                 }
                 break;
-            case AUTHORIZED:
-                if (mUri == null || mRequestMethod == null || !mAccount.isLoggedIn()) {
-                    throw new IllegalStateException("Invalid uri or http method or not logged in");
+            case TOKEN_EXCHANGE:
+                if (mAccount.getProviderConfig() == null || mAuthRequest == null
+                        || mAuthResponse == null) {
+                    throw new IllegalStateException("Missing auth request or response");
                 }
                 break;
             case PROFILE:
-                if (!mAccount.isLoggedIn() || mAccount.getProviderConfig() == null) {
-                    throw new IllegalArgumentException("Not authorized or invalid service");
+                if (!mAccount.isLoggedIn()) {
+                    throw new IllegalStateException("Not logged in");
                 }
                 break;
             case REVOKE_TOKEN:
-                if (mAccount.getProviderConfig() == null || mTokenToRevoke == null) {
-                    throw new IllegalArgumentException("Invalid config or token");
+                if (mTokenToRevoke == null) {
+                    throw new IllegalStateException("Invalid token");
                 }
                 break;
             default:

@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -39,6 +40,8 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import static android.support.annotation.VisibleForTesting.PACKAGE_PRIVATE;
+
 /*
     Okta OIDC application information
  */
@@ -53,7 +56,8 @@ public class OIDCAccount {
         mAccount = account;
     }
 
-    void setTokenResponse(TokenResponse token) {
+    @VisibleForTesting(otherwise = PACKAGE_PRIVATE)
+    public void setTokenResponse(TokenResponse token) {
         mTokenResponse = token;
     }
 
