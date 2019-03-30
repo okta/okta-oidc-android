@@ -69,6 +69,7 @@ public class TestValues {
     public static final String ERROR = "error";
     public static final String ERROR_DESCRIPTION = "error_description";
 
+    public static final String PROMPT ="none";
 
     //Token response
     public static final String TYPE_BEARER = "Bearer";

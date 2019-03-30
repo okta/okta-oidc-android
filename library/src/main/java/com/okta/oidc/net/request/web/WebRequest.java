@@ -43,7 +43,7 @@ public abstract class WebRequest implements Persistable {
                 if (data.contains("authorize")) {
                     return new AuthorizeRequest(new Gson().fromJson(data, AuthorizeRequest.Parameters.class));
                 } else {
-                    return new Gson().fromJson(data, LogoutRequest.class);
+                    return new LogoutRequest(new Gson().fromJson(data, LogoutRequest.Parameters.class));
                 }
             }
             return null;

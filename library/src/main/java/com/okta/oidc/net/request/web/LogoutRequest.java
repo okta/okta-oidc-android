@@ -27,7 +27,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 public class LogoutRequest extends WebRequest {
     private Parameters mParameters;
 
-    private LogoutRequest(Parameters parameters) {
+    LogoutRequest(Parameters parameters) {
         mParameters = parameters;
     }
 
@@ -60,6 +60,14 @@ public class LogoutRequest extends WebRequest {
         return RESTORE.encrypted();
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        LogoutRequest request = (LogoutRequest) other;
+        return mParameters.equals(request.mParameters);
+    }
+
     static class Parameters {
         Parameters() {
             //NO-OP
@@ -86,10 +94,29 @@ public class LogoutRequest extends WebRequest {
                 builder.appendQueryParameter(name, value);
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Parameters that = (Parameters) o;
+
+            if (end_session_endpoint != null ? !end_session_endpoint.equals(that.end_session_endpoint) : that.end_session_endpoint != null)
+                return false;
+            if (client_id != null ? !client_id.equals(that.client_id) : that.client_id != null)
+                return false;
+            if (id_token_hint != null ? !id_token_hint.equals(that.id_token_hint) : that.id_token_hint != null)
+                return false;
+            if (post_logout_redirect_uri != null ? !post_logout_redirect_uri.equals(that.post_logout_redirect_uri) : that.post_logout_redirect_uri != null)
+                return false;
+            return state != null ? state.equals(that.state) : that.state == null;
+        }
     }
 
     public static final class Builder {
         private Parameters mParameters;
+
         private void validate() {
             if (TextUtils.isEmpty(mParameters.end_session_endpoint)) {
                 throw new IllegalArgumentException("end_session_endpoint missing");
