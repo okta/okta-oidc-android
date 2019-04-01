@@ -28,7 +28,7 @@
                 android:layout_height="96dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/openid_logo_content_description"
-                app:srcCompat="@drawable/appauth_96dp" />
+                app:srcCompat="@drawable/appauth_96dp"/>
 
             <TextView
                 style="@style/Base.TextAppearance.AppCompat.Title"
@@ -70,7 +70,14 @@
                     android:id="@+id/logout_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sign out"
+                    android:text="Sign out from Okta"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/clear_data"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Clear Data"
                     android:visibility="gone" />
 
                 <TextView
@@ -120,6 +127,7 @@
                     android:text="@string/auth_options" />
 
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/login_hint_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp">

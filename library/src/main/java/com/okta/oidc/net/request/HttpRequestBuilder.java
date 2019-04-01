@@ -22,6 +22,7 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 
 import java.util.Map;
@@ -34,6 +35,7 @@ public class HttpRequestBuilder {
     @Nullable
     HttpConnectionFactory mConn;
     OIDCAccount mAccount;
+    ProviderConfiguration mProviderConfiguration;
     AuthorizeRequest mAuthRequest;
     AuthorizeResponse mAuthResponse;
     Map<String, String> mPostParameters;
@@ -41,15 +43,18 @@ public class HttpRequestBuilder {
     Uri mUri;
     HttpConnection.RequestMethod mRequestMethod;
     String mTokenToRevoke;
+    boolean mIsLoggedIn;
+    TokenResponse mTokenResponse;
 
-    private HttpRequestBuilder() {
+    private HttpRequestBuilder(boolean isLoggedIn) {
+        mIsLoggedIn = isLoggedIn;
     }
 
     private void validate(HttpRequest.Type type) {
         if (mAccount == null) {
             throw new IllegalStateException("Invalid account");
         }
-        if (mAccount.getProviderConfig() == null && type != HttpRequest.Type.CONFIGURATION) {
+        if (mProviderConfiguration == null && type != HttpRequest.Type.CONFIGURATION) {
             throw new IllegalStateException("Missing service configuration");
         }
         switch (type) {
@@ -61,13 +66,12 @@ public class HttpRequestBuilder {
                 }
                 break;
             case TOKEN_EXCHANGE:
-                if (mAccount.getProviderConfig() == null || mAuthRequest == null
-                        || mAuthResponse == null) {
+                if (mAuthRequest == null || mAuthResponse == null) {
                     throw new IllegalStateException("Missing auth request or response");
                 }
                 break;
             case PROFILE:
-                if (!mAccount.isLoggedIn()) {
+                if (!mIsLoggedIn()) {
                     throw new IllegalStateException("Not logged in");
                 }
                 break;
@@ -80,8 +84,8 @@ public class HttpRequestBuilder {
         }
     }
 
-    public static HttpRequestBuilder newRequest() {
-        return new HttpRequestBuilder();
+    public static HttpRequestBuilder newRequest(boolean isLoggedIn) {
+        return new HttpRequestBuilder(isLoggedIn);
     }
 
     public HttpRequest createRequest() {
@@ -94,7 +98,7 @@ public class HttpRequestBuilder {
             case AUTHORIZED:
                 return new AuthorizedRequest(this);
             case PROFILE:
-                mUri = Uri.parse(mAccount.getProviderConfig().userinfo_endpoint);
+                mUri = Uri.parse(mProviderConfiguration.userinfo_endpoint);
                 mRequestMethod = HttpConnection.RequestMethod.POST;
                 return new AuthorizedRequest(this);
             case REVOKE_TOKEN:
@@ -116,6 +120,16 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder account(OIDCAccount account) {
         mAccount = account;
+        return this;
+    }
+
+    public HttpRequestBuilder providerConfiguration(ProviderConfiguration providerConfiguration) {
+        mProviderConfiguration = providerConfiguration;
+        return this;
+    }
+
+    public HttpRequestBuilder tokenResponse(TokenResponse tokenResponse) {
+        mTokenResponse = tokenResponse;
         return this;
     }
 

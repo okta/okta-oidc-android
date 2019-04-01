@@ -231,5 +231,4 @@ public class HttpConnection {
             return this;
         }
     }
-
 }

@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
@@ -26,7 +25,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,17 +46,10 @@ import static android.support.annotation.VisibleForTesting.PACKAGE_PRIVATE;
 public class OIDCAccount {
     private static final String TAG = OIDCAccount.class.getSimpleName();
 
-    private TokenResponse mTokenResponse;
     private AccountInfo mAccount;
-    private ProviderConfiguration mProviderConfig;
 
     private OIDCAccount(AccountInfo account) {
         mAccount = account;
-    }
-
-    @VisibleForTesting(otherwise = PACKAGE_PRIVATE)
-    public void setTokenResponse(TokenResponse token) {
-        mTokenResponse = token;
     }
 
     public String getClientId() {
@@ -80,43 +71,6 @@ public class OIDCAccount {
 
     public String[] getScopes() {
         return mAccount.mScopes;
-    }
-
-    public boolean obtainNewConfiguration() {
-        return (mProviderConfig == null || !mProviderConfig.issuer.equals(mAccount.mDiscoveryUri));
-    }
-
-    public ProviderConfiguration getProviderConfig() {
-        return mProviderConfig;
-    }
-
-    public void setProviderConfig(ProviderConfiguration config) {
-        mProviderConfig = config;
-    }
-
-    public boolean isLoggedIn() {
-        return mTokenResponse != null && (mTokenResponse.getAccessToken() != null
-                || mTokenResponse.getIdToken() != null);
-    }
-
-    public @Nullable
-    String getAccessToken() {
-        return mTokenResponse != null ? mTokenResponse.getAccessToken() : null;
-    }
-
-    public @Nullable
-    String getIdToken() {
-        return mTokenResponse != null ? mTokenResponse.getIdToken() : null;
-    }
-
-    public @Nullable
-    String getRefreshToken() {
-        return mTokenResponse != null ? mTokenResponse.getRefreshToken() : null;
-    }
-
-    public @Nullable
-    TokenResponse getTokenResponse() {
-        return mTokenResponse;
     }
 
     private static class AccountInfo {

@@ -39,7 +39,7 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
         }
         mConnection = builder
                 .setRequestMethod(b.mRequestMethod)
-                .setRequestProperty("Authorization", "Bearer " + b.mAccount.getAccessToken())
+                .setRequestProperty("Authorization", "Bearer " + b.mTokenResponse.getAccessToken())
                 .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
                 .create(b.mConn);
     }
