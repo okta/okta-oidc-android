@@ -29,7 +29,7 @@ public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationExcept
     RevokeTokenRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
-        mUri = Uri.parse(b.mAccount.getProviderConfig().revocation_endpoint).buildUpon()
+        mUri = Uri.parse(b.mProviderConfiguration.revocation_endpoint).buildUpon()
                 .appendQueryParameter("client_id", b.mAccount.getClientId())
                 .appendQueryParameter("token", b.mTokenToRevoke)
                 .build();

@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.util.Log;
 
@@ -25,7 +24,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,16 +42,10 @@ import java.nio.charset.StandardCharsets;
 public class OIDCAccount {
     private static final String TAG = OIDCAccount.class.getSimpleName();
 
-    private TokenResponse mTokenResponse;
     private AccountInfo mAccount;
-    private ProviderConfiguration mProviderConfig;
 
     private OIDCAccount(AccountInfo account) {
         mAccount = account;
-    }
-
-    void setTokenResponse(TokenResponse token) {
-        mTokenResponse = token;
     }
 
     public String getClientId() {
@@ -74,43 +66,6 @@ public class OIDCAccount {
 
     public String[] getScopes() {
         return mAccount.mScopes;
-    }
-
-    public boolean obtainNewConfiguration() {
-        return (mProviderConfig == null || !mProviderConfig.issuer.equals(mAccount.mDiscoveryUri));
-    }
-
-    public ProviderConfiguration getProviderConfig() {
-        return mProviderConfig;
-    }
-
-    public void setProviderConfig(ProviderConfiguration config) {
-        mProviderConfig = config;
-    }
-
-    public boolean isLoggedIn() {
-        return mTokenResponse != null && (mTokenResponse.getAccessToken() != null
-                || mTokenResponse.getIdToken() != null);
-    }
-
-    public @Nullable
-    String getAccessToken() {
-        return mTokenResponse.getAccessToken();
-    }
-
-    public @Nullable
-    String getIdToken() {
-        return mTokenResponse.getIdToken();
-    }
-
-    public @Nullable
-    String getRefreshToken() {
-        return mTokenResponse.getRefreshToken();
-    }
-
-    public @Nullable
-    TokenResponse getTokenResponse() {
-        return mTokenResponse;
     }
 
     private static class AccountInfo {

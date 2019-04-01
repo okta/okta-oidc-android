@@ -1,25 +1,21 @@
 package com.okta.oidc.storage;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
 import android.util.Log;
-
-import com.okta.oidc.OIDCAccount;
-import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
 
     private final OktaStorage storage;
     private final EncryptionManager encryptionManager;
+    private final Map<String, String> cacheStorage = new HashMap<>();
 
     private final Object lock = new Object();
 
@@ -36,20 +32,30 @@ public class OktaRepository {
             if (persistable.encrypt()) {
                 storage.save(getHashed(persistable.getKey()),
                         getEncrypted(persistable.persist()));
+                cacheStorage.put(getHashed(persistable.getKey()),
+                        getEncrypted(persistable.persist()));
             } else {
                 storage.save(persistable.getKey(), persistable.persist());
+                cacheStorage.put(persistable.getKey(), persistable.persist());
             }
         }
     }
 
-    public Object restore(Persistable.Restore persistable) {
+    public <T extends Persistable> T get(Persistable.Restore<T> persistable) {
         synchronized (lock) {
             String data = null;
-            if (persistable.encrypted()) {
-                data = getDecrypted(storage.get(getHashed(persistable.getKey())));
+            String key = (persistable.encrypted()) ?
+                    getHashed(persistable.getKey()) : persistable.getKey();
+            if(cacheStorage.get(key) != null) {
+                data = cacheStorage.get(key);
             } else {
-                data = storage.get(persistable.getKey());
+                data = storage.get(key);
             }
+
+            if(persistable.encrypted()) {
+                data = getDecrypted(data);
+            }
+
             return persistable.restore(data);
         }
     }
@@ -59,11 +65,10 @@ public class OktaRepository {
             return;
         }
         synchronized (lock) {
-            if (persistable.encrypt()) {
-                storage.delete(getHashed(persistable.getKey()));
-            } else {
-                storage.delete(persistable.getKey());
-            }
+            String key = (persistable.encrypt()) ?
+                    getHashed(persistable.getKey()) : persistable.getKey();
+            storage.delete(key);
+            cacheStorage.remove(key);
         }
     }
 

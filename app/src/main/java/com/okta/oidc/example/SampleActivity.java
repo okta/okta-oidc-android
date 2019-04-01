@@ -32,6 +32,7 @@ import com.okta.oidc.AuthorisationStatus;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
+import com.okta.oidc.Tokens;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -46,6 +47,7 @@ public class SampleActivity extends AppCompatActivity {
     private TextView mTvStatus;
     private Button mButton;
     private Button mSignOut;
+    private Button mClearData;
 
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
@@ -59,43 +61,63 @@ public class SampleActivity extends AppCompatActivity {
         setContentView(R.layout.sample_activity_login);
         mButton = findViewById(R.id.start_button);
         mSignOut = findViewById(R.id.logout_button);
+        mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
         mRevokeAccess = findViewById(R.id.revoke_access);
         mRevokeRefresh = findViewById(R.id.revoke_refresh);
 
-        mRevokeRefresh.setOnClickListener(v -> mOktaAuth.revokeToken(mOktaAccount.getRefreshToken(),
-                new RequestCallback<Boolean, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean result) {
-                        Log.d(TAG, "Revoke refresh token : " + result);
-                    }
+        mRevokeRefresh.setOnClickListener(v -> {
+            Tokens tokens = mOktaAuth.getTokens();
+            if (tokens != null && tokens.getRefreshToken() != null) {
+                mOktaAuth.revokeToken(mOktaAuth.getTokens().getRefreshToken(),
+                        new RequestCallback<Boolean, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull Boolean result) {
+                                String status = "Revoke refresh token : " + result;
+                                Log.d(TAG, status);
+                                mTvStatus.setText(status);
+                            }
 
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        Log.d(TAG, exception.error +
-                                " revokeRefreshToken onError " + error, exception);
-                        mTvStatus.setText(error);
-                    }
-                }));
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                Log.d(TAG, exception.error +
+                                        " revokeRefreshToken onError " + error, exception);
+                                mTvStatus.setText(error);
+                            }
+                        });
+            }
+        });
 
-        mRevokeAccess.setOnClickListener(v -> mOktaAuth.revokeToken(mOktaAccount.getAccessToken(),
-                new RequestCallback<Boolean, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean result) {
-                        Log.d(TAG, "Revoke Access token : " + result);
-                    }
+        mRevokeAccess.setOnClickListener(v -> {
+            Tokens tokens = mOktaAuth.getTokens();
+            if (tokens != null && tokens.getAccessToken() != null) {
+                mOktaAuth.revokeToken(mOktaAuth.getTokens().getAccessToken(),
+                        new RequestCallback<Boolean, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull Boolean result) {
+                                String status = "Revoke Access token : " + result;
+                                Log.d(TAG, status);
+                                mTvStatus.setText(status);
+                            }
 
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        Log.d(TAG, exception.error +
-                                " revokeAccessToken onError " + error, exception);
-                        mTvStatus.setText(error);
-                    }
-                }));
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                Log.d(TAG, exception.error +
+                                        " revokeAccessToken onError " + error, exception);
+                                mTvStatus.setText(error);
+                            }
+                        });
+            }
+        });
 
-        mSignOut.setOnClickListener(v -> mOktaAuth.logOut(this));
+        mSignOut.setOnClickListener(v -> mOktaAuth.signOutFromOkta(this));
+        mClearData.setOnClickListener(v -> {
+            mOktaAuth.clear();
+            mTvStatus.setText("log out su");
+            showLoggedOutMode();
+        });
 
-        mButton.setOnClickListener(v -> mOktaAuth.logIn(this));
+        mButton.setOnClickListener(v -> mOktaAuth.logIn(this, null));
         mTvStatus = findViewById(R.id.status);
 
         //samples sdk test
@@ -109,15 +131,13 @@ public class SampleActivity extends AppCompatActivity {
 
         mOktaAuth = new AuthenticateClient.Builder()
                 .withAccount(mOktaAccount)
-                .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)), this)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)))
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
 
-        if (mOktaAccount.isLoggedIn()) {
-            mButton.setText("Get profile");
-            mButton.setOnClickListener(v -> getProfile());
-            mSignOut.setVisibility(View.VISIBLE);
-            mRevokeContainer.setVisibility(View.VISIBLE);
+        if (mOktaAuth.isLoggedIn()) {
+            showAuthorizedMode();
         }
 
 
@@ -127,17 +147,10 @@ public class SampleActivity extends AppCompatActivity {
                 Log.d("SampleActivity", "AUTHORIZED");
                 if (status == AuthorisationStatus.AUTHORIZED) {
                     mTvStatus.setText("authentication authorized");
-                    mButton.setText("Get profile");
-                    mButton.setOnClickListener(v -> getProfile());
-                    mSignOut.setVisibility(View.VISIBLE);
-                    mRevokeContainer.setVisibility(View.VISIBLE);
+                    showAuthorizedMode();
                 } else if (status == AuthorisationStatus.LOGGED_OUT) {
                     mTvStatus.setText("log out su");
-                    mButton.setText("Log in");
-                    mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this));
-                    mSignOut.setVisibility(View.GONE);
-                    mRevokeContainer.setVisibility(View.GONE);
-                    mTvStatus.setText("");
+                    showLoggedOutMode();
                 }
             }
 
@@ -154,6 +167,23 @@ public class SampleActivity extends AppCompatActivity {
                 mTvStatus.setText(msg);
             }
         }, this);
+    }
+
+    private void showAuthorizedMode() {
+        mButton.setText("Get profile");
+        mButton.setOnClickListener(v -> getProfile());
+        mSignOut.setVisibility(View.VISIBLE);
+        mClearData.setVisibility(View.VISIBLE);
+        mRevokeContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showLoggedOutMode() {
+        mButton.setText("Log in");
+        mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this, null));
+        mSignOut.setVisibility(View.GONE);
+        mClearData.setVisibility(View.GONE);
+        mRevokeContainer.setVisibility(View.GONE);
+        mTvStatus.setText("");
     }
 
     private void getProfile() {

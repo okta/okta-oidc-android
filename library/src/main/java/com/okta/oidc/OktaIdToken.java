@@ -104,7 +104,7 @@ public class OktaIdToken {
 
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
         OIDCAccount account = request.getAccount();
-        ProviderConfiguration config = account.getProviderConfig();
+        ProviderConfiguration config = request.getProviderConfiguration();
 
         if (!"RS256".equals(mHeader.alg)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,

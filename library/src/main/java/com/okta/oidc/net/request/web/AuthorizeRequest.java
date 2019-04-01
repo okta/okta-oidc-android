@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.params.ResponseType;
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -310,8 +311,12 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
+        public Builder providerConfiguration(@NonNull ProviderConfiguration providerConfiguration) {
+            mParameters.authorize_endpoint = providerConfiguration.authorization_endpoint;
+            return this;
+        }
+
         public Builder account(OIDCAccount account) {
-            mParameters.authorize_endpoint = account.getProviderConfig().authorization_endpoint;
             mParameters.client_id = account.getClientId();
             mParameters.scope = AsciiStringListUtil
                     .iterableToString(Arrays.asList(account.getScopes()));

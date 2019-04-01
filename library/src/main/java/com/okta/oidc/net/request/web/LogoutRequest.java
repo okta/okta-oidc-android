@@ -21,13 +21,15 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
 public class LogoutRequest extends WebRequest {
     private Parameters mParameters;
 
-    private LogoutRequest(Parameters parameters) {
+    LogoutRequest(Parameters parameters) {
         mParameters = parameters;
     }
 
@@ -140,10 +142,18 @@ public class LogoutRequest extends WebRequest {
             return this;
         }
 
+        public Builder provideConfiguration(@NonNull ProviderConfiguration providerConfiguration) {
+            mParameters.end_session_endpoint = providerConfiguration.end_session_endpoint;
+            return this;
+        }
+
+        public Builder tokenResponse(@NonNull TokenResponse tokenResponse) {
+            mParameters.id_token_hint = tokenResponse.getIdToken();
+            return this;
+        }
+
         public Builder account(OIDCAccount account) {
-            mParameters.end_session_endpoint = account.getProviderConfig().end_session_endpoint;
             mParameters.client_id = account.getClientId();
-            mParameters.id_token_hint = account.getIdToken();
             mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
             return this;
         }

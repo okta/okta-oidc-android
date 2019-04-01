@@ -144,7 +144,7 @@ public class EncryptionManager {
 
     /**
      *
-     * @param context application context
+     * @param context application withContext
      * @param prefStore backing store for storing information
      * @param keyAliasPrefix prefix for key aliases
      * @param bitShiftingKey a key to use for randomization (seed) and bit shifting, this enhances

@@ -22,6 +22,7 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 
 import java.util.Map;
@@ -34,6 +35,7 @@ public class HttpRequestBuilder {
     @Nullable
     HttpConnectionFactory mConn;
     OIDCAccount mAccount;
+    ProviderConfiguration mProviderConfiguration;
     AuthorizeRequest mAuthRequest;
     AuthorizeResponse mAuthResponse;
     Map<String, String> mPostParameters;
@@ -41,8 +43,11 @@ public class HttpRequestBuilder {
     Uri mUri;
     HttpConnection.RequestMethod mRequestMethod;
     String mTokenToRevoke;
+    boolean mIsLoggedIn;
+    TokenResponse mTokenResponse;
 
-    private HttpRequestBuilder() {
+    private HttpRequestBuilder(boolean isLoggedIn) {
+        mIsLoggedIn = isLoggedIn;
     }
 
     private void validate(HttpRequest.Type type) {
@@ -53,22 +58,22 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 break; //NO-OP
             case TOKEN_EXCHANGE:
-                if (mAccount.getProviderConfig() == null) {
+                if (mProviderConfiguration == null) {
                     throw new IllegalStateException("Account is missing or invalid service config");
                 }
                 break;
             case AUTHORIZED:
-                if (mUri == null || mRequestMethod == null || !mAccount.isLoggedIn()) {
+                if (mUri == null || mRequestMethod == null || !mIsLoggedIn) {
                     throw new IllegalStateException("Invalid uri or http method or not logged in");
                 }
                 break;
             case PROFILE:
-                if (!mAccount.isLoggedIn() || mAccount.getProviderConfig() == null) {
+                if (!mIsLoggedIn || mProviderConfiguration == null) {
                     throw new IllegalArgumentException("Not authorized or invalid service");
                 }
                 break;
             case REVOKE_TOKEN:
-                if (mAccount.getProviderConfig() == null || mTokenToRevoke == null) {
+                if (mProviderConfiguration == null || mTokenToRevoke == null) {
                     throw new IllegalArgumentException("Invalid config or token");
                 }
                 break;
@@ -76,8 +81,8 @@ public class HttpRequestBuilder {
         }
     }
 
-    public static HttpRequestBuilder newRequest() {
-        return new HttpRequestBuilder();
+    public static HttpRequestBuilder newRequest(boolean isLoggedIn) {
+        return new HttpRequestBuilder(isLoggedIn);
     }
 
     public HttpRequest createRequest() {
@@ -90,7 +95,7 @@ public class HttpRequestBuilder {
             case AUTHORIZED:
                 return new AuthorizedRequest(this);
             case PROFILE:
-                mUri = Uri.parse(mAccount.getProviderConfig().userinfo_endpoint);
+                mUri = Uri.parse(mProviderConfiguration.userinfo_endpoint);
                 mRequestMethod = HttpConnection.RequestMethod.POST;
                 return new AuthorizedRequest(this);
             case REVOKE_TOKEN:
@@ -112,6 +117,16 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder account(OIDCAccount account) {
         mAccount = account;
+        return this;
+    }
+
+    public HttpRequestBuilder providerConfiguration(ProviderConfiguration providerConfiguration) {
+        mProviderConfiguration = providerConfiguration;
+        return this;
+    }
+
+    public HttpRequestBuilder tokenResponse(TokenResponse tokenResponse) {
+        mTokenResponse = tokenResponse;
         return this;
     }
 

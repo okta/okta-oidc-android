@@ -58,12 +58,14 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     private String username;
     private String nonce;
     private OIDCAccount mAccount;
+    private ProviderConfiguration mProviderConfiguration;
 
     TokenRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
         mAccount = b.mAccount;
-        mUri = Uri.parse(b.mAccount.getProviderConfig().token_endpoint);
+        mProviderConfiguration = b.mProviderConfiguration;
+        mUri = Uri.parse(mProviderConfiguration.token_endpoint);
         client_id = b.mAccount.getClientId();
         redirect_uri = b.mAccount.getRedirectUri().toString();
         code_verifier = b.mAuthRequest.getCodeVerifier();
@@ -97,6 +99,10 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
 
     public OIDCAccount getAccount() {
         return mAccount;
+    }
+
+    public ProviderConfiguration getProviderConfiguration() {
+        return mProviderConfiguration;
     }
 
     public String getNonce() {

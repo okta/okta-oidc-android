@@ -25,7 +25,7 @@ public class OktaResultFragment extends Fragment {
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 200;
 
-    private AuthenticateClient client;
+    private AuthResultListener resultListener;
     private Result cashedResult;
     private Intent authIntent;
     private Intent logoutIntent;
@@ -33,7 +33,7 @@ public class OktaResultFragment extends Fragment {
     public static void createLoginFragment(WebRequest request,
                                            int customColor,
                                            FragmentActivity activity,
-                                           AuthenticateClient client) {
+                                           AuthResultListener client) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationClient(client);
@@ -48,7 +48,7 @@ public class OktaResultFragment extends Fragment {
     public static void createLogoutFragment(WebRequest request,
                                             int customColor,
                                             FragmentActivity activity,
-                                            AuthenticateClient client) {
+                                            AuthResultListener client) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationClient(client);
@@ -74,7 +74,7 @@ public class OktaResultFragment extends Fragment {
     }
 
     public static void setAuthenticationClient(FragmentActivity activity,
-                                               AuthenticateClient client) {
+                                               AuthResultListener client) {
 
         OktaResultFragment resultFragment = (OktaResultFragment) activity.getSupportFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
@@ -88,14 +88,14 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
 
-    private void setAuthenticationClient(AuthenticateClient client) {
-        this.client = client;
+    private void setAuthenticationClient(AuthResultListener client) {
+        this.resultListener = client;
         postResult();
     }
 
     private void postResult() {
-        if (cashedResult != null && client != null) {
-            client.postResult(cashedResult);
+        if (cashedResult != null && resultListener != null) {
+            resultListener.postResult(cashedResult);
             cashedResult = null;
             getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
         }
@@ -195,6 +195,10 @@ public class OktaResultFragment extends Fragment {
         public Status getStatus() {
             return status;
         }
+    }
+
+    public interface AuthResultListener {
+        void  postResult(Result result);
     }
 
 }
