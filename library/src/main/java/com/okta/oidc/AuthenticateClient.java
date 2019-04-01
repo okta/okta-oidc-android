@@ -20,11 +20,8 @@ import android.os.Bundle;
 import android.support.annotation.AnyThread;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.annotation.WorkerThread;
-import android.util.Log;
+import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
@@ -38,9 +35,6 @@ import com.okta.oidc.util.AuthorizationException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 
 public final class AuthenticateClient {
@@ -51,20 +45,16 @@ public final class AuthenticateClient {
     private SyncAuthenticationClient mAuthClient;
     private RequestDispatcher mDispatcher;
 
-    private ResultCallback<AuthorisationStatus, AuthorizationException> mResultCb;
-
-    //Hold the exception to send to onActivityResult
-    private AuthorizationException mErrorActivityResult;
-    private String[] mSupportedBrowsers;
+    private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
 
     private AuthenticateClient(@NonNull Builder builder) {
         mAuthClient = new SyncAuthenticationClient(builder.mConnectionFactory, builder.mOIDCAccount,
-                builder.mCustomTabColor, builder.mStorage, builder.mContext);
+                builder.mCustomTabColor, builder.mStorage, builder.mContext,
+                builder.mSupportedBrowsers);
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
-        mSupportedBrowsers = builder.mSupportedBrowsers;
     }
 
-    public void registerCallback(ResultCallback<AuthorisationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
+    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
     }
@@ -72,11 +62,6 @@ public final class AuthenticateClient {
     private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
         mActivity = new WeakReference<>(activity);
         mActivity.get().getApplication().registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-            }
-
             @Override
             public void onActivityDestroyed(Activity activity) {
                 if (mActivity != null && mActivity.get() == activity) {
@@ -86,7 +71,6 @@ public final class AuthenticateClient {
             }
         });
     }
-
 
     public void getUserProfile(final RequestCallback<JSONObject, AuthorizationException> cb) {
         AuthorizedRequest request = mAuthClient.userProfileRequest();
@@ -102,7 +86,7 @@ public final class AuthenticateClient {
         return mAuthClient.getTokens();
     }
 
-    public boolean isLoggedIn(){
+    public boolean isLoggedIn() {
         return mAuthClient.isLoggedIn();
     }
 
@@ -116,9 +100,9 @@ public final class AuthenticateClient {
         mDispatcher.execute(() -> {
             try {
                 AuthorizationResult result = mAuthClient.logIn(activity, payload);
-                if(result.isSuccess()) {
+                if (result.isSuccess()) {
                     mDispatcher.submitResults(() -> mResultCb.onSuccess(
-                            AuthorisationStatus.AUTHORIZED));
+                            AuthorizationStatus.AUTHORIZED));
                 } else {
                     mDispatcher.submitResults(() -> mResultCb.onError("Authorization error",
                             result.getError()));
@@ -131,15 +115,15 @@ public final class AuthenticateClient {
 
     @AnyThread
     public void signOutFromOkta(@NonNull final FragmentActivity activity) {
-            registerActivityLifeCycle(activity);
-            mDispatcher.execute(() -> {
-                Result result = mAuthClient.signOutFromOkta(activity);
-                if (result.isSuccess()) {
-                    mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorisationStatus.LOGGED_OUT));
-                } else {
-                    mDispatcher.submitResults(() -> mResultCb.onError("Logg out error", result.getError()));
-                }
-            });
+        registerActivityLifeCycle(activity);
+        mDispatcher.execute(() -> {
+            Result result = mAuthClient.signOutFromOkta(activity);
+            if (result.isSuccess()) {
+                mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
+            } else {
+                mDispatcher.submitResults(() -> mResultCb.onError("Logg out error", result.getError()));
+            }
+        });
     }
 
     private void stop() {
@@ -147,7 +131,23 @@ public final class AuthenticateClient {
         mDispatcher.shutdown();
     }
 
-    public static final class Builder {
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        boolean result;
+        if (!(obj instanceof AuthenticateClient)) {
+            result = false;
+        } else {
+            AuthenticateClient other = (AuthenticateClient) obj;
+            result = mAuthClient.equals(other.mAuthClient);
+        }
+        return result;
+    }
+
+
+    public static class Builder {
         private Executor mCallbackExecutor;
         private HttpConnectionFactory mConnectionFactory;
         private OIDCAccount mOIDCAccount;

@@ -1,5 +1,5 @@
 package com.okta.oidc;
 
-public enum AuthorisationStatus {
+public enum AuthorizationStatus {
     AUTHORIZED, IN_PROGRESS, LOGGED_OUT
 }

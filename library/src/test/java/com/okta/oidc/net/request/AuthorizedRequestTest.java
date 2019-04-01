@@ -53,19 +53,24 @@ public class AuthorizedRequestTest {
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
+    private ProviderConfiguration mProviderConfig;
+    private TokenResponse mTokenResponse;
+
     @Before
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(url));
-        mAccount.setTokenResponse(new Gson().fromJson(JsonStrings.TOKEN_RESPONSE,
-                TokenResponse.class));
-        mRequest = (AuthorizedRequest) HttpRequestBuilder.newRequest()
+        mProviderConfig = TestValues.getProviderConfiguration(url);
+        mTokenResponse = new Gson().fromJson(JsonStrings.TOKEN_RESPONSE, TokenResponse.class);
+
+        mRequest = (AuthorizedRequest) HttpRequestBuilder.newRequest(true)
                 .request(HttpRequest.Type.AUTHORIZED)
                 .uri(Uri.parse(mEndPoint.getUrl()))
                 .httpRequestMethod(HttpConnection.RequestMethod.POST)
                 .account(mAccount)
+                .providerConfiguration(mProviderConfig)
+                .tokenResponse(mTokenResponse)
                 .createRequest();
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }

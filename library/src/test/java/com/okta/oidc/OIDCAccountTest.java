@@ -49,16 +49,6 @@ public class OIDCAccountTest {
     }
 
     @Test
-    public void setTokenResponse() {
-        TokenResponse tokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
-        assertNull(mAccount.getTokenResponse());
-        mAccount.setTokenResponse(tokenResponse);
-        TokenResponse response = mAccount.getTokenResponse();
-        assertNotNull(response);
-        assertEquals(tokenResponse, response);
-    }
-
-    @Test
     public void getClientId() {
         String id = mAccount.getClientId();
         assertNotNull(id);
@@ -93,83 +83,7 @@ public class OIDCAccountTest {
         assertNotNull(scopes);
         assertArrayEquals(SCOPES, scopes);
     }
-
-    @Test
-    public void obtainNewConfiguration() {
-        boolean needNewConfig = mAccount.obtainNewConfiguration();
-        assertTrue(needNewConfig);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(CUSTOM_URL));
-        needNewConfig = mAccount.obtainNewConfiguration();
-        assertFalse(needNewConfig);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration("differentUrl"));
-        needNewConfig = mAccount.obtainNewConfiguration();
-        assertTrue(needNewConfig);
-    }
-
-    @Test
-    public void getProviderConfig() {
-        ProviderConfiguration config = mAccount.getProviderConfig();
-        assertNull(config);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(CUSTOM_URL));
-        config = mAccount.getProviderConfig();
-        assertNotNull(config);
-        assertEquals(TestValues.getProviderConfiguration(CUSTOM_URL), config);
-    }
-
-    @Test
-    public void setProviderConfig() {
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration("NEWCONFIG_URL"));
-        ProviderConfiguration config = mAccount.getProviderConfig();
-        assertNotNull(config);
-        assertEquals(TestValues.getProviderConfiguration("NEWCONFIG_URL"), config);
-    }
-
-    @Test
-    public void isLoggedIn() {
-        boolean loggedIn = mAccount.isLoggedIn();
-        assertFalse(loggedIn);
-        mAccount.setTokenResponse(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
-        loggedIn = mAccount.isLoggedIn();
-        assertTrue(loggedIn);
-    }
-
-    @Test
-    public void getAccessToken() {
-        String token = mAccount.getAccessToken();
-        assertNull(token);
-        mAccount.setTokenResponse(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
-        token = mAccount.getAccessToken();
-        assertEquals("ACCESS_TOKEN", token);
-    }
-
-    @Test
-    public void getIdToken() {
-        String token = mAccount.getIdToken();
-        assertNull(token);
-        mAccount.setTokenResponse(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
-        token = mAccount.getIdToken();
-        assertEquals("ID_TOKEN", token);
-    }
-
-    @Test
-    public void getRefreshToken() {
-        String token = mAccount.getRefreshToken();
-        assertNull(token);
-        mAccount.setTokenResponse(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
-        token = mAccount.getRefreshToken();
-        assertEquals("REFRESH_TOKEN", token);
-    }
-
-    @Test
-    public void getTokenResponse() {
-        TokenResponse response = mAccount.getTokenResponse();
-        assertNull(response);
-        TokenResponse tokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
-        mAccount.setTokenResponse(tokenResponse);
-        response = mAccount.getTokenResponse();
-        assertEquals(tokenResponse, response);
-    }
-
+    
     @Test
     public void equals() {
         OIDCAccount account = TestValues.getAccountWithUrl(CUSTOM_URL);

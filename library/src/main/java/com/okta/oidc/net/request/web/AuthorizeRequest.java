@@ -20,6 +20,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
+import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.params.ResponseType;
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -261,11 +262,6 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder loginHint(@Nullable String loginHint) {
-            mParameters.login_hint = loginHint;
-            return this;
-        }
-
         public Builder codeVerifier(@Nullable String codeVerifier) {
             setCodeVerifier(codeVerifier);
             return this;
@@ -344,13 +340,12 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder state(@Nullable String state) {
-            mParameters.state = state;
-            return this;
-        }
-
-        public Builder additionalParams(@Nullable Map<String, String> params) {
-            mParameters.additionalParams = params;
+        public Builder authenticationPayload(@Nullable AuthenticationPayload payload) {
+            if (payload != null) {
+                mParameters.state = payload.getState();
+                mParameters.login_hint = payload.getLoginHint();
+                mParameters.additionalParams = payload.getAdditionalParameters();
+            }
             return this;
         }
 

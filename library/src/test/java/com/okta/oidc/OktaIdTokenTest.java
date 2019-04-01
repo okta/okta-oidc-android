@@ -14,6 +14,7 @@
  */
 package com.okta.oidc;
 
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -28,6 +29,8 @@ import org.junit.runner.RunWith;
 
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.security.Provider;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
@@ -46,10 +49,12 @@ public class OktaIdTokenTest {
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
+    private ProviderConfiguration mConfiguration;
+
     @Before
     public void setUp() throws Exception {
         mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(CUSTOM_URL));
+        mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
     }
 
     @Test
@@ -61,7 +66,7 @@ public class OktaIdTokenTest {
 
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
-                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
+                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
         assertNotNull(idToken);
         assertNotNull(idToken.mHeader);
@@ -79,7 +84,7 @@ public class OktaIdTokenTest {
 
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
-                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
+                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }
 
@@ -91,7 +96,7 @@ public class OktaIdTokenTest {
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
-                        getAuthorizeResponse("state", "code"));
+                        getAuthorizeResponse("state", "code"), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }
 
@@ -107,7 +112,7 @@ public class OktaIdTokenTest {
 
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
-                        getAuthorizeResponse("state", "code"));
+                        getAuthorizeResponse("state", "code"), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }
 

@@ -17,6 +17,7 @@ package com.okta.oidc;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
@@ -129,11 +130,8 @@ public class OIDCAccount {
             result = false;
         } else {
             OIDCAccount other = (OIDCAccount) obj;
-            result = mAccount == null ? other.mAccount == null : mAccount.equals(other.mAccount)
-                    || mProviderConfig == null ? other.mProviderConfig == null
-                    : mProviderConfig.equals(other.mProviderConfig)
-                    || mTokenResponse == null ? other.mTokenResponse == null
-                    : mTokenResponse.equals(other.mTokenResponse);
+            result = mAccount == null ? other.mAccount == null : mAccount.equals(other.mAccount);
+
         }
         return result;
     }

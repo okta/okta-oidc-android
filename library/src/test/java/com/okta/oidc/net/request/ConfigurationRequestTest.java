@@ -52,7 +52,7 @@ public class ConfigurationRequestTest {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
-        mRequest = (ConfigurationRequest) HttpRequestBuilder.newRequest()
+        mRequest = (ConfigurationRequest) HttpRequestBuilder.newRequest(false)
                 .request(HttpRequest.Type.CONFIGURATION)
                 .account(mAccount)
                 .createRequest();

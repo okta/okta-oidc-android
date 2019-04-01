@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.support.annotation.AnyThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -36,12 +37,14 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
+import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
 public class SyncAuthenticationClient {
@@ -50,17 +53,20 @@ public class SyncAuthenticationClient {
 
     private OIDCAccount mOIDCAccount;
     private int mCustomTabColor;
-    private OktaState mOktaState;
-
+    @VisibleForTesting
+    OktaState mOktaState;
+    private String[] mSupportedBrowsers;
     private HttpConnectionFactory mConnectionFactory;
     //Hold the exception to send to onActivityResult
 
     SyncAuthenticationClient(HttpConnectionFactory factory, OIDCAccount account,
-                             int customTabColor, OktaStorage storage, Context context) {
+                             int customTabColor, OktaStorage storage,
+                             Context context, String[] browsers) {
         mConnectionFactory = factory;
         mOIDCAccount = account;
         mCustomTabColor = customTabColor;
-        mOktaState = new OktaState(new OktaRepository(storage,context));
+        mOktaState = new OktaState(new OktaRepository(storage, context));
+        mSupportedBrowsers = browsers;
     }
 
     public void clear() {
@@ -96,7 +102,7 @@ public class SyncAuthenticationClient {
 
     public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
                                                @NonNull HttpConnection.RequestMethod method) {
-        return (AuthorizedRequest)  HttpRequestBuilder.newRequest(isLoggedIn())
+        return (AuthorizedRequest) HttpRequestBuilder.newRequest(isLoggedIn())
                 .request(HttpRequest.Type.AUTHORIZED)
                 .connectionFactory(mConnectionFactory)
                 .account(mOIDCAccount)
@@ -110,7 +116,9 @@ public class SyncAuthenticationClient {
     }
 
     @WorkerThread
-    public AuthorizationResult logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) throws InterruptedException {
+    public AuthorizationResult logIn(@NonNull final FragmentActivity activity,
+                                     @Nullable AuthenticationPayload payload)
+            throws InterruptedException {
         if (obtainNewConfiguration(mOktaState.getProviderConfiguration(), mOIDCAccount)) {
             ConfigurationRequest request = configurationRequest();
             ProviderConfiguration configuration;
@@ -121,7 +129,12 @@ public class SyncAuthenticationClient {
             }
             mOktaState.save(configuration);
         }
-        WebRequest request = createAuthorizeRequest(payload);
+        WebRequest request = new AuthorizeRequest.Builder()
+                .account(mOIDCAccount)
+                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .authenticationPayload(payload)
+                .create();
+
         mOktaState.save(request);
         if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri(), activity)) {
             Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
@@ -134,12 +147,12 @@ public class SyncAuthenticationClient {
                 activity, result -> {
                     resultWrapper.set(result);
                     latch.countDown();
-                });
+                }, mSupportedBrowsers);
         latch.await();
         OktaResultFragment.Result authResult = resultWrapper.get();
         switch (authResult.getStatus()) {
             case CANCELED:
-                return AuthorizationResult.error(INVALID_REDIRECT_URI);
+                return AuthorizationResult.error(USER_CANCELED_AUTH_FLOW);
             case ERROR:
                 return AuthorizationResult.error(authResult.getException());
             case AUTHORIZED:
@@ -198,7 +211,7 @@ public class SyncAuthenticationClient {
                     activity, result -> {
                         resultWrapper.set(result);
                         latch.countDown();
-                    });
+                    }, mSupportedBrowsers);
             OktaResultFragment.Result logoutResult = resultWrapper.get();
 
             switch (logoutResult.getStatus()) {
@@ -217,7 +230,7 @@ public class SyncAuthenticationClient {
     private AuthorizationException validateResult(WebResponse authResponse) {
         WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
         if (authorizedRequest == null) {
-                return AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
+            return USER_CANCELED_AUTH_FLOW;
         }
 
         String requestState = authorizedRequest.getState();
@@ -228,25 +241,6 @@ public class SyncAuthenticationClient {
             return AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH;
         }
         return null;
-    }
-
-
-    private AuthorizeRequest createAuthorizeRequest(@Nullable AuthenticationPayload payload) {
-        AuthorizeRequest.Builder builder = new AuthorizeRequest.
-                Builder().account(mOIDCAccount)
-                .providerConfiguration(mOktaState.getProviderConfiguration());;
-        if (payload != null) {
-            if (payload.getAdditionalParameters() != null) {
-                builder.additionalParams(payload.getAdditionalParameters());
-            }
-            if (!TextUtils.isEmpty(payload.getState())) {
-                builder.state(payload.getState());
-            }
-            if (!TextUtils.isEmpty(payload.getLoginHint())) {
-                builder.state(payload.getLoginHint());
-            }
-        }
-        return builder.create();
     }
 
     @WorkerThread
@@ -289,4 +283,19 @@ public class SyncAuthenticationClient {
         return found;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SyncAuthenticationClient that = (SyncAuthenticationClient) o;
+
+        if (mCustomTabColor != that.mCustomTabColor) return false;
+        if (mOIDCAccount != null ? !mOIDCAccount.equals(that.mOIDCAccount) : that.mOIDCAccount != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(mSupportedBrowsers, that.mSupportedBrowsers))
+            return false;
+        return true;
+    }
 }

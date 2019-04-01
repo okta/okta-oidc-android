@@ -28,7 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.okta.oidc.AuthenticateClient;
-import com.okta.oidc.AuthorisationStatus;
+import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
@@ -143,14 +143,14 @@ public class SampleActivity extends AppCompatActivity {
         }
 
 
-        mOktaAuth.registerCallback(new ResultCallback<AuthorisationStatus, AuthorizationException>() {
+        mOktaAuth.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
             @Override
-            public void onSuccess(@NonNull AuthorisationStatus status) {
+            public void onSuccess(@NonNull AuthorizationStatus status) {
                 Log.d("SampleActivity", "AUTHORIZED");
-                if (status == AuthorisationStatus.AUTHORIZED) {
+                if (status == AuthorizationStatus.AUTHORIZED) {
                     mTvStatus.setText("authentication authorized");
                     showAuthorizedMode();
-                } else if (status == AuthorisationStatus.LOGGED_OUT) {
+                } else if (status == AuthorizationStatus.LOGGED_OUT) {
                     mTvStatus.setText("log out su");
                     showLoggedOutMode();
                 }

@@ -33,11 +33,12 @@ public class OktaResultFragment extends Fragment {
     public static void createLoginFragment(WebRequest request,
                                            int customColor,
                                            FragmentActivity activity,
-                                           AuthResultListener client) {
+                                           AuthResultListener client, String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationClient(client);
-        fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
+        fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
+                browsers);
 
         activity.getSupportFragmentManager()
                 .beginTransaction()
@@ -48,11 +49,13 @@ public class OktaResultFragment extends Fragment {
     public static void createLogoutFragment(WebRequest request,
                                             int customColor,
                                             FragmentActivity activity,
-                                            AuthResultListener client) {
+                                            AuthResultListener client,
+                                            String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationClient(client);
-        fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor);
+        fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
+                browsers);
 
         activity.getSupportFragmentManager()
                 .beginTransaction()
@@ -83,7 +86,7 @@ public class OktaResultFragment extends Fragment {
         }
     }
 
-    public static boolean hasRequestInProgress(FragmentActivity activity){
+    public static boolean hasRequestInProgress(FragmentActivity activity) {
         return activity.getSupportFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
@@ -101,8 +104,9 @@ public class OktaResultFragment extends Fragment {
         }
     }
 
-    private Intent createAuthIntent(Activity activity, Uri request, int customColor) {
+    private Intent createAuthIntent(Activity activity, Uri request, int customColor, String[] browsers) {
         Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
+        intent.putExtra(OktaAuthenticationActivity.EXTRA_BROWSERS, browsers);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_AUTH_URI, request);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_TAB_OPTIONS, customColor);
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -145,7 +149,7 @@ public class OktaResultFragment extends Fragment {
         } else {
             if (requestCode == REQUEST_CODE_SIGN_IN) {
                 return Result.authorized(AuthorizeResponse.fromUri(responseUri));
-            } else if (requestCode == REQUEST_CODE_SIGN_OUT){
+            } else if (requestCode == REQUEST_CODE_SIGN_OUT) {
                 return Result.loggeout(LogoutResponse.fromUri(responseUri));
             }
         }
@@ -198,7 +202,7 @@ public class OktaResultFragment extends Fragment {
     }
 
     public interface AuthResultListener {
-        void  postResult(Result result);
+        void postResult(Result result);
     }
 
 }

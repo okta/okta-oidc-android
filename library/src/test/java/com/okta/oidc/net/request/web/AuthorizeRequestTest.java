@@ -17,7 +17,9 @@ package com.okta.oidc.net.request.web;
 import android.net.Uri;
 
 import com.google.gson.Gson;
+import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.TestValues;
@@ -41,6 +43,7 @@ import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static com.okta.oidc.util.TestValues.PROMPT;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.junit.Assert.*;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class AuthorizeRequestTest {
@@ -51,20 +54,25 @@ public class AuthorizeRequestTest {
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
+    private ProviderConfiguration mProviderConfig;
+
     @Before
     public void setUp() {
         mCodeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(CUSTOM_URL));
+        mProviderConfig = TestValues.getProviderConfiguration(CUSTOM_URL);
         mRequest = new AuthorizeRequest.Builder()
                 .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
                 .redirectUri(mAccount.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(CUSTOM_NONCE)
                 .clientId(CLIENT_ID)
-                .state(CUSTOM_STATE)
+                .authenticationPayload(new AuthenticationPayload.Builder()
+                        .setState(CUSTOM_STATE)
+                        .setLoginHint(LOGIN_HINT)
+                        .build())
+                .providerConfiguration(mProviderConfig)
                 .setDisplay(PROMPT)
-                .loginHint(LOGIN_HINT)
                 .codeVerifier(mCodeVerifier)
                 .maxAge(EXPIRES_IN)
                 .create();
@@ -103,11 +111,14 @@ public class AuthorizeRequestTest {
                 .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
                 .redirectUri(mAccount.getRedirectUri().toString())
                 .scope(SCOPES)
-                .state(CUSTOM_STATE)
+                .authenticationPayload(new AuthenticationPayload.Builder()
+                        .setState(CUSTOM_STATE)
+                        .setLoginHint(LOGIN_HINT)
+                        .build())
                 .clientId(CLIENT_ID)
+                .providerConfiguration(mProviderConfig)
                 .setDisplay(PROMPT)
                 .nonce(CUSTOM_NONCE)
-                .loginHint(LOGIN_HINT)
                 .codeVerifier(mCodeVerifier)
                 .maxAge(EXPIRES_IN)
                 .create();

@@ -61,7 +61,7 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 break; //NO-OP
             case AUTHORIZED:
-                if (!mAccount.isLoggedIn() || mUri == null) {
+                if (!mIsLoggedIn || mUri == null) {
                     throw new IllegalStateException("Not logged in or invalid uri");
                 }
                 break;
@@ -71,7 +71,7 @@ public class HttpRequestBuilder {
                 }
                 break;
             case PROFILE:
-                if (!mIsLoggedIn()) {
+                if (!mIsLoggedIn) {
                     throw new IllegalStateException("Not logged in");
                 }
                 break;

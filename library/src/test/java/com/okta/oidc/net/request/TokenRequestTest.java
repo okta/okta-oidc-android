@@ -55,7 +55,7 @@ public class TokenRequestTest {
     private OIDCAccount mAccount;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
-
+    private ProviderConfiguration mProviderConfig;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -64,10 +64,10 @@ public class TokenRequestTest {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         mAccount = TestValues.getAccountWithUrl(url);
-        mAccount.setProviderConfig(getProviderConfiguration(url));
+        mProviderConfig = TestValues.getProviderConfiguration(url);
         mRequest = TestValues.getTokenRequest(mAccount,
                 getAuthorizeRequest(mAccount, CodeVerifierUtil.generateRandomCodeVerifier()),
-                getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
+                getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 

@@ -16,8 +16,9 @@ package com.okta.oidc.util;
 
 import android.net.Uri;
 
-import com.okta.oidc.AuthenticateClient;
+import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.SyncAuthenticationClient;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -28,6 +29,7 @@ import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.LogoutResponse;
 
 import java.security.KeyPair;
+import java.security.Provider;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -69,7 +71,7 @@ public class TestValues {
     public static final String ERROR = "error";
     public static final String ERROR_DESCRIPTION = "error_description";
 
-    public static final String PROMPT ="none";
+    public static final String PROMPT = "none";
 
     //Token response
     public static final String TYPE_BEARER = "Bearer";
@@ -135,7 +137,8 @@ public class TestValues {
                 .redirectUri(account.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(CUSTOM_NONCE)
-                .state(CUSTOM_STATE)
+                .authenticationPayload(new AuthenticationPayload.Builder()
+                        .setState(CUSTOM_STATE).build())
                 .create();
     }
 
@@ -156,19 +159,23 @@ public class TestValues {
     }
 
     public static TokenRequest getTokenRequest(OIDCAccount account, AuthorizeRequest request,
-                                               AuthorizeResponse response) {
-        return (TokenRequest) HttpRequestBuilder.newRequest()
+                                               AuthorizeResponse response, ProviderConfiguration
+                                                       configuration) {
+        return (TokenRequest) HttpRequestBuilder.newRequest(true)
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(request)
                 .authResponse(response)
                 .account(account)
+                .providerConfiguration(configuration)
                 .createRequest();
     }
 
-    public static RevokeTokenRequest getRevokeTokenRequest(OIDCAccount account, String tokenToRevoke) {
-        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
+    public static RevokeTokenRequest getRevokeTokenRequest(OIDCAccount account, String tokenToRevoke,
+                                                           ProviderConfiguration configuration) {
+        return (RevokeTokenRequest) HttpRequestBuilder.newRequest(true)
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .tokenToRevoke(tokenToRevoke)
+                .providerConfiguration(configuration)
                 .account(account)
                 .createRequest();
     }

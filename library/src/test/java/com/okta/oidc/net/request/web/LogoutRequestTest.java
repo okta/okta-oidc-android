@@ -19,6 +19,7 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -52,14 +53,19 @@ public class LogoutRequestTest {
     private OIDCAccount mAccount;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
+    private TokenResponse mTokenResponse;
+    private ProviderConfiguration mConfiguration;
 
     @Before
     public void setUp() {
         mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
-        mAccount.setProviderConfig(TestValues.getProviderConfiguration(CUSTOM_URL));
-        mAccount.setTokenResponse(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
+        mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
+        mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
+
         mRequest = new LogoutRequest.Builder()
                 .clientId(CLIENT_ID)
+                .provideConfiguration(mConfiguration)
+                .tokenResponse(mTokenResponse)
                 .state(CUSTOM_STATE)
                 .account(mAccount)
                 .create();
@@ -97,7 +103,7 @@ public class LogoutRequestTest {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
         builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
         builder.clientId(CLIENT_ID);
-        builder.idTokenHint(mAccount.getIdToken());
+        builder.idTokenHint(mTokenResponse.getIdToken());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("post_logout_redirect_uri missing");
         builder.create();
@@ -109,6 +115,8 @@ public class LogoutRequestTest {
                 .clientId(CLIENT_ID)
                 .state(CUSTOM_STATE)
                 .account(mAccount)
+                .tokenResponse(mTokenResponse)
+                .provideConfiguration(mConfiguration)
                 .create();
         assertEquals(mRequest, request);
     }
@@ -122,7 +130,7 @@ public class LogoutRequestTest {
     public void toUri() {
         Uri uri = mRequest.toUri();
         assertEquals(uri.getQueryParameter("client_id"), mAccount.getClientId());
-        assertEquals(uri.getQueryParameter("id_token_hint"), mAccount.getIdToken());
+        assertEquals(uri.getQueryParameter("id_token_hint"), mTokenResponse.getIdToken());
         assertEquals(uri.getQueryParameter("state"), CUSTOM_STATE);
         assertEquals(uri.getQueryParameter("post_logout_redirect_uri"),
                 mAccount.getEndSessionRedirectUri().toString());
