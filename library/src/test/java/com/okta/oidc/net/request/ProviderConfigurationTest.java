@@ -70,12 +70,8 @@ public class ProviderConfigurationTest {
     public void persist() {
         String json = mValidConfiguration.persist();
         ProviderConfiguration other = new Gson().fromJson(json, ProviderConfiguration.class);
-        assertEquals(mValidConfiguration, other);
-        assertNotEquals(mInvalidConfiguration, other);
-    }
-
-    @Test
-    public void equals() {
-        assertNotEquals(mValidConfiguration, mInvalidConfiguration);
+        other.validate();
+        assertNotNull(other);
+        assertEquals(other.persist(), json);
     }
 }

@@ -190,7 +190,9 @@ public class AuthenticateClientTest {
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(),
                 equalTo("//.well-known/openid-configuration?client_id=CLIENT_ID"));
-        assertEquals(mGson.fromJson(PROVIDER_CONFIG, ProviderConfiguration.class), configuration);
+        assertNotNull(configuration);
+        assertEquals(mGson.fromJson(PROVIDER_CONFIG, ProviderConfiguration.class).persist(),
+                configuration.persist());
     }
 
     @Test

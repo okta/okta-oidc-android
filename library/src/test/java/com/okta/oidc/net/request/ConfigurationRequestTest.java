@@ -74,10 +74,13 @@ public class ConfigurationRequestTest {
         RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
         mRequest.dispatchRequest(dispatcher, cb);
         latch.await();
-        assertNotNull(cb.getResult());
-        ProviderConfiguration configuration = new Gson().
+
+        ProviderConfiguration other = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
-        assertEquals(cb.getResult(), configuration);
+        ProviderConfiguration configuration = cb.getResult();
+        configuration.validate();
+        assertNotNull(configuration);
+        assertEquals(configuration.persist(), other.persist());
     }
 
     @Test
@@ -97,11 +100,12 @@ public class ConfigurationRequestTest {
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueConfigurationSuccess();
-        ProviderConfiguration result = mRequest.executeRequest();
-        assertNotNull(result);
-        ProviderConfiguration configuration = new Gson().
+        ProviderConfiguration configuration = mRequest.executeRequest();
+        ProviderConfiguration other = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
-        assertEquals(result, configuration);
+        assertNotNull(configuration);
+        configuration.validate();
+        assertEquals(configuration.persist(), other.persist());
     }
 
     @Test

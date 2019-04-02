@@ -86,17 +86,11 @@ public class TokenResponseTest {
     public void persist() {
         String json = mToken.persist();
         TokenResponse tokenResponse = new Gson().fromJson(json, TokenResponse.class);
-        assertEquals(tokenResponse, mToken);
+        assertEquals(tokenResponse.persist(), json);
     }
 
     @Test
     public void encrypt() {
         assertTrue(mToken.encrypt());
-    }
-
-    @Test
-    public void equals() {
-        TokenResponse other = RESTORE.restore(TOKEN_RESPONSE);
-        assertEquals(mToken, other);
     }
 }

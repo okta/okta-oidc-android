@@ -118,7 +118,7 @@ public class LogoutRequestTest {
                 .tokenResponse(mTokenResponse)
                 .provideConfiguration(mConfiguration)
                 .create();
-        assertEquals(mRequest, request);
+        assertEquals(mRequest.persist(), request.persist());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class LogoutRequestTest {
         String json = mRequest.persist();
         LogoutRequest.Parameters parameters = new Gson().fromJson(json, LogoutRequest.Parameters.class);
         LogoutRequest request = new LogoutRequest(parameters);
-        assertEquals(request, mRequest);
+        assertEquals(request.persist(), json);
     }
 
     @Test

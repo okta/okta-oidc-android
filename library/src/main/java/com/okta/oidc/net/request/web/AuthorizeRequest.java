@@ -77,14 +77,6 @@ public class AuthorizeRequest extends WebRequest {
         return RESTORE.encrypted();
     }
 
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) return true;
-        if (other == null || getClass() != other.getClass()) return false;
-        AuthorizeRequest request = (AuthorizeRequest) other;
-        return mParameters.equals(request.mParameters);
-    }
-
     static class Parameters {
         Parameters() {
             //NO-OP
@@ -147,51 +139,6 @@ public class AuthorizeRequest extends WebRequest {
             if (value != null) {
                 builder.appendQueryParameter(name, value);
             }
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Parameters that = (Parameters) o;
-
-            if (request_type != null ? !request_type.equals(that.request_type) : that.request_type != null)
-                return false;
-            if (authorize_endpoint != null ? !authorize_endpoint.equals(that.authorize_endpoint) : that.authorize_endpoint != null)
-                return false;
-            if (client_id != null ? !client_id.equals(that.client_id) : that.client_id != null)
-                return false;
-            if (code_challenge != null ? !code_challenge.equals(that.code_challenge) : that.code_challenge != null)
-                return false;
-            if (code_challenge_method != null ? !code_challenge_method.equals(that.code_challenge_method) : that.code_challenge_method != null)
-                return false;
-            if (display != null ? !display.equals(that.display) : that.display != null)
-                return false;
-            if (idp_scope != null ? !idp_scope.equals(that.idp_scope) : that.idp_scope != null)
-                return false;
-            if (idp != null ? !idp.equals(that.idp) : that.idp != null) return false;
-            if (login_hint != null ? !login_hint.equals(that.login_hint) : that.login_hint != null)
-                return false;
-            if (max_age != null ? !max_age.equals(that.max_age) : that.max_age != null)
-                return false;
-            if (nonce != null ? !nonce.equals(that.nonce) : that.nonce != null) return false;
-            if (prompt != null ? !prompt.equals(that.prompt) : that.prompt != null) return false;
-            if (redirect_uri != null ? !redirect_uri.equals(that.redirect_uri) : that.redirect_uri != null)
-                return false;
-            if (response_type != null ? !response_type.equals(that.response_type) : that.response_type != null)
-                return false;
-            if (response_mode != null ? !response_mode.equals(that.response_mode) : that.response_mode != null)
-                return false;
-            if (request != null ? !request.equals(that.request) : that.request != null)
-                return false;
-            if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
-            if (sessionToken != null ? !sessionToken.equals(that.sessionToken) : that.sessionToken != null)
-                return false;
-            if (state != null ? !state.equals(that.state) : that.state != null) return false;
-            if (additionalParams != null ? !additionalParams.equals(that.additionalParams) : that.additionalParams != null)
-                return false;
-            return code_verifier != null ? code_verifier.equals(that.code_verifier) : that.code_verifier == null;
         }
     }
 

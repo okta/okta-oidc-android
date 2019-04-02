@@ -83,19 +83,6 @@ public class OIDCAccountTest {
         assertNotNull(scopes);
         assertArrayEquals(SCOPES, scopes);
     }
-    
-    @Test
-    public void equals() {
-        OIDCAccount account = TestValues.getAccountWithUrl(CUSTOM_URL);
-        OIDCAccount account2 = new OIDCAccount.Builder()
-                .clientId(CLIENT_ID)
-                .redirectUri(REDIRECT_URI)
-                .endSessionRedirectUri(END_SESSION_URI)
-                .scopes(SCOPES)
-                .discoveryUri(CUSTOM_URL)
-                .create();
-        assertEquals(account, account2);
-    }
 
     @Test
     public void testBuilder() {
@@ -118,6 +105,10 @@ public class OIDCAccountTest {
         builder.discoveryUri(CUSTOM_URL);
         verify(builder).discoveryUri(CUSTOM_URL);
         OIDCAccount account = builder.create();
-        assertEquals(mAccount, account);
+        assertEquals(mAccount.getClientId(), account.getClientId());
+        assertEquals(mAccount.getDiscoveryUri(), account.getDiscoveryUri());
+        assertEquals(mAccount.getEndSessionRedirectUri(), account.getEndSessionRedirectUri());
+        assertEquals(mAccount.getRedirectUri(), account.getRedirectUri());
+        assertArrayEquals(mAccount.getScopes(), account.getScopes());
     }
 }

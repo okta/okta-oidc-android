@@ -99,23 +99,4 @@ public class TokenResponse implements Persistable {
     public boolean encrypt() {
         return RESTORE.encrypted();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TokenResponse that = (TokenResponse) o;
-
-        if (access_token != null ? !access_token.equals(that.access_token) : that.access_token != null)
-            return false;
-        if (token_type != null ? !token_type.equals(that.token_type) : that.token_type != null)
-            return false;
-        if (expires_in != null ? !expires_in.equals(that.expires_in) : that.expires_in != null)
-            return false;
-        if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
-        if (refresh_token != null ? !refresh_token.equals(that.refresh_token) : that.refresh_token != null)
-            return false;
-        return id_token != null ? id_token.equals(that.id_token) : that.id_token == null;
-    }
 }

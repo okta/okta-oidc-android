@@ -52,7 +52,7 @@ public class AuthorizeResponseTest {
         String uri = String.format("com.okta.test:/callback?code=%s&state=%s",
                 CUSTOM_CODE, CUSTOM_STATE);
         AuthorizeResponse response = AuthorizeResponse.fromUri(Uri.parse(uri));
-        assertEquals(response, mResponse);
+        assertEquals(response.persist(), mResponse.persist());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class AuthorizeResponseTest {
     public void persist() {
         String json = mResponse.persist();
         AuthorizeResponse authorizeResponse = new Gson().fromJson(json, AuthorizeResponse.class);
-        assertEquals(authorizeResponse, mResponse);
+        assertEquals(json, authorizeResponse.persist());
     }
 
     @Test

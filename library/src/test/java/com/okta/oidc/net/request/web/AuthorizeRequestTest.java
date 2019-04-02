@@ -122,7 +122,7 @@ public class AuthorizeRequestTest {
                 .codeVerifier(mCodeVerifier)
                 .maxAge(EXPIRES_IN)
                 .create();
-        assertEquals(request, mRequest);
+        assertEquals(request.persist(), mRequest.persist());
     }
 
     @Test
@@ -161,7 +161,7 @@ public class AuthorizeRequestTest {
         String json = mRequest.persist();
         AuthorizeRequest.Parameters parameters = new Gson().fromJson(json, AuthorizeRequest.Parameters.class);
         AuthorizeRequest request = new AuthorizeRequest(parameters);
-        assertEquals(request, mRequest);
+        assertEquals(request.persist(), json);
     }
 
     @Test
