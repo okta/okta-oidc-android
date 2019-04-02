@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsService;
@@ -53,12 +54,15 @@ public class OktaAuthenticationActivity extends Activity {
     private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
     private static final String CHROME_BETA = "com.android.chrome.beta";
 
-    private Set<String> mSupportedBrowsers = new LinkedHashSet<>();
+    @VisibleForTesting
+    protected Set<String> mSupportedBrowsers = new LinkedHashSet<>();
 
     private CustomTabsServiceConnection mConnection;
-    private boolean mAuthStarted = false;
+    @VisibleForTesting
+    protected boolean mAuthStarted = false;
     private Uri mAuthUri;
-    private int mCustomTabColor;
+    @VisibleForTesting
+    protected int mCustomTabColor;
     private boolean mBound = false;
     private boolean mResultSent = false;
 
@@ -79,6 +83,7 @@ public class OktaAuthenticationActivity extends Activity {
             if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
                 //login encountered exception pass same intent back to activity to handle.
                 sendResult(RESULT_CANCELED, getIntent());
+                return;
             }
             String[] list = bundle.getStringArray(EXTRA_BROWSERS);
             if (list != null) {
@@ -123,7 +128,8 @@ public class OktaAuthenticationActivity extends Activity {
     }
 
     @Nullable
-    private String getBrowser() {
+    @VisibleForTesting
+    protected String getBrowser() {
         PackageManager pm = getPackageManager();
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
         List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, 0);
@@ -144,7 +150,8 @@ public class OktaAuthenticationActivity extends Activity {
         return null;
     }
 
-    private Intent createBrowserIntent(String packageName, CustomTabsSession session) {
+    @VisibleForTesting
+    protected Intent createBrowserIntent(String packageName, CustomTabsSession session) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
         if (mCustomTabColor > 0) {
             intentBuilder.setToolbarColor(mCustomTabColor);
@@ -169,7 +176,8 @@ public class OktaAuthenticationActivity extends Activity {
         return session;
     }
 
-    private void bindServiceAndStart(@NonNull final String browserPackage) {
+    @VisibleForTesting
+    protected void bindServiceAndStart(@NonNull final String browserPackage) {
         if (mConnection != null) {
             return;
         }
@@ -183,15 +191,13 @@ public class OktaAuthenticationActivity extends Activity {
             @Override
             public void onCustomTabsServiceConnected(ComponentName componentName,
                                                      CustomTabsClient customTabsClient) {
-                customTabsClient.warmup(0);
-                CustomTabsSession session = createSession(customTabsClient);
-                if (session != null) {
-                    mAuthStarted = true;
-                    startActivity(createBrowserIntent(browserPackage, session));
-                } else {
-                    sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
-                            AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
+                CustomTabsSession session = null;
+                if (customTabsClient != null) {
+                    customTabsClient.warmup(0);
+                    session = createSession(customTabsClient);
                 }
+                mAuthStarted = true;
+                startActivity(createBrowserIntent(browserPackage, session));
             }
         };
         mBound = CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);

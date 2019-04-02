@@ -16,6 +16,7 @@ package com.okta.oidc.util;
 
 public interface JsonStrings {
     String FIRE_FOX = "org.mozilla.firefox";
+    String CHROME = "com.android.chrome";
 
     String VALID_ID_TOKEN = "eyJraWQiOiJYYjY1b1g0Um5KUXNLUGhiMHg3amVKdkt0MHpkQnM1ZkI2Q0stOEJzdkl" +
             "nIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVpejBodGJhSkhjVXRmVzBoNyIsIm5hbWUiOiJKb2huIER" +

@@ -14,22 +14,18 @@
  */
 package com.okta.oidc;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.customtabs.CustomTabsClient;
-import android.support.customtabs.CustomTabsServiceConnection;
+import android.os.Bundle;
 
-import com.okta.oidc.util.TestValues;
+import com.okta.oidc.util.AuthorizationException;
 
+import org.assertj.android.api.Assertions;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -37,81 +33,124 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
 
+import java.util.Arrays;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_AUTH_URI;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_BROWSERS;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_TAB_OPTIONS;
+import static com.okta.oidc.OktaRedirectActivity.REDIRECT_ACTION;
+import static com.okta.oidc.util.JsonStrings.FIRE_FOX;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
+import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class OktaAuthenticationActivityTest {
-    private static final String CHROME_STABLE = "com.android.chrome";
     private Context mContext;
-    @Mock
-    private Context mMockContext;
-    private ActivityController<OktaAuthenticationActivity> mActivityController;
-    private OktaAuthenticationActivity mActivity;
+    private ActivityController<OktaAuthenticationActivityMock> mActivityController;
+    private OktaAuthenticationActivityMock mActivity;
     private ShadowActivity mShadowActivity;
-    @Captor
-    private ArgumentCaptor<Intent> mConnectIntentCaptor;
-    @Captor
-    private ArgumentCaptor<CustomTabsServiceConnection> mConnectionCaptor;
-    @Mock
-    CustomTabsClient mClient;
-    private Intent mStandardAuthorize;
+
+    private Intent mAuthorizeSuccess;
+    private Intent mAuthorizeSuccessWithExtras;
+    private Intent mAuthorizeWithException;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        mStandardAuthorize = new Intent(mContext, OktaAuthenticationActivity.class);
-        mStandardAuthorize.putExtra(EXTRA_AUTH_URI, Uri.parse(CUSTOM_URL));
+        mAuthorizeSuccess = new Intent(mContext, OktaAuthenticationActivityMock.class);
+        mAuthorizeSuccess.putExtra(EXTRA_AUTH_URI, Uri.parse(CUSTOM_URL));
 
-//        if (mSupportedBrowsers != null) {
-//            intent.putExtra(EXTRA_BROWSERS, mSupportedBrowsers);
-//        }
-//        intent.putExtra(EXTRA_TAB_OPTIONS, mCustomTabColor);
-//        if (mErrorActivityResult != null) {
-//            intent.putExtra(EXTRA_EXCEPTION, mErrorActivityResult.toJsonString());
-//            mErrorActivityResult = null;
-//        }
+        mAuthorizeSuccessWithExtras = new Intent(mContext, OktaAuthenticationActivityMock.class);
+        mAuthorizeSuccessWithExtras.putExtra(EXTRA_AUTH_URI, Uri.parse(CUSTOM_URL));
+        mAuthorizeSuccessWithExtras.putExtra(EXTRA_BROWSERS, new String[]{FIRE_FOX});
+        mAuthorizeSuccessWithExtras.putExtra(EXTRA_TAB_OPTIONS, 100);
 
+        mAuthorizeWithException = new Intent(mContext, OktaAuthenticationActivityMock.class);
+        mAuthorizeWithException.putExtra(EXTRA_EXCEPTION,
+                AuthorizationException.GeneralErrors.NETWORK_ERROR.toJsonString());
 
     }
 
     @Test
-    public void testAuthorize() {
-        /*
-        instantiateActivity(mStandardAuthorize);
-        Mockito.doReturn(true).when(mMockContext).bindService(
-                mConnectIntentCaptor.capture(),
-                mConnectionCaptor.capture(),
-                Mockito.anyInt());
-
+    public void testAuthorizeSuccess() {
+        instantiateActivity(mAuthorizeSuccess);
         mActivityController.create().start().resume();
-        provideClient();
-        // check the service connection is made to the specified package
-        Intent intent = mConnectIntentCaptor.getValue();
-        assertThat(intent.getPackage()).isEqualTo(CHROME_STABLE);
-        */
+
+        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
+                .hasData(Uri.parse(CUSTOM_URL));
+
+        Intent intent = new Intent(mContext, OktaAuthenticationActivityMock.class);
+        intent.setAction(REDIRECT_ACTION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        mActivityController.newIntent(intent);
+
+        assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_OK);
+        Assertions.assertThat(mActivity).isFinishing();
     }
 
-    private void provideClient() {
-        CustomTabsServiceConnection conn = mConnectionCaptor.getValue();
-        conn.onCustomTabsServiceConnected(
-                new ComponentName(CHROME_STABLE, CHROME_STABLE + ".CustomTabsService"),
-                mClient);
+    @Test
+    public void testAuthorizeSuccessWithExtras() {
+        instantiateActivity(mAuthorizeSuccessWithExtras);
+        mActivityController.create().start().resume();
+
+        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
+                .hasData(Uri.parse(CUSTOM_URL));
+
+        assertTrue(mActivityController.get().mSupportedBrowsers.contains(FIRE_FOX));
+        assertEquals(mActivityController.get().mCustomTabColor, 100);
+
+        Intent intent = new Intent(mContext, OktaAuthenticationActivityMock.class);
+        intent.setAction(REDIRECT_ACTION);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        mActivityController.newIntent(intent);
+
+        assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_OK);
+        Assertions.assertThat(mActivity).isFinishing();
     }
+
+    @Test
+    public void testAuthorizeCancel() {
+        instantiateActivity(mAuthorizeSuccess);
+        mActivityController.create().start().resume();
+
+        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
+                .hasData(Uri.parse(CUSTOM_URL));
+
+        mActivityController.pause().resume();
+
+        assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_CANCELED);
+        Assertions.assertThat(mActivity).isFinishing();
+    }
+
+    @Test
+    public void testWithException() throws JSONException {
+        instantiateActivity(mAuthorizeWithException);
+        mActivityController.create();
+        Bundle bundle = mActivityController.get().getIntent().getExtras();
+        assertNotNull(bundle);
+        String exception = bundle.getString(EXTRA_EXCEPTION);
+        assertNotNull(exception);
+        AuthorizationException ex = AuthorizationException.fromJson(exception);
+        assertNotNull(ex);
+        assertEquals(ex, AuthorizationException.GeneralErrors.NETWORK_ERROR);
+        assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_CANCELED);
+    }
+
 
     private void instantiateActivity(Intent intent) {
         mActivityController = Robolectric.buildActivity(
-                OktaAuthenticationActivity.class,
+                OktaAuthenticationActivityMock.class,
                 intent);
 
         mActivity = mActivityController.get();
