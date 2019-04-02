@@ -169,8 +169,12 @@ public class SyncAuthenticationClient {
                     return AuthorizationResult.error(e);
                 }
                 mOktaState.save(response);
-                return AuthorizationResult.success(new Tokens(response.getIdToken(),
-                        response.getAccessToken(), response.getRefreshToken()));
+                return AuthorizationResult.success(
+                        new Tokens(response.getIdToken(),
+                                response.getAccessToken(),
+                                response.getRefreshToken(),
+                                response.getExpiresIn(),
+                                response.getScope()));
         }
         throw new IllegalStateException("login performed in illegal states");
     }
@@ -189,7 +193,9 @@ public class SyncAuthenticationClient {
         if (response == null) return null;
         return new Tokens(response.getIdToken(),
                 response.getAccessToken(),
-                response.getRefreshToken());
+                response.getRefreshToken(),
+                response.getExpiresIn(),
+                response.getScope());
     }
 
     @AnyThread
