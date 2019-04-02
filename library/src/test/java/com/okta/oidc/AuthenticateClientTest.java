@@ -101,6 +101,7 @@ public class AuthenticateClientTest {
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
 
+
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -418,68 +419,6 @@ public class AuthenticateClientTest {
                 equalTo("/revoke?client_id=CLIENT_ID&token=access_token"));
     }
 
-    /*
-    TODO move to fragment result tests
-        @Test
-        public void handleAuthorizationResponseLoginSuccess() {
-            mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
-                    .state(CUSTOM_STATE)
-                    .create();
-            Intent intent = new Intent();
-            intent.setData(Uri.parse("com.okta.test:/authorize?state=CUSTOM_STATE"));
-            MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
-            boolean exchange = mAuthClient.handleAuthorizationResponse(
-                    AuthenticateClient.REQUEST_CODE_SIGN_IN, RESULT_OK, intent, cb);
-            assertTrue(exchange);
-        }
-
-        @Test
-        public void handleAuthorizationResponseLoginFailed() {
-            AuthenticateClient.sResultHandled = false;
-            mAuthClient.mWebRequest = new AuthorizeRequest.Builder().account(mAccount)
-                    .state(CUSTOM_STATE)
-                    .create();
-            Intent intent = new Intent();
-            intent.setData(Uri.parse("com.okta.test:/authorize?state=MISMATCH_STATE"));
-            MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
-            boolean exchange = mAuthClient.handleAuthorizationResponse(
-                    AuthenticateClient.REQUEST_CODE_SIGN_IN, RESULT_OK, intent, cb);
-            assertFalse(exchange);
-            assertNotNull(cb.getException());
-            assertEquals("Mismatch states", cb.getError());
-        }
-
-        @Test
-        public void handleAuthorizationResponseLogoutSuccess() {
-            AuthenticateClient.sResultHandled = false;
-            mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
-                    .state(CUSTOM_STATE)
-                    .create();
-            Intent intent = new Intent();
-            intent.setData(Uri.parse("com.okta.test:/logout?state=" + CUSTOM_STATE));
-            MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
-            mAuthClient.handleAuthorizationResponse(AuthenticateClient.REQUEST_CODE_SIGN_OUT, RESULT_OK,
-                    intent, cb);
-            assertTrue(cb.getResult());
-            assertNull(cb.getException());
-        }
-
-        @Test
-        public void handleAuthorizationResponseLogoutFailed() {
-            AuthenticateClient.sResultHandled = false;
-            mAuthClient.mWebRequest = new LogoutRequest.Builder().account(mAccount)
-                    .state(CUSTOM_STATE)
-                    .create();
-            Intent intent = new Intent();
-            intent.setData(Uri.parse("com.okta.test:/logout?state=MISMATCH_STATE"));
-            MockResultCallback<Boolean, AuthorizationException> cb = new MockResultCallback<>();
-            mAuthClient.handleAuthorizationResponse(AuthenticateClient.REQUEST_CODE_SIGN_OUT, RESULT_OK,
-                    intent, cb);
-            assertNull(cb.getResult());
-            assertNotNull(cb.getException());
-            assertEquals("Mismatch states", cb.getError());
-        }
-    */
     private Map<String, String> toMap(RecordedRequest request) {
         final Type mapType = new TypeToken<Map<String, String>>() {
         }.getType();

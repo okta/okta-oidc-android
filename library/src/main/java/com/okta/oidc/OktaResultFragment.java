@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 
@@ -19,8 +20,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 
 public class OktaResultFragment extends Fragment {
-
-    private static final String AUTHENTICATION_REQUEST = "authRequest";
+    static final String AUTHENTICATION_REQUEST = "authRequest";
 
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 200;
@@ -33,10 +33,10 @@ public class OktaResultFragment extends Fragment {
     public static void createLoginFragment(WebRequest request,
                                            int customColor,
                                            FragmentActivity activity,
-                                           AuthResultListener client, String[] browsers) {
+                                           AuthResultListener listener, String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
-        fragment.setAuthenticationClient(client);
+        fragment.setAuthenticationListener(listener);
         fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
                 browsers);
 
@@ -49,11 +49,11 @@ public class OktaResultFragment extends Fragment {
     public static void createLogoutFragment(WebRequest request,
                                             int customColor,
                                             FragmentActivity activity,
-                                            AuthResultListener client,
+                                            AuthResultListener listener,
                                             String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
-        fragment.setAuthenticationClient(client);
+        fragment.setAuthenticationListener(listener);
         fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
                 browsers);
 
@@ -76,13 +76,13 @@ public class OktaResultFragment extends Fragment {
         super.onResume();
     }
 
-    public static void setAuthenticationClient(FragmentActivity activity,
-                                               AuthResultListener client) {
+    public static void setAuthenticationListener(FragmentActivity activity,
+                                                 AuthResultListener listener) {
 
         OktaResultFragment resultFragment = (OktaResultFragment) activity.getSupportFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
         if (resultFragment != null) {
-            resultFragment.setAuthenticationClient(client);
+            resultFragment.setAuthenticationListener(listener);
         }
     }
 
@@ -91,8 +91,8 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
 
-    private void setAuthenticationClient(AuthResultListener client) {
-        this.resultListener = client;
+    private void setAuthenticationListener(AuthResultListener listener) {
+        this.resultListener = listener;
         postResult();
     }
 

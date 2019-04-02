@@ -25,11 +25,20 @@ public class Tokens {
     private String mIdToken;
     private String mAccessToken;
     private String mRefreshToken;
+    private int mExpiresIn;
+    private String[] mScope;
 
-    public Tokens(String idToken, String accessToken, String refreshToken) {
+    public Tokens(String idToken, String accessToken, String refreshToken, String expiresIn, String scope) {
         this.mIdToken = idToken;
         this.mAccessToken = accessToken;
         this.mRefreshToken = refreshToken;
+        if(expiresIn != null) {
+            this.mExpiresIn = Integer.parseInt(expiresIn);
+        }
+        this.mScope = new String[]{};
+        if(scope != null) {
+            this.mScope = scope.split(" ");
+        }
     }
 
     /**
@@ -61,4 +70,25 @@ public class Tokens {
     public String getRefreshToken() {
         return mRefreshToken;
     }
+
+    /**
+     * The time in seconds when tokens expired.
+     *
+     * @return refresh token.
+     */
+    @Nullable
+    public int getExpiresIn() {
+        return mExpiresIn;
+    }
+
+    /**
+     * List of scopes
+     *
+     * @return refresh token.
+     */
+    @Nullable
+    public String[] getScope() {
+        return mScope;
+    }
+
 }
