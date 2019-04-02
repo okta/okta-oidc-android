@@ -310,7 +310,7 @@ public class AuthenticateClientTest {
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
         mEndPoint.enqueueReturnInvalidClient();
-        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest(true)
+        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE).account(mAccount)
                 .providerConfiguration(mProviderConfig)
                 .authRequest(request)
@@ -342,7 +342,7 @@ public class AuthenticateClientTest {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
 
         mEndPoint.enqueueTokenSuccess(jws);
-        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest(true)
+        TokenRequest tokenRequest = (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE).account(mAccount)
                 .authRequest(request)
                 .providerConfiguration(mProviderConfig)

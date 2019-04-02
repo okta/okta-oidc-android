@@ -66,28 +66,28 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void newRequest() {
-        assertNotNull(HttpRequestBuilder.newRequest(false));
+        assertNotNull(HttpRequestBuilder.newRequest());
     }
 
     @Test
     public void createWithNoAccountRequest() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Invalid account");
-        HttpRequestBuilder.newRequest(false).createRequest();
+        HttpRequestBuilder.newRequest().createRequest();
     }
 
     @Test
     public void createInvalidConfigurationRequest() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Invalid account");
-        HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .createRequest();
     }
 
     @Test
     public void createConfigurationRequest() {
-        ConfigurationRequest request = (ConfigurationRequest) HttpRequestBuilder.newRequest(false)
+        ConfigurationRequest request = (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .account(mAccount)
                 .createRequest();
@@ -99,7 +99,7 @@ public class HttpRequestBuilderTest {
     public void createInvalidTokenExchangeRequest() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Missing service configuration");
-        HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
                 .account(mAccount)
                 .createRequest();
@@ -109,7 +109,7 @@ public class HttpRequestBuilderTest {
     public void createInvalidTokenExchangeRequestNoAuth() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Missing auth request or response");
-        HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .request(TOKEN_EXCHANGE)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
@@ -119,7 +119,7 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void createTokenExchangeRequest() {
-        TokenRequest request = (TokenRequest) HttpRequestBuilder.newRequest(false)
+        TokenRequest request = (TokenRequest) HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(getAuthorizeRequest(mAccount,
@@ -136,7 +136,7 @@ public class HttpRequestBuilderTest {
         ProviderConfiguration configuration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Not logged in or invalid uri");
-        HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder.newRequest()
                 .providerConfiguration(configuration)
                 .request(AUTHORIZED)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
@@ -146,7 +146,7 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void createAuthorizedRequest() {
-        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest(true)
+        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
                 .request(HttpRequest.Type.AUTHORIZED)
@@ -162,7 +162,7 @@ public class HttpRequestBuilderTest {
     public void createInvalidProfileRequest() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Not logged in");
-        HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .request(PROFILE)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
@@ -172,7 +172,7 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void createProfileRequest() {
-        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest(true)
+        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
                 .request(HttpRequest.Type.PROFILE)
@@ -187,7 +187,7 @@ public class HttpRequestBuilderTest {
     public void createInvalidRevokeRequest() {
         mExpectedEx.expect(IllegalStateException.class);
         mExpectedEx.expectMessage("Invalid token");
-        HttpRequestBuilder.newRequest(true)
+        HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .request(REVOKE_TOKEN)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
@@ -197,7 +197,7 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void createRevokeRequest() {
-        RevokeTokenRequest request = (RevokeTokenRequest) HttpRequestBuilder.newRequest(true)
+        RevokeTokenRequest request = (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
@@ -211,28 +211,28 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void request() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(true)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .request(REVOKE_TOKEN);
         assertEquals(builder.mRequestType, REVOKE_TOKEN);
     }
 
     @Test
     public void connectionFactory() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(true)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .connectionFactory(new HttpConnection.DefaultConnectionFactory());
         assertNotNull(builder.mConn);
     }
 
     @Test
     public void account() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .account(mAccount);
         assertNotNull(builder.mAccount);
     }
 
     @Test
     public void authRequest() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .authRequest(TestValues.getAuthorizeRequest(mAccount,
                         CodeVerifierUtil.generateRandomCodeVerifier()));
         assertNotNull(builder.mAuthRequest);
@@ -240,35 +240,35 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void authResponse() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .authResponse(TestValues.getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
         assertNotNull(builder.mAuthResponse);
     }
 
     @Test
     public void postParameters() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .postParameters(Collections.EMPTY_MAP);
         assertNotNull(builder.mPostParameters);
     }
 
     @Test
     public void properties() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .properties(Collections.EMPTY_MAP);
         assertNotNull(builder.mProperties);
     }
 
     @Test
     public void uri() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .uri(Uri.parse(CUSTOM_URL));
         assertNotNull(builder.mUri);
     }
 
     @Test
     public void httpRequestMethod() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest(false)
+        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
                 .httpRequestMethod(HttpConnection.RequestMethod.GET);
         assertNotNull(builder.mRequestMethod);
     }

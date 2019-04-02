@@ -43,11 +43,9 @@ public class HttpRequestBuilder {
     Uri mUri;
     HttpConnection.RequestMethod mRequestMethod;
     String mTokenToRevoke;
-    boolean mIsLoggedIn;
     TokenResponse mTokenResponse;
 
-    private HttpRequestBuilder(boolean isLoggedIn) {
-        mIsLoggedIn = isLoggedIn;
+    private HttpRequestBuilder() {
     }
 
     private void validate(HttpRequest.Type type) {
@@ -61,7 +59,7 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 break; //NO-OP
             case AUTHORIZED:
-                if (!mIsLoggedIn || mUri == null) {
+                if (mTokenResponse == null || !mTokenResponse.isLoggedIn() || mUri == null) {
                     throw new IllegalStateException("Not logged in or invalid uri");
                 }
                 break;
@@ -71,7 +69,7 @@ public class HttpRequestBuilder {
                 }
                 break;
             case PROFILE:
-                if (!mIsLoggedIn) {
+                if (mTokenResponse == null || !mTokenResponse.isLoggedIn()) {
                     throw new IllegalStateException("Not logged in");
                 }
                 break;
@@ -84,8 +82,8 @@ public class HttpRequestBuilder {
         }
     }
 
-    public static HttpRequestBuilder newRequest(boolean isLoggedIn) {
-        return new HttpRequestBuilder(isLoggedIn);
+    public static HttpRequestBuilder newRequest() {
+        return new HttpRequestBuilder();
     }
 
     public HttpRequest createRequest() {

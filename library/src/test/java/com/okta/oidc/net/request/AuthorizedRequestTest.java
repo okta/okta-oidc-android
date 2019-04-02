@@ -64,7 +64,7 @@ public class AuthorizedRequestTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = new Gson().fromJson(JsonStrings.TOKEN_RESPONSE, TokenResponse.class);
 
-        mRequest = (AuthorizedRequest) HttpRequestBuilder.newRequest(true)
+        mRequest = (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.AUTHORIZED)
                 .uri(Uri.parse(mEndPoint.getUrl()))
                 .httpRequestMethod(HttpConnection.RequestMethod.POST)

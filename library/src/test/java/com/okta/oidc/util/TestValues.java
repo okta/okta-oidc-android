@@ -161,7 +161,7 @@ public class TestValues {
     public static TokenRequest getTokenRequest(OIDCAccount account, AuthorizeRequest request,
                                                AuthorizeResponse response, ProviderConfiguration
                                                        configuration) {
-        return (TokenRequest) HttpRequestBuilder.newRequest(true)
+        return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(request)
                 .authResponse(response)
@@ -172,7 +172,7 @@ public class TestValues {
 
     public static RevokeTokenRequest getRevokeTokenRequest(OIDCAccount account, String tokenToRevoke,
                                                            ProviderConfiguration configuration) {
-        return (RevokeTokenRequest) HttpRequestBuilder.newRequest(true)
+        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .tokenToRevoke(tokenToRevoke)
                 .providerConfiguration(configuration)

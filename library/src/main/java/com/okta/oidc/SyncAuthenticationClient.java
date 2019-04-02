@@ -76,14 +76,14 @@ public class SyncAuthenticationClient {
     }
 
     public ConfigurationRequest configurationRequest() {
-        return (ConfigurationRequest) HttpRequestBuilder.newRequest(isLoggedIn())
+        return (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .connectionFactory(mConnectionFactory)
                 .account(mOIDCAccount).createRequest();
     }
 
     public AuthorizedRequest userProfileRequest() {
-        return (AuthorizedRequest) HttpRequestBuilder.newRequest(isLoggedIn())
+        return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.PROFILE)
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
@@ -92,7 +92,7 @@ public class SyncAuthenticationClient {
     }
 
     public RevokeTokenRequest revokeTokenRequest(String token) {
-        return (RevokeTokenRequest) HttpRequestBuilder.newRequest(isLoggedIn())
+        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .connectionFactory(mConnectionFactory)
                 .tokenToRevoke(token)
@@ -102,7 +102,7 @@ public class SyncAuthenticationClient {
 
     public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
                                                @NonNull HttpConnection.RequestMethod method) {
-        return (AuthorizedRequest) HttpRequestBuilder.newRequest(isLoggedIn())
+        return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.AUTHORIZED)
                 .connectionFactory(mConnectionFactory)
                 .account(mOIDCAccount)
@@ -181,8 +181,7 @@ public class SyncAuthenticationClient {
 
     public boolean isLoggedIn() {
         TokenResponse tokenResponse = mOktaState.getTokenResponse();
-        return tokenResponse != null && (tokenResponse.getAccessToken() != null
-                || tokenResponse.getIdToken() != null);
+        return tokenResponse != null && tokenResponse.isLoggedIn();
     }
 
     public Tokens getTokens() {
@@ -245,7 +244,7 @@ public class SyncAuthenticationClient {
 
     @WorkerThread
     private TokenRequest tokenExchange(AuthorizeResponse response) {
-        return (TokenRequest) HttpRequestBuilder.newRequest(isLoggedIn())
+        return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .account(mOIDCAccount)
