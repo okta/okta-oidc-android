@@ -1,5 +1,6 @@
 package com.okta.oidc;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -9,15 +10,11 @@ import android.net.Uri;
 import android.support.annotation.AnyThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
 import android.support.annotation.WorkerThread;
-import android.support.v4.app.FragmentActivity;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
@@ -50,7 +47,6 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
 public class SyncAuthenticationClient {
-
     private static final String TAG = AuthenticateClient.class.getSimpleName();
 
     private OIDCAccount mOIDCAccount;
@@ -58,7 +54,6 @@ public class SyncAuthenticationClient {
     OktaState mOktaState;
     private String[] mSupportedBrowsers;
     private HttpConnectionFactory mConnectionFactory;
-    //Hold the exception to send to onActivityResult
 
     SyncAuthenticationClient(HttpConnectionFactory factory, OIDCAccount account,
                              int customTabColor, OktaStorage storage,
@@ -127,7 +122,7 @@ public class SyncAuthenticationClient {
     }
 
     @WorkerThread
-    public AuthorizationResult logIn(@NonNull final FragmentActivity activity,
+    public AuthorizationResult logIn(@NonNull final Activity activity,
                                      @Nullable AuthenticationPayload payload)
             throws InterruptedException {
         if (obtainNewConfiguration(mOktaState.getProviderConfiguration(), mOIDCAccount)) {
@@ -201,7 +196,7 @@ public class SyncAuthenticationClient {
     }
 
     @AnyThread
-    public Result signOutFromOkta(@NonNull final FragmentActivity activity) {
+    public Result signOutFromOkta(@NonNull final Activity activity) {
         if (isLoggedIn()) {
             CountDownLatch latch = new CountDownLatch(1);
             AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
@@ -261,7 +256,7 @@ public class SyncAuthenticationClient {
                 .createRequest();
     }
 
-    private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {
+    private boolean isRedirectUrisRegistered(@NonNull Uri uri, Activity activity) {
         PackageManager pm = activity.getPackageManager();
         List<ResolveInfo> resolveInfos = null;
         if (pm != null) {

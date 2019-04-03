@@ -16,11 +16,11 @@
 package com.okta.oidc.example;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -38,7 +38,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
-public class SampleActivity extends AppCompatActivity {
+public class SampleActivity extends Activity {
 
     private static final String TAG = "SampleActivity";
 

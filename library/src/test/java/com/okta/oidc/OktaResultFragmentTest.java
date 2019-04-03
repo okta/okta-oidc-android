@@ -4,14 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.WebRequest;
-import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockResultCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -60,14 +57,14 @@ public class OktaResultFragmentTest {
                 .providerConfiguration(mProviderConfig)
                 .create();
 
-        FragmentActivity fragmentActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        OktaResultFragment.createLoginFragment(request, 0, fragmentActivity, listener, new String[]{});
-        OktaResultFragment resultFragment = (OktaResultFragment) fragmentActivity.getSupportFragmentManager()
+        OktaResultFragment.createLoginFragment(request, 0, activity, listener, new String[]{});
+        OktaResultFragment resultFragment = (OktaResultFragment) activity.getFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
 
         Intent intent = new Intent();
-        intent.setData(Uri.parse("com.okta.test:/authorize?state="+CUSTOM_STATE));
+        intent.setData(Uri.parse("com.okta.test:/authorize?state=" + CUSTOM_STATE));
 
         resultFragment.onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
@@ -84,14 +81,14 @@ public class OktaResultFragmentTest {
                 .providerConfiguration(mProviderConfig)
                 .create();
 
-        FragmentActivity fragmentActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        OktaResultFragment.createLoginFragment(request, 0, fragmentActivity, listener, new String[]{});
-        OktaResultFragment resultFragment = (OktaResultFragment) fragmentActivity.getSupportFragmentManager()
+        OktaResultFragment.createLoginFragment(request, 0, activity, listener, new String[]{});
+        OktaResultFragment resultFragment = (OktaResultFragment) activity.getFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
 
         Intent intent = new Intent();
-        intent.setData(Uri.parse("com.okta.test:/authorize?error="+ERROR));
+        intent.setData(Uri.parse("com.okta.test:/authorize?error=" + ERROR));
 
         resultFragment.onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
@@ -109,10 +106,10 @@ public class OktaResultFragmentTest {
                 .providerConfiguration(mProviderConfig)
                 .create();
 
-        FragmentActivity fragmentActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        OktaResultFragment.createLogoutFragment(request, 0, fragmentActivity, listener, new String[]{});
-        OktaResultFragment resultFragment = (OktaResultFragment) fragmentActivity.getSupportFragmentManager()
+        OktaResultFragment.createLogoutFragment(request, 0, activity, listener, new String[]{});
+        OktaResultFragment resultFragment = (OktaResultFragment) activity.getFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
 
         Intent intent = new Intent();
@@ -133,10 +130,10 @@ public class OktaResultFragmentTest {
                 .providerConfiguration(mProviderConfig)
                 .create();
 
-        FragmentActivity fragmentActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        OktaResultFragment.createLogoutFragment(request, 0, fragmentActivity, listener, new String[]{});
-        OktaResultFragment resultFragment = (OktaResultFragment) fragmentActivity.getSupportFragmentManager()
+        OktaResultFragment.createLogoutFragment(request, 0, activity, listener, new String[]{});
+        OktaResultFragment resultFragment = (OktaResultFragment) activity.getFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
 
         Intent intent = new Intent();

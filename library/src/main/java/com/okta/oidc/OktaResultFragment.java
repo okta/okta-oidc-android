@@ -1,12 +1,10 @@
 package com.okta.oidc;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -32,7 +30,7 @@ public class OktaResultFragment extends Fragment {
 
     public static void createLoginFragment(WebRequest request,
                                            int customColor,
-                                           FragmentActivity activity,
+                                           Activity activity,
                                            AuthResultListener listener, String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
@@ -40,7 +38,7 @@ public class OktaResultFragment extends Fragment {
         fragment.authIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
                 browsers);
 
-        activity.getSupportFragmentManager()
+        activity.getFragmentManager()
                 .beginTransaction()
                 .add(fragment, AUTHENTICATION_REQUEST)
                 .commit();
@@ -48,7 +46,7 @@ public class OktaResultFragment extends Fragment {
 
     public static void createLogoutFragment(WebRequest request,
                                             int customColor,
-                                            FragmentActivity activity,
+                                            Activity activity,
                                             AuthResultListener listener,
                                             String[] browsers) {
 
@@ -57,11 +55,9 @@ public class OktaResultFragment extends Fragment {
         fragment.logoutIntent = fragment.createAuthIntent(activity, request.toUri(), customColor,
                 browsers);
 
-        activity.getSupportFragmentManager()
-                .beginTransaction()
+        activity.getFragmentManager().beginTransaction()
                 .add(fragment, AUTHENTICATION_REQUEST)
                 .commit();
-
     }
 
     @Override
@@ -76,18 +72,18 @@ public class OktaResultFragment extends Fragment {
         super.onResume();
     }
 
-    public static void setAuthenticationListener(FragmentActivity activity,
+    public static void setAuthenticationListener(Activity activity,
                                                  AuthResultListener listener) {
 
-        OktaResultFragment resultFragment = (OktaResultFragment) activity.getSupportFragmentManager()
+        OktaResultFragment resultFragment = (OktaResultFragment) activity.getFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
         if (resultFragment != null) {
             resultFragment.setAuthenticationListener(listener);
         }
     }
 
-    public static boolean hasRequestInProgress(FragmentActivity activity) {
-        return activity.getSupportFragmentManager()
+    public static boolean hasRequestInProgress(Activity activity) {
+        return activity.getFragmentManager()
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
 
@@ -100,7 +96,7 @@ public class OktaResultFragment extends Fragment {
         if (cashedResult != null && resultListener != null) {
             resultListener.postResult(cashedResult);
             cashedResult = null;
-            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
+            getActivity().getFragmentManager().beginTransaction().remove(this).commit();
         }
     }
 

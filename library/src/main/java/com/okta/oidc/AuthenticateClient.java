@@ -20,7 +20,6 @@ import android.support.annotation.AnyThread;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
@@ -40,7 +39,7 @@ import java.util.concurrent.Executor;
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();
 
-    private WeakReference<FragmentActivity> mActivity;
+    private WeakReference<Activity> mActivity;
 
     private SyncAuthenticationClient mAuthClient;
     private RequestDispatcher mDispatcher;
@@ -54,12 +53,12 @@ public final class AuthenticateClient {
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
     }
 
-    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
+    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, Activity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
     }
 
-    private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
+    private void registerActivityLifeCycle(@NonNull final Activity activity) {
         mActivity = new WeakReference<>(activity);
         mActivity.get().getApplication().registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
             @Override
@@ -114,7 +113,7 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
+    public void logIn(@NonNull final Activity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
@@ -133,7 +132,7 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
-    public void signOutFromOkta(@NonNull final FragmentActivity activity) {
+    public void signOutFromOkta(@NonNull final Activity activity) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             Result result = mAuthClient.signOutFromOkta(activity);
