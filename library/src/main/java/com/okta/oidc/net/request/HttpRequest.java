@@ -24,7 +24,8 @@ public interface HttpRequest<T, U extends AuthorizationException> {
         TOKEN_EXCHANGE,
         AUTHORIZED,
         PROFILE,
-        REVOKE_TOKEN
+        REVOKE_TOKEN,
+        REFRESH_TOKEN
     }
 
     void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<T, U> callback);

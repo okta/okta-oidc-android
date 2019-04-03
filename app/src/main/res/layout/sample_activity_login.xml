@@ -74,6 +74,13 @@
                     android:visibility="gone" />
 
                 <Button
+                    android:id="@+id/refres_token"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Refresh Token"
+                    android:visibility="gone" />
+
+                <Button
                     android:id="@+id/clear_data"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

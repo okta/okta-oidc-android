@@ -22,9 +22,11 @@ import com.okta.oidc.SyncAuthenticationClient;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.LogoutResponse;
 
@@ -165,6 +167,16 @@ public class TestValues {
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(request)
                 .authResponse(response)
+                .account(account)
+                .providerConfiguration(configuration)
+                .createRequest();
+    }
+
+    public static RefreshTokenRequest getRefreshRequest(OIDCAccount account, TokenResponse response,
+                                                        ProviderConfiguration configuration) {
+        return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.REFRESH_TOKEN)
+                .tokenResponse(response)
                 .account(account)
                 .providerConfiguration(configuration)
                 .createRequest();

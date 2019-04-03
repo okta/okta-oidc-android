@@ -14,14 +14,10 @@
  */
 package com.okta.oidc.net.request;
 
-import android.support.annotation.NonNull;
-
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
-import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
@@ -39,23 +35,21 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
+import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
-import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
-import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
-import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static com.okta.oidc.util.TestValues.getProviderConfiguration;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class TokenRequestTest {
-
-    private TokenRequest mRequest;
+public class RefreshTokenRequestTest {
+    private RefreshTokenRequest mRequest;
     private OIDCAccount mAccount;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;
+    private TokenResponse mTokenResponse;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -64,10 +58,9 @@ public class TokenRequestTest {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         mAccount = TestValues.getAccountWithUrl(url);
+        mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
         mProviderConfig = TestValues.getProviderConfiguration(url);
-        mRequest = TestValues.getTokenRequest(mAccount,
-                getAuthorizeRequest(mAccount, CodeVerifierUtil.generateRandomCodeVerifier()),
-                getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mProviderConfig);
+        mRequest = TestValues.getRefreshRequest(mAccount, mTokenResponse, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 
@@ -104,21 +97,6 @@ public class TokenRequestTest {
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
-    }
-
-    @Test
-    public void getGrantType() {
-        assertEquals(mRequest.getGrantType(), GrantTypes.AUTHORIZATION_CODE);
-    }
-
-    @Test
-    public void getAccount() {
-        assertEquals(mRequest.getAccount(), mAccount);
-    }
-
-    @Test
-    public void getNonce() {
-        assertEquals(mRequest.getNonce(), CUSTOM_NONCE);
     }
 
     @Test

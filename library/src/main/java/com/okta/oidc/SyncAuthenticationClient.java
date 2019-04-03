@@ -17,11 +17,13 @@ import android.util.Log;
 
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -53,7 +55,6 @@ public class SyncAuthenticationClient {
 
     private OIDCAccount mOIDCAccount;
     private int mCustomTabColor;
-    @VisibleForTesting
     OktaState mOktaState;
     private String[] mSupportedBrowsers;
     private HttpConnectionFactory mConnectionFactory;
@@ -99,6 +100,16 @@ public class SyncAuthenticationClient {
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .account(mOIDCAccount).createRequest();
     }
+
+    public RefreshTokenRequest refreshTokenRequest() {
+        return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.REFRESH_TOKEN)
+                .connectionFactory(mConnectionFactory)
+                .tokenResponse(mOktaState.getTokenResponse())
+                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .account(mOIDCAccount).createRequest();
+    }
+
 
     public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
                                                @NonNull HttpConnection.RequestMethod method) {
@@ -169,12 +180,7 @@ public class SyncAuthenticationClient {
                     return AuthorizationResult.error(e);
                 }
                 mOktaState.save(response);
-                return AuthorizationResult.success(
-                        new Tokens(response.getIdToken(),
-                                response.getAccessToken(),
-                                response.getRefreshToken(),
-                                response.getExpiresIn(),
-                                response.getScope()));
+                return AuthorizationResult.success(new Tokens(response));
         }
         throw new IllegalStateException("login performed in illegal states");
     }
@@ -191,11 +197,7 @@ public class SyncAuthenticationClient {
     public Tokens getTokens() {
         TokenResponse response = mOktaState.getTokenResponse();
         if (response == null) return null;
-        return new Tokens(response.getIdToken(),
-                response.getAccessToken(),
-                response.getRefreshToken(),
-                response.getExpiresIn(),
-                response.getScope());
+        return new Tokens(response);
     }
 
     @AnyThread
@@ -286,21 +288,5 @@ public class SyncAuthenticationClient {
             }
         }
         return found;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        SyncAuthenticationClient that = (SyncAuthenticationClient) o;
-
-        if (mCustomTabColor != that.mCustomTabColor) return false;
-        if (mOIDCAccount != null ? !mOIDCAccount.equals(that.mOIDCAccount) : that.mOIDCAccount != null)
-            return false;
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(mSupportedBrowsers, that.mSupportedBrowsers))
-            return false;
-        return true;
     }
 }

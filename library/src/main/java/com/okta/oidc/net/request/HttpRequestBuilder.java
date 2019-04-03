@@ -21,6 +21,7 @@ import android.support.annotation.RestrictTo;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -44,6 +45,7 @@ public class HttpRequestBuilder {
     HttpConnection.RequestMethod mRequestMethod;
     String mTokenToRevoke;
     TokenResponse mTokenResponse;
+    String mGrantType;
 
     private HttpRequestBuilder() {
     }
@@ -78,6 +80,12 @@ public class HttpRequestBuilder {
                     throw new IllegalStateException("Invalid token");
                 }
                 break;
+            case REFRESH_TOKEN:
+                if (mTokenResponse == null || mTokenResponse.getRefreshToken() == null
+                        || mTokenResponse.getScope() == null) {
+                    throw new IllegalStateException("No refresh token found");
+                }
+                break;
             default:
         }
     }
@@ -92,6 +100,7 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 return new ConfigurationRequest(this);
             case TOKEN_EXCHANGE:
+                mGrantType = GrantTypes.AUTHORIZATION_CODE;
                 return new TokenRequest(this);
             case AUTHORIZED:
                 return new AuthorizedRequest(this);
@@ -101,6 +110,9 @@ public class HttpRequestBuilder {
                 return new AuthorizedRequest(this);
             case REVOKE_TOKEN:
                 return new RevokeTokenRequest(this);
+            case REFRESH_TOKEN:
+                mGrantType = GrantTypes.REFRESH_TOKEN;
+                return new RefreshTokenRequest(this);
             default:
                 throw new IllegalArgumentException("Invalid request of type: " + mRequestType);
         }

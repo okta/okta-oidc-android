@@ -47,18 +47,18 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     private String code;
     private String client_assertion;
     private String client_assertion_type;
-    private String client_id;
+    protected String client_id;
     private String client_secret;
     private String code_verifier;
-    private String grant_type;
+    protected String grant_type;
     private String password;
     private String redirect_uri;
-    private String refresh_token;
-    private String scope;
+    protected String refresh_token;
+    protected String scope;
     private String username;
     private String nonce;
     private OIDCAccount mAccount;
-    private ProviderConfiguration mProviderConfiguration;
+    protected ProviderConfiguration mProviderConfiguration;
 
     TokenRequest(HttpRequestBuilder b) {
         super();
@@ -68,15 +68,11 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         mUri = Uri.parse(mProviderConfiguration.token_endpoint);
         client_id = b.mAccount.getClientId();
         redirect_uri = b.mAccount.getRedirectUri().toString();
-        code_verifier = b.mAuthRequest.getCodeVerifier();
-        nonce = b.mAuthRequest.getNonce();
-        code = b.mAuthResponse.getCode();
-        grant_type = GrantTypes.AUTHORIZATION_CODE;
-
+        grant_type = b.mGrantType;
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.POST)
                 .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
-                .setPostParameters(buildParameters())
+                .setPostParameters(buildParameters(b))
                 .create(b.mConn);
     }
 
@@ -110,7 +106,10 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         return nonce;
     }
 
-    private Map<String, String> buildParameters() {
+    protected Map<String, String> buildParameters(HttpRequestBuilder b) {
+        code_verifier = b.mAuthRequest.getCodeVerifier();
+        nonce = b.mAuthRequest.getNonce();
+        code = b.mAuthResponse.getCode();
         Map<String, String> params = new HashMap<>();
         params.put("client_id", client_id);
         params.put("grant_type", grant_type);

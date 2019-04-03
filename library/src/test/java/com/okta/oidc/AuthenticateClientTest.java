@@ -26,6 +26,7 @@ import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -55,6 +56,7 @@ import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
+import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
@@ -179,7 +181,61 @@ public class AuthenticateClientTest {
 
         AuthenticateClient client = builder.create();
         verify(builder).create();
-        assertEquals(mAuthClient, client);
+        assertEquals(otherClient, client);
+    }
+
+    @Test
+    public void refreshTokenRequest() throws InterruptedException, JSONException, AuthorizationException {
+        RefreshTokenRequest request = mSyncAuthClient.refreshTokenRequest();
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        mEndPoint.enqueueTokenSuccess(jws);
+        TokenResponse response = request.executeRequest();
+        assertNotNull(response);
+
+        TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
+                TokenResponse.class);
+        assertEquals(original.getIdToken(), response.getIdToken());
+        assertEquals(original.getRefreshToken(), response.getRefreshToken());
+        assertEquals(original.getIdToken(), response.getIdToken());
+    }
+
+    @Test
+    public void refreshTokenRequestFailure() throws InterruptedException, JSONException, AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        mEndPoint.enqueueReturnInvalidClient();
+        RefreshTokenRequest request = mSyncAuthClient.refreshTokenRequest();
+        TokenResponse response = request.executeRequest();
+        assertNull(response);
+    }
+
+    @Test
+    public void refreshToken() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        mEndPoint.enqueueTokenSuccess(jws);
+        MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
+        mAuthClient.refreshToken(cb);
+        latch.await();
+        Tokens result = cb.getResult();
+        TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
+                TokenResponse.class);
+        assertEquals(original.getIdToken(), result.getIdToken());
+        assertEquals(original.getRefreshToken(), result.getRefreshToken());
+        assertEquals(original.getIdToken(), result.getIdToken());
+    }
+
+    @Test
+    public void refreshTokenFailure() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        mEndPoint.enqueueReturnInvalidClient();
+        MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
+        mAuthClient.refreshToken(cb);
+        latch.await();
+        assertNull(cb.getResult());
+        assertNotNull(cb.getException());
+        assertEquals(cb.getException().getMessage(), "Network error");
     }
 
     @Test

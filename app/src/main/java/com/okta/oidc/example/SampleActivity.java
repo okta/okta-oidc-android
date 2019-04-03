@@ -49,6 +49,7 @@ public class SampleActivity extends AppCompatActivity {
     private Button mSignOut;
     private Button mClearData;
 
+    private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
     private static final String FIRE_FOX = "org.mozilla.firefox";
@@ -66,7 +67,21 @@ public class SampleActivity extends AppCompatActivity {
         mRevokeContainer = findViewById(R.id.revoke_token);
         mRevokeAccess = findViewById(R.id.revoke_access);
         mRevokeRefresh = findViewById(R.id.revoke_refresh);
+        mRefreshToken = findViewById(R.id.refres_token);
 
+        mRefreshToken.setOnClickListener(v -> {
+            mOktaAuth.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
+                @Override
+                public void onSuccess(@NonNull Tokens result) {
+                    mTvStatus.setText("token refreshed");
+                }
+
+                @Override
+                public void onError(String error, AuthorizationException exception) {
+                    mTvStatus.setText(exception.error);
+                }
+            });
+        });
         mRevokeRefresh.setOnClickListener(v -> {
             Tokens tokens = mOktaAuth.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
@@ -176,6 +191,7 @@ public class SampleActivity extends AppCompatActivity {
         mButton.setOnClickListener(v -> getProfile());
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
+        mRefreshToken.setVisibility(View.VISIBLE);
         mRevokeContainer.setVisibility(View.VISIBLE);
     }
 
@@ -183,6 +199,7 @@ public class SampleActivity extends AppCompatActivity {
         mButton.setText("Log in");
         mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this, null));
         mSignOut.setVisibility(View.GONE);
+        mRefreshToken.setVisibility(View.GONE);
         mClearData.setVisibility(View.GONE);
         mRevokeContainer.setVisibility(View.GONE);
         mTvStatus.setText("");

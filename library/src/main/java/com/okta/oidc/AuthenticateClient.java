@@ -16,7 +16,6 @@ package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
 import android.support.annotation.AnyThread;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
@@ -27,6 +26,7 @@ import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
 
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaStorage;
@@ -80,6 +80,25 @@ public final class AuthenticateClient {
     public void revokeToken(String token, final RequestCallback<Boolean, AuthorizationException> cb) {
         RevokeTokenRequest request = mAuthClient.revokeTokenRequest(token);
         request.dispatchRequest(mDispatcher, cb);
+    }
+
+
+    public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
+        //Wrap the callback from the app because we want to be consistent in
+        //returning a Tokens object instead of a TokenResponse.
+        mAuthClient.refreshTokenRequest().dispatchRequest(mDispatcher,
+                new RequestCallback<TokenResponse, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull TokenResponse result) {
+                        mAuthClient.mOktaState.save(result);
+                        cb.onSuccess(new Tokens(result));
+                    }
+
+                    @Override
+                    public void onError(String error, AuthorizationException exception) {
+                        cb.onError(error, exception);
+                    }
+                });
     }
 
     public Tokens getTokens() {

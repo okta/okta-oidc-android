@@ -15,7 +15,10 @@
 
 package com.okta.oidc;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+
+import com.okta.oidc.net.response.TokenResponse;
 
 /**
  * OpenId tokens.
@@ -28,17 +31,24 @@ public class Tokens {
     private int mExpiresIn;
     private String[] mScope;
 
-    public Tokens(String idToken, String accessToken, String refreshToken, String expiresIn, String scope) {
+    public Tokens(String idToken, String accessToken, String refreshToken, String expiresIn,
+                  String scope) {
         this.mIdToken = idToken;
         this.mAccessToken = accessToken;
         this.mRefreshToken = refreshToken;
-        if(expiresIn != null) {
+        if (expiresIn != null) {
             this.mExpiresIn = Integer.parseInt(expiresIn);
         }
         this.mScope = new String[]{};
-        if(scope != null) {
+        if (scope != null) {
             this.mScope = scope.split(" ");
         }
+    }
+
+    Tokens(@NonNull TokenResponse response) {
+        this(response.getIdToken(), response.getAccessToken(),
+                response.getRefreshToken(), response.getExpiresIn(),
+                response.getScope());
     }
 
     /**
