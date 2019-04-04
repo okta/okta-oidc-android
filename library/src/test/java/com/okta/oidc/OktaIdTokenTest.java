@@ -30,8 +30,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.security.Provider;
-
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;

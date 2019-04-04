@@ -6,14 +6,14 @@ android {
     defaultConfig {
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
-
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Make sure this is consistent with the redirect URI used in
         // res/raw/okta_app_auth_config.json
         manifestPlaceholders = [
                 "appAuthRedirectScheme": "com.oktapreview.samples-test"
         ]
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -23,6 +23,30 @@ android {
 
 dependencies {
     implementation project(':library')
-    implementation "com.android.support:appcompat-v7:${rootProject.appcompatVersion}"
-    implementation "com.android.support:design:${rootProject.appcompatVersion}"
+    implementation 'androidx.annotation:annotation:' + rootProject.androidxLibVersion
+    implementation "androidx.appcompat:appcompat:1.0.2"
+    implementation "com.google.android.material:material:${rootProject.appcompatVersion}"
+
+    // Core library
+    androidTestImplementation 'androidx.test:core:1.1.0'
+
+    // Assertions
+    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
+    androidTestImplementation 'androidx.test.ext:truth:1.1.0'
+    androidTestImplementation 'com.google.truth:truth:0.42'
+
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    // Espresso dependencies
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-accessibility:3.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.1.1'
+    androidTestImplementation 'androidx.test.espresso.idling:idling-concurrent:3.1.1'
+
+    // UiAutomator Testing
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion
+    androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
 }

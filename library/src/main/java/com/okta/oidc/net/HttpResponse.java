@@ -14,7 +14,6 @@
  */
 package com.okta.oidc.net;
 
-import android.support.annotation.RestrictTo;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public final class HttpResponse {

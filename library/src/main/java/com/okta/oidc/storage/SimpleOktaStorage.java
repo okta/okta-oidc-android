@@ -14,10 +14,12 @@
  */
 package com.okta.oidc.storage;
 
+
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class SimpleOktaStorage implements OktaStorage {
     private SharedPreferences prefs;

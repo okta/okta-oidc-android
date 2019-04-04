@@ -6,13 +6,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.support.annotation.AnyThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.annotation.WorkerThread;
-import android.support.v4.app.FragmentActivity;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.okta.oidc.net.HttpConnection;
@@ -39,11 +32,15 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
@@ -58,7 +55,6 @@ public class SyncAuthenticationClient {
     OktaState mOktaState;
     private String[] mSupportedBrowsers;
     private HttpConnectionFactory mConnectionFactory;
-    //Hold the exception to send to onActivityResult
 
     SyncAuthenticationClient(HttpConnectionFactory factory, OIDCAccount account,
                              int customTabColor, OktaStorage storage,

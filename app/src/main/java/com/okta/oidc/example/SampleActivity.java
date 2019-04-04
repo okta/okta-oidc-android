@@ -18,9 +18,7 @@ package com.okta.oidc.example;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.ColorRes;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,14 +27,16 @@ import android.widget.TextView;
 
 import com.okta.oidc.AuthenticateClient;
 import com.okta.oidc.AuthorizationStatus;
-import com.okta.oidc.ResultCallback;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
+import com.okta.oidc.ResultCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
+import androidx.annotation.ColorRes;
+import androidx.annotation.NonNull;
 
 public class SampleActivity extends AppCompatActivity {
 
@@ -60,6 +60,21 @@ public class SampleActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectAll()
+                .penaltyLog()
+                .build());
+
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .penaltyDeath()
+                .build());
+
         setContentView(R.layout.sample_activity_login);
         mButton = findViewById(R.id.start_button);
         mSignOut = findViewById(R.id.logout_button);

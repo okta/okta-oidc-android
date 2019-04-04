@@ -1,13 +1,12 @@
 package com.okta.oidc;
 
-import android.support.annotation.RestrictTo;
-
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.Persistable;
+
+import androidx.annotation.RestrictTo;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class OktaState {

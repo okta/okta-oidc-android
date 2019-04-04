@@ -14,14 +14,12 @@
  */
 package com.okta.oidc.net.response.web;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.okta.oidc.net.request.web.AuthorizeRequest;
-import com.okta.oidc.net.request.web.LogoutRequest;
-import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.storage.Persistable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public abstract class WebResponse implements Persistable {
 

@@ -16,6 +16,15 @@ buildscript {
     }
 }
 
+allprojects {
+    repositories {
+        // Insert local test repo here
+        jcenter()
+        google()
+    }
+}
+
+
 subprojects {
     repositories {
         jcenter()
@@ -35,8 +44,8 @@ ext {
     minSdkVersion = 19
     compileSdkVersion = 28
     buildToolsVersion = "28.0.3"
-    browserVersion = "28.0.0"
-    appcompatVersion = "28.0.0"
+    browserVersion = '1.0.0-beta01'
+    appcompatVersion = '1.0.0'
     // SDK dependency versions
     bintrayVersion = "1.7.3"
     gradlePluginVersion = "1.5"
@@ -49,6 +58,15 @@ ext {
     okhttpVersion = "3.12.0"
     jsonWebTokenVersion = "0.10.5"
     assertjCoreVersion = "3.10.0"
+
+    buildToolsVersion = "28.0.3"
+    androidxLibVersion = "1.0.0"
+    coreVersion = "1.1.1"
+    extJUnitVersion = "1.1.0"
+    runnerVersion = "1.1.1"
+    rulesVersion = "1.1.2"
+    espressoVersion = "3.2.0"
+    uiautomatorVersion = "2.2.0"
 
     // Gradle plugin version
     checkstyleVersion = "8.6"

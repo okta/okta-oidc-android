@@ -14,9 +14,6 @@
  */
 package com.okta.oidc.net.request;
 
-import android.support.annotation.RestrictTo;
-import android.support.annotation.WorkerThread;
-
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -29,7 +26,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public final class ConfigurationRequest extends

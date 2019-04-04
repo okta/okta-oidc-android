@@ -1,8 +1,6 @@
 package com.okta.oidc.net.request;
 
-import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AsciiStringListUtil;
-import com.okta.oidc.util.AuthorizationException;
 
 import java.util.Arrays;
 import java.util.HashMap;

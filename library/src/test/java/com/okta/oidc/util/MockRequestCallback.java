@@ -14,17 +14,11 @@
  */
 package com.okta.oidc.util;
 
-import android.support.annotation.NonNull;
-
 import com.okta.oidc.RequestCallback;
-
-import org.hamcrest.Matcher;
 
 import java.util.concurrent.CountDownLatch;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import androidx.annotation.NonNull;
 
 public class MockRequestCallback<T, U extends Exception> implements RequestCallback<T, U> {
     private U mException;

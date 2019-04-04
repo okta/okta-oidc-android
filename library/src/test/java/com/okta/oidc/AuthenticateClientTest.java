@@ -15,7 +15,6 @@
 package com.okta.oidc;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 
 import com.google.gson.Gson;
@@ -39,7 +38,6 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
-import com.okta.oidc.util.MockResultCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -48,8 +46,21 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
-import static android.app.Activity.RESULT_OK;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import androidx.test.platform.app.InstrumentationRegistry;
+import okhttp3.mockwebserver.RecordedRequest;
+
 import static android.content.Context.MODE_PRIVATE;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
@@ -62,24 +73,12 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-
-import androidx.test.platform.app.InstrumentationRegistry;
-import okhttp3.mockwebserver.RecordedRequest;
-
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
-
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

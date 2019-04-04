@@ -14,7 +14,7 @@
  */
 package com.okta.oidc;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Callback for a authorize request that does not use the Chrome custom tabs as a user agent.

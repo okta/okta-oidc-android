@@ -14,10 +14,7 @@
  */
 package com.okta.oidc;
 
-import android.support.annotation.NonNull;
-
-import java.util.List;
-import java.util.Set;
+import androidx.annotation.NonNull;
 
 import static com.okta.oidc.util.JsonStrings.CHROME;
 

@@ -15,9 +15,6 @@
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.RestrictTo;
-import android.support.annotation.WorkerThread;
 
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
@@ -28,7 +25,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public abstract class BaseRequest<T, U extends AuthorizationException>

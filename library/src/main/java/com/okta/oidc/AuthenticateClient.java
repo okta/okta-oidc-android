@@ -16,16 +16,10 @@ package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.AnyThread;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
-
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
@@ -36,6 +30,11 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
+
+import androidx.annotation.AnyThread;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();

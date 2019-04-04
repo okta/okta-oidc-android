@@ -15,8 +15,6 @@
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
@@ -24,6 +22,9 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
 public class LogoutRequest extends WebRequest {

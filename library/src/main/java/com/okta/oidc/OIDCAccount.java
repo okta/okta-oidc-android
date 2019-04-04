@@ -16,10 +16,6 @@ package com.okta.oidc;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -37,9 +33,9 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
-import static android.support.annotation.VisibleForTesting.PACKAGE_PRIVATE;
+import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
 
 /*
     Okta OIDC application information

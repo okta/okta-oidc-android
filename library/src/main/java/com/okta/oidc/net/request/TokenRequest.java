@@ -15,20 +15,18 @@
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
-import android.support.annotation.RestrictTo;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OktaIdToken;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
-import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
-import com.okta.oidc.OktaIdToken;
 import com.okta.oidc.util.UriUtil;
 
 import org.json.JSONException;
@@ -38,7 +36,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {

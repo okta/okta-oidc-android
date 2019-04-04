@@ -15,8 +15,6 @@
 package com.okta.oidc;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -37,6 +35,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import static com.google.gson.stream.JsonToken.BEGIN_ARRAY;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.ID_TOKEN_VALIDATION_ERROR;

@@ -7,7 +7,6 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.support.annotation.Nullable;
 import android.util.Base64;
 
 import java.io.BufferedInputStream;
@@ -49,6 +48,8 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
+
+import androidx.annotation.Nullable;
 
 public class EncryptionManager {
     private final int RSA_BIT_LENGTH = 2048;

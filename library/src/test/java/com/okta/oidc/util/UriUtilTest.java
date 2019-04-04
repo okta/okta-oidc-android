@@ -17,9 +17,6 @@ package com.okta.oidc.util;
 import android.net.Uri;
 import android.net.UrlQuerySanitizer;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsService;
-
-import com.okta.oidc.util.UriUtil;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +26,8 @@ import org.robolectric.RobolectricTestRunner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.browser.customtabs.CustomTabsService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
