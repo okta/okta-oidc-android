@@ -14,7 +14,6 @@
  */
 package com.okta.oidc.net.request;
 
-import android.support.annotation.NonNull;
 
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestDispatcher;
@@ -44,8 +43,9 @@ import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static com.okta.oidc.util.TestValues.getProviderConfiguration;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

@@ -14,8 +14,9 @@
  */
 package com.okta.oidc;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * A callback that handles a Authorization response returned by Chrome Tabs.

@@ -15,10 +15,10 @@
 
 package com.okta.oidc;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import com.okta.oidc.net.response.TokenResponse;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * OpenId tokens.

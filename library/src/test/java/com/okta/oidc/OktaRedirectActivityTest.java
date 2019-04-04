@@ -26,7 +26,6 @@ import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.assertj.android.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)

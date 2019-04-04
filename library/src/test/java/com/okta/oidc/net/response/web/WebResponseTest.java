@@ -14,7 +14,6 @@
  */
 package com.okta.oidc.net.response.web;
 
-import android.support.annotation.NonNull;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +21,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import androidx.annotation.NonNull;
+
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

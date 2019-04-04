@@ -15,16 +15,15 @@
 
 package com.okta.oidc;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * That is payload that is used in order to provide additional parameters
  * for Authorization request or alter default parameters values (like mState).
- *
  */
 public class AuthenticationPayload {
 
@@ -63,7 +62,6 @@ public class AuthenticationPayload {
          *
          * @param state state value
          * @return current Builder
-         *
          * @see "The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.1
          * <https://tools.ietf.org/html/rfc6749#section-4.1.1>"
          * @see "The OAuth 2.0 Authorization Framework (RFC 6749), Section 5.3.5
@@ -79,7 +77,6 @@ public class AuthenticationPayload {
          *
          * @param loginHint login hint value
          * @return current Builder
-         *
          * @see "OpenID Connect Core 1.0, Section 3.1.2.1
          * <https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1>"
          */
@@ -95,7 +92,6 @@ public class AuthenticationPayload {
          * @param name  parameter name.
          * @param value parameter value
          * @return current Builder
-         *
          * @see "The OAuth 2.0 Authorization Framework (RFC 6749), Section 3.1
          * <https://tools.ietf.org/html/rfc6749#section-3.1>"
          */

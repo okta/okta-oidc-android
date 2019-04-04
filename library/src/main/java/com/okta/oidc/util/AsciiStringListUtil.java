@@ -14,13 +14,14 @@
 
 package com.okta.oidc.util;
 
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import androidx.annotation.Nullable;
 
 import static com.okta.oidc.util.Preconditions.checkArgument;
 

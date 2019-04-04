@@ -15,9 +15,10 @@
 package com.okta.oidc.net.response.web;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
 
 import com.google.gson.Gson;
+
+import androidx.annotation.NonNull;
 
 public class LogoutResponse extends WebResponse {
     private String state;

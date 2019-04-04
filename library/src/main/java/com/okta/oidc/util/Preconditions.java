@@ -14,11 +14,12 @@
 
 package com.okta.oidc.util;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.util.Collection;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Utility class for guava style pre-condition checks. Not an official part of the AppAuth API;

@@ -33,8 +33,6 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
 
-import java.util.Arrays;
-
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import static android.app.Activity.RESULT_CANCELED;
@@ -47,8 +45,10 @@ import static com.okta.oidc.OktaRedirectActivity.REDIRECT_ACTION;
 import static com.okta.oidc.util.JsonStrings.FIRE_FOX;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
-import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

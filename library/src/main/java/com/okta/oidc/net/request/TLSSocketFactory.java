@@ -15,7 +15,6 @@
 
 package com.okta.oidc.net.request;
 
-import android.support.annotation.RestrictTo;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -28,7 +27,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+
 
 /**
  * SSLSocketFactory which wraps default SSLSocketFactory and enable TLS v1.1, v1.2.
@@ -41,7 +43,7 @@ public class TLSSocketFactory extends SSLSocketFactory {
     /**
      * Constructs an TlsEnableSocketFactory object.
      *
-     * @throws KeyManagementException if init operation fails
+     * @throws KeyManagementException   if init operation fails
      * @throws NoSuchAlgorithmException when get SSLContext
      */
     public TLSSocketFactory() throws KeyManagementException, NoSuchAlgorithmException {
@@ -97,8 +99,8 @@ public class TLSSocketFactory extends SSLSocketFactory {
     }
 
     private Socket enableTlsOnSocket(Socket socket) {
-        if ( socket != null && (socket instanceof SSLSocket) ) {
-            ((SSLSocket)socket).setEnabledProtocols(mProtocolsToEnable);
+        if (socket != null && (socket instanceof SSLSocket)) {
+            ((SSLSocket) socket).setEnabledProtocols(mProtocolsToEnable);
         }
         return socket;
     }
