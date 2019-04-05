@@ -39,15 +39,18 @@ import org.json.JSONObject;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+
 public class SampleActivity extends Activity {
 
     private static final String TAG = "SampleActivity";
-
-    private AuthenticateClient mOktaAuth;
+    @VisibleForTesting
+    AuthenticateClient mOktaAuth;
     private OIDCAccount mOktaAccount;
     private TextView mTvStatus;
-    private Button mButton;
+    private Button mSignIn;
     private Button mSignOut;
+    private Button mGetProfile;
     private Button mClearData;
 
     private Button mRefreshToken;
@@ -77,14 +80,17 @@ public class SampleActivity extends Activity {
                 .build());
 
         setContentView(R.layout.sample_activity_login);
-        mButton = findViewById(R.id.start_button);
-        mSignOut = findViewById(R.id.logout_button);
+        mSignIn = findViewById(R.id.sign_in);
+        mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
         mRevokeAccess = findViewById(R.id.revoke_access);
         mRevokeRefresh = findViewById(R.id.revoke_refresh);
-        mRefreshToken = findViewById(R.id.refres_token);
+        mRefreshToken = findViewById(R.id.refresh_token);
+        mGetProfile = findViewById(R.id.get_profile);
 
+        mGetProfile.setOnClickListener(v -> getProfile());
+        mSignIn.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this, null));
         mRefreshToken.setOnClickListener(v -> {
             mOktaAuth.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
                 @Override
@@ -149,7 +155,7 @@ public class SampleActivity extends Activity {
             showLoggedOutMode();
         });
 
-        mButton.setOnClickListener(v -> mOktaAuth.logIn(this, null));
+        mSignIn.setOnClickListener(v -> mOktaAuth.logIn(this, null));
         mTvStatus = findViewById(R.id.status);
 
         //samples sdk test
@@ -166,7 +172,6 @@ public class SampleActivity extends Activity {
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)))
                 .withTabColor(getColorCompat(R.color.colorPrimary))
-                .supportedBrowsers(FIRE_FOX)
                 .create();
 
         if (mOktaAuth.isLoggedIn()) {
@@ -203,17 +208,17 @@ public class SampleActivity extends Activity {
     }
 
     private void showAuthorizedMode() {
-        mButton.setText("Get profile");
-        mButton.setOnClickListener(v -> getProfile());
+        mGetProfile.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
         mRefreshToken.setVisibility(View.VISIBLE);
         mRevokeContainer.setVisibility(View.VISIBLE);
+        mSignIn.setVisibility(View.GONE);
     }
 
     private void showLoggedOutMode() {
-        mButton.setText("Log in");
-        mButton.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this, null));
+        mSignIn.setVisibility(View.VISIBLE);
+        mGetProfile.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
         mClearData.setVisibility(View.GONE);
