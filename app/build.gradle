@@ -27,6 +27,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:1.0.2"
     implementation "com.google.android.material:material:${rootProject.appcompatVersion}"
 
+    androidTestImplementation "androidx.browser:browser:${rootProject.browserVersion}"
     // Core library
     androidTestImplementation 'androidx.test:core:1.1.0'
 

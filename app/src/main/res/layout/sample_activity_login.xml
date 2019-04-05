@@ -28,7 +28,7 @@
                 android:layout_height="96dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/openid_logo_content_description"
-                app:srcCompat="@drawable/appauth_96dp"/>
+                app:srcCompat="@drawable/appauth_96dp" />
 
             <TextView
                 style="@style/Base.TextAppearance.AppCompat.Title"
@@ -61,20 +61,27 @@
                     android:indeterminate="true" />
 
                 <Button
-                    android:id="@+id/start_button"
+                    android:id="@+id/sign_in"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Sign In" />
 
                 <Button
-                    android:id="@+id/logout_button"
+                    android:id="@+id/get_profile"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Get Profile"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/sign_out"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Sign out from Okta"
                     android:visibility="gone" />
 
                 <Button
-                    android:id="@+id/refres_token"
+                    android:id="@+id/refresh_token"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Refresh Token"
