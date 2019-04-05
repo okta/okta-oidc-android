@@ -10,12 +10,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import androidx.annotation.VisibleForTesting;
+
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
 
     private final OktaStorage storage;
     private final EncryptionManager encryptionManager;
-    private final Map<String, String> cacheStorage = new HashMap<>();
+    final Map<String, String> cacheStorage = new HashMap<>();
 
     private final Object lock = new Object();
 
@@ -98,7 +100,7 @@ public class OktaRepository {
         }
     }
 
-    private String getHashed(String value) {
+    String getHashed(String value) {
         try {
             return EncryptionManager.getHashed(value);
         } catch (NoSuchAlgorithmException ex) {

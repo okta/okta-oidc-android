@@ -129,9 +129,11 @@ public class OktaResultFragment extends Fragment {
                             } catch (JSONException e) {
                                 cashedResult = Result.exception(AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
                             }
+                        } else {
+                            cashedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
                         }
                     } else {
-                        cashedResult = Result.exception(AuthorizationException.GeneralErrors.INVALID_REGISTRATION_RESPONSE);
+                        cashedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
                     }
                 }
             }
