@@ -15,10 +15,10 @@
 package com.okta.oidc.util;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
-import com.okta.oidc.SyncAuthenticationClient;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -30,14 +30,13 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.LogoutResponse;
 
+import org.robolectric.util.Pair;
+
 import java.security.KeyPair;
-import java.security.Provider;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
@@ -56,6 +55,9 @@ public class TestValues {
     public static final String ID_TOKEN = "ID_TOKEN";
     public static final String REFRESH_TOKEN = "REFRESH_TOKEN";
     public static final String CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
+    public static int VALID_EXPIRES_IN = 3600;
+    public static String INVALID_EXPIRES_IN = "INVALID_EXPIRES_IN";
+    public static String[] VALID_SCOPES = new String[]{"openid", "profile", "offline_access"};
 
     public static final String REDIRECT_URI = CUSTOM_URL + "callback";
     public static final String END_SESSION_URI = CUSTOM_URL + "logout";
@@ -190,5 +192,49 @@ public class TestValues {
                 .providerConfiguration(configuration)
                 .account(account)
                 .createRequest();
+    }
+
+    public static String getAuthorizationExceptionError() {
+        return "{\"" + AuthorizationException.KEY_TYPE + "\"=" + AuthorizationException.TYPE_GENERAL_ERROR + ", " +
+                "\"" + AuthorizationException.KEY_CODE + "\"= 1, " +
+                "\"" + AuthorizationException.KEY_ERROR + "\"=\"" + "key_error" + "\", " +
+                "\"" + AuthorizationException.KEY_ERROR_DESCRIPTION + "\"=\"" + "key_error_description" + "\", " +
+                "\"" + AuthorizationException.KEY_ERROR_URI + "\"=\"" + "https://some_uri" + "\" }";
+
+    }
+
+    public static TokenResponse getTokenResponse() {
+        return TokenResponse.RESTORE.restore(
+                generatePayloadTokenResponse(
+                        ACCESS_TOKEN,
+                        ID_TOKEN,
+                        REFRESH_TOKEN,
+                        Integer.toString(VALID_EXPIRES_IN),
+                        TextUtils.join(" ", VALID_SCOPES))
+        );
+    }
+
+    public static AuthenticationPayload getAuthenticationPayload(Pair<String, String> parameter) {
+        return new AuthenticationPayload.Builder()
+                .setLoginHint(LOGIN_HINT)
+                .setState(CUSTOM_STATE)
+                .addParameter(parameter.first, parameter.second)
+                .build();
+    }
+
+    public static PersistableMock getNotEncryptedPersistable() {
+        return new PersistableMock("data");
+    }
+
+    public static EncryptedPersistableMock getEncryptedPersistable() {
+        return new EncryptedPersistableMock("data");
+    }
+
+    public static String generatePayloadTokenResponse(String accessToken, String idToken, String refreshToken, String expiresIn, String scope) {
+        return "{\"access_token\"=\"" + accessToken + "\", " +
+                "\"id_token\"=\"" + idToken + "\", " +
+                "\"refresh_token\"=\"" + refreshToken + "\", " +
+                "\"expires_in\"=\"" + expiresIn + "\", " +
+                "\"scope\"=\"" + scope + "\"}";
     }
 }

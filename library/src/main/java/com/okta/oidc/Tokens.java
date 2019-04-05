@@ -31,24 +31,19 @@ public class Tokens {
     private int mExpiresIn;
     private String[] mScope;
 
-    public Tokens(String idToken, String accessToken, String refreshToken, String expiresIn,
-                  String scope) {
+    Tokens(String idToken, String accessToken, String refreshToken, int expiresIn,
+                  String[] scope) {
         this.mIdToken = idToken;
         this.mAccessToken = accessToken;
         this.mRefreshToken = refreshToken;
-        if (expiresIn != null) {
-            this.mExpiresIn = Integer.parseInt(expiresIn);
-        }
-        this.mScope = new String[]{};
-        if (scope != null) {
-            this.mScope = scope.split(" ");
-        }
+        this.mExpiresIn = expiresIn;
+        this.mScope = scope;
     }
 
     Tokens(@NonNull TokenResponse response) {
         this(response.getIdToken(), response.getAccessToken(),
-                response.getRefreshToken(), response.getExpiresIn(),
-                response.getScope());
+                response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
+                response.getScope().split(" "));
     }
 
     /**
