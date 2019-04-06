@@ -1,16 +1,12 @@
 package com.okta.oidc;
 
-import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockResultCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -23,6 +19,8 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import static android.app.Activity.RESULT_OK;
@@ -38,7 +36,7 @@ public class OktaResultFragmentTest {
     private MockEndPoint mEndPoint;
     private OIDCAccount mAccount;
     private ProviderConfiguration mProviderConfig;
-    private Activity mActivity;
+    private FragmentActivity mActivity;
 
     @Mock
     OktaResultFragment.AuthResultListener listener;
@@ -51,16 +49,16 @@ public class OktaResultFragmentTest {
         String url = mEndPoint.getUrl();
         mAccount = TestValues.getAccountWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
-        mActivity = Robolectric.buildActivity(Activity.class).setup().get();
+        mActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
     }
 
-    private OktaResultFragment getOktaResultFragment(Activity activity) {
-        Fragment fragment = activity.getFragmentManager()
+    private OktaResultFragment getOktaResultFragment(FragmentActivity activity) {
+        Fragment fragment = activity.getSupportFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
-        if(fragment == null) {
+        if (fragment == null) {
             return null;
         }
-        return (OktaResultFragment)fragment;
+        return (OktaResultFragment) fragment;
     }
 
 

@@ -34,6 +34,7 @@ import java.util.concurrent.Executor;
 import androidx.annotation.AnyThread;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();

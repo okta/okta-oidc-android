@@ -35,9 +35,11 @@ import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
+
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SampleActivity extends AppCompatActivity {
 

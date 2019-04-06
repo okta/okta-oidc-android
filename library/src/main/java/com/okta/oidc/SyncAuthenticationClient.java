@@ -10,7 +10,6 @@ import android.util.Log;
 
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
@@ -41,6 +40,7 @@ import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
+import androidx.fragment.app.FragmentActivity;
 
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;

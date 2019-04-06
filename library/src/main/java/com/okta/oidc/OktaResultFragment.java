@@ -4,9 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -15,6 +12,9 @@ import com.okta.oidc.net.response.web.WebResponse;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
