@@ -34,7 +34,6 @@ import java.util.concurrent.Executor;
 import androidx.annotation.AnyThread;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();
@@ -139,7 +138,7 @@ public final class AuthenticateClient {
             if (result.isSuccess()) {
                 mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
             } else {
-                mDispatcher.submitResults(() -> mResultCb.onError("Logg out error", result.getError()));
+                mDispatcher.submitResults(() -> mResultCb.onError("Log out error", result.getError()));
             }
         });
     }
@@ -148,22 +147,6 @@ public final class AuthenticateClient {
         mResultCb = null;
         mDispatcher.shutdown();
     }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        boolean result;
-        if (!(obj instanceof AuthenticateClient)) {
-            result = false;
-        } else {
-            AuthenticateClient other = (AuthenticateClient) obj;
-            result = mAuthClient.equals(other.mAuthClient);
-        }
-        return result;
-    }
-
 
     public static class Builder {
         private Executor mCallbackExecutor;

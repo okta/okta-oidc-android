@@ -18,11 +18,11 @@ package com.okta.oidc.example;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.okta.oidc.AuthenticateClient;
@@ -54,6 +54,8 @@ public class SampleActivity extends AppCompatActivity {
     private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
+
+    private ProgressBar mProgressBar;
     private static final String FIRE_FOX = "org.mozilla.firefox";
 
     private LinearLayout mRevokeContainer;
@@ -62,7 +64,7 @@ public class SampleActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-
+/*
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                 .detectDiskReads()
                 .detectDiskWrites()
@@ -76,7 +78,7 @@ public class SampleActivity extends AppCompatActivity {
                 .penaltyLog()
                 .penaltyDeath()
                 .build());
-
+*/
         setContentView(R.layout.sample_activity_login);
         mSignIn = findViewById(R.id.sign_in);
         mSignOut = findViewById(R.id.sign_out);
@@ -86,32 +88,40 @@ public class SampleActivity extends AppCompatActivity {
         mRevokeRefresh = findViewById(R.id.revoke_refresh);
         mRefreshToken = findViewById(R.id.refresh_token);
         mGetProfile = findViewById(R.id.get_profile);
+        mProgressBar = findViewById(R.id.progress_horizontal);
+        mTvStatus = findViewById(R.id.status);
 
         mGetProfile.setOnClickListener(v -> getProfile());
-        mSignIn.setOnClickListener(v -> mOktaAuth.logIn(SampleActivity.this, null));
         mRefreshToken.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
             mOktaAuth.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
                 @Override
                 public void onSuccess(@NonNull Tokens result) {
                     mTvStatus.setText("token refreshed");
+                    mProgressBar.setVisibility(View.GONE);
                 }
 
                 @Override
                 public void onError(String error, AuthorizationException exception) {
                     mTvStatus.setText(exception.error);
+                    mProgressBar.setVisibility(View.GONE);
                 }
             });
         });
+
         mRevokeRefresh.setOnClickListener(v -> {
             Tokens tokens = mOktaAuth.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
+                mProgressBar.setVisibility(View.VISIBLE);
                 mOktaAuth.revokeToken(mOktaAuth.getTokens().getRefreshToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull Boolean result) {
+
                                 String status = "Revoke refresh token : " + result;
                                 Log.d(TAG, status);
                                 mTvStatus.setText(status);
+                                mProgressBar.setVisibility(View.GONE);
                             }
 
                             @Override
@@ -119,6 +129,7 @@ public class SampleActivity extends AppCompatActivity {
                                 Log.d(TAG, exception.error +
                                         " revokeRefreshToken onError " + error, exception);
                                 mTvStatus.setText(error);
+                                mProgressBar.setVisibility(View.GONE);
                             }
                         });
             }
@@ -127,6 +138,7 @@ public class SampleActivity extends AppCompatActivity {
         mRevokeAccess.setOnClickListener(v -> {
             Tokens tokens = mOktaAuth.getTokens();
             if (tokens != null && tokens.getAccessToken() != null) {
+                mProgressBar.setVisibility(View.VISIBLE);
                 mOktaAuth.revokeToken(mOktaAuth.getTokens().getAccessToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
@@ -134,6 +146,7 @@ public class SampleActivity extends AppCompatActivity {
                                 String status = "Revoke Access token : " + result;
                                 Log.d(TAG, status);
                                 mTvStatus.setText(status);
+                                mProgressBar.setVisibility(View.GONE);
                             }
 
                             @Override
@@ -141,6 +154,7 @@ public class SampleActivity extends AppCompatActivity {
                                 Log.d(TAG, exception.error +
                                         " revokeAccessToken onError " + error, exception);
                                 mTvStatus.setText(error);
+                                mProgressBar.setVisibility(View.GONE);
                             }
                         });
             }
@@ -149,12 +163,15 @@ public class SampleActivity extends AppCompatActivity {
         mSignOut.setOnClickListener(v -> mOktaAuth.signOutFromOkta(this));
         mClearData.setOnClickListener(v -> {
             mOktaAuth.clear();
-            mTvStatus.setText("log out su");
+            mTvStatus.setText("clear data");
             showLoggedOutMode();
         });
 
-        mSignIn.setOnClickListener(v -> mOktaAuth.logIn(this, null));
-        mTvStatus = findViewById(R.id.status);
+        mSignIn.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mOktaAuth.logIn(this, null);
+        });
+
 
         //samples sdk test
         mOktaAccount = new OIDCAccount.Builder()
@@ -176,7 +193,6 @@ public class SampleActivity extends AppCompatActivity {
             showAuthorizedMode();
         }
 
-
         mOktaAuth.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull AuthorizationStatus status) {
@@ -184,9 +200,13 @@ public class SampleActivity extends AppCompatActivity {
                 if (status == AuthorizationStatus.AUTHORIZED) {
                     mTvStatus.setText("authentication authorized");
                     showAuthorizedMode();
+                    mProgressBar.setVisibility(View.GONE);
                 } else if (status == AuthorizationStatus.LOGGED_OUT) {
-                    mTvStatus.setText("log out su");
-                    showLoggedOutMode();
+                    //this only clears the session.
+                    mTvStatus.setText("signedOutFromOkta");
+                } else if (status == AuthorizationStatus.IN_PROGRESS) {
+                    mTvStatus.setText("code exchange");
+                    mProgressBar.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -203,6 +223,12 @@ public class SampleActivity extends AppCompatActivity {
                 mTvStatus.setText(msg);
             }
         }, this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mProgressBar.setVisibility(View.GONE);
     }
 
     private void showAuthorizedMode() {
@@ -225,16 +251,19 @@ public class SampleActivity extends AppCompatActivity {
     }
 
     private void getProfile() {
+        mProgressBar.setVisibility(View.VISIBLE);
         mOktaAuth.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull JSONObject result) {
                 mTvStatus.setText(result.toString());
+                mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onError(String error, AuthorizationException exception) {
                 Log.d(TAG, error, exception.getCause());
                 mTvStatus.setText("Error : " + exception.errorDescription);
+                mProgressBar.setVisibility(View.GONE);
             }
         });
     }

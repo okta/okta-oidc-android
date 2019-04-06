@@ -12,6 +12,9 @@ android {
 
     defaultConfig {
         project.archivesBaseName = "oidc-android"
+        manifestPlaceholders = [
+                "appAuthRedirectScheme": "com.oktapreview.samples-test"
+        ]
     }
 
     testOptions {
