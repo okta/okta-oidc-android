@@ -197,7 +197,8 @@ public class SyncAuthenticationClient {
     }
 
     @AnyThread
-    public Result signOutFromOkta(@NonNull final FragmentActivity activity) {
+    public Result signOutFromOkta(@NonNull final FragmentActivity activity)
+            throws InterruptedException {
         if (isLoggedIn()) {
             CountDownLatch latch = new CountDownLatch(1);
             AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
@@ -215,6 +216,7 @@ public class SyncAuthenticationClient {
                         resultWrapper.set(result);
                         latch.countDown();
                     }, mSupportedBrowsers);
+            latch.await();
             OktaResultFragment.Result logoutResult = resultWrapper.get();
 
             switch (logoutResult.getStatus()) {
@@ -247,7 +249,7 @@ public class SyncAuthenticationClient {
     }
 
     @WorkerThread
-    private TokenRequest tokenExchange(AuthorizeResponse response) {
+    protected TokenRequest tokenExchange(AuthorizeResponse response) {
         return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
