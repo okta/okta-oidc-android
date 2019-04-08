@@ -15,22 +15,15 @@
 package com.okta.oidc;
 
 import android.content.Context;
-import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.net.request.AuthorizedRequest;
-import com.okta.oidc.net.request.ConfigurationRequest;
-import com.okta.oidc.net.request.HttpRequestBuilder;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.request.RefreshTokenRequest;
-import com.okta.oidc.net.request.RevokeTokenRequest;
-import com.okta.oidc.net.request.TokenRequest;
-import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
-import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -52,7 +45,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -62,19 +54,14 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import static android.content.Context.MODE_PRIVATE;
-import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
-import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
-import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
-import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -272,6 +259,30 @@ public class AuthenticateClientTest {
         assertEquals(TYPE_OAUTH_TOKEN_ERROR, cb.getException().type);
         assertThat(recordedRequest.getPath(),
                 equalTo("/revoke?client_id=CLIENT_ID&token=access_token"));
+    }
+
+    @Test
+    public void introspectToken() throws InterruptedException {
+        mEndPoint.enqueueIntrospectSuccess();
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<IntrospectResponse, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mAuthClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        latch.await();
+        assertNotNull(cb.getResult());
+        assertTrue(cb.getResult().active);
+    }
+
+    @Test
+    public void introspectTokenFailure() throws InterruptedException {
+        mEndPoint.enqueueReturnInvalidClient();
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<IntrospectResponse, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mAuthClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        latch.await();
+        assertNull(cb.getResult());
+        assertNotNull(cb.getException());
     }
 
     private Map<String, String> toMap(RecordedRequest request) {

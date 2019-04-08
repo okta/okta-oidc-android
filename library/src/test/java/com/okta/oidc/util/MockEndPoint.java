@@ -42,6 +42,7 @@ import static com.okta.oidc.net.HttpConnection.CONTENT_TYPE;
 import static com.okta.oidc.net.HttpConnection.JSON_CONTENT_TYPE;
 import static com.okta.oidc.util.JsonStrings.CONFIGURATION_NOT_FOUND;
 import static com.okta.oidc.util.JsonStrings.FORBIDDEN;
+import static com.okta.oidc.util.JsonStrings.INTROSPECT_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.INVALID_CLIENT;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
@@ -91,6 +92,11 @@ public class MockEndPoint {
         return response;
     }
 
+    public MockResponse enqueueIntrospectSuccess() {
+        MockResponse response = jsonResponse(HTTP_OK, INTROSPECT_RESPONSE);
+        mServer.enqueue(response);
+        return response;
+    }
     public void enqueueConfigurationSuccess() {
         mServer.enqueue(jsonResponse(HTTP_OK, PROVIDER_CONFIG));
     }

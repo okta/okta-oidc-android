@@ -128,14 +128,43 @@ public class SampleActivityTest {
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         assertNotNull(activityRule.getActivity().mOktaAuth.getTokens());
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-
-        refreshToken();
-        getProfile();
-        revokeRefreshToken();
-        revokeAccessToken();
     }
-    
-    private void refreshToken() {
+
+    @Test
+    public void test4_introspect() {
+        introspectAccessToken();
+        introspectRefreshToken();
+        introspectIdToken();
+    }
+
+    private void introspectAccessToken() {
+        onView(withId(R.id.introspect_access)).check(matches(isDisplayed()));
+        onView(withId(R.id.introspect_access)).perform(click());
+
+        //wait for network
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
+    }
+
+    private void introspectRefreshToken() {
+        onView(withId(R.id.introspect_refresh)).check(matches(isDisplayed()));
+        onView(withId(R.id.introspect_refresh)).perform(click());
+
+        //wait for network
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
+    }
+
+    private void introspectIdToken() {
+        onView(withId(R.id.introspect_id)).check(matches(isDisplayed()));
+        onView(withId(R.id.introspect_id)).perform(click());
+
+        //wait for network
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
+    }
+
+    public void test5_refreshToken() {
         onView(withId(R.id.refresh_token)).check(matches(isDisplayed()));
         onView(withId(R.id.refresh_token)).perform(click());
 
@@ -144,7 +173,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText("token refreshed")));
     }
 
-    private void getProfile() {
+    public void test6_getProfile() {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.get_profile)).perform(click());
         //wait for network
@@ -152,7 +181,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString(USERNAME))));
     }
 
-    private void revokeRefreshToken() {
+    public void test7_revokeRefreshToken() {
         onView(withId(R.id.revoke_refresh)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_refresh)).perform(click());
         //wait for network
@@ -160,7 +189,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
     }
 
-    private void revokeAccessToken() {
+    public void test8_revokeAccessToken() {
         onView(withId(R.id.revoke_access)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_access)).perform(click());
         //wait for network
@@ -194,5 +223,4 @@ public class SampleActivityTest {
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
     }
-
 }

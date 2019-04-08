@@ -21,6 +21,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
+import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
@@ -189,6 +190,16 @@ public class TestValues {
         return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .tokenToRevoke(tokenToRevoke)
+                .providerConfiguration(configuration)
+                .account(account)
+                .createRequest();
+    }
+
+    public static IntrospectRequest getIntrospectTokenRequest(OIDCAccount account, String token, String tokenType,
+                                                              ProviderConfiguration configuration) {
+        return (IntrospectRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.INTROSPECT)
+                .introspect(token, tokenType)
                 .providerConfiguration(configuration)
                 .account(account)
                 .createRequest();

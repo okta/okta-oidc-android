@@ -6,13 +6,16 @@ import android.net.Uri;
 import com.google.gson.Gson;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
+import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.storage.OktaStorage;
@@ -92,7 +95,7 @@ public class SyncAuthenticationClientTest {
     public void clear_success() {
         mSyncAuthClient.mOktaState.save(mProviderConfig);
         mSyncAuthClient.mOktaState.save(mTokenResponse);
-        mSyncAuthClient.mOktaState.save(TestValues.getAuthorizeRequest(mAccount,null));
+        mSyncAuthClient.mOktaState.save(TestValues.getAuthorizeRequest(mAccount, null));
 
         mSyncAuthClient.clear();
 
@@ -222,6 +225,25 @@ public class SyncAuthenticationClientTest {
         assertFalse(status);
         assertThat(recordedRequest.getPath(),
                 equalTo("/revoke?client_id=CLIENT_ID&token=access_token"));
+    }
+
+    @Test
+    public void introspectToken() throws AuthorizationException, InterruptedException {
+        mEndPoint.enqueueIntrospectSuccess();
+        IntrospectRequest request =
+                mSyncAuthClient.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN);
+        IntrospectResponse response = request.executeRequest();
+        assertTrue(response.active);
+    }
+
+    @Test
+    public void introspectTokenFailure() throws AuthorizationException, InterruptedException {
+        mExpectedEx.expect(AuthorizationException.class);
+        mEndPoint.enqueueReturnInvalidClient();
+        IntrospectRequest request
+                = mSyncAuthClient.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN);
+        IntrospectResponse response = request.executeRequest();
+        assertNull(response);
     }
 
     @Test

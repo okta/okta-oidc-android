@@ -184,4 +184,19 @@ public interface JsonStrings {
             "    \"errorId\": \"oaeQdc5IvrlSGGnewf-cqqDqA\",\n" +
             "    \"errorCauses\": not found\n" +
             "}";
+
+    String INTROSPECT_RESPONSE = "{\n" +
+            "    \"active\" : true,\n" +
+            "    \"token_type\" : \"Bearer\",\n" +
+            "    \"scope\" : \"openid profile\",\n" +
+            "    \"client_id\" : \"a9VpZDRCeFh3Nkk2VdYa\",\n" +
+            "    \"username\" : \"john.doe@example.com\",\n" +
+            "    \"exp\" : 1451606400,\n" +
+            "    \"iat\" : 1451602800,\n" +
+            "    \"sub\" : \"john.doe@example.com\",\n" +
+            "    \"aud\" : \"https://{yourOktaDomain}\",\n" +
+            "    \"iss\" : \"https://{yourOktaDomain}/oauth2/orsmsg0aWLdnF3spV0g3\",\n" +
+            "    \"jti\" : \"AT.7P4KlczBYVcWLkxduEuKeZfeiNYkZIC9uGJ28Cc-YaI\",\n" +
+            "    \"uid\" : \"00uid4BxXw6I6TV4m0g3\"\n" +
+            "}";
 }

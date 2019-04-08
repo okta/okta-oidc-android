@@ -19,6 +19,7 @@ import android.net.Uri;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.JsonStrings;
@@ -207,6 +208,19 @@ public class HttpRequestBuilderTest {
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.REVOKE_TOKEN.toString()));
+    }
+
+    @Test
+    public void createIntrospectRequest() {
+        IntrospectRequest request = (IntrospectRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.INTROSPECT)
+                .providerConfiguration(mConfiguration)
+                .httpRequestMethod(HttpConnection.RequestMethod.POST)
+                .introspect(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN)
+                .account(mAccount)
+                .createRequest();
+        assertNotNull(request);
+        assertTrue(request.toString().contains(HttpRequest.Type.INTROSPECT.toString()));
     }
 
     @Test
