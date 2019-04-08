@@ -14,7 +14,7 @@
  */
 package com.okta.oidc.example;
 
-import com.okta.oidc.AuthenticationPayload;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -35,19 +35,28 @@ import androidx.test.uiautomator.Until;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
-import static junit.framework.TestCase.assertNotNull;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.hamcrest.core.StringContains.containsString;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class SampleActivityTest {
+public class WireMockTest {
+//    private static final String DEFAULT_WIREMOCK_ADDRESS = "https://localhost";
+//    private static final String KEYSTORE_DIRECTORY =
+//            "src/test/resources/wiremock/keystore/mock.keystore.jks";
+//    private static final String CONFIG_DIRECTORY = "src/test/resources/wiremock/";
+//    private static final String KEYSTORE_PASSWORD = "123456";
+
     //apk package names
     private static final String FIRE_FOX = "org.mozilla.firefox";
     private static final String CHROME_STABLE = "com.android.chrome";
@@ -55,7 +64,7 @@ public class SampleActivityTest {
     //timeout for app transition from browser to app.
     private static final int TRANSITION_TIMEOUT = 2000;
     private static final int NETWORK_TIMEOUT = 5000;
-    
+
     //web page resource ids
     private static final String ID_USERNAME = "okta-signin-username";
     private static final String ID_PASSWORD = "okta-signin-password";
@@ -66,27 +75,48 @@ public class SampleActivityTest {
 
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
-    private static final String ID_GET_PROFILE = "com.okta.oidc.example:id/get_profile";
 
-    private static String PASSWORD;
-    private static String USERNAME;
+    private static final String PASSWORD = "Dev3xIsD0pe";
+    private static final String USERNAME = "devex@okta.com";
 
     private UiDevice mDevice;
     @Rule
     public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
 
+//    @Rule
+//    public WireMockClassRule instanceRule = new WireMockClassRule(options().httpsPort(1010)
+//            .keystorePath(KEYSTORE_DIRECTORY)
+//            .keystorePassword(KEYSTORE_PASSWORD)
+//            .bindAddress(DEFAULT_WIREMOCK_ADDRESS));
+
+
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-        
+//        activityRule.getActivity().mOktaAccount = new OIDCAccount.Builder()
+//                .clientId("client_id")
+//                .redirectUri("com.oktapreview.samples-test:/callback")
+//                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+//                .scopes("openid", "profile", "offline_access")
+//                .discoveryUri("https://samples-test.oktapreview.com")
+//                .create();
+//        activityRule.getActivity().mAuthClient = new AuthenticateClient.Builder()
+//                .withAccount(activityRule.getActivity().mOktaAccount)
+//                .withContext(activityRule.getActivity())
+//                .withStorage(new SimpleOktaStorage(activityRule.getActivity()
+//                        .getPreferences(MODE_PRIVATE)))
+//                .create();
+
+
+//        String jsonBody = getAsset(activityRule.getActivity(), "atlanta-conditions.json");
+//        stubFor(get(urlMatching("/.*"))
+//                .willReturn(aResponse()
+//                        .withStatus(HTTP_OK)
+//                        .withBody(jsonBody)));
     }
 
     private UiObject getProgressBar() {
         return mDevice.findObject(new UiSelector().resourceId(ID_PROGRESS_BAR));
-    }
-
-    private UiObject getProfileButton() {
-        return mDevice.findObject(new UiSelector().resourceId(ID_GET_PROFILE));
     }
 
     private void acceptChromePrivacyOption() throws UiObjectNotFoundException {
@@ -106,10 +136,7 @@ public class SampleActivityTest {
 
     @Test
     public void test1_loginNoSession() throws UiObjectNotFoundException {
-        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-            onView(withId(R.id.clear_data)).perform(click());
-        }).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
@@ -133,66 +160,20 @@ public class SampleActivityTest {
         getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
 
         //check if get profile is visible
-        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
+
+        refreshToken();
     }
 
-    @Test
-    public void test2_clearData() {
-        onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-        onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void test3_logInWithSession() {
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in)).perform(click());
-
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        assertNotNull(activityRule.getActivity().mOktaAuth.getTokens());
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void test4_introspect() {
-        introspectAccessToken();
-        introspectRefreshToken();
-        introspectIdToken();
-    }
-
-    private void introspectAccessToken() {
-        onView(withId(R.id.introspect_access)).check(matches(isDisplayed()));
-        onView(withId(R.id.introspect_access)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
-    }
-
-    private void introspectRefreshToken() {
-        onView(withId(R.id.introspect_refresh)).check(matches(isDisplayed()));
-        onView(withId(R.id.introspect_refresh)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
-    }
-
-    private void introspectIdToken() {
-        onView(withId(R.id.introspect_id)).check(matches(isDisplayed()));
-        onView(withId(R.id.introspect_id)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
-    }
-
-    public void test5_refreshToken() {
+    private void refreshToken() {
+        //String jsonBody = getAsset(activityRule.getActivity(), "atlanta-conditions.json");
+        WireMock.configureFor("localhost", 8181);
+        stubFor(get(urlMatching("/.*"))
+                .willReturn(aResponse()
+                        .withStatus(HTTP_NOT_FOUND)));
+        //.withBody(jsonBody)));
         onView(withId(R.id.refresh_token)).check(matches(isDisplayed()));
         onView(withId(R.id.refresh_token)).perform(click());
 
@@ -201,7 +182,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText("token refreshed")));
     }
 
-    public void test6_getProfile() {
+    private void getProfile() {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.get_profile)).perform(click());
         //wait for network
@@ -209,7 +190,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString(USERNAME))));
     }
 
-    public void test7_revokeRefreshToken() {
+    private void revokeRefreshToken() {
         onView(withId(R.id.revoke_refresh)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_refresh)).perform(click());
         //wait for network
@@ -217,7 +198,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
     }
 
-    public void test8_revokeAccessToken() {
+    private void revokeAccessToken() {
         onView(withId(R.id.revoke_access)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_access)).perform(click());
         //wait for network
@@ -250,68 +231,5 @@ public class SampleActivityTest {
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
-    }
-
-    @Test
-    public void testA_logInWithPayload() throws UiObjectNotFoundException {
-        activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
-                .setLoginHint("devex@okta.com")
-                .addParameter("max_age", "5000")
-                .build();
-
-        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-            onView(withId(R.id.clear_data)).perform(click());
-        }).check(matches(isDisplayed()));
-
-        onView(withId(R.id.sign_in)).perform(click());
-
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        acceptChromePrivacyOption();
-
-        UiSelector selector = new UiSelector();
-
-        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
-        password.setText(PASSWORD);
-
-        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
-        signIn.click();
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-
-        //wait for token exchange
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-
-        //check if get profile is visible
-        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("authentication authorized"))));
-    }
-
-    @Test
-    public void testB_nativeLogIn() {
-        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-            onView(withId(R.id.clear_data)).perform(click());
-        }).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in_native)).perform(click());
-
-        onView(withId(R.id.username)).check(matches(isDisplayed()));
-        onView(withId(R.id.username)).perform(click(), replaceText(BuildConfig.USERNAME));
-
-        onView(withId(R.id.password)).check(matches(isDisplayed()));
-        onView(withId(R.id.password)).perform(click(), replaceText(BuildConfig.PASSWORD));
-
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
-        onView(withId(R.id.submit)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        //check if get profile is visible
-        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
-        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("authentication authorized"))));
     }
 }

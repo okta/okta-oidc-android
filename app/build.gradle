@@ -14,6 +14,7 @@ android {
         manifestPlaceholders = [
                 "appAuthRedirectScheme": "com.oktapreview.samples-test"
         ]
+        multiDexEnabled true
 
         Properties properties = new Properties()
         properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -67,6 +68,8 @@ dependencies {
     // UiAutomator Testing
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion
     androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
+
+    androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.21.0'
 }
 
 task clearData(type: Exec) {
