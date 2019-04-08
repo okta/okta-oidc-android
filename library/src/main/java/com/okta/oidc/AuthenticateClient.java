@@ -81,7 +81,6 @@ public final class AuthenticateClient {
         request.dispatchRequest(mDispatcher, cb);
     }
 
-
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
@@ -135,11 +134,15 @@ public final class AuthenticateClient {
     public void signOutFromOkta(@NonNull final FragmentActivity activity) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
-            Result result = mAuthClient.signOutFromOkta(activity);
-            if (result.isSuccess()) {
-                mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
-            } else {
-                mDispatcher.submitResults(() -> mResultCb.onError("Log out error", result.getError()));
+            try {
+                Result result = mAuthClient.signOutFromOkta(activity);
+                if (result.isSuccess()) {
+                    mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
+                } else {
+                    mDispatcher.submitResults(() -> mResultCb.onError("Log out error", result.getError()));
+                }
+            } catch (InterruptedException e) {
+                mDispatcher.submitResults(() -> mResultCb.onCancel());
             }
         });
     }
