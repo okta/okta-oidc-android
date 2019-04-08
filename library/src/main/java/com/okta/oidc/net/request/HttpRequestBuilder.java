@@ -48,6 +48,9 @@ public class HttpRequestBuilder {
     TokenResponse mTokenResponse;
     String mGrantType;
 
+    String mIntrospectToken;
+    String mTokenTypeHint;
+
     private HttpRequestBuilder() {
     }
 
@@ -87,6 +90,11 @@ public class HttpRequestBuilder {
                     throw new IllegalStateException("No refresh token found");
                 }
                 break;
+            case INTROSPECT:
+                if (mIntrospectToken == null || mTokenTypeHint == null) {
+                    throw new IllegalStateException("Invalid token or missing hint");
+                }
+                break;
             default:
         }
     }
@@ -114,6 +122,8 @@ public class HttpRequestBuilder {
             case REFRESH_TOKEN:
                 mGrantType = GrantTypes.REFRESH_TOKEN;
                 return new RefreshTokenRequest(this);
+            case INTROSPECT:
+                return new IntrospectRequest(this);
             default:
                 throw new IllegalArgumentException("Invalid request of type: " + mRequestType);
         }
@@ -176,6 +186,12 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder tokenToRevoke(String token) {
         mTokenToRevoke = token;
+        return this;
+    }
+
+    public HttpRequestBuilder introspect(String token, String tokenType) {
+        mIntrospectToken = token;
+        mTokenTypeHint = tokenType;
         return this;
     }
 }

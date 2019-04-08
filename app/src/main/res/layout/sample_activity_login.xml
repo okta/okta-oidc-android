@@ -59,8 +59,8 @@
                     style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:indeterminate="true" />
+                    android:indeterminate="true"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/sign_in"
@@ -123,6 +123,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Revoke access token" />
+
+                <Button
+                    android:id="@+id/introspect_refresh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Instrospect refresh token" />
+
+                <Button
+                    android:id="@+id/introspect_access"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Instrospect access token" />
+
+                <Button
+                    android:id="@+id/introspect_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Instrospect id token" />
 
             </LinearLayout>
 

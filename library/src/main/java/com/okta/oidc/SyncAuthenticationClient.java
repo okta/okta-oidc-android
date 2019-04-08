@@ -14,6 +14,7 @@ import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
+import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
@@ -102,6 +103,15 @@ public class SyncAuthenticationClient {
                 .request(HttpRequest.Type.REFRESH_TOKEN)
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
+                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .account(mOIDCAccount).createRequest();
+    }
+
+    public IntrospectRequest introspectTokenRequest(String token, String tokenType) {
+        return (IntrospectRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.INTROSPECT)
+                .connectionFactory(mConnectionFactory)
+                .introspect(token, tokenType)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .account(mOIDCAccount).createRequest();
     }

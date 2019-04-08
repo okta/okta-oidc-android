@@ -12,28 +12,21 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.net.request;
+package com.okta.oidc.net.response;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.util.AuthorizationException;
-
-public interface HttpRequest<T, U extends AuthorizationException> {
-    enum Type {
-        CONFIGURATION,
-        TOKEN_EXCHANGE,
-        AUTHORIZED,
-        PROFILE,
-        REVOKE_TOKEN,
-        REFRESH_TOKEN,
-        INTROSPECT
-    }
-
-    void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<T, U> callback);
-
-    T executeRequest() throws AuthorizationException;
-
-    void cancelRequest();
-
-    void close();
+public final class IntrospectResponse {
+    public boolean active;
+    public String token_type;
+    public String scope;
+    public String client_id;
+    public String device_id;
+    public String username;
+    public int nbf;
+    public int exp;
+    public int iat;
+    public String sub;
+    public String aud;
+    public String iss;
+    public String jti;
+    public String uid;
 }

@@ -31,6 +31,8 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.Tokens;
+import com.okta.oidc.net.params.TokenTypeHint;
+import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -56,6 +58,9 @@ public class SampleActivity extends AppCompatActivity {
     private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
+    private Button mIntrospectRefresh;
+    private Button mIntrospectAccess;
+    private Button mIntrospectId;
 
     private ProgressBar mProgressBar;
     private static final String FIRE_FOX = "org.mozilla.firefox";
@@ -92,6 +97,61 @@ public class SampleActivity extends AppCompatActivity {
         mGetProfile = findViewById(R.id.get_profile);
         mProgressBar = findViewById(R.id.progress_horizontal);
         mTvStatus = findViewById(R.id.status);
+        mIntrospectRefresh = findViewById(R.id.introspect_refresh);
+        mIntrospectAccess = findViewById(R.id.introspect_access);
+        mIntrospectId = findViewById(R.id.introspect_id);
+
+        mIntrospectRefresh.setOnClickListener(v -> mOktaAuth.introspectToken(
+                mOktaAuth.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
+                new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull IntrospectResponse result) {
+                        mTvStatus.setText("RefreshToken active: " + result.active);
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError(String error, AuthorizationException exception) {
+                        mTvStatus.setText("RefreshToken Introspect error");
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                }
+        ));
+
+        mIntrospectAccess.setOnClickListener(v -> mOktaAuth.introspectToken(
+                mOktaAuth.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+                new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull IntrospectResponse result) {
+                        mTvStatus.setText("AccessToken active: " + result.active);
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError(String error, AuthorizationException exception) {
+                        mTvStatus.setText("AccessToken Introspect error");
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                }
+        ));
+
+        mIntrospectId.setOnClickListener(v -> mOktaAuth.introspectToken(
+                mOktaAuth.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+                new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull IntrospectResponse result) {
+                        mTvStatus.setText("IdToken active: " + result.active);
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError(String error, AuthorizationException exception) {
+                        mTvStatus.setText("IdToken Introspect error");
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                }
+        ));
+
 
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {

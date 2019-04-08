@@ -19,7 +19,9 @@ import android.content.Context;
 
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
+import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
+import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
@@ -78,6 +80,12 @@ public final class AuthenticateClient {
 
     public void revokeToken(String token, final RequestCallback<Boolean, AuthorizationException> cb) {
         RevokeTokenRequest request = mAuthClient.revokeTokenRequest(token);
+        request.dispatchRequest(mDispatcher, cb);
+    }
+
+    public void introspectToken(String token, String tokenType,
+                                final RequestCallback<IntrospectResponse, AuthorizationException> cb) {
+        IntrospectRequest request = mAuthClient.introspectTokenRequest(token, tokenType);
         request.dispatchRequest(mDispatcher, cb);
     }
 

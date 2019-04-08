@@ -18,5 +18,5 @@ package com.okta.oidc.net.params;
 public interface ResponseType {
     String CODE = "code";
     String TOKEN = "token";
-    String ID_TOKEN = "id_token";
+    String ID_TOKEN = TokenTypeHint.ID_TOKEN;
 }

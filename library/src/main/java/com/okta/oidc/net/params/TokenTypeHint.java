@@ -12,28 +12,10 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.net.request;
+package com.okta.oidc.net.params;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.util.AuthorizationException;
-
-public interface HttpRequest<T, U extends AuthorizationException> {
-    enum Type {
-        CONFIGURATION,
-        TOKEN_EXCHANGE,
-        AUTHORIZED,
-        PROFILE,
-        REVOKE_TOKEN,
-        REFRESH_TOKEN,
-        INTROSPECT
-    }
-
-    void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<T, U> callback);
-
-    T executeRequest() throws AuthorizationException;
-
-    void cancelRequest();
-
-    void close();
+public interface TokenTypeHint {
+    String ACCESS_TOKEN = "access_token";
+    String ID_TOKEN = "id_token";
+    String REFRESH_TOKEN = "refresh_token";
 }
