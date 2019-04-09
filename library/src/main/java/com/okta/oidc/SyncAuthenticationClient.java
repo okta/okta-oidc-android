@@ -174,7 +174,7 @@ public class SyncAuthenticationClient {
         }
         AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        OktaResultFragment.createLoginFragment(request, mCustomTabColor,
+        OktaResultFragment.addLoginFragment(request, mCustomTabColor,
                 activity, result -> {
                     resultWrapper.set(result);
                     latch.countDown();
@@ -235,7 +235,7 @@ public class SyncAuthenticationClient {
                     .create();
             mOktaState.save(request);
 
-            OktaResultFragment.createLogoutFragment(request, mCustomTabColor,
+            OktaResultFragment.addLogoutFragment(request, mCustomTabColor,
                     activity, result -> {
                         resultWrapper.set(result);
                         latch.countDown();

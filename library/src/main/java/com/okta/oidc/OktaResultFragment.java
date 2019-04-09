@@ -26,12 +26,14 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
 
+import androidx.annotation.RestrictTo;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaResultFragment extends Fragment {
     static final String AUTHENTICATION_REQUEST = "authRequest";
 
@@ -43,10 +45,10 @@ public class OktaResultFragment extends Fragment {
     private Intent authIntent;
     private Intent logoutIntent;
 
-    public static void createLoginFragment(WebRequest request,
-                                           int customColor,
-                                           FragmentActivity activity,
-                                           AuthResultListener listener, String[] browsers) {
+    static void addLoginFragment(WebRequest request,
+                                 int customColor,
+                                 FragmentActivity activity,
+                                 AuthResultListener listener, String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationListener(listener);
@@ -59,11 +61,11 @@ public class OktaResultFragment extends Fragment {
                 .commit();
     }
 
-    public static void createLogoutFragment(WebRequest request,
-                                            int customColor,
-                                            FragmentActivity activity,
-                                            AuthResultListener listener,
-                                            String[] browsers) {
+    static void addLogoutFragment(WebRequest request,
+                                  int customColor,
+                                  FragmentActivity activity,
+                                  AuthResultListener listener,
+                                  String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationListener(listener);
