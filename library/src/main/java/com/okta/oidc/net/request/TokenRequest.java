@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
@@ -59,6 +60,9 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     private String nonce;
     private OIDCAccount mAccount;
     protected ProviderConfiguration mProviderConfiguration;
+
+    //if set, used to verify idtoken auth_Time
+    private String mMaxAge;
 
     TokenRequest(HttpRequestBuilder b) {
         super();
@@ -106,10 +110,16 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         return nonce;
     }
 
+    @Nullable
+    public String getMaxAge() {
+        return mMaxAge;
+    }
+
     protected Map<String, String> buildParameters(HttpRequestBuilder b) {
         code_verifier = b.mAuthRequest.getCodeVerifier();
         nonce = b.mAuthRequest.getNonce();
         code = b.mAuthResponse.getCode();
+        mMaxAge = b.mAuthRequest.getMaxAge();
         Map<String, String> params = new HashMap<>();
         params.put("client_id", client_id);
         params.put("grant_type", grant_type);

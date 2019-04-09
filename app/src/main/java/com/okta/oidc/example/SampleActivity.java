@@ -26,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.okta.oidc.AuthenticateClient;
+import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
@@ -67,6 +68,9 @@ public class SampleActivity extends AppCompatActivity {
 
     private LinearLayout mRevokeContainer;
 
+    @VisibleForTesting
+    AuthenticationPayload mPayload;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
@@ -101,56 +105,65 @@ public class SampleActivity extends AppCompatActivity {
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
 
-        mIntrospectRefresh.setOnClickListener(v -> mOktaAuth.introspectToken(
-                mOktaAuth.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
-                new RequestCallback<IntrospectResponse, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull IntrospectResponse result) {
-                        mTvStatus.setText("RefreshToken active: " + result.active);
-                        mProgressBar.setVisibility(View.GONE);
-                    }
+        mIntrospectRefresh.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mOktaAuth.introspectToken(
+                    mOktaAuth.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
+                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectResponse result) {
+                            mTvStatus.setText("RefreshToken active: " + result.active);
+                            mProgressBar.setVisibility(View.GONE);
+                        }
 
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        mTvStatus.setText("RefreshToken Introspect error");
-                        mProgressBar.setVisibility(View.GONE);
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("RefreshToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
                     }
-                }
-        ));
+            );
+        });
 
-        mIntrospectAccess.setOnClickListener(v -> mOktaAuth.introspectToken(
-                mOktaAuth.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
-                new RequestCallback<IntrospectResponse, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull IntrospectResponse result) {
-                        mTvStatus.setText("AccessToken active: " + result.active);
-                        mProgressBar.setVisibility(View.GONE);
-                    }
+        mIntrospectAccess.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mOktaAuth.introspectToken(
+                    mOktaAuth.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectResponse result) {
+                            mTvStatus.setText("AccessToken active: " + result.active);
+                            mProgressBar.setVisibility(View.GONE);
+                        }
 
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        mTvStatus.setText("AccessToken Introspect error");
-                        mProgressBar.setVisibility(View.GONE);
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("AccessToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
                     }
-                }
-        ));
+            );
+        });
 
-        mIntrospectId.setOnClickListener(v -> mOktaAuth.introspectToken(
-                mOktaAuth.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
-                new RequestCallback<IntrospectResponse, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull IntrospectResponse result) {
-                        mTvStatus.setText("IdToken active: " + result.active);
-                        mProgressBar.setVisibility(View.GONE);
-                    }
+        mIntrospectId.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mOktaAuth.introspectToken(
+                    mOktaAuth.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectResponse result) {
+                            mTvStatus.setText("IdToken active: " + result.active);
+                            mProgressBar.setVisibility(View.GONE);
+                        }
 
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        mTvStatus.setText("IdToken Introspect error");
-                        mProgressBar.setVisibility(View.GONE);
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("IdToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
                     }
-                }
-        ));
+            );
+        });
 
 
         mGetProfile.setOnClickListener(v -> getProfile());
@@ -165,7 +178,7 @@ public class SampleActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String error, AuthorizationException exception) {
-                    mTvStatus.setText(exception.error);
+                    mTvStatus.setText(exception.errorDescription);
                     mProgressBar.setVisibility(View.GONE);
                 }
             });
@@ -231,7 +244,7 @@ public class SampleActivity extends AppCompatActivity {
 
         mSignIn.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.logIn(this, null);
+            mOktaAuth.logIn(this, mPayload);
         });
 
 

@@ -56,6 +56,10 @@ public class AuthorizeRequest extends WebRequest {
         return mParameters.nonce;
     }
 
+    public String getMaxAge() {
+        return mParameters.max_age;
+    }
+
     @Override
     @NonNull
     public Uri toUri() {

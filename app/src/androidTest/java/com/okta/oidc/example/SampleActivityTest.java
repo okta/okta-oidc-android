@@ -1,5 +1,7 @@
 package com.okta.oidc.example;
 
+import com.okta.oidc.AuthenticationPayload;
+
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
@@ -58,7 +60,7 @@ public class SampleActivityTest {
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-        //activityRule.getActivity().mOktaAuth.clear();
+
     }
 
     private UiObject getProgressBar() {
@@ -222,5 +224,38 @@ public class SampleActivityTest {
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
+    }
+
+    @Test
+    public void test10_loginWithPayload() throws UiObjectNotFoundException {
+        activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
+                .setLoginHint("devex@okta.com")
+                .addParameter("max_age", "5000")
+                .build();
+
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).perform(click());
+
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+
+        acceptChromePrivacyOption();
+
+        UiSelector selector = new UiSelector();
+
+        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
+        password.setText(PASSWORD);
+
+        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
+        signIn.click();
+
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+
+        //wait for token exchange
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+
+        //check if get profile is visible
+        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
+        onView(withId(R.id.status))
+                .check(matches(withText(containsString("authentication authorized"))));
     }
 }

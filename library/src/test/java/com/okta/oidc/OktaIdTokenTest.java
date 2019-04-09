@@ -71,7 +71,6 @@ public class OktaIdTokenTest {
         assertNotNull(idToken.mClaims);
     }
 
-
     @Test
     public void validateInvalidNonce() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);

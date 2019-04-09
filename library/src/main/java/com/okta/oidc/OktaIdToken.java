@@ -165,6 +165,11 @@ public class OktaIdToken {
                         new IllegalStateException("Nonce mismatch"));
             }
         }
+
+        if (request.getMaxAge() != null && mClaims.auth_time <= 0) {
+            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                    new IllegalStateException("max_age provided but auth_time is missing"));
+        }
     }
 
     /*
