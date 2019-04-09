@@ -260,7 +260,7 @@ public class SampleActivity extends AppCompatActivity {
         mOktaAuth = new AuthenticateClient.Builder()
                 .withAccount(mOktaAccount)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(getPreferences(MODE_PRIVATE)))
+                .withStorage(new SimpleOktaStorage(this))
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
 

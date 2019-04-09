@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Okta, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
  * The Okta software accompanied by this notice is provided pursuant to the Apache License,
  * Version 2.0 (the "License.")
  *
@@ -86,7 +86,7 @@ public class AuthenticationPayload {
         }
 
         /**
-         * Specifies additional parameter. Replaces any previously provided set of parameters.
+         * Specifies additional parameter. Replaces any previously provided parameter.
          * Parameter keys and values cannot be null or empty.
          *
          * @param name  parameter name.

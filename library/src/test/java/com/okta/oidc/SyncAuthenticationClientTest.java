@@ -40,7 +40,6 @@ import java.util.HashMap;
 import androidx.test.platform.app.InstrumentationRegistry;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import static android.content.Context.MODE_PRIVATE;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
@@ -80,8 +79,7 @@ public class SyncAuthenticationClientTest {
         String url = mEndPoint.getUrl();
         mAccount = TestValues.getAccountWithUrl(url);
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
-        mStorage = new SimpleOktaStorage(mContext.getSharedPreferences("OktaTest",
-                MODE_PRIVATE));
+        mStorage = new SimpleOktaStorage(mContext);
         mGson = new Gson();
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);

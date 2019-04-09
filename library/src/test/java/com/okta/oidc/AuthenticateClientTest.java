@@ -53,7 +53,6 @@ import java.util.concurrent.Executors;
 import androidx.test.platform.app.InstrumentationRegistry;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import static android.content.Context.MODE_PRIVATE;
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
@@ -98,8 +97,7 @@ public class AuthenticateClientTest {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mEndPoint = new MockEndPoint();
         mGson = new Gson();
-        mStorage = new SimpleOktaStorage(mContext.getSharedPreferences("OktaTest",
-                MODE_PRIVATE));
+        mStorage = new SimpleOktaStorage(mContext);
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
 

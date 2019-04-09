@@ -1,9 +1,22 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
 package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -26,7 +39,7 @@ public class OktaResultFragment extends Fragment {
     public static final int REQUEST_CODE_SIGN_OUT = 200;
 
     private AuthResultListener resultListener;
-    private Result cashedResult;
+    private Result cachedResult;
     private Intent authIntent;
     private Intent logoutIntent;
 
@@ -72,6 +85,7 @@ public class OktaResultFragment extends Fragment {
         }
         if (logoutIntent != null) {
             startActivityForResult(logoutIntent, REQUEST_CODE_SIGN_OUT);
+            logoutIntent = null;
         }
         super.onResume();
     }
@@ -97,10 +111,9 @@ public class OktaResultFragment extends Fragment {
     }
 
     private void postResult() {
-        if (cashedResult != null && resultListener != null) {
-            resultListener.postResult(cashedResult);
-            cashedResult = null;
-            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
+        if (cachedResult != null && resultListener != null) {
+            resultListener.postResult(cachedResult);
+            cachedResult = null;
         }
     }
 
@@ -115,31 +128,28 @@ public class OktaResultFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if ((requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT)) {
-            if (resultCode == RESULT_CANCELED) {
-                cashedResult = Result.canceled();
-            } else {
-                Uri response = data.getData();
-                if (response != null) {
-                    cashedResult = retrieveResponse(response, requestCode);
-                } else {
-                    Bundle bundle = data.getExtras();
-                    if (bundle != null) {
-                        String json = bundle.getString(EXTRA_EXCEPTION, null);
-                        if (json != null) {
-                            try {
-                                AuthorizationException exception = AuthorizationException.fromJson(json);
-                                cashedResult = Result.exception(exception);
-                            } catch (JSONException e) {
-                                cashedResult = Result.exception(AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
-                            }
-                        } else {
-                            cashedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
-                        }
-                    } else {
-                        cashedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
-                    }
-                }
+        if (requestCode != REQUEST_CODE_SIGN_IN && requestCode != REQUEST_CODE_SIGN_OUT) {
+            return;
+        }
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
+
+        if (resultCode == RESULT_CANCELED) {
+            cachedResult = Result.canceled();
+            postResult();
+            return;
+        }
+
+        Uri response = data.getData();
+        if (response != null) {
+            cachedResult = retrieveResponse(response, requestCode);
+        } else {
+            try {
+                cachedResult = Result.exception(AuthorizationException.fromJson(data.getExtras()
+                        .getString(EXTRA_EXCEPTION, "")));
+            } catch (NullPointerException | IllegalArgumentException e) {
+                cachedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
+            } catch (JSONException je) {
+                cachedResult = Result.exception(AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
             }
         }
         postResult();
@@ -152,7 +162,7 @@ public class OktaResultFragment extends Fragment {
             if (requestCode == REQUEST_CODE_SIGN_IN) {
                 return Result.authorized(AuthorizeResponse.fromUri(responseUri));
             } else if (requestCode == REQUEST_CODE_SIGN_OUT) {
-                return Result.loggeout(LogoutResponse.fromUri(responseUri));
+                return Result.loggedOut(LogoutResponse.fromUri(responseUri));
             }
         }
         throw new IllegalStateException();
@@ -176,7 +186,7 @@ public class OktaResultFragment extends Fragment {
             return new Result(null, response, Status.AUTHORIZED);
         }
 
-        public static Result loggeout(WebResponse response) {
+        public static Result loggedOut(WebResponse response) {
             return new Result(null, response, Status.LOGGED_OUT);
         }
 

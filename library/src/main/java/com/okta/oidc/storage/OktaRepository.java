@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
 package com.okta.oidc.storage;
 
 import android.content.Context;
@@ -9,8 +23,6 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-
-import androidx.annotation.VisibleForTesting;
 
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
@@ -48,13 +60,13 @@ public class OktaRepository {
             String data = null;
             String key = (persistable.encrypted()) ?
                     getHashed(persistable.getKey()) : persistable.getKey();
-            if(cacheStorage.get(key) != null) {
+            if (cacheStorage.get(key) != null) {
                 data = cacheStorage.get(key);
             } else {
                 data = storage.get(key);
             }
 
-            if(persistable.encrypted()) {
+            if (persistable.encrypted()) {
                 data = getDecrypted(data);
             }
 
@@ -114,8 +126,7 @@ public class OktaRepository {
 
     private EncryptionManager buildEncryptionManager(Context context) {
         try {
-            return new EncryptionManager(context,
-                    context.getSharedPreferences("Encryption", Context.MODE_PRIVATE));
+            return new EncryptionManager(context);
         } catch (IOException ex) {
             Log.d(TAG, "getEncrypted: " + ex.getCause());
             return null;

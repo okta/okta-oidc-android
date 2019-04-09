@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.storage;
 
 import android.annotation.TargetApi;
@@ -106,7 +121,6 @@ public class EncryptionManager {
 
     protected final String IS_COMPAT_MODE_KEY_ALIAS;
     private final static String IS_COMPAT_MODE_KEY_ALIAS_NAME = "data_in_compat";
-    private SharedPreferences mPrefs;
 
     private KeyStore mStore;
     private SecretKey aesKey;
@@ -119,12 +133,8 @@ public class EncryptionManager {
 
     private boolean isCompatMode = false;
 
-    private Context mContext;
-
-
     /**
      * @param context
-     * @param prefStore
      * @throws IOException
      * @throws CertificateException
      * @throws NoSuchAlgorithmException
@@ -135,18 +145,16 @@ public class EncryptionManager {
      * @throws InvalidKeyException
      * @throws NoSuchProviderException
      */
-    EncryptionManager(Context context, SharedPreferences prefStore)
+    EncryptionManager(Context context)
             throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
             UnrecoverableEntryException, InvalidAlgorithmParameterException, NoSuchPaddingException,
             InvalidKeyException, NoSuchProviderException {
 
-        this(context, prefStore, null, null);
+        this(context, null, null);
     }
 
     /**
-     *
-     * @param context application withContext
-     * @param prefStore backing store for storing information
+     * @param context        application withContext
      * @param keyAliasPrefix prefix for key aliases
      * @param bitShiftingKey a key to use for randomization (seed) and bit shifting, this enhances
      *                       the security on older OS versions a bit
@@ -161,14 +169,15 @@ public class EncryptionManager {
      * @throws InvalidKeyException
      * @throws IllegalStateException
      */
-    EncryptionManager(Context context, SharedPreferences prefStore, @Nullable String keyAliasPrefix,
+    EncryptionManager(Context context, @Nullable String keyAliasPrefix,
                       @Nullable byte[] bitShiftingKey)
             throws IOException, NoSuchAlgorithmException, InvalidAlgorithmParameterException,
             NoSuchProviderException, NoSuchPaddingException, CertificateException, KeyStoreException,
             UnrecoverableEntryException, InvalidKeyException, IllegalStateException {
 
         SHIFTING_KEY = bitShiftingKey;
-
+        SharedPreferences prefStore = context.getSharedPreferences(
+                EncryptionManager.class.getCanonicalName(), Context.MODE_PRIVATE);
         keyAliasPrefix = prefStore.getString(getHashed(OVERRIDING_KEY_ALIAS_PREFIX_NAME), keyAliasPrefix);
         mKeyAliasPrefix = keyAliasPrefix != null ? keyAliasPrefix : DEFAULT_KEY_ALIAS_PREFIX;
         IS_COMPAT_MODE_KEY_ALIAS = String.format("%s_%s", mKeyAliasPrefix, IS_COMPAT_MODE_KEY_ALIAS_NAME);
@@ -179,34 +188,32 @@ public class EncryptionManager {
         String isCompatKey = getHashed(IS_COMPAT_MODE_KEY_ALIAS);
         isCompatMode = prefStore.getBoolean(isCompatKey, Build.VERSION.SDK_INT < Build.VERSION_CODES.M);
 
-        mContext = context;
-        mPrefs = prefStore;
-
         loadKeyStore();
 
         try {
             setup(context, prefStore, bitShiftingKey);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw ex;
         }
     }
 
     void setup(Context context, SharedPreferences prefStore, @Nullable byte[] seed) throws NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException, IOException {
         boolean keyGenerated = generateKey(context, seed, prefStore);
-        if(keyGenerated) {
+        if (keyGenerated) {
             //store the alias prefix
-            mPrefs.edit().putString(getHashed(OVERRIDING_KEY_ALIAS_PREFIX_NAME), mKeyAliasPrefix).commit();
+            prefStore.edit().putString(getHashed(OVERRIDING_KEY_ALIAS_PREFIX_NAME), mKeyAliasPrefix).commit();
         }
 
         loadKey(prefStore);
     }
 
-    List<String> keyAliases(){
+    List<String> keyAliases() {
         return Arrays.asList(AES_KEY_ALIAS, RSA_KEY_ALIAS);
     }
 
     /**
      * Tries to recover once if a Keystore error occurs
+     *
      * @param bytes
      * @return
      * @throws NoSuchPaddingException
@@ -219,26 +226,19 @@ public class EncryptionManager {
      * @throws InvalidKeyException
      */
     public EncryptedData tryEncrypt(byte[] bytes) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException, InvalidKeyException, KeyStoreException, UnrecoverableEntryException {
-        EncryptedData result = null;
-        boolean tryAgain = false;
-
+        EncryptedData result;
         try {
             result = encrypt(bytes);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             throw ex;
         }
-
-        if(tryAgain){
-            setup(mContext, mPrefs, null);
-            result = encrypt(bytes);
-        }
-
         return result;
     }
 
     /**
      * Doesn't delete the original file.
-     * @param fileIn file to encrypt
+     *
+     * @param fileIn  file to encrypt
      * @param fileOut file to write encrypted data
      * @throws IOException
      * @throws NoSuchProviderException
@@ -262,7 +262,8 @@ public class EncryptionManager {
 
     /**
      * Doesn't delete the original file.
-     * @param fileIn file to decrypt
+     *
+     * @param fileIn  file to decrypt
      * @param fileOut file to write decrypted data
      * @throws IOException
      * @throws NoSuchProviderException
@@ -274,8 +275,6 @@ public class EncryptionManager {
      * @throws UnrecoverableEntryException
      */
     public void tryDecrypt(BufferedInputStream fileIn, BufferedOutputStream fileOut) throws IOException, NoSuchProviderException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, KeyStoreException, UnrecoverableEntryException {
-        boolean tryAgain = false;
-
         try {
             decrypt(fileIn, fileOut);
         } catch (Exception ex) {
@@ -285,6 +284,7 @@ public class EncryptionManager {
 
     /**
      * tries recovery once if a Keystore error occurs
+     *
      * @param data
      * @return
      * @throws NoSuchPaddingException
@@ -300,13 +300,11 @@ public class EncryptionManager {
      * @throws InvalidMacException
      */
     public byte[] tryDecrypt(EncryptedData data) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableEntryException, NoSuchProviderException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidMacException {
-        byte[]  result = null;
+        byte[] result = null;
 
-        boolean tryAgain = false;
-
-        try{
+        try {
             result = decrypt(data);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw ex;
         }
 
@@ -340,7 +338,6 @@ public class EncryptionManager {
     }
 
     /**
-     *
      * @param data
      * @return
      * @throws IOException
@@ -364,7 +361,6 @@ public class EncryptionManager {
     }
 
     /**
-     *
      * @param text
      * @return base64 encoded encrypted data
      * @throws InvalidKeyException
@@ -386,7 +382,6 @@ public class EncryptionManager {
     }
 
     /**
-     *
      * @param text base64 encoded encrypted data
      * @return
      * @throws InvalidKeyException
@@ -410,8 +405,7 @@ public class EncryptionManager {
     }
 
     /**
-     *
-     * @param fileIn file to encrypt
+     * @param fileIn  file to encrypt
      * @param fileOut file to store encrypted data
      * @throws IOException
      * @throws NoSuchProviderException
@@ -444,8 +438,7 @@ public class EncryptionManager {
     }
 
     /**
-     *
-     * @param fileIn encrypted file
+     * @param fileIn  encrypted file
      * @param fileOut file to store decrypted data
      * @throws IOException
      * @throws NoSuchProviderException
@@ -460,7 +453,8 @@ public class EncryptionManager {
 
         int read = fileIn.read(IV, 0, IVLength);
 
-        if(read == -1 || read != IVLength) throw new IllegalArgumentException("Unexpected encryption state");
+        if (read == -1 || read != IVLength)
+            throw new IllegalArgumentException("Unexpected encryption state");
 
         //TODO: find a way to validate MAC iteratively without loading the whole file in memory
 
@@ -543,8 +537,7 @@ public class EncryptionManager {
     }
 
     /**
-     *
-     * @param IV Initialisation Vector
+     * @param IV          Initialisation Vector
      * @param modeEncrypt if true then cipher is for encryption, decryption otherwise
      * @return a Cipher
      * @throws NoSuchPaddingException
@@ -555,13 +548,12 @@ public class EncryptionManager {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     Cipher getCipherAES(byte[] IV, boolean modeEncrypt) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
         Cipher cipher = Cipher.getInstance(AES_CIPHER);
-        cipher.init(modeEncrypt? Cipher.ENCRYPT_MODE:Cipher.DECRYPT_MODE, aesKey, new GCMParameterSpec(GCM_TAG_LENGTH, IV));
+        cipher.init(modeEncrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, aesKey, new GCMParameterSpec(GCM_TAG_LENGTH, IV));
 
         return cipher;
     }
 
     /**
-     *
      * @param bytes
      * @param IV
      * @return IV and Encrypted data
@@ -584,7 +576,6 @@ public class EncryptionManager {
     }
 
     /**
-     *
      * @param encryptedData - IV and Encrypted data
      * @return decrypted data
      * @throws NoSuchPaddingException
@@ -603,13 +594,12 @@ public class EncryptionManager {
 
     Cipher getCipherAESCompat(byte[] IV, boolean modeEncrypt) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException {
         Cipher c = Cipher.getInstance(AES_CIPHER_COMPAT, BOUNCY_CASTLE_PROVIDER);
-        c.init(modeEncrypt? Cipher.ENCRYPT_MODE:Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(IV));
+        c.init(modeEncrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(IV));
 
         return c;
     }
 
     /**
-     *
      * @param bytes
      * @param IV
      * @return IV, Encrypted Data and Mac
@@ -679,7 +669,7 @@ public class EncryptionManager {
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                     .setRandomizedEncryptionRequired(false) //TODO: set to true and let the Cipher generate a secured IV
                     .build();
-            if(seed != null && seed.length > 0){
+            if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
                 keyGen.init(spec, random);
             } else {
@@ -700,7 +690,7 @@ public class EncryptionManager {
         if (!prefStore.contains(key)) {
             KeyGenerator keyGen = KeyGenerator.getInstance(KEY_ALGORITHM_AES);
 
-            if(seed != null && seed.length > 0){
+            if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
                 keyGen.init(AES_BIT_LENGTH, random);
             } else {
@@ -728,7 +718,7 @@ public class EncryptionManager {
         if (!prefStore.contains(key)) {
             byte[] randomBytes = new byte[MAC_BIT_LENGTH / 8];
             SecureRandom rng;
-            if(seed != null && seed.length > 0){
+            if (seed != null && seed.length > 0) {
                 rng = new SecureRandom(seed);
             } else {
                 rng = new SecureRandom();
@@ -745,11 +735,11 @@ public class EncryptionManager {
     }
 
     private byte[] xorWithKey(byte[] a, byte[] key) {
-        if(key == null || key.length == 0) return a;
+        if (key == null || key.length == 0) return a;
 
         byte[] out = new byte[a.length];
         for (int i = 0; i < a.length; i++) {
-            out[i] = (byte) (a[i] ^ key[i%key.length]);
+            out[i] = (byte) (a[i] ^ key[i % key.length]);
         }
         return out;
     }
@@ -824,7 +814,7 @@ public class EncryptionManager {
                         .build();
             }
 
-            if(seed != null && seed.length > 0) {
+            if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
                 keyGen.initialize(spec, random);
             } else {

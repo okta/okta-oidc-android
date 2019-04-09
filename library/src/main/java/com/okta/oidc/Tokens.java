@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Okta, Inc. and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
  * The Okta software accompanied by this notice is provided pursuant to the Apache License,
  * Version 2.0 (the "License.")
  *
@@ -32,7 +32,7 @@ public class Tokens {
     private String[] mScope;
 
     Tokens(String idToken, String accessToken, String refreshToken, int expiresIn,
-                  String[] scope) {
+           String[] scope) {
         this.mIdToken = idToken;
         this.mAccessToken = accessToken;
         this.mRefreshToken = refreshToken;
@@ -81,7 +81,6 @@ public class Tokens {
      *
      * @return refresh token.
      */
-    @Nullable
     public int getExpiresIn() {
         return mExpiresIn;
     }

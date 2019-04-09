@@ -12,20 +12,24 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.storage;
 
-
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class SimpleOktaStorage implements OktaStorage {
     private SharedPreferences prefs;
 
-    public SimpleOktaStorage(SharedPreferences prefs) {
-        this.prefs = prefs;
+    public SimpleOktaStorage(Context context) {
+        prefs = context.getSharedPreferences(SimpleOktaStorage.class.getCanonicalName(),
+                MODE_PRIVATE);
     }
 
     @SuppressLint("ApplySharedPref")
