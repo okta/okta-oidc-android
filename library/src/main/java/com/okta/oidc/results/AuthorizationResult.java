@@ -22,15 +22,20 @@ public class AuthorizationResult extends Result {
     private final Tokens tokens;
 
     public static AuthorizationResult success(Tokens tokens) {
-        return new AuthorizationResult(null, tokens);
+        return new AuthorizationResult(null, tokens, false);
     }
 
     public static AuthorizationResult error(AuthorizationException error) {
-        return new AuthorizationResult(error, null);
+        return new AuthorizationResult(error, null, false);
     }
 
-    AuthorizationResult(AuthorizationException error, Tokens tokens) {
-        super(error);
+
+    public static AuthorizationResult cancel() {
+        return new AuthorizationResult(null, null, true);
+    }
+
+    AuthorizationResult(AuthorizationException error, Tokens tokens, boolean isCancel) {
+        super(error, isCancel);
         this.tokens = tokens;
     }
 

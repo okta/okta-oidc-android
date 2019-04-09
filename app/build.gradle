@@ -89,3 +89,8 @@ task clearData(type: Exec) {
     commandLine clearTestAppData
     commandLine clearChromeData
 }
+
+task grantAppWithWriteSecureSettingsPermission(type: Exec) {
+    def grantWriteSecureSettingsPermission = ['adb', 'shell', 'pm', 'grant', 'com.okta.oidc.example', 'android.permission.WRITE_SECURE_SETTINGS']
+    commandLine grantWriteSecureSettingsPermission
+}

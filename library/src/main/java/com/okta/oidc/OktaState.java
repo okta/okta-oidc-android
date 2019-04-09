@@ -22,12 +22,18 @@ import com.okta.oidc.storage.Persistable;
 
 import androidx.annotation.RestrictTo;
 
+import static com.okta.oidc.State.IDLE;
+
+
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class OktaState {
     private OktaRepository mOktaRepo;
 
-    OktaState(OktaRepository oktaRepository) {
-        mOktaRepo = oktaRepository;
+    private State currentState;
+
+    OktaState(OktaRepository mOktaRepository) {
+        this.mOktaRepo = mOktaRepository;
+        this.currentState = IDLE;
     }
 
     TokenResponse getTokenResponse() {
@@ -40,6 +46,14 @@ class OktaState {
 
     WebRequest getAuthorizeRequest() {
         return mOktaRepo.get(WebRequest.RESTORE);
+    }
+
+    void setCurrentState(State state) {
+        this.currentState = state;
+    }
+
+    public State getCurrentState() {
+        return this.currentState;
     }
 
     void save(Persistable persistable) {

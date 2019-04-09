@@ -19,21 +19,31 @@ import com.okta.oidc.util.AuthorizationException;
 public class Result {
 
     private final AuthorizationException error;
+    protected boolean isCancel;
 
-    Result(AuthorizationException error) {
+    Result(AuthorizationException error, boolean isCancel) {
         this.error = error;
+        this.isCancel = isCancel;
     }
 
     public static Result success() {
-        return new Result(null);
+        return new Result(null, false);
+    }
+
+    public static Result cancel() {
+        return new Result(null, true);
     }
 
     public static Result error(AuthorizationException error) {
-        return new Result(error);
+        return new Result(error, false);
     }
 
     public boolean isSuccess() {
-        return getError() == null;
+        return getError() == null && !isCancel;
+    }
+
+    public boolean isCancel() {
+        return isCancel;
     }
 
     public AuthorizationException getError() {

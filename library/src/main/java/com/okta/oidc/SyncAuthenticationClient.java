@@ -50,6 +50,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.AnyThread;
@@ -63,7 +64,6 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
 public class SyncAuthenticationClient {
-
     private static final String TAG = AuthenticateClient.class.getSimpleName();
 
     private OIDCAccount mOIDCAccount;
@@ -86,6 +86,7 @@ public class SyncAuthenticationClient {
         mOktaState.delete(mOktaState.getProviderConfiguration());
         mOktaState.delete(mOktaState.getTokenResponse());
         mOktaState.delete(mOktaState.getAuthorizeRequest());
+        resetCurrentState();
     }
 
     public NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
@@ -141,7 +142,6 @@ public class SyncAuthenticationClient {
                 .account(mOIDCAccount).createRequest();
     }
 
-
     public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
                                                @NonNull HttpConnection.RequestMethod method) {
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
@@ -160,6 +160,7 @@ public class SyncAuthenticationClient {
     private void obtainNewConfiguration() throws AuthorizationException {
         ProviderConfiguration config = mOktaState.getProviderConfiguration();
         if (config == null || !config.issuer.equals(mOIDCAccount.getDiscoveryUri())) {
+            mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
             mOktaState.save(configurationRequest().executeRequest());
         }
     }
@@ -169,6 +170,7 @@ public class SyncAuthenticationClient {
                                            @Nullable AuthenticationPayload payload) {
         try {
             obtainNewConfiguration();
+            mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
             NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, payload);
             //FIXME Need to the parameters of native request in a web request because
             //oktaState uses it to verify the returned response.
@@ -176,11 +178,14 @@ public class SyncAuthenticationClient {
             mOktaState.save(authRequest);
             AuthorizeResponse authResponse = request.executeRequest();
             validateResult(authResponse);
+            mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
             TokenResponse tokenResponse = tokenExchange(authResponse).executeRequest();
             mOktaState.save(tokenResponse);
             return AuthorizationResult.success(new Tokens(tokenResponse));
         } catch (AuthorizationException e) {
             return AuthorizationResult.error(e);
+        } finally {
+            resetCurrentState();
         }
     }
 
@@ -191,6 +196,7 @@ public class SyncAuthenticationClient {
         try {
             obtainNewConfiguration();
         } catch (AuthorizationException e) {
+            resetCurrentState();
             return AuthorizationResult.error(e);
         }
 
@@ -204,28 +210,42 @@ public class SyncAuthenticationClient {
         if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri(), activity)) {
             Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
             //FIXME move error to listener
+            resetCurrentState();
             return AuthorizationResult.error(INVALID_REDIRECT_URI);
         }
+        mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
         AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
+
         OktaResultFragment.addLoginFragment(request, mCustomTabColor,
-                activity, result -> {
+                activity, (result, type) -> {
                     resultWrapper.set(result);
                     latch.countDown();
                 }, mSupportedBrowsers);
         latch.await();
         OktaResultFragment.Result authResult = resultWrapper.get();
-        switch (authResult.getStatus()) {
+        AuthorizationResult result = processLogInResult(authResult);
+        resetCurrentState();
+        if (result == null) {
+            throw new IllegalStateException("login performed in illegal states");
+        }
+
+        return result;
+    }
+
+    private AuthorizationResult processLogInResult(OktaResultFragment.Result result) {
+        switch (result.getStatus()) {
             case CANCELED:
-                return AuthorizationResult.error(USER_CANCELED_AUTH_FLOW);
+                return AuthorizationResult.cancel();
             case ERROR:
-                return AuthorizationResult.error(authResult.getException());
+                return AuthorizationResult.error(result.getException());
             case AUTHORIZED:
+                mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
                 TokenResponse response;
                 try {
-                    validateResult(authResult.getAuthorizationResponse());
+                    validateResult(result.getAuthorizationResponse());
                     response = tokenExchange(
-                            (AuthorizeResponse) authResult.getAuthorizationResponse())
+                            (AuthorizeResponse) result.getAuthorizationResponse())
                             .executeRequest();
                 } catch (AuthorizationException e) {
                     return AuthorizationResult.error(e);
@@ -233,7 +253,7 @@ public class SyncAuthenticationClient {
                 mOktaState.save(response);
                 return AuthorizationResult.success(new Tokens(response));
         }
-        throw new IllegalStateException("login performed in illegal states");
+        return null;
     }
 
 
@@ -249,13 +269,17 @@ public class SyncAuthenticationClient {
         return new Tokens(response);
     }
 
+    public State getCurrentState() {
+        return mOktaState.getCurrentState();
+    }
+
     @AnyThread
     public Result signOutFromOkta(@NonNull final FragmentActivity activity)
             throws InterruptedException {
         if (isLoggedIn()) {
+            mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
             CountDownLatch latch = new CountDownLatch(1);
             AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
-
             WebRequest request = new LogoutRequest.Builder()
                     .provideConfiguration(mOktaState.getProviderConfiguration())
                     .account(mOIDCAccount)
@@ -263,26 +287,56 @@ public class SyncAuthenticationClient {
                     .state(CodeVerifierUtil.generateRandomState())
                     .create();
             mOktaState.save(request);
-
             OktaResultFragment.addLogoutFragment(request, mCustomTabColor,
-                    activity, result -> {
+                    activity, (result, type) -> {
                         resultWrapper.set(result);
                         latch.countDown();
                     }, mSupportedBrowsers);
             latch.await();
             OktaResultFragment.Result logoutResult = resultWrapper.get();
-
-            switch (logoutResult.getStatus()) {
-                case CANCELED:
-                    return Result.error(INVALID_REDIRECT_URI);
-                case ERROR:
-                    return Result.error(logoutResult.getException());
-                case LOGGED_OUT:
-                    mOktaState.delete(mOktaState.getAuthorizeRequest());
-                    return Result.success();
+            Result result = processSignOutResult(logoutResult);
+            resetCurrentState();
+            if (result != null) {
+                return result;
             }
+
         }
+        resetCurrentState();
         return Result.success();
+    }
+
+
+    private Result processSignOutResult(OktaResultFragment.Result result) {
+        switch (result.getStatus()) {
+            case CANCELED:
+                return Result.error(INVALID_REDIRECT_URI);
+            case ERROR:
+                return Result.error(result.getException());
+            case LOGGED_OUT:
+                return Result.success();
+        }
+        return null;
+    }
+
+    protected void registerCallbackIfInterrupt(FragmentActivity activity, ResultListener resultListener, ExecutorService executorService) {
+        if (OktaResultFragment.hasRequestInProgress(activity)) {
+            OktaResultFragment.getFragment(activity).setAuthenticationListener((result, type) -> {
+                executorService.execute(() -> {
+                    switch (type) {
+                        case SIGN_IN:
+                            AuthorizationResult authorizationResult = processLogInResult(result);
+                            resetCurrentState();
+                            resultListener.postResult(authorizationResult, type);
+                            break;
+                        case SIGN_OUT:
+                            Result signOutResult = processSignOutResult(result);
+                            resetCurrentState();
+                            resultListener.postResult(signOutResult, type);
+                            break;
+                    }
+                });
+            });
+        }
     }
 
     private void validateResult(WebResponse authResponse) throws AuthorizationException {
@@ -339,4 +393,13 @@ public class SyncAuthenticationClient {
         }
         return found;
     }
+
+    private void resetCurrentState() {
+        mOktaState.setCurrentState(State.IDLE);
+    }
+
+    public interface ResultListener {
+        void postResult(Result result, OktaResultFragment.ResultType resultType);
+    }
+
 }
