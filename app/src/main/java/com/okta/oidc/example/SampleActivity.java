@@ -16,15 +16,23 @@
 package com.okta.oidc.example;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.okta.authn.sdk.AuthenticationException;
+import com.okta.authn.sdk.AuthenticationStateHandlerAdapter;
+import com.okta.authn.sdk.client.AuthenticationClient;
+import com.okta.authn.sdk.client.AuthenticationClients;
+import com.okta.authn.sdk.resource.AuthenticationResponse;
 import com.okta.oidc.AuthenticateClient;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -39,19 +47,25 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
-public class SampleActivity extends AppCompatActivity {
+public class SampleActivity extends AppCompatActivity implements LoginDialog.LoginDialogListener {
 
     private static final String TAG = "SampleActivity";
     @VisibleForTesting
     AuthenticateClient mOktaAuth;
     private OIDCAccount mOktaAccount;
     private TextView mTvStatus;
-    private Button mSignIn;
+    private Button mSignInBrowser;
+    private Button mSignInNative;
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
@@ -70,6 +84,10 @@ public class SampleActivity extends AppCompatActivity {
 
     @VisibleForTesting
     AuthenticationPayload mPayload;
+
+    protected AuthenticationClient mAuthenticationClient;
+    private LoginDialog mLoginDialog;
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +109,8 @@ public class SampleActivity extends AppCompatActivity {
                 .build());
 */
         setContentView(R.layout.sample_activity_login);
-        mSignIn = findViewById(R.id.sign_in);
+        mSignInBrowser = findViewById(R.id.sign_in);
+        mSignInNative = findViewById(R.id.sign_in_native);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
@@ -242,12 +261,26 @@ public class SampleActivity extends AppCompatActivity {
             showLoggedOutMode();
         });
 
-        mSignIn.setOnClickListener(v -> {
+        mSignInBrowser.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             mOktaAuth.logIn(this, mPayload);
         });
 
+        mSignInNative.setOnClickListener(v -> {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentByTag("login");
+            if (prev != null) {
+                ft.remove(prev);
+            }
+            ft.addToBackStack(null);
+            mLoginDialog = new LoginDialog();
+            mLoginDialog.setListener(this);
+            mLoginDialog.show(ft, "login");
+        });
 
+        mAuthenticationClient = AuthenticationClients.builder()
+                .setOrgUrl("https://samples-test.oktapreview.com")
+                .build();
         //samples sdk test
         mOktaAccount = new OIDCAccount.Builder()
                 .clientId("0oajqehiy6p81NVzA0h7")
@@ -304,6 +337,15 @@ public class SampleActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         mProgressBar.setVisibility(View.GONE);
+        if (mLoginDialog != null && mLoginDialog.isVisible()) {
+            mLoginDialog.dismiss();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mExecutor.shutdownNow();
     }
 
     private void showAuthorizedMode() {
@@ -312,11 +354,13 @@ public class SampleActivity extends AppCompatActivity {
         mClearData.setVisibility(View.VISIBLE);
         mRefreshToken.setVisibility(View.VISIBLE);
         mRevokeContainer.setVisibility(View.VISIBLE);
-        mSignIn.setVisibility(View.GONE);
+        mSignInBrowser.setVisibility(View.GONE);
+        mSignInNative.setVisibility(View.GONE);
     }
 
     private void showLoggedOutMode() {
-        mSignIn.setVisibility(View.VISIBLE);
+        mSignInBrowser.setVisibility(View.VISIBLE);
+        mSignInNative.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
@@ -351,5 +395,57 @@ public class SampleActivity extends AppCompatActivity {
         } else {
             return getResources().getColor(color);
         }
+    }
+
+    private void hideKeyBoard() {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        if (getCurrentFocus() != null && getCurrentFocus().getWindowToken() != null) {
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
+    }
+
+    @Override
+    public void onLogin(String username, String password) {
+        mLoginDialog.dismiss();
+        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+            mTvStatus.setText("Invalid username or password");
+            return;
+        }
+        mProgressBar.setVisibility(View.VISIBLE);
+        mExecutor.submit(() -> {
+            try {
+                mAuthenticationClient.authenticate(username, password.toCharArray(), null, new AuthenticationStateHandlerAdapter() {
+                    @Override
+                    public void handleUnknown(AuthenticationResponse authenticationResponse) {
+                        SampleActivity.this.runOnUiThread(() -> {
+                            mProgressBar.setVisibility(View.GONE);
+                            mTvStatus.setText(authenticationResponse.getStatus().name());
+                        });
+                    }
+
+                    @Override
+                    public void handleLockedOut(AuthenticationResponse lockedOut) {
+                        SampleActivity.this.runOnUiThread(() -> {
+                            mProgressBar.setVisibility(View.GONE);
+                            mTvStatus.setText("Account locked out");
+                        });
+                    }
+
+                    @Override
+                    public void handleSuccess(AuthenticationResponse successResponse) {
+                        String sessionToken = successResponse.getSessionToken();
+                        //authenticateViaOktaAndroidSDK(sessionToken);
+                    }
+                });
+            } catch (AuthenticationException e) {
+                Log.e(TAG, Log.getStackTraceString(e));
+                runOnUiThread(() -> {
+                    mProgressBar.setVisibility(View.GONE);
+                    mTvStatus.setText(e.getMessage());
+                });
+            }
+        });
     }
 }

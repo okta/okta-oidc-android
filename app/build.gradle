@@ -4,6 +4,8 @@ apply from: "${rootDir}/gradle/style.gradle"
 
 android {
     defaultConfig {
+        minSdkVersion 21
+        compileSdkVersion 28
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -27,14 +29,21 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
 }
 
 dependencies {
     implementation project(':library')
+    implementation "androidx.fragment:fragment:${rootProject.browserVersion}"
     implementation 'androidx.annotation:annotation:' + rootProject.androidxLibVersion
     implementation "androidx.appcompat:appcompat:1.0.2"
-    implementation "com.google.android.material:material:${rootProject.appcompatVersion}"
 
+    implementation "com.google.android.material:material:${rootProject.appcompatVersion}"
+    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:0.3.0'
+    implementation 'com.okta.authn.sdk:okta-authn-sdk-impl:0.3.0'
+    implementation 'com.okta.sdk:okta-sdk-okhttp:1.4.1'
     androidTestImplementation "androidx.browser:browser:${rootProject.browserVersion}"
     // Core library
     androidTestImplementation 'androidx.test:core:1.1.0'

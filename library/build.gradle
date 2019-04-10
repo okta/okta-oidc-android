@@ -60,8 +60,8 @@ buildscript {
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
-    implementation "androidx.browser:browser:${rootProject.browserVersion}"
-    implementation "androidx.fragment:fragment:${rootProject.browserVersion}"
+    implementation "androidx.browser:browser:1.0.0"
+    implementation "androidx.fragment:fragment:1.0.0"
     testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
     testImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
     testImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"

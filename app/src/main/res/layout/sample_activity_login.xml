@@ -69,6 +69,12 @@
                     android:text="Sign In" />
 
                 <Button
+                    android:id="@+id/sign_in_native"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sign In Native" />
+
+                <Button
                     android:id="@+id/get_profile"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
