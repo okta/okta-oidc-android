@@ -59,3 +59,10 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion
     androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
 }
+
+task clearData(type: Exec) {
+    def clearAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example']
+    def clearChromeData = ['adb', 'shell', 'pm', 'clear', 'com.android.chrome']
+    commandLine clearAppData
+    commandLine clearChromeData
+}
