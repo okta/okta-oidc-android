@@ -50,8 +50,8 @@ public class SampleActivityTest {
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
     private static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
 
-    private static final String PASSWORD = "Dev3xIsD0pe";
-    private static final String USERNAME = "devex@okta.com";
+    private static String PASSWORD;
+    private static String USERNAME;
 
     private UiDevice mDevice;
     @Rule
@@ -60,7 +60,8 @@ public class SampleActivityTest {
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-
+        USERNAME = BuildConfig.USERNAME;
+        PASSWORD = BuildConfig.PASSWORD;
     }
 
     private UiObject getProgressBar() {
