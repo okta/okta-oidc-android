@@ -15,14 +15,11 @@
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
-import com.okta.oidc.util.AsciiStringListUtil;
-import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -33,18 +30,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.Arrays;
-
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
-import static com.okta.oidc.util.TestValues.CLIENT_ID;
-import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
-import static com.okta.oidc.util.TestValues.EXPIRES_IN;
-import static com.okta.oidc.util.TestValues.LOGIN_HINT;
-import static com.okta.oidc.util.TestValues.PROMPT;
-import static com.okta.oidc.util.TestValues.SCOPES;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -63,7 +53,6 @@ public class LogoutRequestTest {
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
         mRequest = new LogoutRequest.Builder()
-                .clientId(CLIENT_ID)
                 .provideConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
                 .state(CUSTOM_STATE)
@@ -80,19 +69,9 @@ public class LogoutRequestTest {
     }
 
     @Test
-    public void testBuilderFailClientIdMissing() {
-        LogoutRequest.Builder builder = new LogoutRequest.Builder();
-        builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
-        mExpectedEx.expect(IllegalArgumentException.class);
-        mExpectedEx.expectMessage("client_id missing");
-        builder.create();
-    }
-
-    @Test
     public void testBuilderFailTokenMissing() {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
         builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
-        builder.clientId(CLIENT_ID);
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("id_token_hint missing");
         builder.create();
@@ -102,7 +81,6 @@ public class LogoutRequestTest {
     public void testBuilderFailRedirectMissing() {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
         builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
-        builder.clientId(CLIENT_ID);
         builder.idTokenHint(mTokenResponse.getIdToken());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("post_logout_redirect_uri missing");
@@ -112,7 +90,6 @@ public class LogoutRequestTest {
     @Test
     public void testBuilder() {
         LogoutRequest request = new LogoutRequest.Builder()
-                .clientId(CLIENT_ID)
                 .state(CUSTOM_STATE)
                 .account(mAccount)
                 .tokenResponse(mTokenResponse)
@@ -129,7 +106,6 @@ public class LogoutRequestTest {
     @Test
     public void toUri() {
         Uri uri = mRequest.toUri();
-        assertEquals(uri.getQueryParameter("client_id"), mAccount.getClientId());
         assertEquals(uri.getQueryParameter("id_token_hint"), mTokenResponse.getIdToken());
         assertEquals(uri.getQueryParameter("state"), CUSTOM_STATE);
         assertEquals(uri.getQueryParameter("post_logout_redirect_uri"),

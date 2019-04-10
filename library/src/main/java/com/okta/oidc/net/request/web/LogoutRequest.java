@@ -69,14 +69,12 @@ public class LogoutRequest extends WebRequest {
         }
 
         String end_session_endpoint; //required
-        String client_id; //required
         String id_token_hint; //required
         String post_logout_redirect_uri; //required
         String state;
 
         Uri toUri() {
             Uri.Builder uriBuilder = Uri.parse(end_session_endpoint).buildUpon()
-                    .appendQueryParameter("client_id", client_id)
                     .appendQueryParameter("id_token_hint", id_token_hint);
             appendOptionalParams(uriBuilder, "post_logout_redirect_uri",
                     post_logout_redirect_uri);
@@ -98,9 +96,6 @@ public class LogoutRequest extends WebRequest {
             if (TextUtils.isEmpty(mParameters.end_session_endpoint)) {
                 throw new IllegalArgumentException("end_session_endpoint missing");
             }
-            if (TextUtils.isEmpty(mParameters.client_id)) {
-                throw new IllegalArgumentException("client_id missing");
-            }
             if (TextUtils.isEmpty(mParameters.id_token_hint)) {
                 throw new IllegalArgumentException("id_token_hint missing");
             }
@@ -117,11 +112,6 @@ public class LogoutRequest extends WebRequest {
         public LogoutRequest create() {
             validate();
             return new LogoutRequest(mParameters);
-        }
-
-        public Builder clientId(@NonNull String clientId) {
-            mParameters.client_id = clientId;
-            return this;
         }
 
         public Builder idTokenHint(@NonNull String idToken) {
@@ -155,7 +145,6 @@ public class LogoutRequest extends WebRequest {
         }
 
         public Builder account(OIDCAccount account) {
-            mParameters.client_id = account.getClientId();
             mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
             return this;
         }
