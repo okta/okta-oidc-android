@@ -109,7 +109,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .build());
 */
         setContentView(R.layout.sample_activity_login);
-        mSignInBrowser = findViewById(R.id.sign_in);
+        mSignInBrowser = findViewById(R.id.submit);
         mSignInNative = findViewById(R.id.sign_in_native);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
@@ -336,15 +336,16 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     protected void onStop() {
         super.onStop();
         mProgressBar.setVisibility(View.GONE);
-        if (mLoginDialog != null && mLoginDialog.isVisible()) {
-            mLoginDialog.dismiss();
-        }
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mExecutor.shutdownNow();
+        if (mLoginDialog != null && mLoginDialog.isVisible()) {
+            mLoginDialog.dismiss();
+        }
     }
 
     private void showAuthorizedMode() {

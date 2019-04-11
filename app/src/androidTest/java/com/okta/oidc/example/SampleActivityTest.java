@@ -35,6 +35,7 @@ import androidx.test.uiautomator.Until;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -61,8 +62,11 @@ public class SampleActivityTest {
     private static final String ID_SUBMIT = "okta-signin-submit";
     private static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
     private static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
-    private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
     private static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+
+    //app resource ids
+    private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
+    private static final String ID_GET_PROFILE = "com.okta.oidc.example:id/get_profile";
 
     private static String PASSWORD;
     private static String USERNAME;
@@ -82,6 +86,10 @@ public class SampleActivityTest {
         return mDevice.findObject(new UiSelector().resourceId(ID_PROGRESS_BAR));
     }
 
+    private UiObject getProfileButton() {
+        return mDevice.findObject(new UiSelector().resourceId(ID_GET_PROFILE));
+    }
+
     private void acceptChromePrivacyOption() throws UiObjectNotFoundException {
         UiSelector selector = new UiSelector();
         UiObject accept = mDevice.findObject(selector.resourceId(ID_ACCEPT));
@@ -99,8 +107,8 @@ public class SampleActivityTest {
 
     @Test
     public void test1_loginNoSession() throws UiObjectNotFoundException {
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in)).perform(click());
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
@@ -123,6 +131,7 @@ public class SampleActivityTest {
         getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
 
         //check if get profile is visible
+        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
@@ -132,13 +141,13 @@ public class SampleActivityTest {
     public void test2_clearData() {
         onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
         onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
     }
 
     @Test
-    public void test3_loginWithSession() {
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in)).perform(click());
+    public void test3_logInWithSession() {
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
@@ -228,9 +237,9 @@ public class SampleActivityTest {
     public void test9_cancelSignIn() throws UiObjectNotFoundException {
         onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
         onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
 
-        onView(withId(R.id.sign_in)).perform(click());
+        onView(withId(R.id.submit)).perform(click());
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         UiSelector selector = new UiSelector();
@@ -242,14 +251,14 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testA_loginWithPayload() throws UiObjectNotFoundException {
+    public void testA_logInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
                 .setLoginHint("devex@okta.com")
                 .addParameter("max_age", "5000")
                 .build();
 
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in)).perform(click());
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
@@ -269,6 +278,32 @@ public class SampleActivityTest {
         getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
 
         //check if get profile is visible
+        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
+        onView(withId(R.id.status))
+                .check(matches(withText(containsString("authentication authorized"))));
+    }
+
+    @Test
+    public void testB_nativeLogIn() {
+        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in_native)).perform(click());
+
+        onView(withId(R.id.username)).check(matches(isDisplayed()));
+        onView(withId(R.id.username)).perform(click(), replaceText(BuildConfig.USERNAME));
+
+        onView(withId(R.id.password)).check(matches(isDisplayed()));
+        onView(withId(R.id.password)).perform(click(), replaceText(BuildConfig.PASSWORD));
+
+        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.submit)).perform(click());
+
+        //wait for network
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        //check if get profile is visible
+        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));

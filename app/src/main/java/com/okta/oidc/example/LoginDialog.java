@@ -47,7 +47,7 @@ public class LoginDialog extends DialogFragment {
 
         mPassword = v.findViewById(R.id.password);
         mUsername = v.findViewById(R.id.username);
-        mSignIn = v.findViewById(R.id.sign_in);
+        mSignIn = v.findViewById(R.id.submit);
         mSignIn.setOnClickListener(view -> {
             if (mListener != null) {
                 mListener.onLogin(mUsername.getText().toString(), mPassword.getText().toString());
