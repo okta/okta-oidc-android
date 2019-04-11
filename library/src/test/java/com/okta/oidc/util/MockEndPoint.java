@@ -15,6 +15,7 @@
 package com.okta.oidc.util;
 
 import com.google.gson.Gson;
+import com.okta.oidc.net.request.ProviderConfiguration;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,7 +50,9 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.JsonStrings.UNAUTHORIZED_INVALID_TOKEN;
 import static com.okta.oidc.util.JsonStrings.USER_PROFILE;
 import static com.okta.oidc.util.JsonStrings.WWW_AUTHENTICATE;
+import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -97,8 +100,14 @@ public class MockEndPoint {
         mServer.enqueue(response);
         return response;
     }
+
     public void enqueueConfigurationSuccess() {
         mServer.enqueue(jsonResponse(HTTP_OK, PROVIDER_CONFIG));
+    }
+
+    public void enqueueConfigurationSuccess(ProviderConfiguration configuration) {
+        String config = new Gson().toJson(configuration);
+        mServer.enqueue(jsonResponse(HTTP_OK, config));
     }
 
     public MockResponse enqueueConfigurationFailure() {
@@ -113,6 +122,12 @@ public class MockEndPoint {
 
     public void enqueueTokenSuccess(String idToken) {
         mServer.enqueue(jsonResponse(HTTP_OK, String.format(TOKEN_SUCCESS, idToken)));
+    }
+
+    public void enqueueNativeRequestSuccess(String state) {
+        mServer.enqueue((emptyResponse(HTTP_MOVED_TEMP).addHeader("Location",
+                "com.okta.test:/callback?code=" + EXCHANGE_CODE +
+                        "&state=" + state)));
     }
 
     public MockResponse enqueueReturnSuccessEmptyBody() {

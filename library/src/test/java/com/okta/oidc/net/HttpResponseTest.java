@@ -15,6 +15,8 @@
 package com.okta.oidc.net;
 
 
+import android.net.Uri;
+
 import com.google.gson.Gson;
 import com.okta.oidc.net.response.TokenResponse;
 
@@ -27,7 +29,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -45,10 +46,14 @@ import static com.okta.oidc.util.JsonStrings.CONFIGURATION_NOT_FOUND;
 import static com.okta.oidc.util.JsonStrings.FORBIDDEN;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.JsonStrings.WWW_AUTHENTICATE;
+import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -162,5 +167,23 @@ public class HttpResponseTest {
         assertEquals(HTTP_NOT_FOUND, status);
         assertNotNull(headers);
         assertEquals(contentLength, CONFIGURATION_NOT_FOUND.length());
+    }
+
+    @Test
+    public void redirectResponse() throws Exception {
+        mServer.enqueue(new MockResponse().setResponseCode(HTTP_MOVED_TEMP)
+                .addHeader("Location", "com.okta.test:/callback?code="
+                        + SESSION_TOKEN));
+        URL url = mServer.url("/").url();
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Accept-Language", "en-US");
+        HttpResponse response = new HttpResponse(HTTP_MOVED_TEMP, connection.getHeaderFields(),
+                connection.getContentLength(), connection);
+        String location = response.getHeaderField("Location");
+        Uri locationUri = Uri.parse(location);
+        String code = locationUri.getQueryParameter("code");
+        assertNotNull(location);
+        assertNotNull(code);
+        assertEquals(code, SESSION_TOKEN);
     }
 }

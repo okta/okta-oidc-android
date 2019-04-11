@@ -10,6 +10,7 @@ import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
+import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
@@ -18,6 +19,7 @@ import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
+import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -45,7 +47,9 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
+import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
 import static com.okta.oidc.util.TestValues.SCOPES;
+import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -340,5 +344,48 @@ public class SyncAuthenticationClientTest {
         assertThat(recordedRequest.getPath(), equalTo("/token"));
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getIdToken(), jws);
+    }
+
+    @Test
+    public void nativeLogInRequestSuccess() throws AuthorizationException {
+        mEndPoint.enqueueNativeRequestSuccess(CUSTOM_STATE);
+        NativeAuthorizeRequest request =
+                mSyncAuthClient.nativeAuthorizeRequest(SESSION_TOKEN, null);
+        AuthorizeResponse response = request.executeRequest();
+        assertNotNull(response);
+        assertEquals(response.getCode(), EXCHANGE_CODE);
+        assertEquals(response.getState(), CUSTOM_STATE);
+    }
+
+    @Test
+    public void nativeLogInRequestFailure() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        mEndPoint.enqueueReturnUnauthorizedRevoked();
+        NativeAuthorizeRequest request =
+                mSyncAuthClient.nativeAuthorizeRequest(SESSION_TOKEN, null);
+        AuthorizeResponse response = request.executeRequest();
+        assertNull(response);
+    }
+
+    @Test
+    public void loginNative() throws AuthorizationException {
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String state = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        AuthenticationPayload payload =
+                new AuthenticationPayload.Builder().addParameter("nonce", nonce)
+                        .setState(state).build();
+
+        mEndPoint.enqueueConfigurationSuccess(mProviderConfig);
+        mEndPoint.enqueueNativeRequestSuccess(state);
+        mEndPoint.enqueueTokenSuccess(jws);
+
+        AuthorizationResult result = mSyncAuthClient.logInNative(SESSION_TOKEN, payload);
+        assertNotNull(result);
+        Tokens tokens = result.getTokens();
+        assertNotNull(tokens);
+        assertNotNull(tokens.getAccessToken());
+        assertNotNull(tokens.getRefreshToken());
+        assertNotNull(tokens.getIdToken());
     }
 }

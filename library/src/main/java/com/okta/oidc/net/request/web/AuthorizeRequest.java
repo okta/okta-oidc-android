@@ -28,6 +28,7 @@ import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
@@ -46,22 +47,29 @@ public class AuthorizeRequest extends WebRequest {
 
     @Override
     public String getState() {
-        if (mParameters != null) {
-            return mParameters.state;
-        }
-        return null;
+        return checkIfReplaced("state", mParameters.state);
     }
 
     public String getCodeVerifier() {
-        return mParameters.code_verifier;
+        return checkIfReplaced("code_verifier", mParameters.code_verifier);
     }
 
     public String getNonce() {
-        return mParameters.nonce;
+        return checkIfReplaced("nonce", mParameters.nonce);
     }
 
     public String getMaxAge() {
-        return mParameters.max_age;
+        return checkIfReplaced("max_age", mParameters.max_age);
+    }
+
+    @Nullable
+    private String checkIfReplaced(@NonNull String key, @Nullable String value) {
+        String retVal = value;
+        if (mParameters.additionalParams != null) {
+            String replace = mParameters.additionalParams.get(key);
+            retVal = replace == null ? value : replace;
+        }
+        return retVal;
     }
 
     @Override
@@ -115,38 +123,40 @@ public class AuthorizeRequest extends WebRequest {
         String code_verifier; //required.
 
         public Uri toUri() {
-            Uri.Builder uriBuilder = Uri.parse(authorize_endpoint).buildUpon()
-                    .appendQueryParameter("redirect_uri", redirect_uri)
-                    .appendQueryParameter("client_id", client_id)
-                    .appendQueryParameter("response_type", response_type)
-                    .appendQueryParameter("code_challenge", code_challenge)
-                    .appendQueryParameter("code_challenge_method", code_challenge_method)
-                    .appendQueryParameter("nonce", nonce)
-                    .appendQueryParameter("state", state)
-                    .appendQueryParameter("scope", scope);
-
-            appendOptionalParams(uriBuilder, "display", display);
-            appendOptionalParams(uriBuilder, "login_hint", login_hint);
-            appendOptionalParams(uriBuilder, "prompt", prompt);
-            appendOptionalParams(uriBuilder, "idp", idp);
-            appendOptionalParams(uriBuilder, "idp_scope", idp_scope);
-            appendOptionalParams(uriBuilder, "max_age", max_age);
-            appendOptionalParams(uriBuilder, "response_mode", response_mode);
-            appendOptionalParams(uriBuilder, "request", request);
-            appendOptionalParams(uriBuilder, "sessionToken", sessionToken);
-
+            Map<String, String> requiredParams = new HashMap<>();
+            requiredParams.put("redirect_uri", redirect_uri);
+            requiredParams.put("client_id", client_id);
+            requiredParams.put("response_type", response_type);
+            requiredParams.put("code_challenge", code_challenge);
+            requiredParams.put("code_challenge_method", code_challenge_method);
+            requiredParams.put("nonce", nonce);
+            requiredParams.put("state", state);
+            requiredParams.put("scope", scope);
             if (additionalParams != null) {
-                for (Map.Entry<String, String> entry : additionalParams.entrySet()) {
-                    uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
-                }
+                //replace default params if provided.
+                requiredParams.putAll(additionalParams);
             }
 
+            appendOptionalParams(requiredParams, "display", display);
+            appendOptionalParams(requiredParams, "login_hint", login_hint);
+            appendOptionalParams(requiredParams, "prompt", prompt);
+            appendOptionalParams(requiredParams, "idp", idp);
+            appendOptionalParams(requiredParams, "idp_scope", idp_scope);
+            appendOptionalParams(requiredParams, "max_age", max_age);
+            appendOptionalParams(requiredParams, "response_mode", response_mode);
+            appendOptionalParams(requiredParams, "request", request);
+            appendOptionalParams(requiredParams, "sessionToken", sessionToken);
+
+            Uri.Builder uriBuilder = Uri.parse(authorize_endpoint).buildUpon();
+            for (Map.Entry<String, String> entry : requiredParams.entrySet()) {
+                uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
+            }
             return uriBuilder.build();
         }
 
-        private void appendOptionalParams(Uri.Builder builder, String name, String value) {
+        private void appendOptionalParams(Map<String, String> map, String name, String value) {
             if (value != null) {
-                builder.appendQueryParameter(name, value);
+                map.put(name, value);
             }
         }
     }

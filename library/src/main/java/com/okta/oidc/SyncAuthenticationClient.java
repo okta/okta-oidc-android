@@ -88,11 +88,13 @@ public class SyncAuthenticationClient {
         mOktaState.delete(mOktaState.getAuthorizeRequest());
     }
 
-    public NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken) {
+    public NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
+                                                         AuthenticationPayload payload) {
         return new AuthorizeRequest.Builder()
                 .account(mOIDCAccount)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .sessionToken(sessionToken)
+                .authenticationPayload(payload)
                 .createNativeRequest(mConnectionFactory);
     }
 
@@ -163,12 +165,15 @@ public class SyncAuthenticationClient {
     }
 
     @WorkerThread
-    public AuthorizationResult logInNative(@Nullable AuthenticationPayload payload, String sessionToken) {
+    public AuthorizationResult logInNative(String sessionToken,
+                                           @Nullable AuthenticationPayload payload) {
         try {
             obtainNewConfiguration();
-            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken);
-            AuthorizeRequest authrequest = new AuthorizeRequest(request.getParameters());
-            mOktaState.save(authrequest);
+            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, payload);
+            //FIXME Need to the parameters of native request in a web request because
+            //oktaState uses it to verify the returned response.
+            AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
+            mOktaState.save(authRequest);
             AuthorizeResponse authResponse = request.executeRequest();
             validateResult(authResponse);
             TokenResponse tokenResponse = tokenExchange(authResponse).executeRequest();

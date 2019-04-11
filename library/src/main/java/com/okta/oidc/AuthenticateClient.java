@@ -137,7 +137,7 @@ public final class AuthenticateClient {
             try {
                 AuthorizationResult result;
                 if (sessionToken != null) {
-                    result = mAuthClient.logInNative(payload, sessionToken);
+                    result = mAuthClient.logInNative(sessionToken, payload);
                 } else {
                     result = mAuthClient.logIn(activity, payload);
                 }

@@ -19,9 +19,11 @@ import android.text.TextUtils;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
+import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
@@ -55,6 +57,8 @@ public class TestValues {
     public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
     public static final String ID_TOKEN = "ID_TOKEN";
     public static final String REFRESH_TOKEN = "REFRESH_TOKEN";
+    public static final String SESSION_TOKEN = "SESSION_TOKEN";
+    public static final String EXCHANGE_CODE = "EXCHANGE_CODE";
     public static final String CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
     public static int VALID_EXPIRES_IN = 3600;
     public static String INVALID_EXPIRES_IN = "INVALID_EXPIRES_IN";
@@ -203,6 +207,17 @@ public class TestValues {
                 .providerConfiguration(configuration)
                 .account(account)
                 .createRequest();
+    }
+
+    public static NativeAuthorizeRequest getNativeLogInRequest(OIDCAccount account, String token,
+                                                               ProviderConfiguration configuration) {
+        return new AuthorizeRequest.Builder()
+                .account(account)
+                .providerConfiguration(configuration)
+                .sessionToken(token)
+                .nonce(CUSTOM_NONCE)
+                .authenticationPayload(null)
+                .createNativeRequest(new HttpConnection.DefaultConnectionFactory());
     }
 
     public static String getAuthorizationExceptionError() {
