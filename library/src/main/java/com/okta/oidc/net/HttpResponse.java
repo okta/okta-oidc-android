@@ -77,6 +77,10 @@ public final class HttpResponse {
         return Collections.unmodifiableMap(mHeaders);
     }
 
+    public final String getHeaderField(String field) {
+        return mConnection.getHeaderField(field);
+    }
+
     public final int getContentLength() {
         return mLength;
     }

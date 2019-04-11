@@ -184,7 +184,6 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             );
         });
 
-
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
@@ -436,7 +435,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                     @Override
                     public void handleSuccess(AuthenticationResponse successResponse) {
                         String sessionToken = successResponse.getSessionToken();
-                        //authenticateViaOktaAndroidSDK(sessionToken);
+                        mOktaAuth.logIn(sessionToken, mPayload);
                     }
                 });
             } catch (AuthenticationException e) {

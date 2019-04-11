@@ -65,7 +65,8 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 break; //NO-OP
             case AUTHORIZED:
-                if (mTokenResponse == null || !mTokenResponse.isLoggedIn() || mUri == null) {
+                if (mTokenResponse == null || mTokenResponse.getAccessToken() == null
+                        || mTokenResponse.getIdToken() == null || mUri == null) {
                     throw new IllegalStateException("Not logged in or invalid uri");
                 }
                 break;
@@ -75,7 +76,8 @@ public class HttpRequestBuilder {
                 }
                 break;
             case PROFILE:
-                if (mTokenResponse == null || !mTokenResponse.isLoggedIn()) {
+                if (mTokenResponse == null || mTokenResponse.getAccessToken() == null
+                        || mTokenResponse.getIdToken() == null) {
                     throw new IllegalStateException("Not logged in");
                 }
                 break;

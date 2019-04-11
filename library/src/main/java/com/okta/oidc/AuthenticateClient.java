@@ -120,11 +120,27 @@ public final class AuthenticateClient {
     }
 
     @AnyThread
+    public void logIn(String sessionToken, AuthenticationPayload payload) {
+        logIn(null, payload, sessionToken);
+    }
+
+    @AnyThread
     public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
-        registerActivityLifeCycle(activity);
+        logIn(activity, payload, null);
+    }
+
+    private void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload, String sessionToken) {
+        if (activity != null) {
+            registerActivityLifeCycle(activity);
+        }
         mDispatcher.execute(() -> {
             try {
-                AuthorizationResult result = mAuthClient.logIn(activity, payload);
+                AuthorizationResult result;
+                if (sessionToken != null) {
+                    result = mAuthClient.logInNative(payload, sessionToken);
+                } else {
+                    result = mAuthClient.logIn(activity, payload);
+                }
                 if (result.isSuccess()) {
                     mDispatcher.submitResults(() -> mResultCb.onSuccess(
                             AuthorizationStatus.AUTHORIZED));

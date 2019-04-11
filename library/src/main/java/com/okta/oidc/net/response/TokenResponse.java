@@ -53,10 +53,6 @@ public class TokenResponse implements Persistable {
         return id_token;
     }
 
-    public boolean isLoggedIn() {
-        return access_token != null || id_token != null;
-    }
-
     public TokenResponse() {
         //NO-OP
     }

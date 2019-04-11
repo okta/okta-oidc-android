@@ -29,6 +29,7 @@ import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
+import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
@@ -85,6 +86,14 @@ public class SyncAuthenticationClient {
         mOktaState.delete(mOktaState.getProviderConfiguration());
         mOktaState.delete(mOktaState.getTokenResponse());
         mOktaState.delete(mOktaState.getAuthorizeRequest());
+    }
+
+    public NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken) {
+        return new AuthorizeRequest.Builder()
+                .account(mOIDCAccount)
+                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .sessionToken(sessionToken)
+                .createNativeRequest(mConnectionFactory);
     }
 
     public ConfigurationRequest configurationRequest() {
@@ -146,20 +155,40 @@ public class SyncAuthenticationClient {
                 .createRequest();
     }
 
+    private void obtainNewConfiguration() throws AuthorizationException {
+        ProviderConfiguration config = mOktaState.getProviderConfiguration();
+        if (config == null || !config.issuer.equals(mOIDCAccount.getDiscoveryUri())) {
+            mOktaState.save(configurationRequest().executeRequest());
+        }
+    }
+
+    @WorkerThread
+    public AuthorizationResult logInNative(@Nullable AuthenticationPayload payload, String sessionToken) {
+        try {
+            obtainNewConfiguration();
+            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken);
+            AuthorizeRequest authrequest = new AuthorizeRequest(request.getParameters());
+            mOktaState.save(authrequest);
+            AuthorizeResponse authResponse = request.executeRequest();
+            validateResult(authResponse);
+            TokenResponse tokenResponse = tokenExchange(authResponse).executeRequest();
+            mOktaState.save(tokenResponse);
+            return AuthorizationResult.success(new Tokens(tokenResponse));
+        } catch (AuthorizationException e) {
+            return AuthorizationResult.error(e);
+        }
+    }
+
     @WorkerThread
     public AuthorizationResult logIn(@NonNull final FragmentActivity activity,
                                      @Nullable AuthenticationPayload payload)
             throws InterruptedException {
-        if (obtainNewConfiguration(mOktaState.getProviderConfiguration(), mOIDCAccount)) {
-            ConfigurationRequest request = configurationRequest();
-            ProviderConfiguration configuration;
-            try {
-                configuration = request.executeRequest();
-            } catch (AuthorizationException e) {
-                return AuthorizationResult.error(e);
-            }
-            mOktaState.save(configuration);
+        try {
+            obtainNewConfiguration();
+        } catch (AuthorizationException e) {
+            return AuthorizationResult.error(e);
         }
+
         WebRequest request = new AuthorizeRequest.Builder()
                 .account(mOIDCAccount)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
@@ -187,12 +216,9 @@ public class SyncAuthenticationClient {
             case ERROR:
                 return AuthorizationResult.error(authResult.getException());
             case AUTHORIZED:
-                AuthorizationException exception = validateResult(authResult.getAuthorizationResponse());
-                if (exception != null) {
-                    return AuthorizationResult.error(exception);
-                }
                 TokenResponse response;
                 try {
+                    validateResult(authResult.getAuthorizationResponse());
                     response = tokenExchange(
                             (AuthorizeResponse) authResult.getAuthorizationResponse())
                             .executeRequest();
@@ -205,13 +231,11 @@ public class SyncAuthenticationClient {
         throw new IllegalStateException("login performed in illegal states");
     }
 
-    private boolean obtainNewConfiguration(ProviderConfiguration providerConfiguration, OIDCAccount account) {
-        return (providerConfiguration == null || !providerConfiguration.issuer.equals(account.getDiscoveryUri()));
-    }
 
     public boolean isLoggedIn() {
         TokenResponse tokenResponse = mOktaState.getTokenResponse();
-        return tokenResponse != null && tokenResponse.isLoggedIn();
+        return tokenResponse != null &&
+                (tokenResponse.getAccessToken() != null || tokenResponse.getIdToken() != null);
     }
 
     public Tokens getTokens() {
@@ -256,10 +280,10 @@ public class SyncAuthenticationClient {
         return Result.success();
     }
 
-    private AuthorizationException validateResult(WebResponse authResponse) {
+    private void validateResult(WebResponse authResponse) throws AuthorizationException {
         WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
         if (authorizedRequest == null) {
-            return USER_CANCELED_AUTH_FLOW;
+            throw USER_CANCELED_AUTH_FLOW;
         }
 
         String requestState = authorizedRequest.getState();
@@ -267,9 +291,8 @@ public class SyncAuthenticationClient {
         if (requestState == null && responseState != null
                 || (requestState != null && !requestState
                 .equals(responseState))) {
-            return AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH;
+            throw AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH;
         }
-        return null;
     }
 
     @WorkerThread

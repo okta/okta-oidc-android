@@ -20,7 +20,9 @@ import android.text.TextUtils;
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.ResponseType;
+import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -30,13 +32,15 @@ import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 //https://developer.okta.com/docs/api/resources/oidc#authorize
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unused")
 public class AuthorizeRequest extends WebRequest {
     private Parameters mParameters;
 
-    AuthorizeRequest(Parameters parameters) {
+    public AuthorizeRequest(Parameters parameters) {
         mParameters = parameters;
     }
 
@@ -82,7 +86,7 @@ public class AuthorizeRequest extends WebRequest {
         return RESTORE.encrypted();
     }
 
-    static class Parameters {
+    public static class Parameters {
         Parameters() {
             //NO-OP
         }
@@ -110,7 +114,7 @@ public class AuthorizeRequest extends WebRequest {
 
         String code_verifier; //required.
 
-        Uri toUri() {
+        public Uri toUri() {
             Uri.Builder uriBuilder = Uri.parse(authorize_endpoint).buildUpon()
                     .appendQueryParameter("redirect_uri", redirect_uri)
                     .appendQueryParameter("client_id", client_id)
@@ -161,7 +165,7 @@ public class AuthorizeRequest extends WebRequest {
             mParameters.code_challenge_method = CodeVerifierUtil.getCodeVerifierChallengeMethod();
         }
 
-        private void validate() {
+        private void validate(boolean isNative) {
             if (TextUtils.isEmpty(mParameters.authorize_endpoint)) {
                 throw new IllegalArgumentException("authorize_endpoint missing");
             }
@@ -186,6 +190,9 @@ public class AuthorizeRequest extends WebRequest {
             if (TextUtils.isEmpty(mParameters.state)) {
                 throw new IllegalArgumentException("state missing");
             }
+            if (isNative && TextUtils.isEmpty(mParameters.sessionToken)) {
+                throw new IllegalArgumentException("sessionToken is missing");
+            }
         }
 
         public Builder() {
@@ -200,8 +207,16 @@ public class AuthorizeRequest extends WebRequest {
             if (mParameters.state == null) {
                 mParameters.state = CodeVerifierUtil.generateRandomState();
             }
-            validate();
+            validate(false);
             return new AuthorizeRequest(mParameters);
+        }
+
+        public NativeAuthorizeRequest createNativeRequest(HttpConnectionFactory factory) {
+            if (mParameters.state == null) {
+                mParameters.state = CodeVerifierUtil.generateRandomState();
+            }
+            validate(true);
+            return new NativeAuthorizeRequest(mParameters, factory);
         }
 
         public Builder clientId(@NonNull String clientId) {
