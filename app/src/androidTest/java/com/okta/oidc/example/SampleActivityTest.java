@@ -107,8 +107,11 @@ public class SampleActivityTest {
 
     @Test
     public void test1_loginNoSession() throws UiObjectNotFoundException {
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
-        onView(withId(R.id.submit)).perform(click());
+        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
@@ -141,13 +144,13 @@ public class SampleActivityTest {
     public void test2_clearData() {
         onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
         onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
     }
 
     @Test
     public void test3_logInWithSession() {
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
-        onView(withId(R.id.submit)).perform(click());
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
@@ -237,9 +240,9 @@ public class SampleActivityTest {
     public void test9_cancelSignIn() throws UiObjectNotFoundException {
         onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
         onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
 
-        onView(withId(R.id.submit)).perform(click());
+        onView(withId(R.id.sign_in)).perform(click());
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         UiSelector selector = new UiSelector();
@@ -257,8 +260,12 @@ public class SampleActivityTest {
                 .addParameter("max_age", "5000")
                 .build();
 
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
-        onView(withId(R.id.submit)).perform(click());
+        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+
+        onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 

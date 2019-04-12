@@ -36,6 +36,7 @@ import java.util.concurrent.Executor;
 import androidx.annotation.AnyThread;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 public final class AuthenticateClient {
@@ -129,7 +130,7 @@ public final class AuthenticateClient {
         logIn(activity, payload, null);
     }
 
-    private void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload, String sessionToken) {
+    private void logIn(@Nullable final FragmentActivity activity, AuthenticationPayload payload, String sessionToken) {
         if (activity != null) {
             registerActivityLifeCycle(activity);
         }

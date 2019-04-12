@@ -71,7 +71,18 @@ dependencies {
 
 task clearData(type: Exec) {
     def clearAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example']
+    def clearTestAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example.test']
     def clearChromeData = ['adb', 'shell', 'pm', 'clear', 'com.android.chrome']
+
+    //disable animations for testing
+    def anim_window = ['adb', 'shell', 'settings', 'put', 'global', 'window_animation_scale', '0']
+    def anim_transition = ['adb', 'shell', 'settings', 'put', 'global', 'transition_animation_scale', '0']
+    def animator = ['adb', 'shell', 'settings', 'put', 'global', 'animator_duration_scale', '0']
+
+    commandLine anim_window
+    commandLine anim_transition
+    commandLine animator
     commandLine clearAppData
+    commandLine clearTestAppData
     commandLine clearChromeData
 }

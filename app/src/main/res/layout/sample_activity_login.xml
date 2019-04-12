@@ -63,7 +63,7 @@
                     android:visibility="gone" />
 
                 <Button
-                    android:id="@+id/submit"
+                    android:id="@+id/sign_in"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Sign In" />

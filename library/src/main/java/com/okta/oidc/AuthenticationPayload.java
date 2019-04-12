@@ -21,21 +21,17 @@ import java.util.Map;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import static com.okta.oidc.net.request.web.AuthorizeRequest.LOGIN_HINT;
+import static com.okta.oidc.net.request.web.AuthorizeRequest.STATE;
+
 /**
  * That is payload that is used in order to provide additional parameters
  * for Authorization request or alter default parameters values (like mState).
  */
 public class AuthenticationPayload {
-
-    private String mState;
-    private String mLoginHint;
     private Map<String, String> mAdditionalParameters;
 
-    private AuthenticationPayload(String state,
-                                  String loginHint,
-                                  Map<String, String> additionalParameters) {
-        this.mState = state;
-        this.mLoginHint = loginHint;
+    private AuthenticationPayload(Map<String, String> additionalParameters) {
         this.mAdditionalParameters = additionalParameters;
     }
 
@@ -43,12 +39,6 @@ public class AuthenticationPayload {
      * Creates instances of {@link AuthenticationPayload}.
      */
     public static class Builder {
-
-        @Nullable
-        private String mState;
-
-        @Nullable
-        private String mLoginHint;
 
         private Map<String, String> mAdditionalParameters = new HashMap<>();
 
@@ -67,8 +57,8 @@ public class AuthenticationPayload {
          * @see "The OAuth 2.0 Authorization Framework (RFC 6749), Section 5.3.5
          * <https://tools.ietf.org/html/rfc6749#section-5.3.5>"
          */
-        public Builder setState(String state) {
-            this.mState = state;
+        public Builder setState(@NonNull String state) {
+            mAdditionalParameters.put(STATE, state);
             return this;
         }
 
@@ -81,7 +71,7 @@ public class AuthenticationPayload {
          * <https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1>"
          */
         public Builder setLoginHint(String loginHint) {
-            this.mLoginHint = loginHint;
+            mAdditionalParameters.put(LOGIN_HINT, loginHint);
             return this;
         }
 
@@ -106,7 +96,7 @@ public class AuthenticationPayload {
          * @return constructed authentication payload
          */
         public AuthenticationPayload build() {
-            return new AuthenticationPayload(mState, mLoginHint, mAdditionalParameters);
+            return new AuthenticationPayload(mAdditionalParameters);
         }
 
     }
@@ -116,8 +106,9 @@ public class AuthenticationPayload {
      *
      * @return current state
      */
+    @Nullable
     public String getState() {
-        return mState;
+        return mAdditionalParameters.get(STATE);
     }
 
     /**
@@ -125,8 +116,9 @@ public class AuthenticationPayload {
      *
      * @return current login hint
      */
+    @Nullable
     public String getLoginHint() {
-        return mLoginHint;
+        return mAdditionalParameters.get(LOGIN_HINT);
     }
 
     /**

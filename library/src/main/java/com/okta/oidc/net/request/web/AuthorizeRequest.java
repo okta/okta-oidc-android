@@ -39,7 +39,29 @@ import androidx.annotation.RestrictTo;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unused")
 public class AuthorizeRequest extends WebRequest {
+    private static final String TAG = AuthorizeRequest.class.getSimpleName();
     private Parameters mParameters;
+
+    //keys
+    private static final String AUTHORIZE_ENDPOINT = "authorize_endpoint";
+    private static final String CLIENT_ID = "client_id";
+    private static final String CODE_CHALLENGE = "code_challenge";
+    private static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
+    private static final String DISPLAY = "display";
+    private static final String IDP_SCOPE = "idp_scope";
+    private static final String IDP = "idp";
+    public static final String LOGIN_HINT = "login_hint";
+    private static final String MAX_AGE = "max_age";
+    private static final String NONCE = "nonce";
+    private static final String PROMPT = "prompt";
+    private static final String REDIRECT_URI = "redirect_uri";
+    private static final String RESPONSE_TYPE = "response_type";
+    private static final String RESPONSE_MODE = "response_mode";
+    private static final String REQUEST = "request";
+    private static final String SCOPE = "scope";
+    private static final String SESSION_TOKEN = "sessionToken";
+    public static final String STATE = "state";
+    private static final String CODE_VERIFIER = "code_verifier";
 
     public AuthorizeRequest(Parameters parameters) {
         mParameters = parameters;
@@ -47,29 +69,19 @@ public class AuthorizeRequest extends WebRequest {
 
     @Override
     public String getState() {
-        return checkIfReplaced("state", mParameters.state);
+        return mParameters.queryParams.get(STATE);
     }
 
     public String getCodeVerifier() {
-        return checkIfReplaced("code_verifier", mParameters.code_verifier);
+        return mParameters.queryParams.get(CODE_VERIFIER);
     }
 
     public String getNonce() {
-        return checkIfReplaced("nonce", mParameters.nonce);
+        return mParameters.queryParams.get(NONCE);
     }
 
     public String getMaxAge() {
-        return checkIfReplaced("max_age", mParameters.max_age);
-    }
-
-    @Nullable
-    private String checkIfReplaced(@NonNull String key, @Nullable String value) {
-        String retVal = value;
-        if (mParameters.additionalParams != null) {
-            String replace = mParameters.additionalParams.get(key);
-            retVal = replace == null ? value : replace;
-        }
-        return retVal;
+        return mParameters.queryParams.get(MAX_AGE);
     }
 
     @Override
@@ -100,107 +112,66 @@ public class AuthorizeRequest extends WebRequest {
         }
 
         String request_type; //for serializing
-        String authorize_endpoint; //required
-        String client_id; //required
-        String code_challenge; //required
-        String code_challenge_method; //required
-        String display;
-        String idp_scope;
-        String idp;
-        String login_hint;
-        String max_age;
-        String nonce; //required
-        String prompt;
-        String redirect_uri; //required
-        String response_type; //required
-        String response_mode;
-        String request; //JWT
-        String scope; //required
-        String sessionToken;
-        String state; //required
-        Map<String, String> additionalParams;
-
-        String code_verifier; //required.
+        Map<String, String> queryParams = new HashMap<>();
+        Map<String, String> mPayloadParams;
 
         public Uri toUri() {
-            Map<String, String> requiredParams = new HashMap<>();
-            requiredParams.put("redirect_uri", redirect_uri);
-            requiredParams.put("client_id", client_id);
-            requiredParams.put("response_type", response_type);
-            requiredParams.put("code_challenge", code_challenge);
-            requiredParams.put("code_challenge_method", code_challenge_method);
-            requiredParams.put("nonce", nonce);
-            requiredParams.put("state", state);
-            requiredParams.put("scope", scope);
-            if (additionalParams != null) {
-                //replace default params if provided.
-                requiredParams.putAll(additionalParams);
-            }
-
-            appendOptionalParams(requiredParams, "display", display);
-            appendOptionalParams(requiredParams, "login_hint", login_hint);
-            appendOptionalParams(requiredParams, "prompt", prompt);
-            appendOptionalParams(requiredParams, "idp", idp);
-            appendOptionalParams(requiredParams, "idp_scope", idp_scope);
-            appendOptionalParams(requiredParams, "max_age", max_age);
-            appendOptionalParams(requiredParams, "response_mode", response_mode);
-            appendOptionalParams(requiredParams, "request", request);
-            appendOptionalParams(requiredParams, "sessionToken", sessionToken);
-
-            Uri.Builder uriBuilder = Uri.parse(authorize_endpoint).buildUpon();
-            for (Map.Entry<String, String> entry : requiredParams.entrySet()) {
+            Uri.Builder uriBuilder = Uri.parse(queryParams.get(AUTHORIZE_ENDPOINT))
+                    .buildUpon();
+            queryParams.remove(AUTHORIZE_ENDPOINT);
+            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
                 uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
             }
             return uriBuilder.build();
-        }
-
-        private void appendOptionalParams(Map<String, String> map, String name, String value) {
-            if (value != null) {
-                map.put(name, value);
-            }
         }
     }
 
     public static final class Builder {
         private Parameters mParameters;
+        private Map<String, String> mMap;
 
-        private void setCodeVerifier(String verifier) {
+        private void setCodeVerifier(@Nullable String verifier) {
             if (verifier == null) {
                 verifier = CodeVerifierUtil.generateRandomCodeVerifier();
             }
             CodeVerifierUtil.checkCodeVerifier(verifier);
-            mParameters.code_verifier = verifier;
-            mParameters.code_challenge = CodeVerifierUtil.
-                    deriveCodeVerifierChallenge(mParameters.code_verifier);
-            mParameters.code_challenge_method = CodeVerifierUtil.getCodeVerifierChallengeMethod();
+            mMap.put(CODE_VERIFIER, verifier);
+            String challenge = CodeVerifierUtil.deriveCodeVerifierChallenge(verifier);
+            if (challenge != null) {
+                mMap.put(CODE_CHALLENGE, challenge);
+            }
+            String method = CodeVerifierUtil.getCodeVerifierChallengeMethod();
+            if (method != null) {
+                mMap.put(CODE_CHALLENGE_METHOD, method);
+            }
         }
 
         private void validate(boolean isNative) {
-            if (TextUtils.isEmpty(mParameters.authorize_endpoint)) {
+            if (TextUtils.isEmpty(mMap.get(AUTHORIZE_ENDPOINT))) {
                 throw new IllegalArgumentException("authorize_endpoint missing");
             }
-            if (TextUtils.isEmpty(mParameters.code_challenge)) {
+            if (TextUtils.isEmpty(mMap.get(CODE_CHALLENGE))) {
                 throw new IllegalArgumentException("code_challenge missing");
             }
-            if (TextUtils.isEmpty(mParameters.code_challenge_method)) {
+            if (TextUtils.isEmpty(mMap.get(CODE_CHALLENGE_METHOD))) {
                 throw new IllegalArgumentException("code_challenge_method missing");
             }
-            if (TextUtils.isEmpty(mParameters.nonce)) {
+            if (TextUtils.isEmpty(mMap.get(NONCE))) {
                 throw new IllegalArgumentException("nonce missing");
             }
-            if (TextUtils.isEmpty(mParameters.redirect_uri)) {
+            if (TextUtils.isEmpty(mMap.get(REDIRECT_URI))) {
                 throw new IllegalArgumentException("redirect_uri missing");
             }
-            if (TextUtils.isEmpty(mParameters.response_type)) {
+            if (TextUtils.isEmpty(mMap.get(RESPONSE_TYPE))) {
                 throw new IllegalArgumentException("response_type missing");
             }
-            if (TextUtils.isEmpty(mParameters.scope)) {
+            if (TextUtils.isEmpty(mMap.get(SCOPE))) {
                 throw new IllegalArgumentException("scope missing");
             }
-            if (TextUtils.isEmpty(mParameters.state)) {
+            if (TextUtils.isEmpty(mMap.get(STATE))) {
                 throw new IllegalArgumentException("state missing");
             }
-            if (isNative && TextUtils.isEmpty(mParameters.sessionToken)) {
+            if (isNative && TextUtils.isEmpty(mMap.get(SESSION_TOKEN))) {
                 throw new IllegalArgumentException("sessionToken is missing");
             }
         }
@@ -208,44 +179,46 @@ public class AuthorizeRequest extends WebRequest {
         public Builder() {
             mParameters = new Parameters();
             //Set default params
-            mParameters.response_type = ResponseType.CODE;
-            mParameters.nonce = CodeVerifierUtil.generateRandomState();
+            mMap = mParameters.queryParams;
+            mMap.put(RESPONSE_TYPE, ResponseType.CODE);
+            mMap.put(NONCE, CodeVerifierUtil.generateRandomState());
+            mMap.put(STATE, CodeVerifierUtil.generateRandomState());
             setCodeVerifier(null);
         }
 
         public AuthorizeRequest create() {
-            if (mParameters.state == null) {
-                mParameters.state = CodeVerifierUtil.generateRandomState();
+            if (mParameters.mPayloadParams != null) {
+                mMap.putAll(mParameters.mPayloadParams);
             }
             validate(false);
             return new AuthorizeRequest(mParameters);
         }
 
         public NativeAuthorizeRequest createNativeRequest(HttpConnectionFactory factory) {
-            if (mParameters.state == null) {
-                mParameters.state = CodeVerifierUtil.generateRandomState();
+            if (mParameters.mPayloadParams != null) {
+                mMap.putAll(mParameters.mPayloadParams);
             }
             validate(true);
             return new NativeAuthorizeRequest(mParameters, factory);
         }
 
         public Builder clientId(@NonNull String clientId) {
-            mParameters.client_id = clientId;
+            mMap.put(CLIENT_ID, clientId);
             return this;
         }
 
-        public Builder setDisplay(@Nullable String display) {
-            mParameters.display = display;
+        public Builder setDisplay(@NonNull String display) {
+            mMap.put(DISPLAY, display);
             return this;
         }
 
-        public Builder codeVerifier(@Nullable String codeVerifier) {
+        public Builder codeVerifier(@NonNull String codeVerifier) {
             setCodeVerifier(codeVerifier);
             return this;
         }
 
-        public Builder idp(@Nullable String idp) {
-            mParameters.idp = idp;
+        public Builder idp(@NonNull String idp) {
+            mMap.put(IDP, idp);
             return this;
         }
 
@@ -255,46 +228,46 @@ public class AuthorizeRequest extends WebRequest {
         These scopes are used in addition to the scopes
         already configured on the Identity Provider.
          */
-        public Builder idpScopes(@Nullable String... idp_scope) {
-            if (idp_scope != null) {
-                mParameters.idp_scope = AsciiStringListUtil.
-                        iterableToString(Arrays.asList(idp_scope));
+        public Builder idpScopes(@Nullable String... idpScopes) {
+            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(idpScopes));
+            if (delimited != null) {
+                mMap.put(IDP_SCOPE, delimited);
             }
             return this;
         }
 
-        public Builder maxAge(@Nullable String maxAge) {
-            mParameters.max_age = maxAge;
+        public Builder maxAge(@NonNull String maxAge) {
+            mMap.put(MAX_AGE, maxAge);
             return this;
         }
 
         public Builder nonce(@NonNull String nonce) {
-            mParameters.nonce = nonce;
+            mMap.put(NONCE, nonce);
             return this;
         }
 
-        public Builder prompt(@Nullable String prompt) {
-            mParameters.prompt = prompt;
+        public Builder prompt(@NonNull String prompt) {
+            mMap.put(PROMPT, prompt);
             return this;
         }
 
         public Builder authorizeEndpoint(@NonNull String endpoint) {
-            mParameters.authorize_endpoint = endpoint;
+            mMap.put(AUTHORIZE_ENDPOINT, endpoint);
             return this;
         }
 
         public Builder redirectUri(@NonNull String redirectUri) {
-            mParameters.redirect_uri = redirectUri;
+            mMap.put(REDIRECT_URI, redirectUri);
             return this;
         }
 
         public Builder responseType(@NonNull String responseType) {
-            mParameters.response_type = responseType;
+            mMap.put(RESPONSE_TYPE, responseType);
             return this;
         }
 
-        public Builder responseMode(@Nullable String responseMode) {
-            mParameters.response_mode = responseMode;
+        public Builder responseMode(@NonNull String responseMode) {
+            mMap.put(RESPONSE_MODE, responseMode);
             return this;
         }
 
@@ -302,40 +275,43 @@ public class AuthorizeRequest extends WebRequest {
         A JWT created by the client that enables requests to be passed as a single,
         self-contained parameter. See Parameter Details for more.
          */
-        public Builder requestJWT(@Nullable String request) {
-            mParameters.request = request;
+        public Builder requestJWT(@NonNull String request) {
+            mMap.put(REQUEST, request);
             return this;
         }
 
         public Builder scope(@NonNull String... scopes) {
-            mParameters.scope = AsciiStringListUtil.iterableToString(Arrays.asList(scopes));
+            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(scopes));
+            if (delimited != null) {
+                mMap.put(SCOPE, delimited);
+            }
             return this;
         }
 
-        public Builder sessionToken(@Nullable String sessionToken) {
-            mParameters.sessionToken = sessionToken;
+        public Builder sessionToken(@NonNull String token) {
+            mMap.put(SESSION_TOKEN, token);
             return this;
         }
 
         public Builder authenticationPayload(@Nullable AuthenticationPayload payload) {
             if (payload != null) {
-                mParameters.state = payload.getState();
-                mParameters.login_hint = payload.getLoginHint();
-                mParameters.additionalParams = payload.getAdditionalParameters();
+                mParameters.mPayloadParams = payload.getAdditionalParameters();
             }
             return this;
         }
 
         public Builder providerConfiguration(@NonNull ProviderConfiguration providerConfiguration) {
-            mParameters.authorize_endpoint = providerConfiguration.authorization_endpoint;
+            mMap.put(AUTHORIZE_ENDPOINT, providerConfiguration.authorization_endpoint);
             return this;
         }
 
         public Builder account(OIDCAccount account) {
-            mParameters.client_id = account.getClientId();
-            mParameters.scope = AsciiStringListUtil
-                    .iterableToString(Arrays.asList(account.getScopes()));
-            mParameters.redirect_uri = account.getRedirectUri().toString();
+            mMap.put(CLIENT_ID, account.getClientId());
+            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(account.getScopes()));
+            if (delimited != null) {
+                mMap.put(SCOPE, delimited);
+            }
+            mMap.put(REDIRECT_URI, account.getRedirectUri().toString());
             return this;
         }
     }

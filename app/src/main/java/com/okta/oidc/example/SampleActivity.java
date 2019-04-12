@@ -109,7 +109,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .build());
 */
         setContentView(R.layout.sample_activity_login);
-        mSignInBrowser = findViewById(R.id.submit);
+        mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
