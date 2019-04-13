@@ -14,7 +14,11 @@
  */
 package com.okta.oidc.example;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
+import android.content.Context;
+
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.util.CodeVerifierUtil;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -25,6 +29,7 @@ import org.junit.runners.MethodSorters;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
@@ -41,21 +46,22 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static com.okta.oidc.example.Utils.getAsset;
+import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.core.StringContains.containsString;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class WireMockTest {
-//    private static final String DEFAULT_WIREMOCK_ADDRESS = "https://localhost";
-//    private static final String KEYSTORE_DIRECTORY =
-//            "src/test/resources/wiremock/keystore/mock.keystore.jks";
-//    private static final String CONFIG_DIRECTORY = "src/test/resources/wiremock/";
-//    private static final String KEYSTORE_PASSWORD = "123456";
+    private static final String DEFAULT_WIREMOCK_ADDRESS = "https://localhost";
+    private static final String KEYSTORE_DIRECTORY =
+            "src/test/resources/wiremock/keystore/mock.keystore.jks";
+    private static final String CONFIG_DIRECTORY = "src/test/resources/wiremock/";
+    private static final String KEYSTORE_PASSWORD = "123456";
+    private static final int PORT = 1010;
 
     //apk package names
     private static final String FIRE_FOX = "org.mozilla.firefox";
@@ -76,43 +82,34 @@ public class WireMockTest {
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
 
-    private static final String PASSWORD = "Dev3xIsD0pe";
-    private static final String USERNAME = "devex@okta.com";
+    private AuthenticationPayload mMockPayload;
 
+    private Context mMockContext;
+
+    private String mState;
+    private String mNonce;
+
+    private final String FAKE_CODE = "NPcg5pmx7oZbXSfbnhmE";
+
+    private String mRedirect;
     private UiDevice mDevice;
     @Rule
     public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
 
-//    @Rule
-//    public WireMockClassRule instanceRule = new WireMockClassRule(options().httpsPort(1010)
-//            .keystorePath(KEYSTORE_DIRECTORY)
-//            .keystorePassword(KEYSTORE_PASSWORD)
-//            .bindAddress(DEFAULT_WIREMOCK_ADDRESS));
-
+    @Rule
+    public WireMockClassRule instanceRule = new WireMockClassRule(options().needClientAuth(false));
 
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-//        activityRule.getActivity().mOktaAccount = new OIDCAccount.Builder()
-//                .clientId("client_id")
-//                .redirectUri("com.oktapreview.samples-test:/callback")
-//                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
-//                .scopes("openid", "profile", "offline_access")
-//                .discoveryUri("https://samples-test.oktapreview.com")
-//                .create();
-//        activityRule.getActivity().mAuthClient = new AuthenticateClient.Builder()
-//                .withAccount(activityRule.getActivity().mOktaAccount)
-//                .withContext(activityRule.getActivity())
-//                .withStorage(new SimpleOktaStorage(activityRule.getActivity()
-//                        .getPreferences(MODE_PRIVATE)))
-//                .create();
-
-
-//        String jsonBody = getAsset(activityRule.getActivity(), "atlanta-conditions.json");
-//        stubFor(get(urlMatching("/.*"))
-//                .willReturn(aResponse()
-//                        .withStatus(HTTP_OK)
-//                        .withBody(jsonBody)));
+        mMockContext = InstrumentationRegistry.getInstrumentation().getContext();
+        mState = CodeVerifierUtil.generateRandomState();
+        mNonce = CodeVerifierUtil.generateRandomState();
+        mMockPayload = new AuthenticationPayload.Builder()
+                .setState(mState)
+                .addParameter("nonce", mNonce)
+                .build();
+        mRedirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s", FAKE_CODE, mState);
     }
 
     private UiObject getProgressBar() {
@@ -136,23 +133,23 @@ public class WireMockTest {
 
     @Test
     public void test1_loginNoSession() throws UiObjectNotFoundException {
+        activityRule.getActivity().mPayload = mMockPayload;
+        Utils.mockConfigurationRequest(aResponse()
+                .withStatus(HTTP_OK)
+                .withBody(getAsset(mMockContext, "configuration.json")));
+
+        Utils.mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
+                .withHeader("Location", mRedirect));
+
+        Utils.mockTokenRequest(aResponse().withStatus(HTTP_OK)
+                .withBody(getAsset(mMockContext, "token_response.json")));
+
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         acceptChromePrivacyOption();
-
-        UiSelector selector = new UiSelector();
-
-        UiObject username = mDevice.findObject(selector.resourceId(ID_USERNAME));
-        username.setText(USERNAME);
-
-        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
-        password.setText(PASSWORD);
-
-        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
-        signIn.click();
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
 
@@ -164,72 +161,7 @@ public class WireMockTest {
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
 
-        refreshToken();
+
     }
 
-    private void refreshToken() {
-        //String jsonBody = getAsset(activityRule.getActivity(), "atlanta-conditions.json");
-        WireMock.configureFor("localhost", 8181);
-        stubFor(get(urlMatching("/.*"))
-                .willReturn(aResponse()
-                        .withStatus(HTTP_NOT_FOUND)));
-        //.withBody(jsonBody)));
-        onView(withId(R.id.refresh_token)).check(matches(isDisplayed()));
-        onView(withId(R.id.refresh_token)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText("token refreshed")));
-    }
-
-    private void getProfile() {
-        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
-        onView(withId(R.id.get_profile)).perform(click());
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString(USERNAME))));
-    }
-
-    private void revokeRefreshToken() {
-        onView(withId(R.id.revoke_refresh)).check(matches(isDisplayed()));
-        onView(withId(R.id.revoke_refresh)).perform(click());
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
-    }
-
-    private void revokeAccessToken() {
-        onView(withId(R.id.revoke_access)).check(matches(isDisplayed()));
-        onView(withId(R.id.revoke_access)).perform(click());
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
-    }
-
-    @Test
-    public void test8_signOutFromOkta() {
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_out)).perform(click());
-
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("signedOutFromOkta"))));
-    }
-
-    @Test
-    public void test9_cancelSignIn() throws UiObjectNotFoundException {
-        onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-        onView(withId(R.id.clear_data)).perform(click());
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-
-        onView(withId(R.id.sign_in)).perform(click());
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        UiSelector selector = new UiSelector();
-        UiObject closeBrowser = mDevice.findObject(selector.resourceId(ID_CLOSE_BROWSER));
-        closeBrowser.click();
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
-    }
 }

@@ -69,7 +69,6 @@ public final class AuthenticateClient {
                 if (mActivity != null && mActivity.get() == activity) {
                     stop();
                     activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-                    mResultCb = null;
                 }
             }
         });

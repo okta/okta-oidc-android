@@ -16,17 +16,25 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class Utils {
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
+final class Utils {
     private static final int BUFFER_SIZE = 1024;
 
-    public static String getAsset(Context context, String assetPath) {
+    static String getAsset(Context context, String filename) {
         try {
+
             StringBuilder builder = new StringBuilder();
-            InputStreamReader reader = new InputStreamReader(context.getAssets()
-                    .open("body_files/" + assetPath), "UTF-8");
+            InputStreamReader reader = new InputStreamReader(
+                    context.getResources().getAssets().open(filename), "UTF-8");
 
             char[] buffer = new char[BUFFER_SIZE];
             int length;
@@ -37,5 +45,20 @@ public class Utils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    static void mockConfigurationRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(get(urlMatching("/.well-known/openid-configuration"))
+                .willReturn(responseDefinitionBuilder));
+    }
+
+    static void mockWebAuthorizeRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(get(urlMatching("/"))
+                .willReturn(responseDefinitionBuilder));
+    }
+
+    static void mockTokenRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(post(urlMatching("/token"))
+                .willReturn(responseDefinitionBuilder));
     }
 }

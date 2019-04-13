@@ -55,7 +55,7 @@ public class SampleActivityTest {
     //timeout for app transition from browser to app.
     private static final int TRANSITION_TIMEOUT = 2000;
     private static final int NETWORK_TIMEOUT = 5000;
-    
+
     //web page resource ids
     private static final String ID_USERNAME = "okta-signin-username";
     private static final String ID_PASSWORD = "okta-signin-password";
@@ -78,7 +78,6 @@ public class SampleActivityTest {
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-        
     }
 
     private UiObject getProgressBar() {
