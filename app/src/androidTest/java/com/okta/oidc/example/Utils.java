@@ -20,6 +20,17 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.KeyPair;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -45,6 +56,24 @@ final class Utils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String getJwt(String issuer, String nonce, Date expiredDate, Date issuedAt,
+                                String... audience) {
+        JwtBuilder builder = Jwts.builder();
+        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.RS256);
+        Map<String, Object> map = new HashMap<>();
+        map.put(Claims.AUDIENCE, Arrays.asList(audience));
+
+        return builder
+                .addClaims(map)
+                .claim("nonce", nonce)
+                .setIssuer(issuer)
+                .setSubject("sub")
+                .setExpiration(expiredDate)
+                .setIssuedAt(issuedAt)
+                .signWith(keyPair.getPrivate(), SignatureAlgorithm.RS256)
+                .compact();
     }
 
     static void mockConfigurationRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {

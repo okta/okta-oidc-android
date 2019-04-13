@@ -1,10 +1,10 @@
 {
-    "issuer": "https://samples-test.oktapreview.com",
-    "authorization_endpoint": "https://samples-test.oktapreview.com/authorize",
-    "token_endpoint": "https://samples-test.oktapreview.com/token",
-    "userinfo_endpoint": "https://samples-test.oktapreview.com/userinfo",
-    "registration_endpoint": "https://samples-test.oktapreview.com/clients",
-    "jwks_uri": "https://samples-test.oktapreview.com/keys",
+    "issuer": "https://localhost",
+    "authorization_endpoint": "https://localhost/authorize",
+    "token_endpoint": "https://localhost/token",
+    "userinfo_endpoint": "https://localhost/userinfo",
+    "registration_endpoint": "https://localhost/clients",
+    "jwks_uri": "https://localhost/keys",
     "response_types_supported": [
         "code",
         "code id_token",
@@ -79,21 +79,21 @@
         "at_hash",
         "c_hash"
     ],
-    "introspection_endpoint": "https://samples-test.oktapreview.com/introspect",
+    "introspection_endpoint": "https://localhost/introspect",
     "introspection_endpoint_auth_methods_supported": [
         "client_secret_basic",
         "client_secret_post",
         "client_secret_jwt",
         "none"
     ],
-    "revocation_endpoint": "https://samples-test.oktapreview.com/revoke",
+    "revocation_endpoint": "https://localhost/revoke",
     "revocation_endpoint_auth_methods_supported": [
         "client_secret_basic",
         "client_secret_post",
         "client_secret_jwt",
         "none"
     ],
-    "end_session_endpoint": "https://samples-test.oktapreview.com/logout",
+    "end_session_endpoint": "https://localhost/logout",
     "request_parameter_supported": true,
     "request_object_signing_alg_values_supported": [
         "HS256",

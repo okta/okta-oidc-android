@@ -70,6 +70,13 @@ dependencies {
     androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
 
     androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.21.0'
+
+    androidTestImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
+    androidTestImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"
+    androidTestImplementation "io.jsonwebtoken:jjwt-jackson:${rootProject.jsonWebTokenVersion}"
+    androidTestImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
+        exclude group: 'org.json', module: 'json'
+    }
 }
 
 task prepareDeviceForUITesting(type: Exec) {

@@ -63,7 +63,8 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     private static final String TAG = "SampleActivity";
     @VisibleForTesting
     AuthenticateClient mOktaAuth;
-    private OIDCAccount mOktaAccount;
+    @VisibleForTesting
+    OIDCAccount mOktaAccount;
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
@@ -304,6 +305,11 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             showAuthorizedMode();
         }
 
+        setupCallback();
+    }
+
+    @VisibleForTesting
+    void setupCallback() {
         mOktaAuth.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull AuthorizationStatus status) {

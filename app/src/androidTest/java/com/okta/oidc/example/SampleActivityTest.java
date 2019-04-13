@@ -14,8 +14,6 @@
  */
 package com.okta.oidc.example;
 
-import android.provider.Settings;
-
 import com.okta.oidc.AuthenticationPayload;
 
 import org.junit.Before;
@@ -38,7 +36,6 @@ import androidx.test.uiautomator.Until;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.doubleClick;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;

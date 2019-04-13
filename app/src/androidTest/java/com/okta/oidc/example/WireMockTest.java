@@ -16,8 +16,12 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.okta.oidc.AuthenticateClient;
 import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 import org.junit.Before;
@@ -46,7 +50,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.okta.oidc.example.Utils.getAsset;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -57,12 +60,6 @@ import static org.hamcrest.core.StringContains.containsString;
 @LargeTest
 public class WireMockTest {
     private static final String DEFAULT_WIREMOCK_ADDRESS = "https://localhost";
-    private static final String KEYSTORE_DIRECTORY =
-            "src/test/resources/wiremock/keystore/mock.keystore.jks";
-    private static final String CONFIG_DIRECTORY = "src/test/resources/wiremock/";
-    private static final String KEYSTORE_PASSWORD = "123456";
-    private static final int PORT = 1010;
-
     //apk package names
     private static final String FIRE_FOX = "org.mozilla.firefox";
     private static final String CHROME_STABLE = "com.android.chrome";
@@ -97,7 +94,8 @@ public class WireMockTest {
     public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
 
     @Rule
-    public WireMockClassRule instanceRule = new WireMockClassRule(options().needClientAuth(false));
+    public WireMockRule wireMockRule =
+            new WireMockRule(WireMockConfiguration.wireMockConfig().port(8888));
 
     @Before
     public void setUp() {
@@ -110,6 +108,24 @@ public class WireMockTest {
                 .addParameter("nonce", mNonce)
                 .build();
         mRedirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s", FAKE_CODE, mState);
+
+        //samples sdk test
+        activityRule.getActivity().mOktaAccount = new OIDCAccount.Builder()
+                .clientId("0oajqehiy6p81NVzA0h7")
+                .redirectUri("com.oktapreview.samples-test:/callback")
+                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+                .scopes("openid", "profile", "offline_access")
+                .discoveryUri("http://127.0.0.1:8888")
+                .create();
+
+        activityRule.getActivity().mOktaAuth = new AuthenticateClient.Builder()
+                .withAccount(activityRule.getActivity().mOktaAccount)
+                .withContext(activityRule.getActivity())
+                .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
+                .withTabColor(0)
+                .create();
+
+        activityRule.getActivity().setupCallback();
     }
 
     private UiObject getProgressBar() {
@@ -141,8 +157,10 @@ public class WireMockTest {
         Utils.mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
                 .withHeader("Location", mRedirect));
 
+        String tokenResponse = getAsset(mMockContext, "token_response.json");
+
         Utils.mockTokenRequest(aResponse().withStatus(HTTP_OK)
-                .withBody(getAsset(mMockContext, "token_response.json")));
+                .withBody(tokenResponse));
 
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
