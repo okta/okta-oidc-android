@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyPair;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 final class Utils {
     private static final int BUFFER_SIZE = 1024;
@@ -76,13 +78,39 @@ final class Utils {
                 .compact();
     }
 
+    public static Date getNow() {
+        long nowMillis = System.currentTimeMillis();
+        return new Date(nowMillis);
+    }
+
+    public static Date getTomorrow() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(getNow());
+        c.add(Calendar.DATE, 1);
+        return c.getTime();
+    }
+
+    public static Date getYesterday() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(getNow());
+        c.add(Calendar.DATE, -1);
+        return c.getTime();
+    }
+
+    public static Date getExpiredFromTomorrow() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(getNow());
+        c.add(Calendar.DATE, 2);
+        return c.getTime();
+    }
+
     static void mockConfigurationRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubFor(get(urlMatching("/.well-known/openid-configuration"))
+        stubFor(get(urlPathMatching("/.well-known/openid-configuration"))
                 .willReturn(responseDefinitionBuilder));
     }
 
     static void mockWebAuthorizeRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubFor(get(urlMatching("/"))
+        stubFor(get(urlPathMatching("/authorize.*"))
                 .willReturn(responseDefinitionBuilder));
     }
 

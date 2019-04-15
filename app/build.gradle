@@ -4,7 +4,7 @@ apply from: "${rootDir}/gradle/style.gradle"
 
 android {
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 24
         compileSdkVersion 28
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
@@ -88,10 +88,14 @@ task prepareDeviceForUITesting(type: Exec) {
     // Enable Don't keep activities
     def dont_keep_activities = ['adb', 'shell', 'settings', 'put', 'global', 'always_finish_activities', '1']
 
+    // push keystore file to sdcard
+    def keystore_file = ['adb', 'push', 'src/androidTest/assets/mock.keystore.bks', '/sdcard/Download/' ]
+
     commandLine anim_window
     commandLine anim_transition
     commandLine animator
     commandLine dont_keep_activities
+    commandLine keystore_file
 }
 
 task clearData(type: Exec) {

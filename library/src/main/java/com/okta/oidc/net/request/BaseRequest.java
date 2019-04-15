@@ -16,7 +16,6 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
-import com.okta.oidc.BuildConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -48,10 +47,9 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
 
     @WorkerThread
     protected HttpResponse openConnection() throws IOException {
-        if (!BuildConfig.DEBUG) { //allow http in debug
-            Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
-                    "only https connections are permitted");
-        }
+        Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
+                "only https connections are permitted");
+
         HttpURLConnection conn = mConnection.openConnection(new URL(mUri.toString()));
         conn.connect();
         if (mCanceled) {
