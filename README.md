@@ -18,5 +18,5 @@ In the case that you override the 'onActivityResult' method you must invoke 'sup
 1. Make sure you have latest version of Chrome browser. Last version for success test is 73.0.3683.90
 2. Install debug app on device
 3. Clear cache in app and chrome browser using gradle command: app:clearData
-4. Add app ability to makes change in Settings. Run gradle command: app:grantAppWithWriteSecureSettingsPermission
+4. Prepare device for UI testing using gradle command: app:prepareDeviceForUITesting
 5. Run Android tests.

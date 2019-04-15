@@ -24,6 +24,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:ems="10"
+        android:importantForAutofill="noExcludeDescendants"
         android:hint="Password"
         android:inputType="textPassword" />
 
@@ -34,5 +35,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:importantForAutofill="noExcludeDescendants"
         android:text="Sign in" />
 </LinearLayout>

@@ -59,6 +59,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
 
+import static com.okta.oidc.State.IDLE;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
@@ -269,8 +270,16 @@ public class SyncAuthenticationClient {
         return new Tokens(response);
     }
 
-    public State getCurrentState() {
-        return mOktaState.getCurrentState();
+    public AuthorizationStatus getAuthorizationStatus() {
+        if(mOktaState.getCurrentState() != IDLE) {
+            return AuthorizationStatus.IN_PROGRESS;
+        }
+
+        if(isLoggedIn()) {
+            return AuthorizationStatus.AUTHORIZED;
+        } else {
+            return AuthorizationStatus.LOGGED_OUT;
+        }
     }
 
     @AnyThread
@@ -395,7 +404,7 @@ public class SyncAuthenticationClient {
     }
 
     private void resetCurrentState() {
-        mOktaState.setCurrentState(State.IDLE);
+        mOktaState.setCurrentState(IDLE);
     }
 
     public interface ResultListener {

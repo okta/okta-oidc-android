@@ -81,7 +81,9 @@ public class SampleActivityTest {
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-        Settings.Global.putInt(activityRule.getActivity().getContentResolver(), Settings.Global.ALWAYS_FINISH_ACTIVITIES, 1);
+        USERNAME = BuildConfig.USERNAME;
+        PASSWORD = BuildConfig.PASSWORD;
+
     }
 
     private UiObject getProgressBar() {
@@ -316,40 +318,5 @@ public class SampleActivityTest {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
-    }
-
-    @Test
-    public void testC_signOutFromOkta_inProgress() throws InterruptedException {
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_out)).perform(doubleClick());
-//        onView(withId(R.id.sign_out)).perform(click());
-
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("in progress"))));
-
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        //check if state is "in progress"
-        onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-//        onView(withId(R.id.clear_data)).perform(click());
-    }
-
-    @Test
-    public void testD_loginNoSession_inProgress() throws UiObjectNotFoundException  {
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in)).perform(doubleClick());
-
-        //check if state is "in progress"
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("in progress"))));
-
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        UiSelector selector = new UiSelector();
-        UiObject closeBrowser = mDevice.findObject(selector.resourceId(ID_CLOSE_BROWSER));
-        closeBrowser.click();
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
     }
 }

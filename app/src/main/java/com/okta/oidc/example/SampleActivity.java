@@ -340,7 +340,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     @Override
     protected void onResume() {
         super.onResume();
-        if(mOktaAuth.getCurrentState() != State.IDLE) {
+        if(mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
     }

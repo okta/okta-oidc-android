@@ -32,7 +32,6 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.ColorInt;
@@ -124,8 +123,8 @@ public final class AuthenticateClient {
         return mAuthClient.getTokens();
     }
 
-    public State getCurrentState() {
-        return mAuthClient.getCurrentState();
+    public AuthorizationStatus getAuthorizationStatus() {
+        return mAuthClient.getAuthorizationStatus();
     }
 
     public boolean isLoggedIn() {
@@ -147,10 +146,6 @@ public final class AuthenticateClient {
     }
 
     private void logIn(@Nullable final FragmentActivity activity, AuthenticationPayload payload, String sessionToken) {
-        if (mAuthClient.getCurrentState() != State.IDLE) {
-            mResultCb.onSuccess(AuthorizationStatus.IN_PROGRESS);
-            return;
-        }
         if (activity != null) {
             registerActivityLifeCycle(activity);
         }
@@ -164,49 +159,77 @@ public final class AuthenticateClient {
                 }
                 processLogInResult(result);
             } catch (InterruptedException e) {
-                mDispatcher.submitResults(() -> mResultCb.onCancel());
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onCancel();
+                    }
+                });
             }
         });
     }
 
     private void processLogInResult(AuthorizationResult result) {
         if (result.isSuccess()) {
-            mDispatcher.submitResults(() -> mResultCb.onSuccess(
-                    AuthorizationStatus.AUTHORIZED));
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onSuccess(
+                            AuthorizationStatus.AUTHORIZED);
+                }
+            });
         } else if (result.isCancel()) {
-            mDispatcher.submitResults(() -> mResultCb.onCancel());
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onCancel();
+                }
+            });
         } else {
-            mDispatcher.submitResults(() -> mResultCb.onError("Authorization error",
-                    result.getError()));
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onError("Authorization error",
+                            result.getError());
+                }
+            });
         }
     }
 
     @AnyThread
     public void signOutFromOkta(@NonNull final FragmentActivity activity) {
-        if (mAuthClient.getCurrentState() != State.IDLE) {
-            mResultCb.onSuccess(AuthorizationStatus.IN_PROGRESS);
-            return;
-        }
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
                 Result result = mAuthClient.signOutFromOkta(activity);
                 processSignOutResult(result);
             } catch (InterruptedException e) {
-                mDispatcher.submitResults(() -> mResultCb.onCancel());
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onCancel();
+                    }
+                });
             }
         });
     }
 
     private void processSignOutResult(Result result) {
         if (result.isSuccess()) {
-            mDispatcher.submitResults(() -> mResultCb.onSuccess(
-                    AuthorizationStatus.LOGGED_OUT));
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onSuccess(
+                            AuthorizationStatus.LOGGED_OUT);
+                }
+            });
         } else if (result.isCancel()) {
-            mDispatcher.submitResults(() -> mResultCb.onCancel());
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onCancel();
+                }
+            });
         } else {
-            mDispatcher.submitResults(() -> mResultCb.onError("Log out error",
-                    result.getError()));
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onError("Log out error",
+                            result.getError());
+                }
+            });
         }
     }
 
