@@ -16,426 +16,176 @@ package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.net.Uri;
-import android.os.Bundle;
-import android.support.annotation.AnyThread;
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
-import android.text.TextUtils;
-import android.util.Log;
 
-import com.google.gson.Gson;
-import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
-import com.okta.oidc.net.request.ConfigurationRequest;
-import com.okta.oidc.net.request.HttpRequest;
-import com.okta.oidc.net.request.HttpRequestBuilder;
-import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.request.TokenRequest;
-
-import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.request.IntrospectRequest;
+import com.okta.oidc.net.request.RevokeTokenRequest;
+import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
-import com.okta.oidc.net.response.web.AuthorizeResponse;
-import com.okta.oidc.net.request.web.LogoutRequest;
-import com.okta.oidc.net.response.web.LogoutResponse;
-import com.okta.oidc.net.request.web.WebRequest;
-import com.okta.oidc.net.response.web.WebResponse;
+import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.util.AuthorizationException;
-import com.okta.oidc.util.CodeVerifierUtil;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 
-import static android.app.Activity.RESULT_CANCELED;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_AUTH_URI;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_TAB_OPTIONS;
-import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
-import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
-import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
+import androidx.annotation.AnyThread;
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 public final class AuthenticateClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();
-    private static final String AUTH_REQUEST_PREF = "AuthRequest";
-    private static final String AUTH_RESPONSE_PREF = "AuthResponse";
-    //need to restore auth.
-    private static final String AUTH_RESTORE_PREF = AuthenticateClient.class.getCanonicalName() + ".AuthRestore";
 
-    private WeakReference<Activity> mActivity;
-    private OIDCAccount mOIDCAccount;
-    private Map<String, String> mAdditionalParams;
-    private int mCustomTabColor;
-    private String mState;
-    private String mLoginHint;
+    private WeakReference<FragmentActivity> mActivity;
 
+    private SyncAuthenticationClient mAuthClient;
     private RequestDispatcher mDispatcher;
-    private WebRequest mAuthorizeRequest;
-    private WebResponse mAuthResponse;
 
-    private HttpConnectionFactory mConnectionFactory;
-    private ResultCallback<Boolean, AuthorizationException> mResultCb;
-    private static boolean sResultHandled = false;
-    private HttpRequest mCurrentHttpRequest;
-    public static final int REQUEST_CODE_SIGN_IN = 100;
-    public static final int REQUEST_CODE_SIGN_OUT = 101;
-    //Hold the exception to send to onActivityResult
-    private AuthorizationException mErrorActivityResult;
+    private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
 
     private AuthenticateClient(@NonNull Builder builder) {
-        mConnectionFactory = builder.mConnectionFactory;
-        mOIDCAccount = builder.mOIDCAccount;
-        mCustomTabColor = builder.mCustomTabColor;
-        mAdditionalParams = builder.mAdditionalParams;
-        mState = builder.mState;
-        mLoginHint = builder.mLoginHint;
+        mAuthClient = new SyncAuthenticationClient(builder.mConnectionFactory, builder.mOIDCAccount,
+                builder.mCustomTabColor, builder.mStorage, builder.mContext,
+                builder.mSupportedBrowsers);
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
     }
 
-    private void registerActivityLifeCycle(@NonNull final Activity activity) {
+    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
+        mResultCb = resultCallback;
+        registerActivityLifeCycle(activity);
+    }
+
+    private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
         mActivity = new WeakReference<>(activity);
         mActivity.get().getApplication().registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
-            @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                if (mActivity != null && mActivity.get() == activity) {
-                    persist();
-                }
-            }
-
             @Override
             public void onActivityDestroyed(Activity activity) {
                 if (mActivity != null && mActivity.get() == activity) {
                     stop();
-                    mActivity.get().getApplication().unregisterActivityLifecycleCallbacks(this);
+                    activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+                    mResultCb = null;
                 }
             }
         });
     }
 
-    //TODO move saving request to a request objects
-    private void persist() {
-        SharedPreferences prefs = mActivity.get().getSharedPreferences(AuthenticateClient.class.getCanonicalName(), Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(AUTH_RESTORE_PREF, true);
-        if (mAuthorizeRequest != null) {
-            editor.putString(AUTH_REQUEST_PREF, mAuthorizeRequest.asJson());
-        }
-        if (mAuthResponse != null) {
-            editor.putString(AUTH_RESPONSE_PREF, mAuthResponse.asJson());
-        }
-        if (mOIDCAccount != null) {
-            mOIDCAccount.persist(editor);
-        }
-        editor.apply();
-    }
-
-    private void restore(Activity activity) {
-        SharedPreferences prefs = activity.getSharedPreferences(AuthenticateClient.class.getCanonicalName(), Context.MODE_PRIVATE);
-        if (prefs.getBoolean(AUTH_RESTORE_PREF, false)) {
-            try {
-                String json = prefs.getString(AUTH_REQUEST_PREF, null);
-                if (json != null) {
-                    mAuthorizeRequest = AuthorizeRequest.fromJson(json);
-                }
-                json = prefs.getString(AUTH_RESPONSE_PREF, null);
-                if (json != null) {
-                    mAuthResponse = new Gson().fromJson(json, AuthorizeResponse.class);
-                }
-                mOIDCAccount.restore(prefs);
-                clearPreferences();
-            } catch (JSONException ex) {
-                //NO-OP
-            }
-        }
-    }
-
-    private void clearPreferences() {
-        SharedPreferences prefs = mActivity.get()
-                .getSharedPreferences(AuthenticateClient.class.getCanonicalName(),
-                        Context.MODE_PRIVATE);
-        prefs.edit().remove(AUTH_RESPONSE_PREF)
-                .remove(AUTH_REQUEST_PREF)
-                .remove(AUTH_RESTORE_PREF)
-                .apply();
-    }
-    //end
-
-    private void cancelCurrentRequest() {
-        if (mCurrentHttpRequest != null) {
-            mCurrentHttpRequest.cancelRequest();
-            mCurrentHttpRequest = null;
-        }
-    }
-
-    public ConfigurationRequest configurationRequest() {
-        cancelCurrentRequest();
-        mCurrentHttpRequest = HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
-                .connectionFactory(mConnectionFactory)
-                .account(mOIDCAccount).createRequest();
-        return (ConfigurationRequest) mCurrentHttpRequest;
-    }
-
-    public AuthorizedRequest userProfileRequest() {
-        cancelCurrentRequest();
-        mCurrentHttpRequest = HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.PROFILE)
-                .connectionFactory(mConnectionFactory)
-                .account(mOIDCAccount).createRequest();
-        return (AuthorizedRequest) mCurrentHttpRequest;
-    }
-
-    public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
-                                               @NonNull HttpConnection.RequestMethod method) {
-        cancelCurrentRequest();
-        mCurrentHttpRequest = HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.AUTHORIZED)
-                .connectionFactory(mConnectionFactory)
-                .account(mOIDCAccount)
-                .uri(uri)
-                .properties(properties)
-                .postParameters(postParameters)
-                .createRequest();
-        return (AuthorizedRequest) mCurrentHttpRequest;
-    }
-
     public void getUserProfile(final RequestCallback<JSONObject, AuthorizationException> cb) {
-        cancelCurrentRequest();
-        AuthorizedRequest request = userProfileRequest();
+        AuthorizedRequest request = mAuthClient.userProfileRequest();
         request.dispatchRequest(mDispatcher, cb);
     }
 
-    @AnyThread
-    public void logIn(@NonNull final Activity activity) {
-        if (!mOIDCAccount.haveConfiguration()) {
-            ConfigurationRequest request = configurationRequest();
-            mCurrentHttpRequest = request;
-            request.dispatchRequest(mDispatcher, new RequestCallback<ProviderConfiguration, AuthorizationException>() {
-                @Override
-                public void onSuccess(@NonNull ProviderConfiguration result) {
-                    mOIDCAccount.setProviderConfig(result);
-                    authorizationRequest(activity);
-                }
+    public void revokeToken(String token, final RequestCallback<Boolean, AuthorizationException> cb) {
+        RevokeTokenRequest request = mAuthClient.revokeTokenRequest(token);
+        request.dispatchRequest(mDispatcher, cb);
+    }
 
-                @Override
-                public void onError(String error, AuthorizationException exception) {
-                    Log.w(TAG, "can't obtain discovery doc", exception);
-                    mErrorActivityResult = exception;
-                    //Authorize anyways the error will be passed to app.
-                    authorizationRequest(activity);
-                }
-            });
-        } else {
-            authorizationRequest(activity);
-        }
+    public void introspectToken(String token, String tokenType,
+                                final RequestCallback<IntrospectResponse, AuthorizationException> cb) {
+        IntrospectRequest request = mAuthClient.introspectTokenRequest(token, tokenType);
+        request.dispatchRequest(mDispatcher, cb);
+    }
+
+    public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
+        //Wrap the callback from the app because we want to be consistent in
+        //returning a Tokens object instead of a TokenResponse.
+        mAuthClient.refreshTokenRequest().dispatchRequest(mDispatcher,
+                new RequestCallback<TokenResponse, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull TokenResponse result) {
+                        mAuthClient.mOktaState.save(result);
+                        cb.onSuccess(new Tokens(result));
+                    }
+
+                    @Override
+                    public void onError(String error, AuthorizationException exception) {
+                        cb.onError(error, exception);
+                    }
+                });
+    }
+
+    public Tokens getTokens() {
+        return mAuthClient.getTokens();
+    }
+
+    public boolean isLoggedIn() {
+        return mAuthClient.isLoggedIn();
+    }
+
+    public void clear() {
+        mAuthClient.clear();
     }
 
     @AnyThread
-    public boolean logOut(@NonNull final Activity activity) {
-        sResultHandled = false;
-        if (mOIDCAccount.isLoggedIn()) {
+    public void logIn(String sessionToken, AuthenticationPayload payload) {
+        logIn(null, payload, sessionToken);
+    }
+
+    @AnyThread
+    public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
+        logIn(activity, payload, null);
+    }
+
+    private void logIn(@Nullable final FragmentActivity activity, AuthenticationPayload payload, String sessionToken) {
+        if (activity != null) {
             registerActivityLifeCycle(activity);
-            mAuthorizeRequest = new LogoutRequest.Builder().account(mOIDCAccount)
-                    .state(CodeVerifierUtil.generateRandomState())
-                    .create();
-            Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            mActivity.get().startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
-            return false;
         }
-        return true;
-    }
-
-    private boolean validateResponse(Activity activity, Uri responseUri, int requestCode) {
-        boolean result = true;
-        if (responseUri.getQueryParameterNames().contains(AuthorizationException.PARAM_ERROR)) {
-            AuthorizationException exception = AuthorizationException.fromOAuthRedirect(responseUri);
-            mResultCb.onError("Response error", exception);
-            return false;
-        } else {
-            if (mAuthorizeRequest == null) {
-                restore(activity);
-                if (mAuthorizeRequest == null) {
-                    mResultCb.onError("Response error", USER_CANCELED_AUTH_FLOW);
-                    return false;
-                }
-            }
-            mAuthResponse = requestCode == REQUEST_CODE_SIGN_IN ?
-                    AuthorizeResponse.fromUri(responseUri) : LogoutResponse.fromUri(responseUri);
-
-            String requestState = mAuthorizeRequest.getState();
-            String responseState = mAuthResponse.getState();
-            if (requestState == null && responseState != null
-                    || (requestState != null && !requestState
-                    .equals(responseState))) {
-                mResultCb.onError("Mismatch states", AuthorizationException.AuthorizationRequestErrors.STATE_MISMATCH);
-                result = false;
-            }
-        }
-        return result;
-    }
-
-    //true indicates that code exchange will be done in background.
-    public boolean handleAuthorizationResponse(Activity activity, int requestCode, int resultCode, Intent data, ResultCallback<Boolean, AuthorizationException> cb) {
-        boolean exchange = false;
-        //TODO clean up
-        if ((requestCode == REQUEST_CODE_SIGN_IN || requestCode == REQUEST_CODE_SIGN_OUT) && !sResultHandled) {
-            if (resultCode == RESULT_CANCELED) {
-                cb.onCancel();
-            } else {
-                mResultCb = cb;
-                Uri response = data.getData();
-                if (response != null && validateResponse(activity, response, requestCode)) {
-                    if (requestCode == REQUEST_CODE_SIGN_OUT) {
-                        mResultCb.onSuccess(true);
-                    } else {
-                        tokenExchange();
-                        exchange = true;
-                    }
+        mDispatcher.execute(() -> {
+            try {
+                AuthorizationResult result;
+                if (sessionToken != null) {
+                    result = mAuthClient.logInNative(sessionToken, payload);
                 } else {
-                    Bundle bundle = data.getExtras();
-                    if (bundle != null) {
-                        String json = bundle.getString(EXTRA_EXCEPTION, null);
-                        if (json != null) {
-                            try {
-                                AuthorizationException exception = AuthorizationException.fromJson(json);
-                                mResultCb.onError(exception.errorDescription, exception);
-                            } catch (JSONException e) {
-                                mResultCb.onError("Json error", AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
-                            }
-                        }
-                    } else {
-                        mResultCb.onError("Empty response", AuthorizationException.GeneralErrors.INVALID_REGISTRATION_RESPONSE);
-                    }
+                    result = mAuthClient.logIn(activity, payload);
                 }
+                if (result.isSuccess()) {
+                    mDispatcher.submitResults(() -> mResultCb.onSuccess(
+                            AuthorizationStatus.AUTHORIZED));
+                } else {
+                    mDispatcher.submitResults(() -> mResultCb.onError("Authorization error",
+                            result.getError()));
+                }
+            } catch (InterruptedException e) {
+                mDispatcher.submitResults(() -> mResultCb.onCancel());
             }
-            clearPreferences();
-            sResultHandled = true;
-        }
-        return exchange;
+        });
+    }
+
+    @AnyThread
+    public void signOutFromOkta(@NonNull final FragmentActivity activity) {
+        registerActivityLifeCycle(activity);
+        mDispatcher.execute(() -> {
+            try {
+                Result result = mAuthClient.signOutFromOkta(activity);
+                if (result.isSuccess()) {
+                    mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
+                } else {
+                    mDispatcher.submitResults(() -> mResultCb.onError("Log out error", result.getError()));
+                }
+            } catch (InterruptedException e) {
+                mDispatcher.submitResults(() -> mResultCb.onCancel());
+            }
+        });
     }
 
     private void stop() {
         mResultCb = null;
-        cancelCurrentRequest();
         mDispatcher.shutdown();
     }
 
-    private void authorizationRequest(Activity activity) {
-        sResultHandled = false;
-        registerActivityLifeCycle(activity);
-        if (mOIDCAccount.haveConfiguration()) {
-            mAuthorizeRequest = createAuthorizeRequest();
-            if (!isRedirectUrisRegistered(mOIDCAccount.getRedirectUri())) {
-                Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
-                mErrorActivityResult = INVALID_REDIRECT_URI;
-            }
-        } else if (mErrorActivityResult == null) {
-            mErrorActivityResult = AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
-        }
-        activity.startActivityForResult(createAuthIntent(), REQUEST_CODE_SIGN_IN);
-    }
-
-    private AuthorizeRequest createAuthorizeRequest() {
-        AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
-        builder.account(mOIDCAccount);
-        if (mAdditionalParams != null) {
-            builder.additionalParams(mAdditionalParams);
-        }
-        if (!TextUtils.isEmpty(mState)) {
-            builder.state(mState);
-        }
-        if (!TextUtils.isEmpty(mLoginHint)) {
-            builder.state(mLoginHint);
-        }
-        return builder.create();
-    }
-
-    @WorkerThread
-    private void tokenExchange() {
-        mCurrentHttpRequest = HttpRequestBuilder.newRequest().request(TOKEN_EXCHANGE).account(mOIDCAccount)
-                .authRequest((AuthorizeRequest) mAuthorizeRequest)
-                .authResponse((AuthorizeResponse) mAuthResponse)
-                .createRequest();
-
-        ((TokenRequest) mCurrentHttpRequest).dispatchRequest(mDispatcher, new RequestCallback<TokenResponse, AuthorizationException>() {
-            @Override
-            public void onSuccess(@NonNull TokenResponse result) {
-                mOIDCAccount.setTokenResponse(result);
-                mResultCb.onSuccess(true);
-            }
-
-            @Override
-            public void onError(String error, AuthorizationException exception) {
-                mResultCb.onError("Failed to complete exchange request", exception);
-            }
-        });
-    }
-
-    private Intent createAuthIntent() {
-        Intent intent = new Intent(mActivity.get(), OktaAuthenticationActivity.class);
-        if (mAuthorizeRequest != null) {
-            intent.putExtra(EXTRA_AUTH_URI, mAuthorizeRequest.toUri());
-        }
-        intent.putExtra(EXTRA_TAB_OPTIONS, mCustomTabColor);
-        if (mErrorActivityResult != null) {
-            intent.putExtra(EXTRA_EXCEPTION, mErrorActivityResult.toJsonString());
-            mErrorActivityResult = null;
-        }
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        return intent;
-    }
-
-    private boolean isRedirectUrisRegistered(@NonNull Uri uri) {
-        PackageManager pm = mActivity.get().getPackageManager();
-        List<ResolveInfo> resolveInfos = null;
-        if (pm != null) {
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setData(uri);
-            resolveInfos = pm.queryIntentActivities(intent, PackageManager.GET_RESOLVED_FILTER);
-        }
-        boolean found = false;
-        if (resolveInfos != null) {
-            for (ResolveInfo info : resolveInfos) {
-                ActivityInfo activityInfo = info.activityInfo;
-                if (activityInfo.name.equals(OktaRedirectActivity.class.getCanonicalName()) &&
-                        activityInfo.packageName.equals(mActivity.get().getPackageName())) {
-                    found = true;
-                } else {
-                    Log.w(TAG, "Warning! Multiple " +
-                            "applications found registered with same scheme");
-                    //Another installed app have same url scheme.
-                    //return false as if no activity found to prevent hijacking of redirect.
-                    return false;
-                }
-            }
-        }
-        return found;
-    }
-
-    public static final class Builder {
+    public static class Builder {
         private Executor mCallbackExecutor;
         private HttpConnectionFactory mConnectionFactory;
         private OIDCAccount mOIDCAccount;
-        private Map<String, String> mAdditionalParams;
         private int mCustomTabColor;
-        private String mState;
-        private String mLoginHint;
+        private OktaStorage mStorage;
+        private Context mContext;
+        private String[] mSupportedBrowsers;
 
         public Builder() {
         }
@@ -449,33 +199,34 @@ public final class AuthenticateClient {
             return this;
         }
 
-        public Builder withParameters(@NonNull Map<String, String> parameters) {
-            mAdditionalParams = parameters;
-            return this;
-        }
-
         public Builder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
             return this;
         }
 
-        public Builder withState(@NonNull String state) {
-            mState = state;
-            return this;
-        }
-
-        public Builder withLoginHint(@NonNull String loginHint) {
-            mLoginHint = loginHint;
-            return this;
-        }
-
-        public Builder callbackExecutor(Executor executor) {
+        public Builder withCallbackExecutor(Executor executor) {
             mCallbackExecutor = executor;
             return this;
         }
 
-        public Builder httpConnectionFactory(HttpConnectionFactory connectionFactory) {
+        public Builder withHttpConnectionFactory(HttpConnectionFactory connectionFactory) {
             mConnectionFactory = connectionFactory;
+            return this;
+        }
+
+        public Builder withStorage(OktaStorage storage) {
+            this.mStorage = storage;
+            return this;
+        }
+
+
+        public Builder withContext(Context context) {
+            this.mContext = context;
+            return this;
+        }
+
+        public Builder supportedBrowsers(String... browsers) {
+            mSupportedBrowsers = browsers;
             return this;
         }
     }

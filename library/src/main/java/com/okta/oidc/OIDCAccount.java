@@ -15,18 +15,13 @@
 package com.okta.oidc;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RawRes;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,44 +34,19 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
+
 /*
     Okta OIDC application information
  */
 public class OIDCAccount {
     private static final String TAG = OIDCAccount.class.getSimpleName();
-    private static final String KEY_PREFS_CONFIG = "provider_config";
-    private static final String KEY_PREFS_ACCOUNT = "account_info";
 
-    private TokenResponse mTokenResponse;
     private AccountInfo mAccount;
-    private ProviderConfiguration mProviderConfig;
 
     private OIDCAccount(AccountInfo account) {
         mAccount = account;
-    }
-
-    void persist(SharedPreferences.Editor editor) {
-        Gson gson = new Gson();
-        editor.putString(KEY_PREFS_ACCOUNT, gson.toJson(mAccount));
-        if (mProviderConfig != null) {
-            editor.putString(KEY_PREFS_CONFIG, gson.toJson(mProviderConfig));
-        }
-    }
-
-    void restore(SharedPreferences prefs) throws JSONException {
-        Gson gson = new Gson();
-        String account = prefs.getString(KEY_PREFS_ACCOUNT, null);
-        String config = prefs.getString(KEY_PREFS_CONFIG, null);
-        if (account != null) {
-            gson.fromJson(account, AccountInfo.class);
-        }
-        if (config != null) {
-            mProviderConfig = gson.fromJson(config, ProviderConfiguration.class);
-        }
-    }
-
-    void setTokenResponse(TokenResponse token) {
-        mTokenResponse = token;
     }
 
     public String getClientId() {
@@ -92,43 +62,12 @@ public class OIDCAccount {
     }
 
     public Uri getDiscoveryUri() {
-        return Uri.parse(mAccount.mDiscoveryUri);
+        return Uri.parse(mAccount.mDiscoveryUri +
+                ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE);
     }
 
     public String[] getScopes() {
         return mAccount.mScopes;
-    }
-
-    public boolean haveConfiguration() {
-        return mProviderConfig != null;
-    }
-
-    public ProviderConfiguration getProviderConfig() {
-        return mProviderConfig;
-    }
-
-    public void setProviderConfig(ProviderConfiguration config) {
-        mProviderConfig = config;
-    }
-
-    public boolean isLoggedIn() {
-        return mTokenResponse != null && (mTokenResponse.getAccessToken() != null
-                || mTokenResponse.getIdToken() != null);
-    }
-
-    public @Nullable
-    String getAccessToken() {
-        return mTokenResponse.getAccessToken();
-    }
-
-    public @Nullable
-    String getIdToken() {
-        return mTokenResponse.getIdToken();
-    }
-
-    public @Nullable
-    String getRefreshToken() {
-        return mTokenResponse.getRefreshToken();
     }
 
     private static class AccountInfo {
@@ -170,7 +109,6 @@ public class OIDCAccount {
         }
 
         public OIDCAccount create() {
-            mAccountInfo.mDiscoveryUri += ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE;
             mAccountInfo.validate();
             return new OIDCAccount(mAccountInfo);
         }

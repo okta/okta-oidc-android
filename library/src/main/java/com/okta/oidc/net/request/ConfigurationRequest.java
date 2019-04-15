@@ -14,9 +14,6 @@
  */
 package com.okta.oidc.net.request;
 
-import android.support.annotation.RestrictTo;
-import android.support.annotation.WorkerThread;
-
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -29,7 +26,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public final class ConfigurationRequest extends
@@ -83,7 +83,7 @@ public final class ConfigurationRequest extends
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR,
                     ex);
-        } catch (ProviderConfiguration.MissingArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT,
                     ex);

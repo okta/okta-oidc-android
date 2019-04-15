@@ -14,11 +14,11 @@
  */
 package com.okta.oidc.net;
 
-import android.support.annotation.NonNull;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import androidx.annotation.NonNull;
 
 public interface HttpConnectionFactory {
 

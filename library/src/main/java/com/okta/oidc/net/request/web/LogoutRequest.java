@@ -15,25 +15,23 @@
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 //https://developer.okta.com/docs/api/resources/oidc#logout
-public class LogoutRequest implements WebRequest {
+public class LogoutRequest extends WebRequest {
     private Parameters mParameters;
 
-    private LogoutRequest(Parameters parameters) {
+    LogoutRequest(Parameters parameters) {
         mParameters = parameters;
-    }
-
-    //Convert the parameters as json to save
-    @Override
-    public String asJson() {
-        return new Gson().toJson(mParameters);
     }
 
     @Override
@@ -45,8 +43,24 @@ public class LogoutRequest implements WebRequest {
     }
 
     @Override
+    @NonNull
     public Uri toUri() {
         return mParameters.toUri();
+    }
+
+    @NonNull
+    public String getKey() {
+        return RESTORE.getKey();
+    }
+
+    @Override
+    public String persist() {
+        return new Gson().toJson(mParameters);
+    }
+
+    @Override
+    public boolean encrypt() {
+        return RESTORE.encrypted();
     }
 
     static class Parameters {
@@ -55,14 +69,12 @@ public class LogoutRequest implements WebRequest {
         }
 
         String end_session_endpoint; //required
-        String client_id; //required
         String id_token_hint; //required
         String post_logout_redirect_uri; //required
         String state;
 
         Uri toUri() {
             Uri.Builder uriBuilder = Uri.parse(end_session_endpoint).buildUpon()
-                    .appendQueryParameter("client_id", client_id)
                     .appendQueryParameter("id_token_hint", id_token_hint);
             appendOptionalParams(uriBuilder, "post_logout_redirect_uri",
                     post_logout_redirect_uri);
@@ -81,7 +93,15 @@ public class LogoutRequest implements WebRequest {
         private Parameters mParameters;
 
         private void validate() {
-            //TODO validate all parameters
+            if (TextUtils.isEmpty(mParameters.end_session_endpoint)) {
+                throw new IllegalArgumentException("end_session_endpoint missing");
+            }
+            if (TextUtils.isEmpty(mParameters.id_token_hint)) {
+                throw new IllegalArgumentException("id_token_hint missing");
+            }
+            if (TextUtils.isEmpty(mParameters.post_logout_redirect_uri)) {
+                throw new IllegalArgumentException("post_logout_redirect_uri missing");
+            }
         }
 
         public Builder() {
@@ -92,11 +112,6 @@ public class LogoutRequest implements WebRequest {
         public LogoutRequest create() {
             validate();
             return new LogoutRequest(mParameters);
-        }
-
-        public Builder clientId(@NonNull String clientId) {
-            mParameters.client_id = clientId;
-            return this;
         }
 
         public Builder idTokenHint(@NonNull String idToken) {
@@ -119,10 +134,17 @@ public class LogoutRequest implements WebRequest {
             return this;
         }
 
+        public Builder provideConfiguration(@NonNull ProviderConfiguration providerConfiguration) {
+            mParameters.end_session_endpoint = providerConfiguration.end_session_endpoint;
+            return this;
+        }
+
+        public Builder tokenResponse(@NonNull TokenResponse tokenResponse) {
+            mParameters.id_token_hint = tokenResponse.getIdToken();
+            return this;
+        }
+
         public Builder account(OIDCAccount account) {
-            mParameters.end_session_endpoint = account.getProviderConfig().end_session_endpoint;
-            mParameters.client_id = account.getClientId();
-            mParameters.id_token_hint = account.getIdToken();
             mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
             return this;
         }

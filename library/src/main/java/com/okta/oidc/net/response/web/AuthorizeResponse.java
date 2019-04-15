@@ -18,8 +18,11 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 
+import androidx.annotation.NonNull;
+
 //https://developer.okta.com/docs/api/resources/oidc#response-properties
-public class AuthorizeResponse implements WebResponse {
+public class AuthorizeResponse extends WebResponse {
+    private String request_type;
     private String code;
     private String error;
     private String error_description;
@@ -30,12 +33,7 @@ public class AuthorizeResponse implements WebResponse {
     private String token_type;
 
     private AuthorizeResponse() {
-        //NO-OP
-    }
-
-    @Override
-    public String asJson() {
-        return new Gson().toJson(this);
+        request_type = "authorize";
     }
 
     public static AuthorizeResponse fromUri(Uri uri) {
@@ -58,5 +56,29 @@ public class AuthorizeResponse implements WebResponse {
 
     public String getCode() {
         return code;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public String getErrorDescription() {
+        return error_description;
+    }
+
+    @NonNull
+    @Override
+    public String getKey() {
+        return RESTORE.getKey();
+    }
+
+    @Override
+    public String persist() {
+        return new Gson().toJson(this);
+    }
+
+    @Override
+    public boolean encrypt() {
+        return RESTORE.encrypted();
     }
 }

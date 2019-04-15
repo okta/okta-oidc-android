@@ -15,39 +15,59 @@
 package com.okta.oidc;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.customtabs.CustomTabsIntent;
+import android.util.Log;
 
-import com.okta.oidc.browser.BrowserDescriptor;
-import com.okta.oidc.browser.BrowserSelector;
-import com.okta.oidc.browser.BrowserWhitelist;
-import com.okta.oidc.browser.CustomTabManager;
-import com.okta.oidc.browser.VersionedBrowserMatcher;
+import com.okta.oidc.util.AuthorizationException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsService;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
 
 public class OktaAuthenticationActivity extends Activity {
+    private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
     static final String EXTRA_AUTH_STARTED = "com.okta.auth.AUTH_STARTED";
     static final String EXTRA_AUTH_URI = "com.okta.auth.AUTH_URI";
     static final String EXTRA_TAB_OPTIONS = "com.okta.auth.TAB_OPTIONS";
     static final String EXTRA_EXCEPTION = "com.okta.auth.EXCEPTION";
+    static final String EXTRA_BROWSERS = "com.okta.auth.BROWSERS";
 
-    private CustomTabManager mTabManager;
+    private static final String CHROME_STABLE = "com.android.chrome";
+    private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
+    private static final String CHROME_BETA = "com.android.chrome.beta";
 
-    private boolean mAuthStarted = false;
+    @VisibleForTesting
+    protected Set<String> mSupportedBrowsers = new LinkedHashSet<>();
+
+    private CustomTabsServiceConnection mConnection;
+    @VisibleForTesting
+    protected boolean mAuthStarted = false;
     private Uri mAuthUri;
-    private int mCustomTabColor;
+    @VisibleForTesting
+    protected int mCustomTabColor;
+    private boolean mBound = false;
+    private boolean mResultSent = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //In case redirect activity created a new instance of auth activity.
-        if (OktaRedirectActivity.REDIRECT_ACTION.equals(getIntent().getAction())) {
-            setResult(RESULT_CANCELED);
-            finish();
-            return;
-        }
-
         Bundle bundle;
         if (savedInstanceState == null) {
             bundle = getIntent().getExtras();
@@ -56,24 +76,20 @@ public class OktaAuthenticationActivity extends Activity {
         }
 
         if (bundle != null) {
-            if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
-                //login encountered exception pass same intent back to activity to handle.
-                sendResult(RESULT_OK, getIntent());
-                finish();
-                return;
-            }
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
             mCustomTabColor = bundle.getInt(EXTRA_TAB_OPTIONS, -1);
             mAuthStarted = bundle.getBoolean(EXTRA_AUTH_STARTED, false);
-            Intent browserIntent = createBrowserIntent();
-            if (browserIntent != null) {
-                startActivity(browserIntent);
-                mAuthStarted = true;
-            } else {
-                setResult(RESULT_CANCELED);
-                finish();
+            if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
+                //login encountered exception pass same intent back to activity to handle.
+                sendResult(RESULT_CANCELED, getIntent());
+                return;
+            }
+            String[] list = bundle.getStringArray(EXTRA_BROWSERS);
+            if (list != null) {
+                mSupportedBrowsers.addAll(Arrays.asList(list));
             }
         }
+        mSupportedBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
     }
 
     @Override
@@ -87,11 +103,18 @@ public class OktaAuthenticationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!mAuthStarted) {
+        if (mAuthStarted) {
             // The custom tab was closed without getting a result.
             sendResult(RESULT_CANCELED, null);
+        } else {
+            String browser = getBrowser();
+            if (browser != null && !mResultSent) {
+                bindServiceAndStart(browser);
+            } else {
+                sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
+                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
+            }
         }
-        mAuthStarted = false;
     }
 
     @Override
@@ -103,39 +126,95 @@ public class OktaAuthenticationActivity extends Activity {
         }
     }
 
-    private Intent createBrowserIntent() {
-        BrowserDescriptor descriptor = BrowserSelector.select(this,
-                new BrowserWhitelist(VersionedBrowserMatcher.CHROME_CUSTOM_TAB,
-                        VersionedBrowserMatcher.CHROME_BROWSER,
-                        VersionedBrowserMatcher.FIREFOX_CUSTOM_TAB,
-                        VersionedBrowserMatcher.FIREFOX_BROWSER,
-                        VersionedBrowserMatcher.SAMSUNG_CUSTOM_TAB,
-                        VersionedBrowserMatcher.SAMSUNG_BROWSER));
-        if (descriptor == null) {
-            return null;
+    @Nullable
+    @VisibleForTesting
+    protected String getBrowser() {
+        PackageManager pm = getPackageManager();
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
+        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, 0);
+        List<String> customTabsBrowsers = new ArrayList<>();
+        for (ResolveInfo info : resolveInfoList) {
+            Intent serviceIntent = new Intent();
+            serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
+            serviceIntent.setPackage(info.activityInfo.packageName);
+            if (pm.resolveService(serviceIntent, 0) != null) {
+                customTabsBrowsers.add(info.activityInfo.packageName);
+            }
         }
-        mTabManager = new CustomTabManager(this);
-        mTabManager.bind(descriptor.packageName);
-        CustomTabsIntent.Builder intentBuilder = mTabManager.createTabBuilder(mAuthUri);
+        for (String browser : mSupportedBrowsers) {
+            if (customTabsBrowsers.contains(browser)) {
+                return browser;
+            }
+        }
+        return null;
+    }
+
+    @VisibleForTesting
+    protected Intent createBrowserIntent(String packageName, CustomTabsSession session) {
+        CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
         if (mCustomTabColor > 0) {
             intentBuilder.setToolbarColor(mCustomTabColor);
         }
         CustomTabsIntent tabsIntent = intentBuilder.build();
         tabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
-        tabsIntent.intent.setPackage(descriptor.packageName);
+        tabsIntent.intent.setPackage(packageName);
         tabsIntent.intent.setData(mAuthUri);
         return tabsIntent.intent;
     }
 
+    @Nullable
+    private CustomTabsSession createSession(@NonNull CustomTabsClient client) {
+        CustomTabsSession session = client.newSession(null);
+        if (session == null) {
+            Log.d(TAG, "Failed to create custom tabs session through custom tabs client");
+            return null;
+        }
+        if (mAuthUri != null) {
+            session.mayLaunchUrl(mAuthUri, null, Collections.emptyList());
+        }
+        return session;
+    }
+
+    @VisibleForTesting
+    protected void bindServiceAndStart(@NonNull final String browserPackage) {
+        if (mConnection != null) {
+            return;
+        }
+        mConnection = new CustomTabsServiceConnection() {
+            @Override
+            public void onServiceDisconnected(ComponentName componentName) {
+                mAuthStarted = false;
+                mBound = false;
+            }
+
+            @Override
+            public void onCustomTabsServiceConnected(ComponentName componentName,
+                                                     CustomTabsClient customTabsClient) {
+                CustomTabsSession session = null;
+                if (customTabsClient != null) {
+                    customTabsClient.warmup(0);
+                    session = createSession(customTabsClient);
+                }
+                mAuthStarted = true;
+                startActivity(createBrowserIntent(browserPackage, session));
+            }
+        };
+        mBound = CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
+    }
+
     private void sendResult(int rc, Intent intent) {
-        setResult(rc, intent);
-        finish();
+        if (!mResultSent) {
+            mResultSent = true;
+            setResult(rc, intent);
+            finish();
+        }
     }
 
     @Override
     protected void onDestroy() {
-        if (mTabManager != null) {
-            mTabManager.dispose();
+        if (mConnection != null && mBound) {
+            unbindService(mConnection);
+            mConnection = null;
         }
         super.onDestroy();
     }

@@ -18,7 +18,9 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 
-public class LogoutResponse implements WebResponse {
+import androidx.annotation.NonNull;
+
+public class LogoutResponse extends WebResponse {
     private String state;
 
     private LogoutResponse() {
@@ -31,12 +33,23 @@ public class LogoutResponse implements WebResponse {
     }
 
     @Override
-    public String asJson() {
+    public String getState() {
+        return state;
+    }
+
+    @NonNull
+    @Override
+    public String getKey() {
+        return RESTORE.getKey();
+    }
+
+    @Override
+    public String persist() {
         return new Gson().toJson(this);
     }
 
     @Override
-    public String getState() {
-        return state;
+    public boolean encrypt() {
+        return RESTORE.encrypted();
     }
 }

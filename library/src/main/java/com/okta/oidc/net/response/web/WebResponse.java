@@ -14,8 +14,41 @@
  */
 package com.okta.oidc.net.response.web;
 
-public interface WebResponse {
-    String asJson();
 
-    String getState();
+import com.google.gson.Gson;
+import com.okta.oidc.storage.Persistable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+public abstract class WebResponse implements Persistable {
+
+    public abstract String getState();
+
+    public static final Persistable.Restore<WebResponse> RESTORE = new Persistable.Restore<WebResponse>() {
+        private final String KEY = "WebResponse";
+
+        @NonNull
+        @Override
+        public String getKey() {
+            return KEY;
+        }
+
+        @Override
+        public WebResponse restore(@Nullable String data) {
+            if (data != null) {
+                if (data.startsWith("authorize")) {
+                    return new Gson().fromJson(data, AuthorizeResponse.class);
+                } else {
+                    return new Gson().fromJson(data, LogoutResponse.class);
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public boolean encrypted() {
+            return false;
+        }
+    };
 }

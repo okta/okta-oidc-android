@@ -16,16 +16,17 @@ package com.okta.oidc.util;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.util.ArrayMap;
+import android.util.ArrayMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import static com.okta.oidc.util.Preconditions.checkNotEmpty;
 import static com.okta.oidc.util.Preconditions.checkNotNull;
@@ -46,14 +47,12 @@ public final class AuthorizationException extends Exception {
      * The OAuth2 parameter used to indicate the type of error during an authorization or
      * token request.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
-     *     The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
-     *     </a>
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-5.2/">
-     *     The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
-     *     </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
+     * The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
+     * </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-5.2/">
+     * The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
+     * </a>
      */
     public static final String PARAM_ERROR = "error";
 
@@ -61,16 +60,12 @@ public final class AuthorizationException extends Exception {
      * The OAuth2 parameter used to provide a human readable description of the error which
      * occurred.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
-     *     The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
-     *     </a>
-     *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
-     *     The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
-     *     </a>
-     *
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
+     * The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
+     * </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
+     * The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
+     * </a>
      */
     public static final String PARAM_ERROR_DESCRIPTION = "error_description";
 
@@ -78,15 +73,12 @@ public final class AuthorizationException extends Exception {
      * The OAuth2 parameter used to provide a URI to a human-readable page which describes the
      * error.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
-     *     The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
-     *     </a>
-     *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
-     *     The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
-     *     </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
+     * The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
+     * </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
+     * The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
+     * </a>
      */
     public static final String PARAM_ERROR_URI = "error_uri";
 
@@ -103,11 +95,9 @@ public final class AuthorizationException extends Exception {
      * https://tools.ietf.org/html/rfc6749#section-4.1.2.1). If the authorization response is
      * invalid and not explicitly an error response, another error type will be used.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
-     *     The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
-     *     </a>
-     *
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-4.1.2.1">
+     * The OAuth 2.0 Authorization Framework (RFC 6749), Section 4.1.2.1
+     * </a>
      */
     public static final int TYPE_OAUTH_AUTHORIZATION_ERROR = 1;
 
@@ -118,11 +108,9 @@ public final class AuthorizationException extends Exception {
      * If an HTTP 400 response does not parse as an OAuth error (i.e. no 'error' field is present
      * or the JSON is invalid), another error domain will be used.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
-     *     The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
-     *     </a>
-     *
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
+     * The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
+     * </a>
      */
     public static final int TYPE_OAUTH_TOKEN_ERROR = 2;
 
@@ -223,6 +211,12 @@ public final class AuthorizationException extends Exception {
          */
         public static final AuthorizationException ID_TOKEN_VALIDATION_ERROR =
                 generalEx(9, "Invalid ID Token");
+
+        /**
+         * Indicates that no compatible browser for custom tabs.
+         */
+        public static final AuthorizationException NO_BROWSER_FOUND =
+                generalEx(10, "No compatible browser found");
     }
 
     /**
@@ -330,10 +324,9 @@ public final class AuthorizationException extends Exception {
     /**
      * Error codes related to failed token requests.
      *
-     * @see
-     * <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
-     *     The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
-     *     </a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-5.2">
+     * The OAuth 2.0 Authorization Framework" (RFC 6749), Section 5.2
+     * </a>
      */
     public static final class TokenRequestErrors {
         // codes in this group should be between 2000-2999
@@ -552,6 +545,7 @@ public final class AuthorizationException extends Exception {
     /**
      * Reconstructs an {@link AuthorizationException} from the JSON produced by
      * {@link #toJsonString()}.
+     *
      * @throws JSONException if the JSON is malformed or missing required properties
      */
     public static AuthorizationException fromJson(@NonNull String jsonStr) throws JSONException {
@@ -562,6 +556,7 @@ public final class AuthorizationException extends Exception {
     /**
      * Reconstructs an {@link AuthorizationException} from the JSON produced by
      * {@link #toJson()}.
+     *
      * @throws JSONException if the JSON is malformed or missing required properties
      */
     public static AuthorizationException fromJson(@NonNull JSONObject json) throws JSONException {
@@ -612,6 +607,7 @@ public final class AuthorizationException extends Exception {
 
     /**
      * The type of the error.
+     *
      * @see #TYPE_GENERAL_ERROR
      * @see #TYPE_OAUTH_AUTHORIZATION_ERROR
      * @see #TYPE_OAUTH_TOKEN_ERROR
@@ -662,7 +658,7 @@ public final class AuthorizationException extends Exception {
     }
 
     /**
-     * Produces a JSON representation of the authorization exception, for transmission or storage.
+     * Produces a JSON representation of the authorization exception, for transmission or withStorage.
      * This does not include any provided root cause.
      */
     @NonNull
@@ -678,7 +674,7 @@ public final class AuthorizationException extends Exception {
 
     /**
      * Provides a JSON string representation of an authorization exception, for transmission or
-     * storage. This does not include any provided root cause.
+     * withStorage. This does not include any provided root cause.
      */
     @NonNull
     public String toJsonString() {

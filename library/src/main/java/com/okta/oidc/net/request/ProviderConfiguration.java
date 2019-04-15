@@ -14,12 +14,20 @@
  */
 package com.okta.oidc.net.request;
 
-@SuppressWarnings("unused")
-public class ProviderConfiguration {
+import android.text.TextUtils;
 
+import com.google.gson.Gson;
+import com.okta.oidc.storage.Persistable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
+@SuppressWarnings("unused")
+public class ProviderConfiguration implements Persistable {
     public static final String OPENID_CONFIGURATION_RESOURCE = "/.well-known/openid-configuration";
 
-    static final String OAUTH2_CONFIGURATION_RESOURCE = "/.well-known/oauth-authorization-server";
+    public static final String OAUTH2_CONFIGURATION_RESOURCE = "/.well-known/oauth-authorization-server";
 
     public String authorization_endpoint;
 
@@ -65,27 +73,78 @@ public class ProviderConfiguration {
 
     public String[] id_token_signing_alg_values_supported;
 
-    ProviderConfiguration() {
+    @VisibleForTesting
+    public ProviderConfiguration() {
         //NO-OP
     }
 
-    void validate() throws MissingArgumentException {
-        if (authorization_endpoint == null) {
-            throw new MissingArgumentException("endpoint");
+    void validate() throws IllegalArgumentException {
+        if (TextUtils.isEmpty(authorization_endpoint)) {
+            throw new IllegalArgumentException("authorization_endpoint is missing");
         }
-        //TODO add more checks
+        if (TextUtils.isEmpty(end_session_endpoint)) {
+            throw new IllegalArgumentException("end_session_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(introspection_endpoint)) {
+            throw new IllegalArgumentException("introspection_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(issuer)) {
+            throw new IllegalArgumentException("issuer is missing");
+        }
+        if (TextUtils.isEmpty(jwks_uri)) {
+            throw new IllegalArgumentException("jwks_uri is missing");
+        }
+        if (TextUtils.isEmpty(registration_endpoint)) {
+            throw new IllegalArgumentException("registration_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(revocation_endpoint)) {
+            throw new IllegalArgumentException("revocation_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(token_endpoint)) {
+            throw new IllegalArgumentException("token_endpoint is missing");
+        }
+        if (TextUtils.isEmpty(userinfo_endpoint)) {
+            throw new IllegalArgumentException("userinfo_endpoint is missing");
+        }
     }
 
-    public static class MissingArgumentException extends Exception {
-        private String mMissingField;
+    public static final Persistable.Restore<ProviderConfiguration> RESTORE =
+            new Persistable.Restore<ProviderConfiguration>() {
+                private static final String KEY = "ProviderConfiguration";
 
-        public MissingArgumentException(String field) {
-            super("Missing mandatory configuration field: " + field);
-            mMissingField = field;
-        }
+                @NonNull
+                @Override
+                public String getKey() {
+                    return KEY;
+                }
 
-        public String getMissingField() {
-            return mMissingField;
-        }
+                @Override
+                public ProviderConfiguration restore(@Nullable String data) {
+                    if (data != null) {
+                        return new Gson().fromJson(data, ProviderConfiguration.class);
+                    }
+                    return null;
+                }
+
+                @Override
+                public boolean encrypted() {
+                    return false;
+                }
+            };
+
+    @Override
+    public boolean encrypt() {
+        return RESTORE.encrypted();
+    }
+
+    @NonNull
+    @Override
+    public String getKey() {
+        return RESTORE.getKey();
+    }
+
+    @Override
+    public String persist() {
+        return new Gson().toJson(this);
     }
 }

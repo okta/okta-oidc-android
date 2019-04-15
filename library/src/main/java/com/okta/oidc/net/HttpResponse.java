@@ -14,7 +14,6 @@
  */
 package com.okta.oidc.net;
 
-import android.support.annotation.RestrictTo;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +29,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public final class HttpResponse {
@@ -76,6 +77,10 @@ public final class HttpResponse {
         return Collections.unmodifiableMap(mHeaders);
     }
 
+    public final String getHeaderField(String field) {
+        return mConnection.getHeaderField(field);
+    }
+
     public final int getContentLength() {
         return mLength;
     }
@@ -106,7 +111,8 @@ public final class HttpResponse {
         JSONObject json;
         if (mStatusCode < HttpURLConnection.HTTP_OK ||
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-            throw new IOException("Invalid status code " + mStatusCode);
+            throw new IOException("Invalid status code " + mStatusCode +
+                    " " + mConnection.getResponseMessage());
         }
         InputStream is = getContent();
         if (is == null) {

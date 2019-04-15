@@ -15,10 +15,9 @@
 package com.okta.oidc.net;
 
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.RestrictTo;
 
-import com.okta.appauth.android.BuildConfig;
+import com.okta.oidc.BuildConfig;
+import com.okta.oidc.net.request.TLSSocketFactory;
 import com.okta.oidc.util.Preconditions;
 
 import java.io.DataOutputStream;
@@ -27,12 +26,21 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import javax.net.ssl.HttpsURLConnection;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public class HttpConnection {
@@ -72,11 +80,13 @@ public class HttpConnection {
         conn.setConnectTimeout(mConnectionTimeoutMs);
         conn.setReadTimeout(mReadTimeOutMs);
         conn.setInstanceFollowRedirects(false);
-
-        if (mRequestProperties == null || !mRequestProperties.containsKey(USER_AGENT)) {
+        Map<String, List<String>> properties = conn.getRequestProperties();
+        if (properties.get(USER_AGENT) == null &&
+                (mRequestProperties == null || !mRequestProperties.containsKey(USER_AGENT))) {
             conn.setRequestProperty(USER_AGENT, USER_AGENT_HEADER);
         }
-        if (mRequestProperties == null || !mRequestProperties.containsKey(CONTENT_TYPE)) {
+        if (properties.get(USER_AGENT) == null &&
+                (mRequestProperties == null || !mRequestProperties.containsKey(CONTENT_TYPE))) {
             conn.setRequestProperty(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
         }
         if (mRequestProperties != null) {
@@ -125,11 +135,31 @@ public class HttpConnection {
         }
     }
 
-    private static final class DefaultConnectionFactory implements HttpConnectionFactory {
+    @VisibleForTesting
+    public static final class DefaultConnectionFactory implements HttpConnectionFactory {
+        /*
+         * TLS v1.1, v1.2 in Android supports starting from API 16. But it enabled by default starting
+         * from API 20.
+         * This method enable these TLS versions on API < 20.
+         * */
+        private void enableTLSv1_2(HttpURLConnection urlConnection) {
+            try {
+                ((HttpsURLConnection) urlConnection)
+                        .setSSLSocketFactory(new TLSSocketFactory());
+            } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                throw new RuntimeException("Cannot create SSLContext.", e);
+            }
+        }
+
         @NonNull
         @Override
         public HttpURLConnection build(@NonNull URL url) throws IOException {
-            return (HttpURLConnection) url.openConnection();
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            if (urlConnection instanceof HttpsURLConnection &&
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+                enableTLSv1_2(urlConnection);
+            }
+            return urlConnection;
         }
     }
 
@@ -150,9 +180,8 @@ public class HttpConnection {
 
         public HttpConnection create(HttpConnectionFactory connectionFactory) {
             Preconditions.checkNotNull(mRequestMethod);
-            if (connectionFactory == null) {
-                mConnectionFactory = new DefaultConnectionFactory();
-            }
+            mConnectionFactory = connectionFactory == null ?
+                    new DefaultConnectionFactory() : connectionFactory;
             return new HttpConnection(this);
         }
 

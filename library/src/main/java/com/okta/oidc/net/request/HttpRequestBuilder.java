@@ -15,18 +15,21 @@
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
-import android.support.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 
 import java.util.Map;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public class HttpRequestBuilder {
@@ -34,12 +37,19 @@ public class HttpRequestBuilder {
     @Nullable
     HttpConnectionFactory mConn;
     OIDCAccount mAccount;
+    ProviderConfiguration mProviderConfiguration;
     AuthorizeRequest mAuthRequest;
     AuthorizeResponse mAuthResponse;
     Map<String, String> mPostParameters;
     Map<String, String> mProperties;
     Uri mUri;
     HttpConnection.RequestMethod mRequestMethod;
+    String mTokenToRevoke;
+    TokenResponse mTokenResponse;
+    String mGrantType;
+
+    String mIntrospectToken;
+    String mTokenTypeHint;
 
     private HttpRequestBuilder() {
     }
@@ -48,22 +58,43 @@ public class HttpRequestBuilder {
         if (mAccount == null) {
             throw new IllegalStateException("Invalid account");
         }
+        if (mProviderConfiguration == null && type != HttpRequest.Type.CONFIGURATION) {
+            throw new IllegalStateException("Missing service configuration");
+        }
         switch (type) {
             case CONFIGURATION:
                 break; //NO-OP
-            case TOKEN_EXCHANGE:
-                if (!mAccount.haveConfiguration()) {
-                    throw new IllegalStateException("Account is missing or invalid service config");
+            case AUTHORIZED:
+                if (mTokenResponse == null || mTokenResponse.getAccessToken() == null
+                        || mTokenResponse.getIdToken() == null || mUri == null) {
+                    throw new IllegalStateException("Not logged in or invalid uri");
                 }
                 break;
-            case AUTHORIZED:
-                if (mUri == null || mRequestMethod == null || !mAccount.isLoggedIn()) {
-                    throw new IllegalStateException("Invalid uri or http method or not logged in");
+            case TOKEN_EXCHANGE:
+                if (mAuthRequest == null || mAuthResponse == null) {
+                    throw new IllegalStateException("Missing auth request or response");
                 }
                 break;
             case PROFILE:
-                if (!mAccount.isLoggedIn() || !mAccount.haveConfiguration()) {
-                    throw new IllegalArgumentException("Not authorized or invalid service");
+                if (mTokenResponse == null || mTokenResponse.getAccessToken() == null
+                        || mTokenResponse.getIdToken() == null) {
+                    throw new IllegalStateException("Not logged in");
+                }
+                break;
+            case REVOKE_TOKEN:
+                if (mTokenToRevoke == null) {
+                    throw new IllegalStateException("Invalid token");
+                }
+                break;
+            case REFRESH_TOKEN:
+                if (mTokenResponse == null || mTokenResponse.getRefreshToken() == null
+                        || mTokenResponse.getScope() == null) {
+                    throw new IllegalStateException("No refresh token found");
+                }
+                break;
+            case INTROSPECT:
+                if (mIntrospectToken == null || mTokenTypeHint == null) {
+                    throw new IllegalStateException("Invalid token or missing hint");
                 }
                 break;
             default:
@@ -80,13 +111,21 @@ public class HttpRequestBuilder {
             case CONFIGURATION:
                 return new ConfigurationRequest(this);
             case TOKEN_EXCHANGE:
+                mGrantType = GrantTypes.AUTHORIZATION_CODE;
                 return new TokenRequest(this);
             case AUTHORIZED:
                 return new AuthorizedRequest(this);
             case PROFILE:
-                mUri = Uri.parse(mAccount.getProviderConfig().userinfo_endpoint);
+                mUri = Uri.parse(mProviderConfiguration.userinfo_endpoint);
                 mRequestMethod = HttpConnection.RequestMethod.POST;
                 return new AuthorizedRequest(this);
+            case REVOKE_TOKEN:
+                return new RevokeTokenRequest(this);
+            case REFRESH_TOKEN:
+                mGrantType = GrantTypes.REFRESH_TOKEN;
+                return new RefreshTokenRequest(this);
+            case INTROSPECT:
+                return new IntrospectRequest(this);
             default:
                 throw new IllegalArgumentException("Invalid request of type: " + mRequestType);
         }
@@ -104,6 +143,16 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder account(OIDCAccount account) {
         mAccount = account;
+        return this;
+    }
+
+    public HttpRequestBuilder providerConfiguration(ProviderConfiguration providerConfiguration) {
+        mProviderConfiguration = providerConfiguration;
+        return this;
+    }
+
+    public HttpRequestBuilder tokenResponse(TokenResponse tokenResponse) {
+        mTokenResponse = tokenResponse;
         return this;
     }
 
@@ -134,6 +183,17 @@ public class HttpRequestBuilder {
 
     public HttpRequestBuilder httpRequestMethod(HttpConnection.RequestMethod requestMethod) {
         mRequestMethod = requestMethod;
+        return this;
+    }
+
+    public HttpRequestBuilder tokenToRevoke(String token) {
+        mTokenToRevoke = token;
+        return this;
+    }
+
+    public HttpRequestBuilder introspect(String token, String tokenType) {
+        mIntrospectToken = token;
+        mTokenTypeHint = tokenType;
         return this;
     }
 }

@@ -15,18 +15,18 @@
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
-import android.support.annotation.RestrictTo;
+import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OktaIdToken;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
-import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
-import com.okta.oidc.util.IdToken;
 import com.okta.oidc.util.UriUtil;
 
 import org.json.JSONException;
@@ -36,40 +36,47 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {
+    private static final String TAG = TokenRequest.class.getSimpleName();
+
     private String code;
     private String client_assertion;
     private String client_assertion_type;
-    private String client_id;
+    protected String client_id;
     private String client_secret;
     private String code_verifier;
-    private String grant_type;
+    protected String grant_type;
     private String password;
     private String redirect_uri;
-    private String refresh_token;
-    private String scope;
+    protected String refresh_token;
+    protected String scope;
     private String username;
     private String nonce;
     private OIDCAccount mAccount;
+    protected ProviderConfiguration mProviderConfiguration;
+
+    //if set, used to verify idtoken auth_Time
+    private String mMaxAge;
 
     TokenRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
         mAccount = b.mAccount;
-        mUri = Uri.parse(b.mAccount.getProviderConfig().token_endpoint);
+        mProviderConfiguration = b.mProviderConfiguration;
+        mUri = Uri.parse(mProviderConfiguration.token_endpoint);
         client_id = b.mAccount.getClientId();
         redirect_uri = b.mAccount.getRedirectUri().toString();
-        code_verifier = b.mAuthRequest.getCodeVerifier();
-        nonce = b.mAuthRequest.getNonce();
-        code = b.mAuthResponse.getCode();
-
+        grant_type = b.mGrantType;
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.POST)
                 .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
-                .setPostParameters(buildParameters())
+                .setPostParameters(buildParameters(b))
                 .create(b.mConn);
     }
 
@@ -87,10 +94,35 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         });
     }
 
-    private Map<String, String> buildParameters() {
+    public String getGrantType() {
+        return grant_type;
+    }
+
+    public OIDCAccount getAccount() {
+        return mAccount;
+    }
+
+    public ProviderConfiguration getProviderConfiguration() {
+        return mProviderConfiguration;
+    }
+
+    public String getNonce() {
+        return nonce;
+    }
+
+    @Nullable
+    public String getMaxAge() {
+        return mMaxAge;
+    }
+
+    protected Map<String, String> buildParameters(HttpRequestBuilder b) {
+        code_verifier = b.mAuthRequest.getCodeVerifier();
+        nonce = b.mAuthRequest.getNonce();
+        code = b.mAuthResponse.getCode();
+        mMaxAge = b.mAuthRequest.getMaxAge();
         Map<String, String> params = new HashMap<>();
         params.put("client_id", client_id);
-        params.put("grant_type", GrantTypes.AUTHORIZATION_CODE);
+        params.put("grant_type", grant_type);
         params.put("redirect_uri", redirect_uri);
         params.put("code_verifier", code_verifier);
         params.put("code", code);
@@ -124,16 +156,16 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
             tokenResponse = new Gson().fromJson(json.toString(), TokenResponse.class);
 
             if (tokenResponse.getIdToken() != null) {
-                IdToken idToken;
+                OktaIdToken idToken;
                 try {
-                    idToken = IdToken.from(tokenResponse.getIdToken());
-                } catch (IdToken.IdTokenException | JSONException ex) {
+                    idToken = OktaIdToken.parseIdToken(tokenResponse.getIdToken());
+                } catch (IllegalArgumentException | JsonIOException ex) {
+                    Log.e(TAG, "", ex);
                     throw AuthorizationException.fromTemplate(
                             AuthorizationException.GeneralErrors.ID_TOKEN_PARSING_ERROR,
                             ex);
                 }
-                //TODO fix this
-                idToken.validate(this);
+                idToken.validate(this, System::currentTimeMillis);
             }
             return tokenResponse;
         } catch (IOException ex) {
