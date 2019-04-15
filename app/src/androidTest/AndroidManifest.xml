@@ -5,7 +5,7 @@
 
     <instrumentation
         android:name="androidx.test.runner.AndroidJUnitRunner"
-        android:targetPackage="com.okta.oidc.example.SampleActivity" />
+        android:targetPackage="com.okta.oidc.example" />
 
     <application
         android:label="SampleActivityTest"

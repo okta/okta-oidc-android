@@ -14,6 +14,8 @@
  */
 package com.okta.oidc.example;
 
+import android.provider.Settings;
+
 import com.okta.oidc.AuthenticationPayload;
 
 import org.junit.Before;
@@ -36,6 +38,7 @@ import androidx.test.uiautomator.Until;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
+import static androidx.test.espresso.action.ViewActions.doubleClick;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -78,6 +81,9 @@ public class SampleActivityTest {
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
+        USERNAME = BuildConfig.USERNAME;
+        PASSWORD = BuildConfig.PASSWORD;
+
     }
 
     private UiObject getProgressBar() {
@@ -248,7 +254,7 @@ public class SampleActivityTest {
         closeBrowser.click();
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
+        onView(withId(R.id.status)).check(matches(withText(containsString("canceled"))));
     }
 
     @Test

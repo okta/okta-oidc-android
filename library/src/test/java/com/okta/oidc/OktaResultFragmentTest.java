@@ -72,10 +72,12 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (getOktaResultFragment(mActivity) == null);
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.AUTHORIZED);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_IN);
     }
 
     @Test
@@ -88,10 +90,12 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (getOktaResultFragment(mActivity) == null);
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.ERROR);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_IN);
         assert (ERROR.equalsIgnoreCase(resultCapture.getValue().getException().error));
     }
 
@@ -105,10 +109,12 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_OUT, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (getOktaResultFragment(mActivity) == null);
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.LOGGED_OUT);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_OUT);
     }
 
     @Test
@@ -121,11 +127,13 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_OUT, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (getOktaResultFragment(mActivity) == null);
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.ERROR);
         assert (ERROR.equalsIgnoreCase(resultCapture.getValue().getException().error));
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_OUT);
     }
 
     @Test
@@ -138,10 +146,12 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
 
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.ERROR);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_IN);
         assert (AuthorizationException.AuthorizationRequestErrors.OTHER.code == resultCapture.getValue().getException().code);
         assert (getOktaResultFragment(mActivity) == null);
     }
@@ -156,9 +166,11 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.ERROR);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_IN);
         assert (AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR.code == resultCapture.getValue().getException().code);
         assert (getOktaResultFragment(mActivity) == null);
     }
@@ -173,9 +185,11 @@ public class OktaResultFragmentTest {
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
         ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
-        verify(listener).postResult(resultCapture.capture());
+        ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
+        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
         assert (resultCapture.getValue().getStatus() == OktaResultFragment.Status.ERROR);
+        assert (resultTypeCapture.getValue() == OktaResultFragment.ResultType.SIGN_IN);
         assert (AuthorizationException.TYPE_GENERAL_ERROR == resultCapture.getValue().getException().type);
         assert (getOktaResultFragment(mActivity) == null);
     }

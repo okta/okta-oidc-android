@@ -39,6 +39,7 @@ import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
+import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectResponse;
@@ -253,7 +254,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             }
         });
 
-        mSignOut.setOnClickListener(v -> mOktaAuth.signOutFromOkta(this));
+        mSignOut.setOnClickListener(v -> {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mOktaAuth.signOutFromOkta(this);
+        });
         mClearData.setOnClickListener(v -> {
             mOktaAuth.clear();
             mTvStatus.setText("clear data");
@@ -311,8 +315,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 } else if (status == AuthorizationStatus.LOGGED_OUT) {
                     //this only clears the session.
                     mTvStatus.setText("signedOutFromOkta");
+                    mProgressBar.setVisibility(View.GONE);
                 } else if (status == AuthorizationStatus.IN_PROGRESS) {
-                    mTvStatus.setText("code exchange");
+                    mTvStatus.setText("in progress");
                     mProgressBar.setVisibility(View.VISIBLE);
                 }
             }
@@ -330,6 +335,14 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 mTvStatus.setText(msg);
             }
         }, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

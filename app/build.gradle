@@ -72,19 +72,26 @@ dependencies {
     androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.21.0'
 }
 
-task clearData(type: Exec) {
-    def clearAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example']
-    def clearTestAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example.test']
-    def clearChromeData = ['adb', 'shell', 'pm', 'clear', 'com.android.chrome']
-
+task prepareDeviceForUITesting(type: Exec) {
     //disable animations for testing
     def anim_window = ['adb', 'shell', 'settings', 'put', 'global', 'window_animation_scale', '0']
     def anim_transition = ['adb', 'shell', 'settings', 'put', 'global', 'transition_animation_scale', '0']
     def animator = ['adb', 'shell', 'settings', 'put', 'global', 'animator_duration_scale', '0']
 
+    // Enable Don't keep activities
+    def dont_keep_activities = ['adb', 'shell', 'settings', 'put', 'global', 'always_finish_activities', '1']
+
     commandLine anim_window
     commandLine anim_transition
     commandLine animator
+    commandLine dont_keep_activities
+}
+
+task clearData(type: Exec) {
+    def clearAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example']
+    def clearTestAppData = ['adb', 'shell', 'pm', 'clear', 'com.okta.oidc.example.test']
+    def clearChromeData = ['adb', 'shell', 'pm', 'clear', 'com.android.chrome']
+
     commandLine clearAppData
     commandLine clearTestAppData
     commandLine clearChromeData

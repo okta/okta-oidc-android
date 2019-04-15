@@ -37,11 +37,17 @@ import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 public class OktaResultFragment extends Fragment {
     static final String AUTHENTICATION_REQUEST = "authRequest";
 
+    enum ResultType {
+        SIGN_IN,
+        SIGN_OUT
+    }
+
     public static final int REQUEST_CODE_SIGN_IN = 100;
     public static final int REQUEST_CODE_SIGN_OUT = 200;
 
     private AuthResultListener resultListener;
     private Result cachedResult;
+    private ResultType cachedResultType;
     private Intent authIntent;
     private Intent logoutIntent;
 
@@ -107,15 +113,21 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST) != null;
     }
 
-    private void setAuthenticationListener(AuthResultListener listener) {
+    public static OktaResultFragment getFragment(FragmentActivity activity) {
+        return (OktaResultFragment) activity.getSupportFragmentManager()
+                .findFragmentByTag(AUTHENTICATION_REQUEST);
+    }
+
+    public void setAuthenticationListener(AuthResultListener listener) {
         this.resultListener = listener;
         postResult();
     }
 
     private void postResult() {
         if (cachedResult != null && resultListener != null) {
-            resultListener.postResult(cachedResult);
+            resultListener.postResult(cachedResult, cachedResultType);
             cachedResult = null;
+            cachedResultType = null;
         }
     }
 
@@ -134,6 +146,7 @@ public class OktaResultFragment extends Fragment {
             return;
         }
         getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
+        cachedResultType = (requestCode == REQUEST_CODE_SIGN_IN) ? ResultType.SIGN_IN : ResultType.SIGN_OUT;
 
         if (resultCode == RESULT_CANCELED) {
             cachedResult = Result.canceled();
@@ -216,7 +229,7 @@ public class OktaResultFragment extends Fragment {
     }
 
     public interface AuthResultListener {
-        void postResult(Result result);
+        void postResult(Result result, ResultType type);
     }
 
 }
