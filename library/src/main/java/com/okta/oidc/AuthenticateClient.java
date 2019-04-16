@@ -16,7 +16,9 @@ package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Context;
+import android.net.Uri;
 
+import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
@@ -31,6 +33,7 @@ import com.okta.oidc.util.AuthorizationException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import androidx.annotation.AnyThread;
@@ -98,6 +101,15 @@ public final class AuthenticateClient {
     public void introspectToken(String token, String tokenType,
                                 final RequestCallback<IntrospectResponse, AuthorizationException> cb) {
         IntrospectRequest request = mAuthClient.introspectTokenRequest(token, tokenType);
+        request.dispatchRequest(mDispatcher, cb);
+    }
+
+    public void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
+                                  @Nullable Map<String, String> postParameters,
+                                  @NonNull HttpConnection.RequestMethod method,
+                                  final RequestCallback<JSONObject, AuthorizationException> cb) {
+        AuthorizedRequest request = mAuthClient.authorizedRequest(uri,
+                properties, postParameters, method);
         request.dispatchRequest(mDispatcher, cb);
     }
 
