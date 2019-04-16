@@ -59,6 +59,17 @@ public final class AuthenticateClient {
     public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
+        mAuthClient.registerCallbackIfInterrupt(activity, (result, type) -> {
+            switch (type) {
+                case SIGN_IN:
+                    processLogInResult((AuthorizationResult) result);
+                    break;
+                case SIGN_OUT:
+                    processSignOutResult(result);
+                    break;
+            }
+        }, mDispatcher);
+
     }
 
     private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
@@ -69,7 +80,6 @@ public final class AuthenticateClient {
                 if (mActivity != null && mActivity.get() == activity) {
                     stop();
                     activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-                    mResultCb = null;
                 }
             }
         });
@@ -113,6 +123,10 @@ public final class AuthenticateClient {
         return mAuthClient.getTokens();
     }
 
+    public AuthorizationStatus getAuthorizationStatus() {
+        return mAuthClient.getAuthorizationStatus();
+    }
+
     public boolean isLoggedIn() {
         return mAuthClient.isLoggedIn();
     }
@@ -143,17 +157,39 @@ public final class AuthenticateClient {
                 } else {
                     result = mAuthClient.logIn(activity, payload);
                 }
-                if (result.isSuccess()) {
-                    mDispatcher.submitResults(() -> mResultCb.onSuccess(
-                            AuthorizationStatus.AUTHORIZED));
-                } else {
-                    mDispatcher.submitResults(() -> mResultCb.onError("Authorization error",
-                            result.getError()));
-                }
+                processLogInResult(result);
             } catch (InterruptedException e) {
-                mDispatcher.submitResults(() -> mResultCb.onCancel());
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onCancel();
+                    }
+                });
             }
         });
+    }
+
+    private void processLogInResult(AuthorizationResult result) {
+        if (result.isSuccess()) {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onSuccess(
+                            AuthorizationStatus.AUTHORIZED);
+                }
+            });
+        } else if (result.isCancel()) {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onCancel();
+                }
+            });
+        } else {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onError("Authorization error",
+                            result.getError());
+                }
+            });
+        }
     }
 
     @AnyThread
@@ -162,15 +198,39 @@ public final class AuthenticateClient {
         mDispatcher.execute(() -> {
             try {
                 Result result = mAuthClient.signOutFromOkta(activity);
-                if (result.isSuccess()) {
-                    mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.LOGGED_OUT));
-                } else {
-                    mDispatcher.submitResults(() -> mResultCb.onError("Log out error", result.getError()));
-                }
+                processSignOutResult(result);
             } catch (InterruptedException e) {
-                mDispatcher.submitResults(() -> mResultCb.onCancel());
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onCancel();
+                    }
+                });
             }
         });
+    }
+
+    private void processSignOutResult(Result result) {
+        if (result.isSuccess()) {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onSuccess(
+                            AuthorizationStatus.LOGGED_OUT);
+                }
+            });
+        } else if (result.isCancel()) {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onCancel();
+                }
+            });
+        } else {
+            mDispatcher.submitResults(() -> {
+                if (mResultCb != null) {
+                    mResultCb.onError("Log out error",
+                            result.getError());
+                }
+            });
+        }
     }
 
     private void stop() {
@@ -230,4 +290,6 @@ public final class AuthenticateClient {
             return this;
         }
     }
+
+
 }

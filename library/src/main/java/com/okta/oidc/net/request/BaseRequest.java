@@ -49,6 +49,7 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
     protected HttpResponse openConnection() throws IOException {
         Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
                 "only https connections are permitted");
+
         HttpURLConnection conn = mConnection.openConnection(new URL(mUri.toString()));
         conn.connect();
         if (mCanceled) {

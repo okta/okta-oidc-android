@@ -80,6 +80,7 @@ public class SampleActivityTest {
         mDevice = UiDevice.getInstance(getInstrumentation());
         USERNAME = BuildConfig.USERNAME;
         PASSWORD = BuildConfig.PASSWORD;
+
     }
 
     private UiObject getProgressBar() {
@@ -250,7 +251,7 @@ public class SampleActivityTest {
         closeBrowser.click();
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("error"))));
+        onView(withId(R.id.status)).check(matches(withText(containsString("canceled"))));
     }
 
     @Test
