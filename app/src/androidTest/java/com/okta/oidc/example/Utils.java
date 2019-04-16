@@ -16,8 +16,6 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyPair;
@@ -33,18 +31,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-
 final class Utils {
     private static final int BUFFER_SIZE = 1024;
 
     static String getAsset(Context context, String filename) {
         try {
-
             StringBuilder builder = new StringBuilder();
             InputStreamReader reader = new InputStreamReader(
                     context.getResources().getAssets().open(filename), "UTF-8");
@@ -102,20 +93,5 @@ final class Utils {
         c.setTime(getNow());
         c.add(Calendar.DATE, 2);
         return c.getTime();
-    }
-
-    static void mockConfigurationRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubFor(get(urlPathMatching("/.well-known/openid-configuration"))
-                .willReturn(responseDefinitionBuilder));
-    }
-
-    static void mockWebAuthorizeRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubFor(get(urlPathMatching("/authorize.*"))
-                .willReturn(responseDefinitionBuilder));
-    }
-
-    static void mockTokenRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubFor(post(urlMatching("/token"))
-                .willReturn(responseDefinitionBuilder));
     }
 }

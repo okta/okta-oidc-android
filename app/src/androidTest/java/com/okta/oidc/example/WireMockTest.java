@@ -72,6 +72,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.okta.oidc.example.Utils.getAsset;
 import static com.okta.oidc.example.Utils.getNow;
 import static com.okta.oidc.example.Utils.getTomorrow;
+import static com.okta.oidc.example.WireMockStubs.mockConfigurationRequest;
+import static com.okta.oidc.example.WireMockStubs.mockTokenRequest;
+import static com.okta.oidc.example.WireMockStubs.mockWebAuthorizeRequest;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.core.StringContains.containsString;
@@ -84,6 +87,7 @@ public class WireMockTest {
     private static final int PORT = 8080;
     private static final String KEYSTORE_PASSWORD = "123456";
     private static final String KEYSTORE_PATH = "/sdcard/Download/mock.keystore.bks";
+    //must match issuer in configuration.json
     private static final String ISSUER = "https://127.0.0.1:8443/mocktest";
     //apk package names
     private static final String FIRE_FOX = "org.mozilla.firefox";
@@ -122,7 +126,7 @@ public class WireMockTest {
 
     public WireMockServer mWireMockServer;
 
-    public class MockConnectionFactory implements HttpConnectionFactory {
+    private class MockConnectionFactory implements HttpConnectionFactory {
         @NonNull
         @Override
         public HttpURLConnection build(@NonNull URL url) throws IOException {
@@ -223,13 +227,13 @@ public class WireMockTest {
     }
 
     @Test
-    public void test1_loginNoSession() throws UiObjectNotFoundException {
+    public void test1_loginNoSession() throws UiObjectNotFoundException, InterruptedException {
         activityRule.getActivity().mPayload = mMockPayload;
-        Utils.mockConfigurationRequest(aResponse()
+        mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)
                 .withBody(getAsset(mMockContext, "configuration.json")));
 
-        Utils.mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
+        mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
                 .withHeader("Location", mRedirect));
 
         String tokenResponse = getAsset(mMockContext, "token_response.json");
@@ -239,10 +243,13 @@ public class WireMockTest {
 
         String token = String.format(tokenResponse, jwt);
 
-        Utils.mockTokenRequest(aResponse().withStatus(HTTP_OK)
+        mockTokenRequest(aResponse().withStatus(HTTP_OK)
                 .withBody(token));
 
-        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);

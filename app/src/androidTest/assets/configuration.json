@@ -1,6 +1,6 @@
 {
   "issuer": "https://127.0.0.1:8443/mocktest",
-  "authorization_endpoint": "https://127.0.0.1:8443/authorize",
+  "authorization_endpoint": "http://127.0.0.1:8080/authorize",
   "token_endpoint": "https://127.0.0.1:8443/token",
   "userinfo_endpoint": "https://127.0.0.1:8443/userinfo",
   "registration_endpoint": "https://127.0.0.1:8443/clients",
