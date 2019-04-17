@@ -58,11 +58,6 @@ public class LogoutRequest extends WebRequest {
         return new Gson().toJson(mParameters);
     }
 
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
-
     static class Parameters {
         Parameters() {
             //NO-OP

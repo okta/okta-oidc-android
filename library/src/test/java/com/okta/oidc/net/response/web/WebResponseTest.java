@@ -54,10 +54,6 @@ public class WebResponseTest {
                 return mState;
             }
 
-            @Override
-            public boolean encrypt() {
-                return false;
-            }
         };
     }
 
@@ -74,10 +70,5 @@ public class WebResponseTest {
     @Test
     public void persist() {
         assertEquals(mWebResponseImpl.persist(), CUSTOM_STATE);
-    }
-
-    @Test
-    public void encrypt() {
-        assertFalse(mWebResponseImpl.encrypt());
     }
 }

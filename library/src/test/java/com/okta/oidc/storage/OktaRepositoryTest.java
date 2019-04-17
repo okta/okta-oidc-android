@@ -30,19 +30,6 @@ public class OktaRepositoryTest {
     }
 
     @Test
-    public void saveNotEncryptedItemSuccess() {
-        PersistableMock notEncrypted = TestValues.getNotEncryptedPersistable();
-        mOktaRepository.save(notEncrypted);
-
-        PersistableMock savedItem = mOktaRepository.get(PersistableMock.RESTORE);
-
-        assert(savedItem != null);
-        assert(notEncrypted.getData().equalsIgnoreCase(mOktaStorageMock.get(notEncrypted.getKey())));
-        assert(notEncrypted.getData().equalsIgnoreCase(mOktaRepository.cacheStorage.get(notEncrypted.getKey())));
-        assert(notEncrypted.getData().equalsIgnoreCase(savedItem.getData()));
-    }
-
-    @Test
     public void saveEncryptedItemSuccess() {
         EncryptedPersistableMock encrypted = TestValues.getEncryptedPersistable();
         mOktaRepository.save(encrypted);

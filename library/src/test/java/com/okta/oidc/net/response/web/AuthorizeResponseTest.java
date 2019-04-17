@@ -88,11 +88,6 @@ public class AuthorizeResponseTest {
     }
 
     @Test
-    public void encrypt() {
-        assertFalse(mResponse.encrypt());
-    }
-
-    @Test
     public void equals() {
         assertNotEquals(mResponse, mInvalidResponse);
     }

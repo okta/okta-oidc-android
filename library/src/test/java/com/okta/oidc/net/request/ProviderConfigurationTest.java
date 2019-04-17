@@ -56,12 +56,6 @@ public class ProviderConfigurationTest {
     }
 
     @Test
-    public void encrypt() {
-        assertFalse(mValidConfiguration.encrypt());
-    }
-
-
-    @Test
     public void getKey() {
         assertEquals(mValidConfiguration.getKey(), ProviderConfiguration.RESTORE.getKey());
     }

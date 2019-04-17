@@ -75,10 +75,6 @@ public class TokenResponse implements Persistable {
                     return null;
                 }
 
-                @Override
-                public boolean encrypted() {
-                    return true;
-                }
             };
 
     @NonNull
@@ -92,8 +88,4 @@ public class TokenResponse implements Persistable {
         return new Gson().toJson(this);
     }
 
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
 }

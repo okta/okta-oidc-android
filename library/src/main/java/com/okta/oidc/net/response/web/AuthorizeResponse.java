@@ -77,8 +77,4 @@ public class AuthorizeResponse extends WebResponse {
         return new Gson().toJson(this);
     }
 
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
 }

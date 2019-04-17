@@ -24,11 +24,6 @@ public class EncryptedPersistableMock implements Persistable {
         return this.mData;
     }
 
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
-
     public static final Restore<EncryptedPersistableMock> RESTORE = new Restore<EncryptedPersistableMock>() {
         private final String KEY = "WebRequest";
 
@@ -44,9 +39,5 @@ public class EncryptedPersistableMock implements Persistable {
             return null;
         }
 
-        @Override
-        public boolean encrypted() {
-            return true;
-        }
     };
 }

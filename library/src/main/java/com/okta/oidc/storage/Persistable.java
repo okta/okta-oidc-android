@@ -23,14 +23,10 @@ public interface Persistable {
 
     String persist();
 
-    boolean encrypt();
-
     interface Restore<T> {
         @NonNull
         String getKey();
 
         T restore(@Nullable String data);
-
-        boolean encrypted();
     }
 }

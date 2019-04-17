@@ -101,11 +101,6 @@ public class AuthorizeRequest extends WebRequest {
         return new Gson().toJson(mParameters);
     }
 
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
-
     public static class Parameters {
         Parameters() {
             //NO-OP

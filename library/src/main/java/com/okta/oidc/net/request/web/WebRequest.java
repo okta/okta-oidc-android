@@ -49,9 +49,5 @@ public abstract class WebRequest implements Persistable {
             return null;
         }
 
-        @Override
-        public boolean encrypted() {
-            return false;
-        }
     };
 }
