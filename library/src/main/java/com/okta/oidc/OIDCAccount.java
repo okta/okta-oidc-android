@@ -79,7 +79,7 @@ public class OIDCAccount {
         String mEndSessionRedirectUri;
         @SerializedName("scopes")
         String[] mScopes;
-        @SerializedName("issuer_uri")
+        @SerializedName("discovery_uri")
         String mDiscoveryUri;
 
         AccountInfo() {
@@ -96,7 +96,7 @@ public class OIDCAccount {
                 throw new IllegalStateException("No end session specified");
             }
             if (mDiscoveryUri == null || mDiscoveryUri.isEmpty()) {
-                throw new IllegalStateException("No issuer uri specified");
+                throw new IllegalStateException("No discovery uri specified");
             }
         }
     }
