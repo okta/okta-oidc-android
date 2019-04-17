@@ -43,33 +43,23 @@ public class OktaRepository {
             return;
         }
         synchronized (lock) {
-            if (persistable.encrypt()) {
-                storage.save(getHashed(persistable.getKey()),
-                        getEncrypted(persistable.persist()));
-                cacheStorage.put(getHashed(persistable.getKey()),
-                        getEncrypted(persistable.persist()));
-            } else {
-                storage.save(persistable.getKey(), persistable.persist());
-                cacheStorage.put(persistable.getKey(), persistable.persist());
-            }
+            storage.save(getHashed(persistable.getKey()),
+                    getEncrypted(persistable.persist()));
+            cacheStorage.put(getHashed(persistable.getKey()),
+                    getEncrypted(persistable.persist()));
         }
     }
 
     public <T extends Persistable> T get(Persistable.Restore<T> persistable) {
         synchronized (lock) {
             String data = null;
-            String key = (persistable.encrypted()) ?
-                    getHashed(persistable.getKey()) : persistable.getKey();
+            String key = getHashed(persistable.getKey());
             if (cacheStorage.get(key) != null) {
                 data = cacheStorage.get(key);
             } else {
                 data = storage.get(key);
             }
-
-            if (persistable.encrypted()) {
-                data = getDecrypted(data);
-            }
-
+            data = getDecrypted(data);
             return persistable.restore(data);
         }
     }
@@ -79,8 +69,7 @@ public class OktaRepository {
             return;
         }
         synchronized (lock) {
-            String key = (persistable.encrypt()) ?
-                    getHashed(persistable.getKey()) : persistable.getKey();
+            String key = getHashed(persistable.getKey());
             storage.delete(key);
             cacheStorage.remove(key);
         }

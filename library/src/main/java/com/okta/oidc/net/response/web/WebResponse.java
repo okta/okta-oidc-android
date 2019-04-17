@@ -46,9 +46,5 @@ public abstract class WebResponse implements Persistable {
             return null;
         }
 
-        @Override
-        public boolean encrypted() {
-            return false;
-        }
     };
 }

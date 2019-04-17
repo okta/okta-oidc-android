@@ -62,8 +62,4 @@ public class LogoutResponseTest {
         assertEquals(logoutResponse.getState(), mResponse.getState());
     }
 
-    @Test
-    public void encrypt() {
-        assertFalse(mResponse.encrypt());
-    }
 }

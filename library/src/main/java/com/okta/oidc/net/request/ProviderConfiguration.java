@@ -126,16 +126,7 @@ public class ProviderConfiguration implements Persistable {
                     return null;
                 }
 
-                @Override
-                public boolean encrypted() {
-                    return false;
-                }
             };
-
-    @Override
-    public boolean encrypt() {
-        return RESTORE.encrypted();
-    }
 
     @NonNull
     @Override

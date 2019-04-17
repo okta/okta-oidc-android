@@ -89,8 +89,4 @@ public class TokenResponseTest {
         assertEquals(tokenResponse.persist(), json);
     }
 
-    @Test
-    public void encrypt() {
-        assertTrue(mToken.encrypt());
-    }
 }

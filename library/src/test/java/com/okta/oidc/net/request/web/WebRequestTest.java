@@ -63,10 +63,6 @@ public class WebRequestTest {
                 return mState;
             }
 
-            @Override
-            public boolean encrypt() {
-                return false;
-            }
         };
     }
 
@@ -90,8 +86,4 @@ public class WebRequestTest {
         assertEquals(mWebRequestImpl.persist(), CUSTOM_STATE);
     }
 
-    @Test
-    public void encrypt() {
-        assertFalse(mWebRequestImpl.encrypt());
-    }
 }

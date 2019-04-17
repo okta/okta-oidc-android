@@ -164,8 +164,4 @@ public class AuthorizeRequestTest {
         assertEquals(request.persist(), json);
     }
 
-    @Test
-    public void encrypt() {
-        assertFalse(mRequest.encrypt());
-    }
 }
