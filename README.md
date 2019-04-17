@@ -15,43 +15,14 @@ are needed by the library for browser initiated authorization. App must use Frag
 
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
-```bash
+```gradle
 implementation 'com.okta.oidc.android:okta-oidc-androidx:1.0.0'
 ```
 
-## Getting Started
+## Sample app
 
-To run the example project, clone the repo and run `./gradlew assemble` from the root directory.
-
-You can create an Okta developer account at [https://developer.okta.com/](https://developer.okta.com/).
-
-1. After login, from the Admin dashboard, navigate to **Applications**&rarr;**Add Application**
-2. Choose **Native** as the platform
-3. Populate your new Native OpenID Connect application with values similar to:
-
-| Setting              | Value                                               |
-| -------------------- | --------------------------------------------------- |
-| Application Name     | Native OpenId Connect App *(must be unique)*        |
-| Login URI            | com.okta.oidc.example:/callback                     |
-| End Session URI      | com.okta.oidc.example:/logout                       |
-| Allowed grant types  | Authorization Code, Refresh Token *(recommended)*   |
-
-4. Click **Finish** to redirect back to the *General Settings* of your application.
-5. Copy the **Client ID**, as it will be needed for the client configuration.
-6. Get your issuer, which is a combination of your Org URL (found in the upper right of the console home page) and /oauth2/default. For example, https://dev-1234.oktapreview.com/oauth2/default.
-
-**Note:** *As with any Okta application, make sure you assign Users or Groups to the application. Otherwise, no one can use it.*
-
-### Update the URI Scheme
-
-In order to redirect back to your application from a web browser, you must specify a unique URI to
-your app. To do this, you must define a gradle manifest placeholder in your app's `build.gradle`:
-
-```java
-android.defaultConfig.manifestPlaceholders = [
-    "appAuthRedirectScheme": "com.okta.oidc.example"
-]
-```
+A sample is contained within this repository. For more information on how to
+build, test and configure the sample, see the sample [README](https://github.com/okta/okta-oidc-android/blob/master/app/README.md).
 
 ### Configuration
 
