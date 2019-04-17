@@ -15,6 +15,7 @@
 package com.okta.oidc;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -45,6 +46,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -58,6 +60,7 @@ import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
+import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -278,6 +281,45 @@ public class AuthenticateClientTest {
         MockRequestCallback<IntrospectResponse, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
         mAuthClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        latch.await();
+        assertNull(cb.getResult());
+        assertNotNull(cb.getException());
+    }
+
+    @Test
+    public void authorizedRequest() throws InterruptedException, JSONException {
+        mEndPoint.enqueueUserInfoSuccess();
+        Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("state", CUSTOM_STATE);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<JSONObject, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mAuthClient.authorizedRequest(uri, properties,
+                null, HttpConnection.RequestMethod.GET, cb);
+        latch.await();
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+        assertNotNull(cb.getResult());
+        JSONObject result = cb.getResult();
+        assertThat(recordedRequest.getHeader("state"), is(CUSTOM_STATE));
+        assertNull(cb.getException());
+        assertEquals("John Doe", result.getString("name"));
+        assertEquals("Jimmy", result.getString("nickname"));
+    }
+
+    @Test
+    public void authorizedRequestFailure() throws InterruptedException, JSONException {
+        mEndPoint.enqueueReturnInvalidClient();
+        Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("state", CUSTOM_STATE);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<JSONObject, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mAuthClient.authorizedRequest(uri, properties,
+                null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
