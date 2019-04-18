@@ -17,7 +17,6 @@ package com.okta.oidc.net.response.web;
 import android.net.Uri;
 
 import com.google.gson.Gson;
-import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -27,13 +26,13 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.net.response.web.WebResponse.RESTORE;
-import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
-import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.ERROR;
 import static com.okta.oidc.util.TestValues.ERROR_DESCRIPTION;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

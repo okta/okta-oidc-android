@@ -37,7 +37,7 @@ import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 public class OktaResultFragment extends Fragment {
     static final String AUTHENTICATION_REQUEST = "authRequest";
 
-    enum ResultType {
+    public enum ResultType {
         SIGN_IN,
         SIGN_OUT
     }
@@ -51,7 +51,7 @@ public class OktaResultFragment extends Fragment {
     private Intent authIntent;
     private Intent logoutIntent;
 
-    static void addLoginFragment(WebRequest request,
+    public static void addLoginFragment(WebRequest request,
                                  int customColor,
                                  FragmentActivity activity,
                                  AuthResultListener listener, String[] browsers) {
@@ -67,7 +67,7 @@ public class OktaResultFragment extends Fragment {
                 .commit();
     }
 
-    static void addLogoutFragment(WebRequest request,
+    public static void addLogoutFragment(WebRequest request,
                                   int customColor,
                                   FragmentActivity activity,
                                   AuthResultListener listener,
@@ -96,6 +96,12 @@ public class OktaResultFragment extends Fragment {
             logoutIntent = null;
         }
         super.onResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        resultListener = null;
     }
 
     public static void setAuthenticationListener(FragmentActivity activity,

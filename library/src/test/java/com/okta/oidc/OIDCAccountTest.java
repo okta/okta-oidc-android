@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.net.Uri;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -26,14 +25,14 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
-import static com.okta.oidc.util.JsonStrings.VALID_ID_TOKEN;
 import static com.okta.oidc.util.TestValues.CLIENT_ID;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.END_SESSION_URI;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
 import static com.okta.oidc.util.TestValues.SCOPES;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

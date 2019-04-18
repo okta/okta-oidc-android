@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc;
+package com.okta.oidc.deprecated;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +22,15 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OktaRedirectActivity;
+import com.okta.oidc.OktaResultFragment;
+import com.okta.oidc.OktaState;
+import com.okta.oidc.State;
+import com.okta.oidc.Tokens;
+import com.okta.oidc.deprecated.AuthenticateClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;

@@ -14,6 +14,13 @@
 
 package com.okta.oidc.util;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import static com.okta.oidc.util.Preconditions.checkArgument;
 import static com.okta.oidc.util.Preconditions.checkCollectionNotEmpty;
 import static com.okta.oidc.util.Preconditions.checkNotEmpty;
@@ -23,12 +30,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
 public class PreconditionsTest {

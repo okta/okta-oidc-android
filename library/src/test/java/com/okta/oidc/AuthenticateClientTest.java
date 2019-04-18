@@ -18,6 +18,8 @@ import android.content.Context;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.okta.oidc.deprecated.AuthenticateClient;
+import com.okta.oidc.deprecated.SyncAuthenticationClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.TokenTypeHint;

@@ -42,7 +42,8 @@ import static com.okta.oidc.util.TestValues.EXPIRES_IN;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static com.okta.oidc.util.TestValues.PROMPT;
 import static com.okta.oidc.util.TestValues.SCOPES;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

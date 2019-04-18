@@ -21,7 +21,7 @@ import android.os.Bundle;
 /*
 Empty implementation
  */
-class EmptyActivityLifeCycle implements Application.ActivityLifecycleCallbacks {
+public class EmptyActivityLifeCycle implements Application.ActivityLifecycleCallbacks {
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
         //NO-OP

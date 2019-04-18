@@ -1,11 +1,9 @@
-package com.okta.oidc;
+package com.okta.oidc.deprecated;
 
-import android.content.Context;
-
+import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.sessions.SessionClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 
 import androidx.annotation.NonNull;
@@ -21,79 +19,78 @@ import androidx.annotation.NonNull;
 //        return this;
 //        }
 
-
+//public Okta.Builder withContext(Context context) {
+//        this.mContext = context;
+//        return this;
+//        }
 //
 //public Okta.Builder supportedBrowsers(String... browsers) {
 //        mSupportedBrowsers = browsers;
 //        return this;
 //        }
 
-public class Okta<A,S> {
+public class OktaTemp {
 
     private HttpConnectionFactory mConnectionFactory;
     private OIDCAccount mOIDCAccount;
-    private OktaState mOktaState;
+    private OktaStorage mStorage;
+    private AuthClientFactory authClientFactory;
+    private SessionClientFactory sessionClientFactory;
 
-    private AuthClientFactory<A> authClientFactory;
-    private SessionClientFactory<S> sessionClientFactory;
-
-    public Okta(Builder<A,S>  builder) {
+    public OktaTemp(Builder builder) {
         this.mConnectionFactory = builder.mConnectionFactory;
         this.mOIDCAccount = builder.mOIDCAccount;
-        this.mOktaState = new OktaState(new OktaRepository(builder.mStorage, builder.context));
+        this.mStorage = builder.mStorage;
         this.authClientFactory = builder.authClientFactory;
         this.sessionClientFactory = builder.sessionClientFactory;
     }
 
-    public A getAuthorizationClient() {
-        return authClientFactory.createClient(mOIDCAccount, mOktaState, mConnectionFactory);
-    }
 
-    public S getSessionClient() {
-        return sessionClientFactory.createSession(mOIDCAccount, mOktaState, mConnectionFactory);
-    }
+//    public <T extends ISessionClient> T  getSessionClient() {
+//        return (T)this.sessionClientFactory.createSession();
+//    }
+//
+//
+//
+//    public <T extends ISessionClient> T  getSessionClient(Class<T> type) {
+//        return type.cast(this.sessionClientFactory.createSession(this.mOIDCAccount, ));
+//    }
 
-    public static class Builder<A,S> {
+    public static class Builder {
         private HttpConnectionFactory mConnectionFactory;
         private OIDCAccount mOIDCAccount;
         private OktaStorage mStorage;
-        private AuthClientFactory<A> authClientFactory;
-        private SessionClientFactory<S> sessionClientFactory;
-        private Context context;
+        private AuthClientFactory authClientFactory;
+        private SessionClientFactory sessionClientFactory;
 
         public Builder() {
         }
 
-        public Okta<A,S> create() {
-            return new Okta<>(this);
+        public OktaTemp create() {
+            return new OktaTemp(this);
         }
 
-        public Okta.Builder<A,S> withAccount(@NonNull OIDCAccount account) {
+        public OktaTemp.Builder withAccount(@NonNull OIDCAccount account) {
             mOIDCAccount = account;
             return this;
         }
 
-        public Okta.Builder<A,S> withHttpConnectionFactory(HttpConnectionFactory connectionFactory) {
+        public OktaTemp.Builder withHttpConnectionFactory(HttpConnectionFactory connectionFactory) {
             mConnectionFactory = connectionFactory;
             return this;
         }
 
-        public Okta.Builder<A,S> withContext(Context context) {
-            this.context = context;
-            return this;
-        }
-
-        public Okta.Builder<A,S> withStorage(OktaStorage storage) {
+        public OktaTemp.Builder withStorage(OktaStorage storage) {
             this.mStorage = storage;
             return this;
         }
 
-        public Okta.Builder<A,S> withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {
+        public OktaTemp.Builder withAuthenticationClientFactory(AuthClientFactory authClientFactory) {
             this.authClientFactory = authClientFactory;
             return this;
         }
 
-        public Okta.Builder<A,S> withSessionClientFactory(SessionClientFactory<S> sessionClientFactory) {
+        public OktaTemp.Builder withSessionClientFactory(SessionClientFactory sessionClientFactory) {
             this.sessionClientFactory = sessionClientFactory;
             return this;
         }

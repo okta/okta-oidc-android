@@ -26,29 +26,29 @@ import static com.okta.oidc.State.IDLE;
 
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-class OktaState {
+public class OktaState {
     private OktaRepository mOktaRepo;
 
     private State currentState;
 
-    OktaState(OktaRepository mOktaRepository) {
+    public OktaState(OktaRepository mOktaRepository) {
         this.mOktaRepo = mOktaRepository;
         this.currentState = IDLE;
     }
 
-    TokenResponse getTokenResponse() {
+    public TokenResponse getTokenResponse() {
         return mOktaRepo.get(TokenResponse.RESTORE);
     }
 
-    ProviderConfiguration getProviderConfiguration() {
+    public ProviderConfiguration getProviderConfiguration() {
         return mOktaRepo.get(ProviderConfiguration.RESTORE);
     }
 
-    WebRequest getAuthorizeRequest() {
+    public WebRequest getAuthorizeRequest() {
         return mOktaRepo.get(WebRequest.RESTORE);
     }
 
-    void setCurrentState(State state) {
+    public void setCurrentState(State state) {
         this.currentState = state;
     }
 
@@ -56,11 +56,11 @@ class OktaState {
         return this.currentState;
     }
 
-    void save(Persistable persistable) {
+    public void save(Persistable persistable) {
         mOktaRepo.save(persistable);
     }
 
-    void delete(Persistable persistable) {
+    public void delete(Persistable persistable) {
         mOktaRepo.delete(persistable);
     }
 }

@@ -14,13 +14,14 @@
 
 package com.okta.oidc.util;
 
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.security.SecureRandom;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+
+import java.security.SecureRandom;
+
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
 public class CodeVerifierUtilTest {

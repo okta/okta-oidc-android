@@ -16,14 +16,12 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
-import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,12 +32,11 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

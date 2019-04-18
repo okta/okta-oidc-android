@@ -12,11 +12,19 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc;
+package com.okta.oidc.deprecated;
 
 import android.app.Activity;
 import android.content.Context;
 
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.EmptyActivityLifeCycle;
+import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.RequestCallback;
+import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.ResultCallback;
+import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
@@ -56,21 +64,7 @@ public final class AuthenticateClient {
         mDispatcher = new RequestDispatcher(builder.mCallbackExecutor);
     }
 
-    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
-        mResultCb = resultCallback;
-        registerActivityLifeCycle(activity);
-        mAuthClient.registerCallbackIfInterrupt(activity, (result, type) -> {
-            switch (type) {
-                case SIGN_IN:
-                    processLogInResult((AuthorizationResult) result);
-                    break;
-                case SIGN_OUT:
-                    processSignOutResult(result);
-                    break;
-            }
-        }, mDispatcher);
 
-    }
 
     private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
         mActivity = new WeakReference<>(activity);

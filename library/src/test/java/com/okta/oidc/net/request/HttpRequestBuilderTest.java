@@ -45,7 +45,9 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
