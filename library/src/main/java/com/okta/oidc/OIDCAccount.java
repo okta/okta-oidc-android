@@ -18,6 +18,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
@@ -34,11 +37,20 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RawRes;
-
-/*
-    Okta OIDC application information
+/**
+ * Okta account information. This is used to setup a configuration for {@link AuthenticateClient}
+ * Example usage:
+ * <pre>
+ * {@code
+ * OIDCAccount account = new OIDCAccount.Builder()
+ *     .clientId("{clientId}")
+ *     .redirectUri("{redirectUri}")
+ *     .endSessionRedirectUri("{endSessionUri}")
+ *     .scopes("openid", "profile", "offline_access")
+ *     .discoveryUri("https://{yourOktaDomain}")
+ *     .create();
+ * }
+ * </pre>
  */
 public class OIDCAccount {
     private static final String TAG = OIDCAccount.class.getSimpleName();
@@ -49,23 +61,53 @@ public class OIDCAccount {
         mAccount = account;
     }
 
+    /**
+     * Gets your Okta application client id.
+     *
+     * @return the client id
+     */
     public String getClientId() {
         return mAccount.mClientId;
     }
 
+    /**
+     * Returns the redirect uri to go to once the authorization log in flow is complete.
+     * This must match the schema of the app's registered Uri provided in manifest
+     *
+     * @return the redirect uri
+     */
     public Uri getRedirectUri() {
         return Uri.parse(mAccount.mRedirectUri);
     }
 
+    /**
+     * Returns the end session uri to go to once the authorization log out flow is complete.
+     * This must match schema of the app's registered Uri provided in manifest
+     *
+     * @return the end session redirect uri
+     */
     public Uri getEndSessionRedirectUri() {
         return Uri.parse(mAccount.mEndSessionRedirectUri);
     }
 
+    /**
+     * Returns the discovery uri for the authorization server. It is formed by appending the
+     * well known location of the discovery document to the issuer.
+     *
+     * @return The Uri where the discovery document can be found
+     */
     public Uri getDiscoveryUri() {
         return Uri.parse(mAccount.mDiscoveryUri +
                 ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE);
     }
 
+
+    /**
+     * Returns the set of scopes defined by the configuration. These scopes can be used during
+     * the authorization request for the user.
+     *
+     * @return The set of scopes defined by the configuration
+     */
     public String[] getScopes() {
         return mAccount.mScopes;
     }
@@ -101,43 +143,94 @@ public class OIDCAccount {
         }
     }
 
+    /**
+     * The OIDCAccount Builder.
+     */
     public static class Builder {
         private AccountInfo mAccountInfo;
 
+        /**
+         * Instantiates a new Builder.
+         */
         public Builder() {
             mAccountInfo = new AccountInfo();
         }
 
+        /**
+         * Create OIDC account.
+         *
+         * @return the account
+         */
         public OIDCAccount create() {
             mAccountInfo.validate();
             return new OIDCAccount(mAccountInfo);
         }
 
+        /**
+         * Client id of your Okta application.
+         *
+         * @param clientId Okta application client id
+         * @return current builder
+         */
         public Builder clientId(@NonNull String clientId) {
             mAccountInfo.mClientId = clientId;
             return this;
         }
 
+        /**
+         * Sets redirect uri to go to once the authorization log in flow is complete.
+         * This must match the schema of the app's registered Uri provided in manifest
+         *
+         * @param redirect the redirect uri
+         * @return current builder
+         */
         public Builder redirectUri(@NonNull String redirect) {
             mAccountInfo.mRedirectUri = redirect;
             return this;
         }
 
+        /**
+         * Sets redirect uri to go to once the authorization log out flow is complete.
+         * This must match the schema of the app's registered Uri provided in manifest
+         *
+         * @param endSessionRedirect the end session redirect
+         * @return current builder
+         */
         public Builder endSessionRedirectUri(@NonNull String endSessionRedirect) {
             mAccountInfo.mEndSessionRedirectUri = endSessionRedirect;
             return this;
         }
 
+        /**
+         * The discovery uri for the authorization server. This is your applications domain url
+         *
+         * @param discoveryUri the discovery uri
+         * @return current builder
+         */
         public Builder discoveryUri(@NonNull String discoveryUri) {
             mAccountInfo.mDiscoveryUri = discoveryUri;
             return this;
         }
 
+        /**
+         * Sets the scopes of the for authorization.
+         *
+         * @param scopes the scopes
+         * @return current builder
+         * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#scopes">Okta OIDC scopes</a>
+         */
         public Builder scopes(@NonNull String... scopes) {
             mAccountInfo.mScopes = scopes;
             return this;
         }
 
+        /**
+         * Sets the resource id of the JSON file configuration.
+         *
+         * @param context a valid context
+         * @param Id      the android resource id
+         * @return current builder
+         */
         public Builder withResId(Context context, @RawRes int Id) {
             try (InputStream inputStream = context.getResources().openRawResource(Id)) {
                 Writer writer = new StringWriter();

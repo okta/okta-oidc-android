@@ -14,6 +14,25 @@
  */
 package com.okta.oidc;
 
+import androidx.fragment.app.FragmentActivity;
+
+/**
+ * The Authorization status returned from a
+ * {@link AuthenticateClient#logIn(FragmentActivity, AuthenticationPayload)} logIn} or
+ * {@link AuthenticateClient#signOutFromOkta(FragmentActivity)}  signOutFromOkta}
+ */
 public enum AuthorizationStatus {
-    AUTHORIZED, IN_PROGRESS, LOGGED_OUT
+    /**
+     * Authorized authorization status. User is authorized.
+     * {@link AuthenticateClient} received access, refresh, and ID tokens.
+     */
+    AUTHORIZED,
+    /**
+     * In progress authorization status.
+     */
+    IN_PROGRESS,
+    /**
+     * Logged out authorization status. Browser session is cleared.
+     */
+    LOGGED_OUT
 }

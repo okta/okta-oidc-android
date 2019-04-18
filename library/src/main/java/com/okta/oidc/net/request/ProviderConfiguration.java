@@ -16,14 +16,18 @@ package com.okta.oidc.net.request;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
+
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @SuppressWarnings("unused")
+@RestrictTo(LIBRARY_GROUP)
 public class ProviderConfiguration implements Persistable {
     public static final String OPENID_CONFIGURATION_RESOURCE = "/.well-known/openid-configuration";
 
