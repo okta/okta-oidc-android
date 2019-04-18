@@ -34,7 +34,7 @@ public class OktaResultFragmentTest {
     private static final String ERROR = "ANY_ERROR";
     private Context mContext;
     private MockEndPoint mEndPoint;
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     private ProviderConfiguration mProviderConfig;
     private FragmentActivity mActivity;
 

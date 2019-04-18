@@ -19,7 +19,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaIdToken;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -58,7 +58,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     protected String scope;
     private String username;
     private String nonce;
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     protected ProviderConfiguration mProviderConfiguration;
 
     //if set, used to verify idtoken auth_Time
@@ -98,7 +98,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         return grant_type;
     }
 
-    public OIDCAccount getAccount() {
+    public OIDCConfig getAccount() {
         return mAccount;
     }
 

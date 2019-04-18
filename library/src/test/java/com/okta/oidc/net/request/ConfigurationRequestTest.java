@@ -15,7 +15,7 @@
 package com.okta.oidc.net.request;
 
 import com.google.gson.Gson;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.JsonStrings;
@@ -36,7 +36,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -51,7 +52,7 @@ public class ConfigurationRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
         mRequest = (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .account(mAccount)

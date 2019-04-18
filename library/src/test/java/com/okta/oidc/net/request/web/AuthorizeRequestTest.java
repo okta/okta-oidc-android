@@ -18,7 +18,7 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -42,14 +42,15 @@ import static com.okta.oidc.util.TestValues.EXPIRES_IN;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static com.okta.oidc.util.TestValues.PROMPT;
 import static com.okta.oidc.util.TestValues.SCOPES;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class AuthorizeRequestTest {
     private AuthorizeRequest mRequest;
 
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     private String mCodeVerifier;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();

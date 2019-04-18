@@ -52,12 +52,12 @@ import java.nio.charset.StandardCharsets;
  * }
  * </pre>
  */
-public class OIDCAccount {
-    private static final String TAG = OIDCAccount.class.getSimpleName();
+public class OIDCConfig {
+    private static final String TAG = OIDCConfig.class.getSimpleName();
 
     private AccountInfo mAccount;
 
-    private OIDCAccount(AccountInfo account) {
+    private OIDCConfig(AccountInfo account) {
         mAccount = account;
     }
 
@@ -161,9 +161,9 @@ public class OIDCAccount {
          *
          * @return the account
          */
-        public OIDCAccount create() {
+        public OIDCConfig create() {
             mAccountInfo.validate();
-            return new OIDCAccount(mAccountInfo);
+            return new OIDCConfig(mAccountInfo);
         }
 
         /**

@@ -17,7 +17,7 @@ package com.okta.oidc.net.request;
 import android.net.Uri;
 
 import com.google.gson.Gson;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.TokenResponse;
@@ -45,12 +45,14 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class HttpRequestBuilderTest {
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();

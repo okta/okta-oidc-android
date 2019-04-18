@@ -14,7 +14,7 @@
  */
 package com.okta.oidc.net.request;
 
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.getProviderConfiguration;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -55,7 +55,7 @@ public class RevokeTokenRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
         mRequest = TestValues.getRevokeTokenRequest(mAccount, ACCESS_TOKEN, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();

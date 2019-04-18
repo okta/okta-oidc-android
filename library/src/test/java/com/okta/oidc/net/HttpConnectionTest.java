@@ -20,7 +20,6 @@ import com.okta.oidc.util.DateUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -44,7 +43,8 @@ import static com.okta.oidc.util.TestValues.CLIENT_ID;
 import static com.okta.oidc.util.TestValues.CUSTOM_USER_AGENT;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

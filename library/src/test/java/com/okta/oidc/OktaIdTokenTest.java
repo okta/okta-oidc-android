@@ -26,7 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -36,14 +35,15 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 
 public class OktaIdTokenTest {
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 

@@ -41,8 +41,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
-import static junit.framework.TestCase.assertNotNull;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertNotNull;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4.class)
@@ -156,7 +156,7 @@ public class SampleActivityTest {
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        assertNotNull(activityRule.getActivity().mOktaAuth.getTokens());
+        assertNotNull(activityRule.getActivity().asyncSessionClient.getTokens());
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
     }
 

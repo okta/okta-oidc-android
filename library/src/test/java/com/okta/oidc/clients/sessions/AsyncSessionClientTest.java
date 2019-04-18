@@ -1,35 +1,28 @@
-/*
- * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
- * The Okta software accompanied by this notice is provided pursuant to the Apache License,
- * Version 2.0 (the "License.")
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *
- * See the License for the specific language governing permissions and limitations under the
- * License.
- */
-package com.okta.oidc;
+package com.okta.oidc.clients.sessions;
 
 import android.content.Context;
 import android.net.Uri;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
+import com.okta.oidc.OktaState;
+import com.okta.oidc.Tokens;
+import com.okta.oidc.clients.AsyncWebAuth;
+import com.okta.oidc.clients.SyncWebAuth;
+import com.okta.oidc.clients.SyncWebAuthClientFactory;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
-import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
@@ -68,13 +61,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class AuthenticateClientTest {
+public class AsyncSessionClientTest {
 
     private Context mContext;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -83,14 +73,12 @@ public class AuthenticateClientTest {
 
     private OktaStorage mStorage;
 
-    private OIDCAccount mAccount;
-    private AuthenticateClient mAuthClient;
-    private SyncAuthenticationClient mSyncAuthClient;
+    private OIDCConfig mAccount;
+    private AsyncSession mAsyncSessionClient;
     private Gson mGson;
 
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
-
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -108,21 +96,19 @@ public class AuthenticateClientTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-
-        mAuthClient = new AuthenticateClient.Builder()
-                .withAccount(mAccount)
-                .withTabColor(0)
+        AsyncWebAuth okta = new Okta.AsyncWebBuilder()
                 .withCallbackExecutor(mExecutor)
-                .withStorage(mStorage)
-                .withContext(mContext)
+                .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
+                .withContext(mContext)
+                .withStorage(mStorage)
                 .create();
 
-        mSyncAuthClient = new SyncAuthenticationClient(mConnectionFactory, mAccount,
-                0, mStorage, mContext, null);
+        mAsyncSessionClient = okta.getSessionClient();
 
-        mSyncAuthClient.mOktaState.save(mTokenResponse);
-        mSyncAuthClient.mOktaState.save(mProviderConfig);
+        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext));
+        mOktaState.save(mTokenResponse);
+        mOktaState.save(mProviderConfig);
     }
 
     @After
@@ -132,53 +118,13 @@ public class AuthenticateClientTest {
     }
 
     @Test
-    public void testBuilder() {
-        AuthenticateClient.Builder builder = mock(AuthenticateClient.Builder.class);
-        AuthenticateClient otherClient = new AuthenticateClient.Builder()
-                .withAccount(mAccount)
-                .withTabColor(0)
-                .withCallbackExecutor(mExecutor)
-                .withStorage(mStorage)
-                .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
-                .create();
-
-        when(builder.create()).thenReturn(otherClient);
-
-        builder.withAccount(mAccount);
-        verify(builder).withAccount(mAccount);
-
-        builder.withTabColor(0);
-        verify(builder).withTabColor(0);
-
-        builder.withStorage(mStorage);
-        verify(builder).withStorage(mStorage);
-
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
-
-        builder.withCallbackExecutor(mExecutor);
-        verify(builder).withCallbackExecutor(mExecutor);
-
-        builder.withContext(mContext);
-        verify(builder).withContext(mContext);
-
-        builder.supportedBrowsers(JsonStrings.FIRE_FOX);
-        verify(builder).supportedBrowsers(JsonStrings.FIRE_FOX);
-
-        AuthenticateClient client = builder.create();
-        verify(builder).create();
-        assertEquals(otherClient, client);
-    }
-
-    @Test
     public void refreshToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         String nonce = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAuthClient.refreshToken(cb);
+        mAsyncSessionClient.refreshToken(cb);
         latch.await();
         Tokens result = cb.getResult();
         TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
@@ -193,7 +139,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         mEndPoint.enqueueReturnInvalidClient();
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAuthClient.refreshToken(cb);
+        mAsyncSessionClient.refreshToken(cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -206,7 +152,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mAuthClient.getUserProfile(cb);
+        mAsyncSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         JSONObject result = cb.getResult();
@@ -224,7 +170,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mAuthClient.getUserProfile(cb);
+        mAsyncSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -238,7 +184,7 @@ public class AuthenticateClientTest {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAuthClient.revokeToken("access_token", cb);
+        mAsyncSessionClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNotNull(cb.getResult());
@@ -252,7 +198,7 @@ public class AuthenticateClientTest {
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAuthClient.revokeToken("access_token", cb);
+        mAsyncSessionClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -268,7 +214,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectResponse, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAuthClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNotNull(cb.getResult());
         assertTrue(cb.getResult().active);
@@ -280,7 +226,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectResponse, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAuthClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -296,8 +242,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAuthClient.authorizedRequest(uri, properties,
-                null, HttpConnection.RequestMethod.GET, cb);
+        mAsyncSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNotNull(cb.getResult());
@@ -318,8 +263,7 @@ public class AuthenticateClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAuthClient.authorizedRequest(uri, properties,
-                null, HttpConnection.RequestMethod.GET, cb);
+        mAsyncSessionClient.authorizedRequest(uri, properties,null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
