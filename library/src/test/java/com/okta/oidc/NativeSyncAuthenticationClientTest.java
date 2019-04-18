@@ -61,7 +61,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class SyncAuthenticationClientTest {
+public class NativeSyncAuthenticationClientTest {
     private Context mContext;
     private SyncAuthenticationClient mSyncAuthClient;
     private HttpConnectionFactory mConnectionFactory;

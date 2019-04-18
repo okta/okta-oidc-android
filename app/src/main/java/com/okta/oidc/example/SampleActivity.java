@@ -37,10 +37,22 @@ import com.okta.oidc.AuthenticateClient;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.Okta;
+import com.okta.oidc.OktaGeneric;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
-import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
+import com.okta.oidc.factory.client.async.AsyncAuthClientFactory;
+import com.okta.oidc.factory.client.async.BrowserAsyncAuthClient;
+import com.okta.oidc.factory.client.async.NativeAsyncAuthClient;
+import com.okta.oidc.factory.client.sync.BrowserSyncAuthClient;
+import com.okta.oidc.factory.client.sync.NativeSyncAuthClient;
+import com.okta.oidc.factory.client.sync.SyncAuthClientFactory;
+import com.okta.oidc.factory.session.SessionClientFactory;
+import com.okta.oidc.factory.session.async.AsyncSessionClient;
+import com.okta.oidc.factory.session.async.AsyncSessionClientFactory;
+import com.okta.oidc.factory.session.sync.SyncSessionClient;
+import com.okta.oidc.factory.session.sync.SyncSessionClientFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.storage.SimpleOktaStorage;
@@ -301,6 +313,60 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .withTabColor(getColorCompat(R.color.colorPrimary))
                 .create();
 
+        Okta okta = new Okta.Builder()
+                .withAccount(mOktaAccount)
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new SyncAuthClientFactory())
+                .withSessionClientFactory(new SyncSessionClientFactory())
+                .create();
+
+        // Good
+        BrowserSyncAuthClient browserAuthorization = okta.getBrowserAuthorizationClient();
+        NativeSyncAuthClient nativeAuthorization = okta.getNativeAuthorizationClient();
+        SyncSessionClient SessionClient = okta.getSessionClient();
+        // Bad
+        BrowserAsyncAuthClient browserAsyncAuthorization = okta.getBrowserAuthorizationClient();
+        BrowserAsyncAuthClient browserNativeAsyncAuthorization = okta.getNativeAuthorizationClient();
+        SyncSessionClient sessionClient = okta.getNativeAuthorizationClient();
+
+        Okta okta = new Okta.Builder()
+                .withAccount(mOktaAccount)
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new AsyncAuthClientFactory())
+                .withSessionClientFactory(new AsyncSessionClientFactory())
+                .create();
+
+        //Good
+        BrowserAsyncAuthClient asyncBrowserAuthorization = okta.getBrowserAuthorizationClient(BrowserAsyncAuthClient.class);
+        NativeAsyncAuthClient asyncNativeAuthorization = okta.getNativeAuthorizationClient(NativeAsyncAuthClient.class);
+        AsyncSessionClient asyncSession = okta.getSessionClient(AsyncSessionClient.class);
+        // Compile time error
+        NativeSyncAuthClient syncBrowserAuthorization = okta.getBrowserAuthorizationClient(NativeSyncAuthClient.class);
+        // Compile time error
+        AsyncSessionClient asyncSession2 = okta.getBrowserAuthorizationClient(AsyncSessionClient.class);
+
+        //Bad: runtime error
+        NativeSyncAuthClient syncBrowserAuthorization2 = okta.getNativeAuthorizationClient(NativeSyncAuthClient.class);
+        SyncSessionClient syncSession3 = okta.getSessionClient(SyncSessionClient.class);
+
+
+        // Bad: ugly creating interface.
+        OktaGeneric<BrowserSyncAuthClient, NativeSyncAuthClient, SyncSessionClient> oktaGeneric = new OktaGeneric.Builder<BrowserSyncAuthClient, NativeSyncAuthClient, SyncSessionClient>()
+                .withAccount(mOktaAccount)
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new SyncAuthClientFactory())
+                .withSessionClientFactory(new SyncSessionClientFactory())
+                .create();
+
+        //GOOD
+        BrowserSyncAuthClient browserSyncAuthClient = oktaGeneric.getBrowserAuthorizationClient();
+        NativeSyncAuthClient nativeSyncAuthorizationClient = oktaGeneric.getNativeAuthorizationClient();
+        SyncSessionClient sessionClient2 = oktaGeneric.getSessionClient();
+        //GOOD: compile time error
+        BrowserAsyncAuthClient browserSyncAuthClient2 = oktaGeneric.getBrowserAuthorizationClient();
+        NativeAsyncAuthClient nativeSyncAuthorizationClient2 = oktaGeneric.getNativeAuthorizationClient();
+        AsyncSessionClient asyncSessionClient2 = oktaGeneric.getSessionClient();
+
         if (mOktaAuth.isLoggedIn()) {
             showAuthorizedMode();
         }
@@ -346,7 +412,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     @Override
     protected void onResume() {
         super.onResume();
-        if(mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
+        if (mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
     }
