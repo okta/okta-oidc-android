@@ -108,6 +108,18 @@ public class OktaIdToken {
         mSignature = signature;
     }
 
+    public Header getHeader() {
+        return mHeader;
+    }
+
+    public Claims getClaims() {
+        return mClaims;
+    }
+
+    public String getSignature() {
+        return mSignature;
+    }
+
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
         OIDCAccount account = request.getAccount();
         ProviderConfiguration config = request.getProviderConfiguration();
