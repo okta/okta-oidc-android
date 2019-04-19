@@ -4,5 +4,5 @@
   "end_session_redirect_uri": "",
   "scopes": [
   ],
-  "issuer_uri": ""
+  "discovery_uri": ""
 }
