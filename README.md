@@ -112,7 +112,7 @@ account = new OIDCAccount.Builder()
 
 The authorization flow consists of four stages.
 
-1. Service discovery - This uses the issuer_uri or discoveryUri to get a list of endpoints.
+1. Service discovery - This uses the discovery uri to get a list of endpoints.
 2. Authorizing the user with crome custom tabs to obtain an authorization code.
 3. Exchanging the authorizaton code for a access token, ID token, and refresh token.
 4. Using the tokens to interact with a resource server for access to user data.
@@ -127,7 +127,7 @@ The results will be returned in the registered callback. If the application need
 data to the api endpoint, `AuthenticationPayload` can be used:
 
 ```java
-Payload payload = new AuthenticationPayload.Builder()
+AuthenticationPayload payload = new AuthenticationPayload.Builder()
     .setLoginHint("youraccount@okta.com")
     .addParameter("max_age", "5000")
     .build();
@@ -198,7 +198,7 @@ client.authorizedRequest(uri, properties,
 
 ### Refresh a Token
 
-You can refresh the `tokens` when the following request:
+You can refresh the `tokens` with the following request:
 
 ```java
 client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
