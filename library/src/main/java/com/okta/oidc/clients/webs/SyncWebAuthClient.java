@@ -15,7 +15,6 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.State;
 import com.okta.oidc.deprecated.SyncAuthenticationClient;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.clients.AuthClient;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -48,7 +47,7 @@ class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
     private String[] mSupportedBrowsers;
     private int mCustomTabColor;
 
-    public SyncWebAuthClient(OIDCAccount mOIDCAccount,
+    SyncWebAuthClient(OIDCAccount mOIDCAccount,
                              OktaState mOktaState,
                              HttpConnectionFactory mConnectionFactory,
                              String[] mSupportedBrowsers,
@@ -111,7 +110,7 @@ class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
         }
     }
 
-    protected void unRegisterCallback(FragmentActivity activity) {
+    protected void unregisterCallback(FragmentActivity activity) {
         if (OktaResultFragment.hasRequestInProgress(activity)) {
             OktaResultFragment.getFragment(activity).setAuthenticationListener(null);
         }

@@ -5,7 +5,7 @@ import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.webs.AuthClient;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -15,6 +15,7 @@ import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.util.AuthorizationException;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
 class SyncNativeAuthClient extends AuthClient implements SyncNativeAuth {
@@ -27,7 +28,8 @@ class SyncNativeAuthClient extends AuthClient implements SyncNativeAuth {
         this.mConnectionFactory = mConnectionFactory;
     }
 
-    private NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
+    @VisibleForTesting
+    NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
                                                          AuthenticationPayload payload) {
         return new AuthorizeRequest.Builder()
                 .account(mOIDCAccount)

@@ -1,10 +1,13 @@
 package com.okta.oidc.sessions;
 
+import android.net.Uri;
+
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.Tokens;
+import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
@@ -15,9 +18,11 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 class AsyncSessionClient implements AsyncSession {
     SyncSessionClient mSyncSessionClient;
@@ -27,7 +32,6 @@ class AsyncSessionClient implements AsyncSession {
         mSyncSessionClient = new SyncSessionClient(oidcAccount, oktaState, connectionFactory);
         mDispatcher = new RequestDispatcher(callbackExecutor);
     }
-
 
     public void getUserProfile(final RequestCallback<JSONObject, AuthorizationException> cb) {
         AuthorizedRequest request = mSyncSessionClient.userProfileRequest();
@@ -65,6 +69,11 @@ class AsyncSessionClient implements AsyncSession {
 
     public Tokens getTokens() {
         return mSyncSessionClient.getTokens();
+    }
+
+    @Override
+    public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters, @NonNull HttpConnection.RequestMethod method) {
+        return mSyncSessionClient.authorizedRequest(uri, properties, postParameters, method);
     }
 
     public boolean isLoggedIn() {

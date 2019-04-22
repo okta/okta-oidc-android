@@ -1,4 +1,4 @@
-package com.okta.oidc.clients;
+package com.okta.oidc.clients.webs;
 
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.OktaState;
@@ -40,7 +40,7 @@ public class AuthClient {
         }
     }
 
-    private ConfigurationRequest configurationRequest() {
+    protected ConfigurationRequest configurationRequest() {
         return (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .connectionFactory(mConnectionFactory)

@@ -8,7 +8,7 @@ import com.okta.oidc.net.HttpConnectionFactory;
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
-public class SyncWebAuthClientFactory extends AuthClientFactory<SyncWebAuthClient> {
+public class SyncWebAuthClientFactory extends AuthClientFactory<SyncWebAuth> {
     @ColorInt
     private int customTabColor;
     private String[] mSupportedBrowsers;
@@ -29,7 +29,7 @@ public class SyncWebAuthClientFactory extends AuthClientFactory<SyncWebAuthClien
     }
 
     @Override
-    public SyncWebAuthClient createClient(OIDCAccount mOIDCAccount,
+    public SyncWebAuth createClient(OIDCAccount mOIDCAccount,
                                           OktaState mOktaState,
                                           HttpConnectionFactory mConnectionFactory) {
         return new SyncWebAuthClient(mOIDCAccount, mOktaState, mConnectionFactory, mSupportedBrowsers, customTabColor);

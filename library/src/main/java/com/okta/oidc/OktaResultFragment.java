@@ -101,7 +101,6 @@ public class OktaResultFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        resultListener = null;
     }
 
     public static void setAuthenticationListener(FragmentActivity activity,

@@ -1,9 +1,12 @@
 package com.okta.oidc.sessions;
 
+import android.net.Uri;
+
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.Tokens;
+import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.HttpRequest;
@@ -17,6 +20,11 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import static com.okta.oidc.State.IDLE;
 
 class SyncSessionClient implements SyncSession {
@@ -28,6 +36,21 @@ class SyncSessionClient implements SyncSession {
         this.mOIDCAccount = oidcAccount;
         this.mOktaState = oktaState;
         this.mConnectionFactory = connectionFactory;
+    }
+
+    public AuthorizedRequest authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties, @Nullable Map<String, String> postParameters,
+                                               @NonNull HttpConnection.RequestMethod method) {
+        return (AuthorizedRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.AUTHORIZED)
+                .connectionFactory(mConnectionFactory)
+                .account(mOIDCAccount)
+                .httpRequestMethod(method)
+                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .tokenResponse(mOktaState.getTokenResponse())
+                .uri(uri)
+                .properties(properties)
+                .postParameters(postParameters)
+                .createRequest();
     }
 
 

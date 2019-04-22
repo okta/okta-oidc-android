@@ -68,9 +68,11 @@ class AsyncWebAuthClient implements AsyncWebAuth {
     }
 
     @Override
-    public void unRegisterCallback(FragmentActivity activity) {
+    public void unregisterCallback() {
         mResultCb = null;
-        mSyncAuthClient.unRegisterCallback(activity);
+        if(mActivity.get()!= null) {
+            mSyncAuthClient.unregisterCallback(mActivity.get());
+        }
     }
 
     @Override

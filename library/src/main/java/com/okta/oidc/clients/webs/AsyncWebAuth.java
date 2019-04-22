@@ -13,6 +13,6 @@ public interface AsyncWebAuth {
     public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload);
     public void signOutFromOkta(@NonNull final FragmentActivity activity);
     public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity);
-    public void unRegisterCallback(FragmentActivity activity);
+    public void unregisterCallback();
 
 }
