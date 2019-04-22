@@ -27,6 +27,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -149,18 +150,24 @@ public class MockEndPoint {
         mServer.enqueue(response);
     }
 
+    private MockResponse buildResponse() {
+        //Emulating EDGE or GPRS internet speed slow channel 13.5 kbps
+        return new MockResponse()
+                .throttleBody(182L, 100, TimeUnit.MILLISECONDS);
+    }
+
     private MockResponse emptyResponse(int code) {
-        return new MockResponse().setResponseCode(code);
+        return buildResponse().setResponseCode(code);
     }
 
     private MockResponse textResponse(int code, String status) {
-        return new MockResponse().setResponseCode(code)
+        return buildResponse().setResponseCode(code)
                 .addHeader(CONTENT_TYPE, "text/plain")
                 .setBody(status);
     }
 
     private MockResponse jsonResponse(int code, String json) {
-        return new MockResponse().setResponseCode(code)
+        return buildResponse().setResponseCode(code)
                 .addHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
                 .setBody(json);
     }

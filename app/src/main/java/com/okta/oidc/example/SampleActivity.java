@@ -422,13 +422,14 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             @Override
             public void onSuccess(@NonNull JSONObject result) {
                 mTvStatus.setText(result.toString());
+                Log.d(TAG, "onSuccess: " + result);
                 mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onError(String error, AuthorizationException exception) {
                 Log.d(TAG, error, exception.getCause());
-                mTvStatus.setText("Error : " + exception.errorDescription);
+                mTvStatus.setText("Error : " + exception.errorDescription + " " + exception.code);
                 mProgressBar.setVisibility(View.GONE);
             }
         });

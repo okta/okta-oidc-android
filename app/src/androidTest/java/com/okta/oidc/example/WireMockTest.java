@@ -16,9 +16,11 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.http.DelayDistribution;
 import com.okta.oidc.Okta;
 import com.okta.oidc.clients.webs.AsyncWebAuth;
 import com.okta.oidc.clients.webs.AsyncWebAuthClientFactory;
@@ -34,6 +36,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,10 +82,15 @@ import static com.okta.oidc.example.Utils.getAsset;
 import static com.okta.oidc.example.Utils.getNow;
 import static com.okta.oidc.example.Utils.getTomorrow;
 import static com.okta.oidc.example.WireMockStubs.mockConfigurationRequest;
+import static com.okta.oidc.example.WireMockStubs.mockIntrospectRequest;
+import static com.okta.oidc.example.WireMockStubs.mockProfileRequest;
+import static com.okta.oidc.example.WireMockStubs.mockRevokeRequest;
 import static com.okta.oidc.example.WireMockStubs.mockTokenRequest;
 import static com.okta.oidc.example.WireMockStubs.mockWebAuthorizeRequest;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.hamcrest.core.StringContains.containsString;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -274,5 +282,88 @@ public class WireMockTest {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
+    }
+
+    @Test
+    public void test2_getProfile_with_network_throttling_success() throws UiObjectNotFoundException, InterruptedException {
+
+        String profileResponse = getAsset(mMockContext, "profile.json");
+
+        mockProfileRequest(aResponse().withStatus(HTTP_OK)
+                .withLogNormalRandomDelay(100, 0.1)
+                .withBody(profileResponse));
+
+        onView(withId(R.id.get_profile)).perform(click());
+
+        onView(withId(R.id.status)).check(matches(isDisplayed()));
+        onView(withId(R.id.status)).check(matches(withText(containsString("Developer Experience"))));
+    }
+
+    @Test
+    public void test3_getProfile_unauthorized_error() throws UiObjectNotFoundException, InterruptedException {
+
+        mockProfileRequest(aResponse()
+                .withStatus(HTTP_UNAUTHORIZED)
+                .withHeader("WWW-Authenticate","Bearer error=\"invalid_token\", error_description=\"The access token is invalid\"")
+        );
+
+        onView(withId(R.id.get_profile)).perform(click());
+
+        onView(withId(R.id.status)).check(matches(isDisplayed()));
+        onView(withId(R.id.status)).check(matches(withText(containsString("Network error 3"))));
+    }
+
+    @Test
+    public void test4_getProfile_forbidden_error() throws UiObjectNotFoundException, InterruptedException {
+
+        mockProfileRequest(aResponse()
+                .withStatus(HTTP_FORBIDDEN)
+                .withHeader("Expires","0")
+                .withHeader("WWW-Authenticate:", "Bearer error=\"insufficient_scope\", " +
+                        "error_description=\"The access token must provide access to at least one of" +
+                        " these scopes - profile, email, address or phone\"")
+        );
+
+        onView(withId(R.id.get_profile)).perform(click());
+
+        onView(withId(R.id.status)).check(matches(isDisplayed()));
+        onView(withId(R.id.status)).check(matches(withText(containsString("Network error 3"))));
+    }
+
+
+    @Test
+    public void test5_revokeToken_error() throws UiObjectNotFoundException, InterruptedException {
+
+        mockRevokeRequest(aResponse()
+                .withStatus(HTTP_UNAUTHORIZED)
+                .withHeader("Content-Type","application/json;charset=UTF-8")
+                .withBody("{\n" +
+                        "    \"error\": \"invalid_client\",\n" +
+                        "    \"error_description\": \"No client credentials found.\"\n" +
+                        "}")
+        );
+
+        onView(withId(R.id.revoke_access)).perform(click());
+
+        onView(withId(R.id.status)).check(matches(isDisplayed()));
+        onView(withId(R.id.status)).check(matches(withText(containsString("false"))));
+    }
+
+    @Test
+    public void test6_introspect_error() throws UiObjectNotFoundException, InterruptedException {
+
+        mockIntrospectRequest(aResponse()
+                .withStatus(HTTP_UNAUTHORIZED)
+                .withHeader("Content-Type","application/json;charset=UTF-8")
+                .withBody("{\n" +
+                        "    \"error\" : \"invalid_client\",\n" +
+                        "    \"error_description\" : \"No client credentials found.\"\n" +
+                        "}")
+        );
+
+        onView(withId(R.id.revoke_access)).perform(click());
+
+        onView(withId(R.id.status)).check(matches(isDisplayed()));
+        onView(withId(R.id.status)).check(matches(withText(containsString("false"))));
     }
 }
