@@ -80,9 +80,9 @@ public class SyncSessionClientTest {
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        String url = new MockEndPoint().getUrl();
-        mAccount = TestValues.getAccountWithUrl(url);
         mEndPoint = new MockEndPoint();
+        String url = mEndPoint.getUrl();
+        mAccount = TestValues.getAccountWithUrl(url);
         mGson = new Gson();
         mStorage = new SimpleOktaStorage(mContext);
 

@@ -25,6 +25,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -35,6 +38,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 27)
 public class SyncNativeAuthClientTest {
 
     private MockEndPoint mEndPoint;
