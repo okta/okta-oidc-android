@@ -16,6 +16,9 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -26,12 +29,7 @@ import com.okta.oidc.net.response.web.AuthorizeResponse;
 
 import java.util.Map;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpRequestBuilder {
     HttpRequest.Type mRequestType;
     @Nullable

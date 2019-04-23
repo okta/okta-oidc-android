@@ -14,10 +14,25 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * Specifies whether the Authorization Server prompts the End-User for re-authentication and consent
+ */
 @SuppressWarnings("unused")
 public interface Prompt {
+    /**
+     * Do not prompt for authentication or consent. If an Okta session already exists,
+     * the user is silently authenticated. Otherwise, an error is returned.
+     */
     String NONE = "none";
+    /**
+     * Always prompt the user for authentication, regardless of whether they have an Okta session.
+     */
     String LOGIN = "login";
+    /**
+     * Depending on the values set for consent_method in the app and and consent on the scope,
+     * display the Okta consent dialog, even if the user has already given consent. User consent
+     * is available for Custom Authorization Servers (requires the API Access Management feature
+     * and the User Consent feature enabled).
+     */
     String CONSENT = "consent";
-    String SELECT_ACCOUNT = "select_account";
 }

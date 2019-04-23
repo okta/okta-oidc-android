@@ -18,6 +18,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -36,13 +40,21 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
 import static com.google.gson.stream.JsonToken.BEGIN_ARRAY;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.ID_TOKEN_VALIDATION_ERROR;
 
+/**
+ * The ID Token is a JSON Web Token (JWT) that contains information about an authentication event
+ * and claims about the authenticated user. This information tells your client application that the
+ * user is authenticated, and can also give you information like their username or locale.
+ *
+ * @see "ID Token
+ * <https://developer.okta.com/docs/api/resources/oidc/#id-token>"
+ * @see "Validating ID Tokens
+ * <https://developer.okta.com/authentication-guide/tokens/validating-id-tokens/>"
+ */
 public class OktaIdToken {
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     public interface Clock {
         long getCurrentTimeMillis();
     }
@@ -65,11 +77,24 @@ public class OktaIdToken {
         public String country;
     }
 
+    /**
+     * Claims in the Header Section
+     *
+     * @see "ID Token Header
+     * <https://developer.okta.com/docs/api/resources/oidc/#id-token-header>"
+     */
     public static class Header {
         public String alg;
         public String kid;
     }
 
+    /**
+     * Claims in the payload are either base claims, independent of scope (always returned),
+     * or dependent on scope (not always returned).
+     *
+     * @see "Claims in the Payload Section
+     * <https://developer.okta.com/docs/api/resources/oidc/#id-token-header>"
+     */
     public static class Claims {
         public List<String> amr;
         public List<String> aud;
@@ -108,18 +133,31 @@ public class OktaIdToken {
         mSignature = signature;
     }
 
+    /**
+     * Get the header claims {@link Header}
+     */
     public Header getHeader() {
         return mHeader;
     }
 
+    /**
+     * Get the payload claims {@link Claims}
+     */
     public Claims getClaims() {
         return mClaims;
     }
 
+    /**
+     * Get the signature
+     *
+     * @see "ID Token Signature
+     * <https://developer.okta.com/docs/api/resources/oidc/#id-token-signature>"
+     */
     public String getSignature() {
         return mSignature;
     }
 
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
         OIDCAccount account = request.getAccount();
         ProviderConfiguration config = request.getProviderConfiguration();
@@ -184,8 +222,10 @@ public class OktaIdToken {
         }
     }
 
-    /*
-     * @param String token based64 encoded idToken
+    /**
+     * Parses a JSON Web Token (JWT).
+     *
+     * @param token the based64 encoded idToken
      */
     public static OktaIdToken parseIdToken(@NonNull String token) throws IllegalArgumentException {
         String[] sections = token.split("\\.");
@@ -200,14 +240,15 @@ public class OktaIdToken {
         //decode claims
         String claimsSection = new String(Base64.decode(sections[1], Base64.URL_SAFE));
         Claims claims = gson.fromJson(claimsSection, Claims.class);
-        String signature = null;
-        signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
+        String signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
         return new OktaIdToken(header, claims, signature);
     }
 
-    //Adapter needed for parsing audience which can be a single element or a array.
-    //If audience is a single element then this adapter converts the single element audience
-    //to a list of one element.
+    /*
+     * Adapter needed for parsing audience which can be a single element or a array.
+     * If audience is a single element then this adapter converts the single element audience
+     * to a list of one element.
+     */
     private static final class ArrayTypeAdapter extends TypeAdapter<List<Object>> {
         final TypeAdapter<List<Object>> mDelegate;
         final TypeAdapter<Object> mElement;

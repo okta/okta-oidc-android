@@ -14,12 +14,44 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * Access tokens include reserved scopes and claims and can optionally include custom scopes and
+ * claims.
+ * <p>
+ * Scopes are requested in the initial authorization request, and the Authorization Server uses
+ * the Access Policies to decide whether they can be granted. If any of the requested scopes are
+ * rejected by the Access Policies, the request is rejected.
+ *
+ * @see "Access Token Scopes and Claims
+ * <https://developer.okta.com/docs/api/resources/oidc/#access-token-scopes-and-claims>"
+ */
 public interface Scope {
+    /**
+     * The openid scope.
+     */
     String OPENID = "openid";
+    /**
+     * The profile scope.
+     */
     String PROFILE = "profile";
+    /**
+     * The email scope.
+     */
     String EMAIL = "email";
+    /**
+     * The phone scope.
+     */
     String PHONE = "phone";
+    /**
+     * The address scope.
+     */
     String ADDRESS = "address";
+    /**
+     * The groups scope.
+     */
     String GROUPS = "groups";
+    /**
+     * The offline_access scope.
+     */
     String OFFLINE_ACCESS = "offline_access";
 }

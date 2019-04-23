@@ -23,15 +23,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.okta.oidc.util.AuthorizationException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
@@ -41,6 +32,23 @@ import androidx.browser.customtabs.CustomTabsService;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
 
+import com.okta.oidc.util.AuthorizationException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * This activity starts the authorization with PKCE flow.
+ *
+ * @see "Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
+ * @see "Implementing the Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
+ */
 public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
     static final String EXTRA_AUTH_STARTED = "com.okta.auth.AUTH_STARTED";

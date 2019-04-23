@@ -17,6 +17,9 @@ package com.okta.oidc.net.request;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.okta.oidc.OIDCAccount;
@@ -36,12 +39,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {
     private static final String TAG = TokenRequest.class.getSimpleName();
 

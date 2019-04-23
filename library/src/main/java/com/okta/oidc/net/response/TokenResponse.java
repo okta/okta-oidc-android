@@ -15,12 +15,14 @@
 package com.okta.oidc.net.response;
 
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenResponse implements Persistable {
     private String access_token;
     private String token_type;

@@ -18,6 +18,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+/**
+ * This activity receives the redirect URI sent by the {@code /authorize} endpoint.
+ * It sends the data received from the redirect to {@link OktaAuthenticationActivity}.
+ *
+ * @see "Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
+ * @see "Implementing the Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
+ */
 public class OktaRedirectActivity extends Activity {
     public static final String REDIRECT_ACTION = OktaRedirectActivity.class.getCanonicalName() + ".REDIRECT_ACTION";
 

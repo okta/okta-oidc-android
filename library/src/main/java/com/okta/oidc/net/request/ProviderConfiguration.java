@@ -24,10 +24,8 @@ import androidx.annotation.VisibleForTesting;
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
 @SuppressWarnings("unused")
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class ProviderConfiguration implements Persistable {
     public static final String OPENID_CONFIGURATION_RESOURCE = "/.well-known/openid-configuration";
 

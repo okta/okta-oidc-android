@@ -22,6 +22,13 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
+import androidx.fragment.app.FragmentActivity;
+
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
@@ -53,17 +60,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-import androidx.fragment.app.FragmentActivity;
-
 import static com.okta.oidc.State.IDLE;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncAuthenticationClient {
     private static final String TAG = AuthenticateClient.class.getSimpleName();
 
@@ -271,11 +273,11 @@ public class SyncAuthenticationClient {
     }
 
     public AuthorizationStatus getAuthorizationStatus() {
-        if(mOktaState.getCurrentState() != IDLE) {
+        if (mOktaState.getCurrentState() != IDLE) {
             return AuthorizationStatus.IN_PROGRESS;
         }
 
-        if(isLoggedIn()) {
+        if (isLoggedIn()) {
             return AuthorizationStatus.AUTHORIZED;
         } else {
             return AuthorizationStatus.LOGGED_OUT;

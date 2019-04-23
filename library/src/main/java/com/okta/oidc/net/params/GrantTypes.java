@@ -14,10 +14,16 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * Determines the mechanism Okta uses to authorize the creation of the tokens.
+ */
 public interface GrantTypes {
+    /**
+     * The grant type for authorization code
+     */
     String AUTHORIZATION_CODE = "authorization_code";
-    String IMPLICIT = "implicit";
+    /**
+     * The grant type for refreshing a access token
+     */
     String REFRESH_TOKEN = "refresh_token";
-    String PASSWORD = "password";
-    String CLIENT_CREDENTIALS = "client_credentials";
 }

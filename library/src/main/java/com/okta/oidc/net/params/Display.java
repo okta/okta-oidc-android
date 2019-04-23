@@ -14,10 +14,27 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * Optional string value that specifies how the Authorization Server displays the
+ * authentication and consent user interface pages to the End-User.
+ */
 @SuppressWarnings("unused")
 public interface Display {
+    /**
+     * Display the authentication and consent UI consistent with a full User Agent page view.
+     * If the display parameter is not specified, this is the default display mode.
+     */
     String PAGE = "page";
+
+    /**
+     * Display the authentication and consent UI consistent with a popup User Agent window.
+     * The popup User Agent window should be of an appropriate size for a login-focused dialog and
+     * should not obscure the entire window that it is popping up over.
+     */
     String POPUP = "popup";
+
+    /**
+     * Display the authentication and consent UI consistent with a device that leverages a touch interface.
+     */
     String TOUCH = "touch";
-    String WAP = "wap";
 }

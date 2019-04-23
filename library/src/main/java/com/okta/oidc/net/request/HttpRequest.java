@@ -14,10 +14,13 @@
  */
 package com.okta.oidc.net.request;
 
+import androidx.annotation.RestrictTo;
+
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.util.AuthorizationException;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface HttpRequest<T, U extends AuthorizationException> {
     enum Type {
         CONFIGURATION,

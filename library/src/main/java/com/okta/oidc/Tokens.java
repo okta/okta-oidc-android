@@ -15,10 +15,10 @@
 
 package com.okta.oidc;
 
-import com.okta.oidc.net.response.TokenResponse;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.okta.oidc.net.response.TokenResponse;
 
 /**
  * OpenId tokens.
@@ -48,6 +48,8 @@ public class Tokens {
 
     /**
      * The current ID token, if available.
+     * This is a base64 encoded string. For getting a OktaIdToken use
+     * {@link OktaIdToken#parseIdToken(String)}
      *
      * @return id token.
      */

@@ -14,13 +14,14 @@
  */
 package com.okta.oidc.net.response.web;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class WebResponse implements Persistable {
 
     public abstract String getState();

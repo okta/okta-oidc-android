@@ -28,6 +28,13 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.ColorRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.okta.authn.sdk.AuthenticationException;
 import com.okta.authn.sdk.AuthenticationStateHandlerAdapter;
 import com.okta.authn.sdk.client.AuthenticationClient;
@@ -39,8 +46,8 @@ import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCAccount;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
-import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
+import com.okta.oidc.net.params.Scope;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectResponse;
 import com.okta.oidc.storage.SimpleOktaStorage;
@@ -50,13 +57,6 @@ import org.json.JSONObject;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import androidx.annotation.ColorRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 public class SampleActivity extends AppCompatActivity implements LoginDialog.LoginDialogListener {
 
@@ -290,7 +290,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .clientId("0oajqehiy6p81NVzA0h7")
                 .redirectUri("com.oktapreview.samples-test:/callback")
                 .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
-                .scopes("openid", "profile", "offline_access")
+                .scopes(Scope.OPENID, Scope.PROFILE, Scope.OFFLINE_ACCESS)
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
@@ -346,7 +346,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     @Override
     protected void onResume() {
         super.onResume();
-        if(mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
+        if (mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
     }

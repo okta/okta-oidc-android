@@ -14,8 +14,20 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * Indicates the type of token being passed in a request.
+ */
 public interface TokenTypeHint {
+    /**
+     * The type of token is a access_token.
+     */
     String ACCESS_TOKEN = "access_token";
+    /**
+     * The type of token is a id_token.
+     */
     String ID_TOKEN = "id_token";
+    /**
+     * The type of token is a refresh_token.
+     */
     String REFRESH_TOKEN = "refresh_token";
 }
