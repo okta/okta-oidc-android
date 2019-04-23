@@ -17,6 +17,10 @@ package com.okta.oidc.net.request.web;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCAccount;
@@ -30,10 +34,6 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
 
 //https://developer.okta.com/docs/api/resources/oidc#authorize
 @RestrictTo(RestrictTo.Scope.LIBRARY)
