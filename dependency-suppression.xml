@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
+    <suppress>
+        <notes><![CDATA[
+      file name: classes.jar
+      ]]></notes>
+        <gav regex="true">^androidx\.fragment:fragment:.*$</gav>
+        <cve>CVE-2018-13661</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: classes.jar
+   ]]></notes>
+        <gav regex="true">^androidx\.legacy:legacy-support-core-ui:.*$</gav>
+        <cve>CVE-2018-13661</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: classes.jar
+   ]]></notes>
+        <gav regex="true">^androidx\.legacy:legacy-support-core-utils:.*$</gav>
+        <cve>CVE-2017-16111</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: classes.jar
+   ]]></notes>
+        <gav regex="true">^androidx\.loader:loader:.*$</gav>
+        <cve>CVE-2017-16111</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: classes.jar
+   ]]></notes>
+        <gav regex="true">^androidx\.localbroadcastmanager:localbroadcastmanager:.*$</gav>
+        <cve>CVE-2017-16111</cve>
+    </suppress>
+</suppressions>
