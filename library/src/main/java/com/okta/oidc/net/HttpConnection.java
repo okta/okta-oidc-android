@@ -16,6 +16,10 @@ package com.okta.oidc.net;
 
 import android.os.Build;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
+
 import com.okta.oidc.BuildConfig;
 import com.okta.oidc.net.request.TLSSocketFactory;
 import com.okta.oidc.util.Preconditions;
@@ -36,10 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RestrictTo;
-import androidx.annotation.VisibleForTesting;
-
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @RestrictTo(LIBRARY_GROUP)
@@ -51,8 +51,9 @@ public class HttpConnection {
     public static final String JSON_CONTENT_TYPE = String.format("application/json; charset=%s",
             DEFAULT_ENCODING);
     public static final String USER_AGENT = "User-Agent";
-    public static final String USER_AGENT_HEADER = "Android/" + Build.VERSION.SDK_INT + " " +
-            BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_NAME;
+    public static final String X_OKTA_USER_AGENT = "X-Okta-User-Agent-Extended";
+    public static final String USER_AGENT_HEADER = "okta-oidc-android/" + Build.VERSION.SDK_INT +
+            " " + BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_NAME;
 
     public enum RequestMethod {
         GET, POST
@@ -81,11 +82,7 @@ public class HttpConnection {
         conn.setReadTimeout(mReadTimeOutMs);
         conn.setInstanceFollowRedirects(false);
         Map<String, List<String>> properties = conn.getRequestProperties();
-        if (properties.get(USER_AGENT) == null &&
-                (mRequestProperties == null || !mRequestProperties.containsKey(USER_AGENT))) {
-            conn.setRequestProperty(USER_AGENT, USER_AGENT_HEADER);
-        }
-        if (properties.get(USER_AGENT) == null &&
+        if (properties.get(CONTENT_TYPE) == null &&
                 (mRequestProperties == null || !mRequestProperties.containsKey(CONTENT_TYPE))) {
             conn.setRequestProperty(CONTENT_TYPE, DEFAULT_CONTENT_TYPE);
         }
@@ -94,6 +91,7 @@ public class HttpConnection {
                 conn.setRequestProperty(property, mRequestProperties.get(property));
             }
         }
+        conn.setRequestProperty(USER_AGENT, USER_AGENT_HEADER);
         if (mRequestMethod == RequestMethod.GET) {
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
