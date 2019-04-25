@@ -8,6 +8,7 @@ dependencyCheck {
             'api',
             'archives',
             'compile',
+            'implementation',
             'releaseCompileClasspath',
             'releaseRuntimeClasspath'
     ]
