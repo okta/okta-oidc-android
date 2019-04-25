@@ -41,12 +41,11 @@ account = new OIDCAccount.Builder()
 Then create a `client` like the following:
 
 ```Java
-client = new AuthenticateClient.Builder()
-    .withAccount(account)
-    .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
-    .withTabColor(getColorCompat(R.color.colorPrimary))
-    .create();
+client = new Okta.AsyncWebBuilder()
+                .withConfig(account)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .create();
 ```
 
 After creating the client, register a callback to receive authorization results.
@@ -150,6 +149,11 @@ In the case that you override the 'onActivityResult' method you must invoke 'sup
 ## Using the Tokens
 
 Once the user is authorized you can use the client object to call the OIDC endpoints
+In order to access this API you need to yor `sessionClint`
+
+```java
+sessionClient = client.getSessionClient();
+```
 
 ### Get user information
 
@@ -182,7 +186,7 @@ properties.put("queryparam", "queryparam");
 HashMap<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
-client.authorizedRequest(uri, properties,
+sessionClient.authorizedRequest(uri, properties,
                 postParameters, HttpConnection.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull JSONObject result) {
@@ -201,7 +205,7 @@ client.authorizedRequest(uri, properties,
 You can refresh the `tokens` with the following request:
 
 ```java
-client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
+sessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull Tokens result) {
         //handle success.
@@ -219,7 +223,7 @@ client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
 Tokens can be revoked with the following request:
 
 ```java
-client.revokeToken(client.getTokens().getRefreshToken(),
+sessionClient.revokeToken(client.getTokens().getRefreshToken(),
     new RequestCallback<Boolean, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull Boolean result) {
@@ -239,7 +243,7 @@ client.revokeToken(client.getTokens().getRefreshToken(),
 Tokens can be checked for more detailed information by using the introspect endpoint:
 
 ```java
-client.introspectToken(client.getTokens().getRefreshToken(),
+sessionClient.introspectToken(client.getTokens().getRefreshToken(),
     TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectResponse, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull IntrospectResponse result) {
@@ -282,7 +286,7 @@ Until the tokens are removed or revoked, the user can still access data from the
 Tokens can be removed from the device by simply calling:
 
 ```java
-    client.clear();
+    sessionClient.clear();
 ```
 
 After this the user is logged out.
@@ -295,7 +299,7 @@ If you do not want `AuthenticateClient` to store the data you can pass in a empt
 ```java
 
 
-client = new AuthenticateClient.Builder()
+client = new AsyncWebBuilder.Builder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new OktaStorage() {
@@ -328,7 +332,7 @@ The default browser used for authorization is Chrome. If you want to change it F
 String SAMSUNG = "com.sec.android.app.sbrowser";
 String FIREFOX = "org.mozilla.firefox";
 
-client = new AuthenticateClient.Builder()
+client = new AsyncWebBuilder.Builder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
@@ -361,7 +365,7 @@ private class MyConnectionFactory implements HttpConnectionFactory {
     }
 }
 
-client = new AuthenticateClient.Builder()
+client = new AsyncWebBuilder.Builder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
@@ -393,7 +397,7 @@ public class MyStorage implements OktaStorage {
     }
 }
 
-client = new AuthenticateClient.Builder()
+client = new AsyncWebBuilder.Builder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new MyStorage())
@@ -405,3 +409,58 @@ client = new AuthenticateClient.Builder()
 ## Providing custom encryption
 
 TODO add after encryption and smart lock branch is merged.
+
+## Advanced techniques
+
+Sometimes as a developer you want to have more control over SDK and here is a couple of advanced API's that are available to give
+you more control as a developer.
+
+### Native login (Async)
+
+In order to use native authentication flow without browser you can use our `AsyncNativeClient`
+
+```Java
+asyncNativeClient = new AsyncNativeBuilder()
+    .withConfig(account)
+    .withContext(getApplicationContext())
+    .withStorage(new SimpleOktaStorage(this))
+    .create();
+```
+
+After building `AsyncNativeClient` you should call `login` method where you need provide `sessionToken` and `RequestCallback`
+
+```java
+asyncNativeClient.logIn("sessionToken", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+    @Override
+    public void onSuccess(@NonNull AuthorizationResult result) {
+        
+    }
+    
+    @Override
+    public void onError(String error, AuthorizationException exception) {
+        
+    }
+});
+```
+
+Optionally you can provide `AuthenticationPayload` as a part of login call.
+
+### Native login (Sync)
+
+In order to use native authentication flow without browser you can use our `SyncNativeClient`
+
+```java
+syncNativeClient = new SyncNativeBuilder()
+    .withConfig(account)
+    .withContext(getApplicationContext())
+    .withStorage(new SimpleOktaStorage(this))
+    .create();
+```
+After building `AsyncNativeClient` you should call `login` method where you need provide `sessionToken`
+NOTE: that is a synchronous call so please check that it is not performed on Ui Thread 
+
+```java
+syncNativeClient.logIn("sessionToken", null)
+```
+
+Optionally you can provide `AuthenticationPayload` as a part of login call.
