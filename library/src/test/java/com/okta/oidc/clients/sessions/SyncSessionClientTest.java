@@ -8,7 +8,6 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.SyncWebAuth;
-import com.okta.oidc.clients.SyncWebAuthClientFactory;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
@@ -17,7 +16,7 @@ import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
@@ -225,8 +224,8 @@ public class SyncSessionClientTest {
         mEndPoint.enqueueIntrospectSuccess();
         IntrospectRequest request =
                 mSyncSessionClient.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN);
-        IntrospectResponse response = request.executeRequest();
-        assertTrue(response.active);
+        IntrospectInfo response = request.executeRequest();
+        assertTrue(response.isActive());
     }
 
     @Test
@@ -235,7 +234,7 @@ public class SyncSessionClientTest {
         mEndPoint.enqueueReturnInvalidClient();
         IntrospectRequest request
                 = mSyncSessionClient.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN);
-        IntrospectResponse response = request.executeRequest();
+        IntrospectInfo response = request.executeRequest();
         assertNull(response);
     }
 

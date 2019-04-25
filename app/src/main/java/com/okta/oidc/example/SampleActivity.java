@@ -49,7 +49,8 @@ import com.okta.oidc.clients.SyncNativeAuth;
 import com.okta.oidc.clients.SyncWebAuth;
 import com.okta.oidc.clients.sessions.AsyncSession;
 import com.okta.oidc.net.params.TokenTypeHint;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
+import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -140,10 +141,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mProgressBar.setVisibility(View.VISIBLE);
             asyncSessionClient.introspectToken(
                     asyncSessionClient.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("RefreshToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("RefreshToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -160,10 +161,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mProgressBar.setVisibility(View.VISIBLE);
             asyncSessionClient.introspectToken(
                     asyncSessionClient.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("AccessToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("AccessToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -180,10 +181,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mProgressBar.setVisibility(View.VISIBLE);
             asyncSessionClient.introspectToken(
                     asyncSessionClient.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("IdToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("IdToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -320,13 +321,13 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .withCallbackExecutor(null)
                 .create();
 
-//        SyncWebAuth mWebSyncOktaAuth = new Okta.SyncWebBuilder()
-//                .withConfig(mOktaAccount)
-//                .withContext(getApplicationContext())
-//                .withStorage(new SimpleOktaStorage(this))
-//                .withTabColor(0)
-//                .supportedBrowsers(null)
-//                .create();
+        SyncWebAuth mWebSyncOktaAuth = new Okta.SyncWebBuilder()
+                .withConfig(mOktaAccount)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withTabColor(0)
+                .supportedBrowsers(null)
+                .create();
 
         SyncNativeAuth mNativeSyncOktaAuth = new Okta.SyncNativeBuilder()
                 .withConfig(mOktaAccount)
@@ -446,9 +447,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
     private void getProfile() {
         mProgressBar.setVisibility(View.VISIBLE);
-        asyncSessionClient.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() {
+        asyncSessionClient.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
             @Override
-            public void onSuccess(@NonNull JSONObject result) {
+            public void onSuccess(@NonNull UserInfo result) {
                 mTvStatus.setText(result.toString());
                 mProgressBar.setVisibility(View.GONE);
             }

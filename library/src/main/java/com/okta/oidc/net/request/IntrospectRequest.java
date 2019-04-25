@@ -22,7 +22,7 @@ import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpResponse;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
@@ -31,7 +31,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 public class IntrospectRequest extends
-        BaseRequest<IntrospectResponse, AuthorizationException> {
+        BaseRequest<IntrospectInfo, AuthorizationException> {
     public IntrospectRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
@@ -46,10 +46,10 @@ public class IntrospectRequest extends
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<IntrospectResponse, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<IntrospectInfo, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
-                IntrospectResponse response = executeRequest();
+                IntrospectInfo response = executeRequest();
                 dispatcher.submitResults(() -> callback.onSuccess(response));
             } catch (AuthorizationException ae) {
                 dispatcher.submitResults(() -> callback.onError(ae.error, ae));
@@ -58,14 +58,14 @@ public class IntrospectRequest extends
     }
 
     @Override
-    public IntrospectResponse executeRequest() throws AuthorizationException {
+    public IntrospectInfo executeRequest() throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
             response = openConnection();
             JSONObject json = response.asJson();
             return new Gson().
-                    fromJson(json.toString(), IntrospectResponse.class);
+                    fromJson(json.toString(), IntrospectInfo.class);
         } catch (IOException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.NETWORK_ERROR,

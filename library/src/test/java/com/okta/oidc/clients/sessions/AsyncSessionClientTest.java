@@ -10,14 +10,13 @@ import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.AsyncWebAuth;
-import com.okta.oidc.clients.SyncWebAuth;
-import com.okta.oidc.clients.SyncWebAuthClientFactory;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
@@ -150,25 +149,25 @@ public class AsyncSessionClientTest {
     public void getUserProfile() throws InterruptedException, JSONException {
         mEndPoint.enqueueUserInfoSuccess();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<JSONObject, AuthorizationException> cb
+        MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
         mAsyncSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
-        JSONObject result = cb.getResult();
+        UserInfo result = cb.getResult();
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
         assertThat(recordedRequest.getHeader("Accept"), is(HttpConnection.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNotNull(result);
-        assertEquals("John Doe", result.getString("name"));
-        assertEquals("Jimmy", result.getString("nickname"));
+        assertEquals("John Doe", result.get("name"));
+        assertEquals("Jimmy", result.get("nickname"));
     }
 
     @Test
     public void getUserProfileFailure() throws InterruptedException, JSONException {
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<JSONObject, AuthorizationException> cb
+        MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
         mAsyncSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
@@ -212,19 +211,19 @@ public class AsyncSessionClientTest {
     public void introspectToken() throws InterruptedException {
         mEndPoint.enqueueIntrospectSuccess();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectResponse, AuthorizationException>
+        MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
         mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNotNull(cb.getResult());
-        assertTrue(cb.getResult().active);
+        assertTrue(cb.getResult().isActive());
     }
 
     @Test
     public void introspectTokenFailure() throws InterruptedException {
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectResponse, AuthorizationException>
+        MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
         mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();

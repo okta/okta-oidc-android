@@ -2,9 +2,9 @@ package com.okta.oidc.clients.sessions;
 
 import android.net.Uri;
 
+import com.google.gson.JsonObject;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.RequestCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -14,8 +14,9 @@ import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.RefreshTokenRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -65,8 +66,9 @@ public class SyncSessionClient implements SyncSession {
     }
 
     @Override
-    public JSONObject getUserProfile() throws AuthorizationException {
-        return userProfileRequest().executeRequest();
+    public UserInfo getUserProfile() throws AuthorizationException {
+        JSONObject userInfo = userProfileRequest().executeRequest();
+        return new UserInfo(userInfo);
     }
 
     protected IntrospectRequest introspectTokenRequest(String token, String tokenType) {
@@ -79,7 +81,7 @@ public class SyncSessionClient implements SyncSession {
     }
 
     @Override
-    public IntrospectResponse introspectToken(String token, String tokenType) throws AuthorizationException {
+    public IntrospectInfo introspectToken(String token, String tokenType) throws AuthorizationException {
         return introspectTokenRequest(token, tokenType).executeRequest();
     }
 
@@ -107,7 +109,7 @@ public class SyncSessionClient implements SyncSession {
     }
 
     @Override
-    public Tokens refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) throws AuthorizationException {
+    public Tokens refreshToken() throws AuthorizationException {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
         TokenResponse tokenResponse = refreshTokenRequest().executeRequest();

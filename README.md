@@ -26,10 +26,10 @@ build, test and configure the sample, see the sample [README](https://github.com
 
 ### Configuration
 
-First the Authenticate client must have a account to interact with Okta's OIDC provider. Create a `OIDCAccount` like the following example:
+First the Authenticate client must have a config to interact with Okta's OIDC provider. Create a `OIDCConfig` like the following example:
 
 ```java
-account = new OIDCAccount.Builder()
+config = new OIDCConfig.Builder()
     .clientId("{clientId}")
     .redirectUri("{redirectUri}")
     .endSessionRedirectUri("{endSessionUri}")
@@ -41,7 +41,7 @@ account = new OIDCAccount.Builder()
 Then create a `client` like the following:
 
 ```Java
-client = new Okta.AsyncWebBuilder()
+AsyncWebAuth client = new Okta.AsyncWebBuilder()
                 .withConfig(account)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
@@ -80,7 +80,7 @@ The `client` can now be used to authenticate users and authorizing access.
 
 ### Using JSON configuration file
 
-You can also create a `account` by poviding a JSON file.
+You can also create a `config` by poviding a JSON file.
 Create a file called `okta_oidc_config.json` in your application's `res/raw/` directory with the following contents:
 
 ```json
@@ -100,7 +100,7 @@ Create a file called `okta_oidc_config.json` in your application's `res/raw/` di
 Use this JSON file to create a `account`:
 
 ```java
-account = new OIDCAccount.Builder()
+OIDCConfig config = new OIDCConfig.Builder()
     .withResId(this, R.id.okta_oidc_config)
     .create();
 ```
@@ -160,10 +160,10 @@ sessionClient = client.getSessionClient();
 An example of getting user information from [userinfo](https://developer.okta.com/docs/api/resources/oidc/#userinfo) endpoint:
 
 ```java
-client.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() {
+client.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
     @Override
-    public void onSuccess(@NonNull JSONObject result) {
-        //handle JSONObject result.
+    public void onSuccess(@NonNull UserInfo result) {
+        //handle UserInfo result.
     }
 
     @Override
@@ -173,7 +173,7 @@ client.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() 
 });
 ```
 
-In `onSuccess` the userinfo returned is a `JSONObject` with the [response properties](https://developer.okta.com/docs/api/resources/oidc/#response-example-success-5).
+In `onSuccess` the userinfo returned is a `UserInfo` with the [response properties](https://developer.okta.com/docs/api/resources/oidc/#response-example-success-5).
 
 ### Performing Authorized Requests
 
@@ -186,7 +186,7 @@ properties.put("queryparam", "queryparam");
 HashMap<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
-sessionClient.authorizedRequest(uri, properties,
+client.getSessionClient().authorizedRequest(uri, properties,
                 postParameters, HttpConnection.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull JSONObject result) {
@@ -205,7 +205,7 @@ sessionClient.authorizedRequest(uri, properties,
 You can refresh the `tokens` with the following request:
 
 ```java
-sessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
+client.getSessionClient().refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull Tokens result) {
         //handle success.
@@ -223,7 +223,7 @@ sessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>()
 Tokens can be revoked with the following request:
 
 ```java
-sessionClient.revokeToken(client.getTokens().getRefreshToken(),
+client.getSessionClient().revokeToken(client.getTokens().getRefreshToken(),
     new RequestCallback<Boolean, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull Boolean result) {
@@ -243,7 +243,7 @@ sessionClient.revokeToken(client.getTokens().getRefreshToken(),
 Tokens can be checked for more detailed information by using the introspect endpoint:
 
 ```java
-sessionClient.introspectToken(client.getTokens().getRefreshToken(),
+client.getSessionClient().introspectToken(client.getTokens().getRefreshToken(),
     TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectResponse, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull IntrospectResponse result) {
@@ -286,7 +286,7 @@ Until the tokens are removed or revoked, the user can still access data from the
 Tokens can be removed from the device by simply calling:
 
 ```java
-    sessionClient.clear();
+    client.getSessionClient()Okta.clear();
 ```
 
 After this the user is logged out.
@@ -299,7 +299,7 @@ If you do not want `AuthenticateClient` to store the data you can pass in a empt
 ```java
 
 
-client = new AsyncWebBuilder.Builder()
+client = new Okta.AsyncWebBuilder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new OktaStorage() {
@@ -323,6 +323,53 @@ The library provides a storage interface and encryption interface. These interfa
 
 The library allows customization to specific parts the SDK to meet developer needs.
 
+## Variants of client
+
+You can create client which do login via web in async way
+
+```java
+AsyncWebAuth mWebOktaAuth = new Okta.AsyncWebBuilder()
+        .withConfig(mOktaAccount)
+        .withContext(getApplicationContext())
+        .withStorage(new SimpleOktaStorage(this))
+        .withCallbackExecutor(Executors.newSingleThreadExecutor())
+        .withTabColor(Color.BLUE)
+        .supportedBrowsers(new String[]{"com.android.chrome", "org.mozilla.firefox"})
+        .create();
+```
+
+You can create client which do login using sessionToken in async way
+
+```java
+AsyncNativeAuth mNativeOktaAuth = new Okta.AsyncNativeBuilder()
+        .withConfig(mOktaAccount)
+        .withContext(getApplicationContext())
+        .withStorage(new SimpleOktaStorage(this))
+        .withCallbackExecutor(Executors.newSingleThreadExecutor())
+        .create();
+````
+
+You can create client which do login via web in sync way
+
+```java
+SyncWebAuth mWebSyncOktaAuth = new Okta.SyncWebBuilder()
+        .withConfig(mOktaAccount)
+        .withContext(getApplicationContext())
+        .withStorage(new SimpleOktaStorage(this))
+        .withTabColor(Color.BLUE)
+        .supportedBrowsers(new String[]{"com.android.chrome", "com.google.android.apps.chrome", "com.android.chrome.beta"})
+        .create();
+```
+
+You can create client which do login using sessionToken in sync way
+```java
+SyncNativeAuth mNativeSyncOktaAuth = new Okta.SyncNativeBuilder()
+        .withConfig(mOktaAccount)
+        .withContext(getApplicationContext())
+        .withStorage(new SimpleOktaStorage(this))
+        .create();
+```
+
 ## Providing browser used for authorization
 
 The default browser used for authorization is Chrome. If you want to change it FireFox, you can add this in the `AuthenticateClient.Builder()`:
@@ -332,7 +379,7 @@ The default browser used for authorization is Chrome. If you want to change it F
 String SAMSUNG = "com.sec.android.app.sbrowser";
 String FIREFOX = "org.mozilla.firefox";
 
-client = new AsyncWebBuilder.Builder()
+client = new Okta.AsyncWebBuilder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
@@ -365,7 +412,7 @@ private class MyConnectionFactory implements HttpConnectionFactory {
     }
 }
 
-client = new AsyncWebBuilder.Builder()
+client = new Okta.AsyncWebBuilder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
@@ -397,7 +444,7 @@ public class MyStorage implements OktaStorage {
     }
 }
 
-client = new AsyncWebBuilder.Builder()
+client = new Okta.AsyncWebBuilder()
     .withAccount(mOktaAccount)
     .withContext(getApplicationContext())
     .withStorage(new MyStorage())
@@ -420,7 +467,7 @@ you more control as a developer.
 In order to use native authentication flow without browser you can use our `AsyncNativeClient`
 
 ```Java
-asyncNativeClient = new AsyncNativeBuilder()
+asyncNativeClient = new Okta.AsyncNativeBuilder()
     .withConfig(account)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
@@ -433,12 +480,12 @@ After building `AsyncNativeClient` you should call `login` method where you need
 asyncNativeClient.logIn("sessionToken", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull AuthorizationResult result) {
-        
+
     }
-    
+
     @Override
     public void onError(String error, AuthorizationException exception) {
-        
+
     }
 });
 ```
@@ -450,7 +497,7 @@ Optionally you can provide `AuthenticationPayload` as a part of login call.
 In order to use native authentication flow without browser you can use our `SyncNativeClient`
 
 ```java
-syncNativeClient = new SyncNativeBuilder()
+syncNativeClient = new Okta.SyncNativeBuilder()
     .withConfig(account)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))

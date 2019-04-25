@@ -12,8 +12,9 @@ import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.RevokeTokenRequest;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -33,13 +34,23 @@ public class AsyncSessionClient implements AsyncSession {
         mDispatcher = new RequestDispatcher(callbackExecutor);
     }
 
-    public void getUserProfile(final RequestCallback<JSONObject, AuthorizationException> cb) {
+    public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
         AuthorizedRequest request = mSyncSessionClient.userProfileRequest();
-        request.dispatchRequest(mDispatcher, cb);
+        request.dispatchRequest(mDispatcher, new RequestCallback<JSONObject, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull JSONObject result) {
+                cb.onSuccess(new UserInfo(result));
+            }
+
+            @Override
+            public void onError(String error, AuthorizationException exception) {
+                cb.onError(error, exception);
+            }
+        });
     }
 
     public void introspectToken(String token, String tokenType,
-                                final RequestCallback<IntrospectResponse, AuthorizationException> cb) {
+                                final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
         IntrospectRequest request = mSyncSessionClient.introspectTokenRequest(token, tokenType);
         request.dispatchRequest(mDispatcher, cb);
     }

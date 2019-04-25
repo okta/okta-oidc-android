@@ -1,7 +1,11 @@
 package com.okta.oidc;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.provider.CalendarContract;
 
+import com.okta.oidc.clients.AsyncNativeAuth;
+import com.okta.oidc.clients.AsyncWebAuth;
 import com.okta.oidc.clients.SyncNativeAuth;
 import com.okta.oidc.clients.SyncNativeAuthClientFactory;
 import com.okta.oidc.clients.SyncWebAuth;
@@ -37,6 +41,8 @@ public class OktaTest {
     private HttpConnectionFactory mConnectionFactory;
     private OktaStorage mStorage;
     private Context mContext;
+    private int tabColor;
+    private String[] supportBrowsers;
 
     @Before
     public void setUp() throws Exception {
@@ -46,6 +52,146 @@ public class OktaTest {
 
         String url = new MockEndPoint().getUrl();
         mAccount = TestValues.getAccountWithUrl(url);
+
+        tabColor = Color.BLACK;
+        supportBrowsers = new String[]{""};
+    }
+
+
+    @Test
+    public void testAsyncWebBuilder() {
+        Okta.AsyncWebBuilder builder = mock(Okta.AsyncWebBuilder.class);
+        AsyncWebAuth otherClient = new Okta.AsyncWebBuilder()
+                .withConfig(mAccount)
+                .withStorage(mStorage)
+                .withContext(mContext)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .withCallbackExecutor(mExecutor)
+                .withTabColor(tabColor)
+                .supportedBrowsers(supportBrowsers)
+                .create();
+        when(builder.create()).thenReturn(otherClient);
+
+        builder.withConfig(mAccount);
+        verify(builder).withConfig(mAccount);
+
+        builder.withStorage(mStorage);
+        verify(builder).withStorage(mStorage);
+
+        builder.withHttpConnectionFactory(mConnectionFactory);
+        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+
+        builder.withContext(mContext);
+        verify(builder).withContext(mContext);
+
+        builder.withCallbackExecutor(mExecutor);
+        verify(builder).withCallbackExecutor(mExecutor);
+
+        builder.withTabColor(tabColor);
+        verify(builder).withTabColor(tabColor);
+
+        builder.supportedBrowsers(supportBrowsers);
+        verify(builder).supportedBrowsers(supportBrowsers);
+
+        Object client = builder.create();
+        verify(builder).create();
+        assertEquals(otherClient, client);
+    }
+
+    @Test
+    public void testAsyncNativeBuilder() {
+        Okta.AsyncNativeBuilder builder = mock(Okta.AsyncNativeBuilder.class);
+        AsyncNativeAuth otherClient = new Okta.AsyncNativeBuilder()
+                .withConfig(mAccount)
+                .withStorage(mStorage)
+                .withContext(mContext)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .withCallbackExecutor(mExecutor)
+                .create();
+        when(builder.create()).thenReturn(otherClient);
+
+        builder.withConfig(mAccount);
+        verify(builder).withConfig(mAccount);
+
+        builder.withStorage(mStorage);
+        verify(builder).withStorage(mStorage);
+
+        builder.withHttpConnectionFactory(mConnectionFactory);
+        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+
+        builder.withContext(mContext);
+        verify(builder).withContext(mContext);
+
+        builder.withCallbackExecutor(mExecutor);
+        verify(builder).withCallbackExecutor(mExecutor);
+
+        Object client = builder.create();
+        verify(builder).create();
+        assertEquals(otherClient, client);
+    }
+
+    @Test
+    public void testSyncWebBuilder() {
+        Okta.SyncWebBuilder builder = mock(Okta.SyncWebBuilder.class);
+        SyncWebAuth otherClient = new Okta.SyncWebBuilder()
+                .withConfig(mAccount)
+                .withStorage(mStorage)
+                .withContext(mContext)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .withTabColor(tabColor)
+                .supportedBrowsers(supportBrowsers)
+                .create();
+        when(builder.create()).thenReturn(otherClient);
+
+        builder.withConfig(mAccount);
+        verify(builder).withConfig(mAccount);
+
+        builder.withStorage(mStorage);
+        verify(builder).withStorage(mStorage);
+
+        builder.withHttpConnectionFactory(mConnectionFactory);
+        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+
+        builder.withContext(mContext);
+        verify(builder).withContext(mContext);
+
+        builder.withTabColor(tabColor);
+        verify(builder).withTabColor(tabColor);
+
+        builder.supportedBrowsers(supportBrowsers);
+        verify(builder).supportedBrowsers(supportBrowsers);
+
+        Object client = builder.create();
+        verify(builder).create();
+        assertEquals(otherClient, client);
+    }
+
+    @Test
+    public void testSyncNativeBuilder() {
+        Okta.SyncNativeBuilder builder = mock(Okta.SyncNativeBuilder.class);
+        SyncNativeAuth otherClient = new Okta.SyncNativeBuilder()
+                .withConfig(mAccount)
+                .withStorage(mStorage)
+                .withContext(mContext)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .create();
+        when(builder.create()).thenReturn(otherClient);
+
+        builder.withConfig(mAccount);
+        verify(builder).withConfig(mAccount);
+
+        builder.withStorage(mStorage);
+        verify(builder).withStorage(mStorage);
+
+        builder.withHttpConnectionFactory(mConnectionFactory);
+        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+
+        builder.withContext(mContext);
+        verify(builder).withContext(mContext);
+
+        Object client = builder.create();
+        verify(builder).create();
+        assertEquals(otherClient, client);
     }
 
     @Test
