@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Browser;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -40,6 +41,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
+import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
 
 /**
  * This activity starts the authorization with PKCE flow.
@@ -167,6 +171,9 @@ public class OktaAuthenticationActivity extends Activity {
         tabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         tabsIntent.intent.setPackage(packageName);
         tabsIntent.intent.setData(mAuthUri);
+        Bundle headers = new Bundle();
+        headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
+        tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);
         return tabsIntent.intent;
     }
 

@@ -107,3 +107,7 @@ task clearData(type: Exec) {
     commandLine clearTestAppData
     commandLine clearChromeData
 }
+
+dependencyCheck {
+    suppressionFile file("../dependency-suppression.xml").toString()
+}

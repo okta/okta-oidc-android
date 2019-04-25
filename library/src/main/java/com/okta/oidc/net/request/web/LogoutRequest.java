@@ -19,7 +19,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCAccount;

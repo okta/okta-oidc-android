@@ -20,7 +20,8 @@ android:
 
     # Emulator to use for UI tests
     - sys-img-armeabi-v7a-android-25
-
+jdk:
+  - openjdk8
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
@@ -30,4 +31,4 @@ cache:
     - $HOME/.gradle/wrapper/
     - $HOME/.android/build-cache
 script:
-  - "./gradlew clean build connectedCheck"
+  - "./gradlew clean build library:test"
