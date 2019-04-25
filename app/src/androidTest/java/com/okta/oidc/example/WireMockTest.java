@@ -110,6 +110,7 @@ public class WireMockTest {
     private static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
     private static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
     private static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+    private static final String ID_ADDRESS_BAR = "com.android.chrome:id/url_bar";
 
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
@@ -260,7 +261,11 @@ public class WireMockTest {
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
-        acceptChromePrivacyOption();
+        UiSelector selector = new UiSelector();
+        UiObject address = mDevice.findObject(selector.resourceId(ID_ADDRESS_BAR));
+        if (!address.exists()) {
+            acceptChromePrivacyOption();
+        }
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
 
