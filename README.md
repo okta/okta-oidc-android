@@ -42,7 +42,7 @@ Then create a `client` like the following:
 
 ```Java
 AsyncWebAuth client = new Okta.AsyncWebBuilder()
-                .withConfig(account)
+                .withConfig(config)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
                 .create();
@@ -97,7 +97,7 @@ Create a file called `okta_oidc_config.json` in your application's `res/raw/` di
 }
 ```
 
-Use this JSON file to create a `account`:
+Use this JSON file to create a `configuration`:
 
 ```java
 OIDCConfig config = new OIDCConfig.Builder()
@@ -300,7 +300,7 @@ If you do not want `AuthenticateClient` to store the data you can pass in a empt
 
 
 client = new Okta.AsyncWebBuilder()
-    .withAccount(mOktaAccount)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new OktaStorage() {
                 @Override
@@ -329,7 +329,7 @@ You can create client which do login via web in async way
 
 ```java
 AsyncWebAuth mWebOktaAuth = new Okta.AsyncWebBuilder()
-        .withConfig(mOktaAccount)
+        .withConfig(config)
         .withContext(getApplicationContext())
         .withStorage(new SimpleOktaStorage(this))
         .withCallbackExecutor(Executors.newSingleThreadExecutor())
@@ -342,7 +342,7 @@ You can create client which do login using sessionToken in async way
 
 ```java
 AsyncNativeAuth mNativeOktaAuth = new Okta.AsyncNativeBuilder()
-        .withConfig(mOktaAccount)
+        .withConfig(config)
         .withContext(getApplicationContext())
         .withStorage(new SimpleOktaStorage(this))
         .withCallbackExecutor(Executors.newSingleThreadExecutor())
@@ -353,7 +353,7 @@ You can create client which do login via web in sync way
 
 ```java
 SyncWebAuth mWebSyncOktaAuth = new Okta.SyncWebBuilder()
-        .withConfig(mOktaAccount)
+        .withConfig(config)
         .withContext(getApplicationContext())
         .withStorage(new SimpleOktaStorage(this))
         .withTabColor(Color.BLUE)
@@ -364,7 +364,7 @@ SyncWebAuth mWebSyncOktaAuth = new Okta.SyncWebBuilder()
 You can create client which do login using sessionToken in sync way
 ```java
 SyncNativeAuth mNativeSyncOktaAuth = new Okta.SyncNativeBuilder()
-        .withConfig(mOktaAccount)
+        .withConfig(config)
         .withContext(getApplicationContext())
         .withStorage(new SimpleOktaStorage(this))
         .create();
@@ -380,7 +380,7 @@ String SAMSUNG = "com.sec.android.app.sbrowser";
 String FIREFOX = "org.mozilla.firefox";
 
 client = new Okta.AsyncWebBuilder()
-    .withAccount(mOktaAccount)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
     .withTabColor(getColorCompat(R.color.colorPrimary))
@@ -413,7 +413,7 @@ private class MyConnectionFactory implements HttpConnectionFactory {
 }
 
 client = new Okta.AsyncWebBuilder()
-    .withAccount(mOktaAccount)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
     .withTabColor(getColorCompat(R.color.colorPrimary))
@@ -445,7 +445,7 @@ public class MyStorage implements OktaStorage {
 }
 
 client = new Okta.AsyncWebBuilder()
-    .withAccount(mOktaAccount)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new MyStorage())
     .withTabColor(getColorCompat(R.color.colorPrimary))
@@ -468,7 +468,7 @@ In order to use native authentication flow without browser you can use our `Asyn
 
 ```Java
 asyncNativeClient = new Okta.AsyncNativeBuilder()
-    .withConfig(account)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
     .create();
@@ -498,7 +498,7 @@ In order to use native authentication flow without browser you can use our `Sync
 
 ```java
 syncNativeClient = new Okta.SyncNativeBuilder()
-    .withConfig(account)
+    .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new SimpleOktaStorage(this))
     .create();
