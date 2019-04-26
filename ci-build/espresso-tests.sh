@@ -120,6 +120,27 @@ pushd ${OKTA_HOME}/${REPO}/ci-build > /dev/null
 
 pushd ${OKTA_HOME}/${REPO} > /dev/null
 
+function create_localproperties() {
+    echo "================================================"
+    echo "Create local.properties file"
+    echo "================================================"
+    localprop="local.properties"
+    if [[ -f ${localprop} ]] ; then
+        rm ${localprop}
+    fi
+    echo "test.username=\"$username\"" >> ${localprop}
+    echo "test.password=\"$password\"" >> ${localprop}
+    echo "ndk.dir=$ANDROID_HOME/ndk-bundle" >> ${localprop}
+    echo "sdk.dir=$ANDROID_HOME" >> ${localprop}
+}
+if ! create_localproperties; then
+    echo "================================================"
+    echo "Failed to create local.properties file"
+    echo "================================================"
+    exit 1
+fi
+
+
 function check_device_connection() {
     echo "================================"
     echo "check for adb-connected device"
@@ -172,14 +193,6 @@ function gradlew_prepare_device() {
     echo "============="
     echo "gradlew_prepareDeviceForUITesting"
     echo "============="
-    localprop="local.properties"
-    if [[ -f ${localprop} ]] ; then
-        rm ${localprop}
-    fi
-    echo "test.username=\"$username\"" >> ${localprop}
-    echo "test.password=\"$password\"" >> ${localprop}
-    echo "ndk.dir=$ANDROID_HOME/ndk-bundle" >> ${localprop}
-    echo "sdk.dir=$ANDROID_HOME" >> ${localprop}
 
     ./gradlew prepareDeviceForUITesting
 }
