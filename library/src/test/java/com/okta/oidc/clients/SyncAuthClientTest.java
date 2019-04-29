@@ -1,6 +1,23 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.clients;
 
 import android.content.Context;
+
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
@@ -13,7 +30,6 @@ import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.AuthorizationResult;
-import com.okta.oidc.clients.sessions.SyncSession;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -29,8 +45,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
 import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
@@ -41,14 +55,14 @@ import static org.junit.Assert.assertNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class SyncNativeAuthClientTest {
+public class SyncAuthClientTest {
 
     private MockEndPoint mEndPoint;
     private Context mContext;
     private OIDCConfig mAccount;
     private OktaStorage mStorage;
     private HttpConnectionFactory mConnectionFactory;
-    private SyncNativeAuthClient mSyncNativeAuth;
+    private SyncAuthClientImpl mSyncNativeAuth;
     private ProviderConfiguration mProviderConfig;
     private OktaState mOktaState;
 
@@ -66,14 +80,14 @@ public class SyncNativeAuthClientTest {
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
         mProviderConfig = TestValues.getProviderConfiguration(url);
 
-        SyncNativeAuth okta = new Okta.SyncNativeBuilder()
+        SyncAuthClient okta = new Okta.SyncNativeBuilder()
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .create();
 
-        mSyncNativeAuth = (SyncNativeAuthClient)okta;
+        mSyncNativeAuth = (SyncAuthClientImpl)okta;
 
         mOktaState = mSyncNativeAuth.getOktaState();
         mOktaState.save(mProviderConfig);

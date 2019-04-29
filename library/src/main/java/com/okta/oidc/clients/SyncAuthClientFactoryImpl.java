@@ -12,28 +12,17 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.util;
 
-import com.okta.oidc.storage.OktaStorage;
+package com.okta.oidc.clients;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.OktaState;
+import com.okta.oidc.net.HttpConnectionFactory;
 
-public class OktaStorageMock implements OktaStorage {
-    private Map<String, String> mInternalStorage = new HashMap<>();
-
+public class SyncAuthClientFactoryImpl implements AuthClientFactory<SyncAuthClient> {
     @Override
-    public void save(String key, String value) {
-        mInternalStorage.put(key, value);
-    }
-
-    @Override
-    public String get(String key) {
-        return mInternalStorage.get(key);
-    }
-
-    @Override
-    public void delete(String key) {
-        mInternalStorage.remove(key);
+    public SyncAuthClientImpl createClient(OIDCConfig oidcConfig, OktaState oktaState,
+                                           HttpConnectionFactory connectionFactory) {
+        return new SyncAuthClientImpl(oidcConfig, oktaState, connectionFactory);
     }
 }

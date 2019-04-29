@@ -15,13 +15,13 @@
 
 package com.okta.oidc.clients;
 
-import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.results.AuthorizationResult;
-import com.okta.oidc.util.AuthorizationException;
+import androidx.annotation.Nullable;
 
-public interface AuthClient extends BaseAuth<SessionClient> {
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.clients.sessions.SyncSessionClient;
+import com.okta.oidc.results.AuthorizationResult;
+
+public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
     /**
      * Log in with a session token. This is for logging in without using the implicit flow.
      * A session token can be obtained by using the AuthClient API. For more information
@@ -30,9 +30,7 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      *
      * @param sessionToken the session token
      * @param payload      the {@link AuthenticationPayload payload}
-     * @param cb           the @{@link RequestCallback callback}
-     * @see <a href=https://developer.okta.com/docs/api/resources/authn/>Revoke token</a>
+     * @return the {@link AuthorizationResult authorizationResult}
      */
-    void logIn(String sessionToken, AuthenticationPayload payload,
-               RequestCallback<AuthorizationResult, AuthorizationException> cb);
+    AuthorizationResult logIn(String sessionToken, @Nullable AuthenticationPayload payload);
 }

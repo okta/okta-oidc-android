@@ -1,7 +1,24 @@
-package com.okta.oidc.clients;
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
+package com.okta.oidc.clients.web;
 
 import android.content.Context;
 import android.net.Uri;
+
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
@@ -15,7 +32,6 @@ import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
-import com.okta.oidc.clients.sessions.SyncSession;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -32,7 +48,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import androidx.test.platform.app.InstrumentationRegistry;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
@@ -52,7 +67,7 @@ public class SyncWebAuthClientTest {
     private HttpConnectionFactory mConnectionFactory;
     private OIDCConfig mAccount;
     private OktaStorage mStorage;
-    private SyncWebAuthClient mSyncWebAuth;
+    private SyncWebAuthClientImpl mSyncWebAuth;
     private MockEndPoint mEndPoint;
     private Gson mGson;
     private OktaState mOktaState;
@@ -77,7 +92,7 @@ public class SyncWebAuthClientTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        SyncWebAuth okta = new Okta.SyncWebBuilder()
+        SyncWebAuthClient okta = new Okta.SyncWebBuilder()
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
@@ -85,7 +100,7 @@ public class SyncWebAuthClientTest {
                 .create();
 
 
-        mSyncWebAuth = (SyncWebAuthClient)okta;
+        mSyncWebAuth = (SyncWebAuthClientImpl)okta;
 
         mOktaState = mSyncWebAuth.getOktaState();
         mOktaState.save(mProviderConfig);

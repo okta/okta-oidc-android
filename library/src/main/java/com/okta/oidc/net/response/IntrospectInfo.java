@@ -14,6 +14,7 @@
  */
 package com.okta.oidc.net.response;
 
+@SuppressWarnings("unused")
 public final class IntrospectInfo {
     private boolean active;
     private String token_type;

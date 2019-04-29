@@ -1,7 +1,24 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.clients.sessions;
 
 import android.content.Context;
 import android.net.Uri;
+
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -9,7 +26,7 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.clients.AsyncWebAuth;
+import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
@@ -44,7 +61,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import androidx.test.platform.app.InstrumentationRegistry;
 import okhttp3.mockwebserver.RecordedRequest;
 
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
@@ -63,7 +79,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class AsyncSessionClientTest {
+public class SessionClientImplTest {
 
     private Context mContext;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -73,7 +89,7 @@ public class AsyncSessionClientTest {
     private OktaStorage mStorage;
 
     private OIDCConfig mAccount;
-    private AsyncSession mAsyncSessionClient;
+    private SessionClient mSessionClientClient;
     private Gson mGson;
 
     private ProviderConfiguration mProviderConfig;
@@ -95,7 +111,7 @@ public class AsyncSessionClientTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        AsyncWebAuth okta = new Okta.AsyncWebBuilder()
+        WebAuthClient okta = new Okta.AsyncWebBuilder()
                 .withCallbackExecutor(mExecutor)
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -103,7 +119,7 @@ public class AsyncSessionClientTest {
                 .withStorage(mStorage)
                 .create();
 
-        mAsyncSessionClient = okta.getSessionClient();
+        mSessionClientClient = okta.getSessionClient();
 
         OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext));
         mOktaState.save(mTokenResponse);
@@ -123,7 +139,7 @@ public class AsyncSessionClientTest {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.refreshToken(cb);
+        mSessionClientClient.refreshToken(cb);
         latch.await();
         Tokens result = cb.getResult();
         TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
@@ -138,7 +154,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         mEndPoint.enqueueReturnInvalidClient();
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.refreshToken(cb);
+        mSessionClientClient.refreshToken(cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -151,7 +167,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.getUserProfile(cb);
+        mSessionClientClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         UserInfo result = cb.getResult();
@@ -169,7 +185,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.getUserProfile(cb);
+        mSessionClientClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -183,7 +199,7 @@ public class AsyncSessionClientTest {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.revokeToken("access_token", cb);
+        mSessionClientClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNotNull(cb.getResult());
@@ -197,7 +213,7 @@ public class AsyncSessionClientTest {
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.revokeToken("access_token", cb);
+        mSessionClientClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -213,7 +229,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mSessionClientClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNotNull(cb.getResult());
         assertTrue(cb.getResult().isActive());
@@ -225,7 +241,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mSessionClientClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -241,7 +257,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClientClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNotNull(cb.getResult());
@@ -262,7 +278,7 @@ public class AsyncSessionClientTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mAsyncSessionClient.authorizedRequest(uri, properties,null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClientClient.authorizedRequest(uri, properties,null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());

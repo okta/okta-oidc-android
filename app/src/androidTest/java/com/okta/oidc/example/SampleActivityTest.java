@@ -156,7 +156,7 @@ public class SampleActivityTest {
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        assertNotNull(activityRule.getActivity().asyncSessionClient.getTokens());
+        assertNotNull(activityRule.getActivity().mSessionClient.getTokens());
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
     }
 

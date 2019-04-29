@@ -1,4 +1,19 @@
-package com.okta.oidc.clients;
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
+package com.okta.oidc.clients.web;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -7,6 +22,12 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
+import androidx.fragment.app.FragmentActivity;
+
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaRedirectActivity;
@@ -14,8 +35,9 @@ import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.clients.sessions.SyncSession;
+import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
+import com.okta.oidc.clients.sessions.SyncSessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -32,32 +54,25 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.WorkerThread;
-import androidx.fragment.app.FragmentActivity;
-
 import static com.okta.oidc.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
 
-class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
-    private static final String TAG = SyncWebAuthClient.class.getSimpleName();
+class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
+    private static final String TAG = SyncWebAuthClientImpl.class.getSimpleName();
 
     private String[] mSupportedBrowsers;
     private int mCustomTabColor;
-    private SyncSessionClient sessionClient;
+    private SyncSessionClientImpl mSessionClient;
 
-    public SyncWebAuthClient(OIDCConfig mOIDCConfig,
-                             OktaState mOktaState,
-                             HttpConnectionFactory mConnectionFactory,
-                             String[] mSupportedBrowsers,
-                             int mCustomTabColor) {
-        super(mOIDCConfig, mOktaState, mConnectionFactory);
-        this.mSupportedBrowsers = mSupportedBrowsers;
-        this.mCustomTabColor = mCustomTabColor;
-
-        this.sessionClient = new SyncSessionClient(mOIDCConfig, mOktaState, mConnectionFactory);
+    public SyncWebAuthClientImpl(OIDCConfig oidcConfig,
+                                 OktaState oktaState,
+                                 HttpConnectionFactory connectionFactory,
+                                 int customTabColor,
+                                 String... supportedBrowsers) {
+        super(oidcConfig, oktaState, connectionFactory);
+        mSupportedBrowsers = supportedBrowsers;
+        mCustomTabColor = customTabColor;
+        mSessionClient = new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {
@@ -89,7 +104,9 @@ class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
         return found;
     }
 
-    protected void registerCallbackIfInterrupt(FragmentActivity activity, ResultListener resultListener, ExecutorService executorService) {
+    protected void registerCallbackIfInterrupt(FragmentActivity activity,
+                                               ResultListener resultListener,
+                                               ExecutorService executorService) {
         if (OktaResultFragment.hasRequestInProgress(activity)) {
             OktaResultFragment.getFragment(activity).setAuthenticationListener((result, type) -> {
                 executorService.execute(() -> {
@@ -143,7 +160,8 @@ class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
 
         mOktaState.save(request);
         if (!isRedirectUrisRegistered(mOIDCConfig.getRedirectUri(), activity)) {
-            Log.e(TAG, "No uri registered to handle redirect or multiple applications registered");
+            Log.e(TAG, "No uri registered to handle redirect " +
+                    "or multiple applications registered");
             //FIXME move error to listener
             resetCurrentState();
             return AuthorizationResult.error(INVALID_REDIRECT_URI);
@@ -238,7 +256,7 @@ class SyncWebAuthClient extends AuthClient implements SyncWebAuth {
     }
 
     @Override
-    public SyncSession getSessionClient() {
-        return this.sessionClient;
+    public SyncSessionClient getSessionClient() {
+        return this.mSessionClient;
     }
 }

@@ -15,11 +15,24 @@
 
 package com.okta.oidc.clients;
 
+import androidx.annotation.Nullable;
+
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 
-public interface AuthClientFactory<A> {
-    A createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                   HttpConnectionFactory connectionFactory);
+import java.util.concurrent.Executor;
+
+public class AuthClientFactoryImpl implements AuthClientFactory<AuthClient> {
+    private Executor mCallbackExecutor;
+
+    public AuthClientFactoryImpl(@Nullable Executor executor) {
+        mCallbackExecutor = executor;
+    }
+
+    @Override
+    public AuthClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
+                                   HttpConnectionFactory connectionFactory) {
+        return new AuthClientImpl(mCallbackExecutor, oidcConfig, oktaState, connectionFactory);
+    }
 }

@@ -1,14 +1,29 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
 package com.okta.oidc;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.provider.CalendarContract;
 
-import com.okta.oidc.clients.AsyncNativeAuth;
-import com.okta.oidc.clients.AsyncWebAuth;
-import com.okta.oidc.clients.SyncNativeAuth;
-import com.okta.oidc.clients.SyncNativeAuthClientFactory;
-import com.okta.oidc.clients.SyncWebAuth;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.SyncAuthClient;
+import com.okta.oidc.clients.web.WebAuthClient;
+import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
+import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaStorage;
@@ -24,8 +39,6 @@ import org.robolectric.annotation.Config;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -61,7 +74,7 @@ public class OktaTest {
     @Test
     public void testAsyncWebBuilder() {
         Okta.AsyncWebBuilder builder = mock(Okta.AsyncWebBuilder.class);
-        AsyncWebAuth otherClient = new Okta.AsyncWebBuilder()
+        WebAuthClient otherClient = new Okta.AsyncWebBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -101,7 +114,7 @@ public class OktaTest {
     @Test
     public void testAsyncNativeBuilder() {
         Okta.AsyncNativeBuilder builder = mock(Okta.AsyncNativeBuilder.class);
-        AsyncNativeAuth otherClient = new Okta.AsyncNativeBuilder()
+        AuthClient otherClient = new Okta.AsyncNativeBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -133,7 +146,7 @@ public class OktaTest {
     @Test
     public void testSyncWebBuilder() {
         Okta.SyncWebBuilder builder = mock(Okta.SyncWebBuilder.class);
-        SyncWebAuth otherClient = new Okta.SyncWebBuilder()
+        SyncWebAuthClient otherClient = new Okta.SyncWebBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -169,7 +182,7 @@ public class OktaTest {
     @Test
     public void testSyncNativeBuilder() {
         Okta.SyncNativeBuilder builder = mock(Okta.SyncNativeBuilder.class);
-        SyncNativeAuth otherClient = new Okta.SyncNativeBuilder()
+        SyncAuthClient otherClient = new Okta.SyncNativeBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -197,12 +210,12 @@ public class OktaTest {
     @Test
     public void testBuilder() {
         Okta.Builder builder = mock(Okta.Builder.class);
-        SyncNativeAuth otherClient = new Okta.Builder<SyncNativeAuth>()
+        SyncAuthClient otherClient = new Okta.Builder<SyncAuthClient>()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
-                .withAuthenticationClientFactory(new SyncNativeAuthClientFactory())
+                .withAuthenticationClientFactory(new SyncAuthClientFactoryImpl())
                 .create();
 
         when(builder.create()).thenReturn(otherClient);

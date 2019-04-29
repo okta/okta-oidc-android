@@ -91,7 +91,7 @@ bintray {
     pkg {
         repo = "com.okta.android"
         name = "okta-sdk-appauth-android"
-        desc = "Okta Authentication using AppAuth"
+        desc = "Okta AuthClient using AppAuth"
         userOrg = "okta"
         licenses = ["Apache-2.0"]
         websiteUrl = "https://github.com/okta/okta-sdk-appauth-android"
@@ -99,7 +99,7 @@ bintray {
         issueTrackerUrl = "https://github.com/okta/okta-sdk-appauth-android/issues"
         version {
             name = "${rootProject.versionName}"
-            desc = "Okta Authentication using AppAuth"
+            desc = "Okta AuthClient using AppAuth"
             vcsTag = "${rootProject.versionName}"
         }
     }

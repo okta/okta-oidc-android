@@ -52,7 +52,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class OktaAuthenticationActivityTest {
+public class OktaAuthClientActivityTest {
     private Context mContext;
     private ActivityController<OktaAuthenticationActivityMock> mActivityController;
     private OktaAuthenticationActivityMock mActivity;

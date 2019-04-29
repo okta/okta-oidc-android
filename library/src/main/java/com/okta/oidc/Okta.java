@@ -1,17 +1,31 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc;
 
 import androidx.annotation.ColorInt;
-import androidx.annotation.VisibleForTesting;
 
-import com.okta.oidc.clients.AsyncNativeAuth;
-import com.okta.oidc.clients.AsyncNativeAuthClientFactory;
-import com.okta.oidc.clients.AsyncWebAuth;
-import com.okta.oidc.clients.AsyncWebAuthClientFactory;
+import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.AuthClientFactoryImpl;
+import com.okta.oidc.clients.SyncAuthClient;
+import com.okta.oidc.clients.web.SyncWebAuthClient;
+import com.okta.oidc.clients.web.WebAuthClient;
+import com.okta.oidc.clients.web.WebAuthClientFactory;
 import com.okta.oidc.clients.AuthClientFactory;
-import com.okta.oidc.clients.SyncNativeAuth;
-import com.okta.oidc.clients.SyncNativeAuthClientFactory;
-import com.okta.oidc.clients.SyncWebAuth;
-import com.okta.oidc.clients.SyncWebAuthClientFactory;
+import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
+import com.okta.oidc.clients.web.SyncWebAuthClientFactory;
 
 import java.util.concurrent.Executor;
 
@@ -19,7 +33,7 @@ public class Okta {
     /**
      * The Async Web Builder.
      */
-    public static class AsyncWebBuilder extends OktaBuilder<AsyncWebAuth, AsyncWebBuilder> {
+    public static class AsyncWebBuilder extends OktaBuilder<WebAuthClient, AsyncWebBuilder> {
         private Executor mCallbackExecutor;
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
@@ -65,13 +79,13 @@ public class Okta {
         }
 
         /**
-         * Create AsyncWebAuth client.
+         * Create WebAuthClient client.
          *
-         * @return the authenticate client {@link AsyncWebAuth}
+         * @return the authenticate client {@link WebAuthClient}
          */
         @Override
-        public AsyncWebAuth create() {
-            super.withAuthenticationClientFactory(new AsyncWebAuthClientFactory(this.mCallbackExecutor, mCustomTabColor, mSupportedBrowsers));
+        public WebAuthClient create() {
+            super.withAuthenticationClientFactory(new WebAuthClientFactory(this.mCallbackExecutor, mCustomTabColor, mSupportedBrowsers));
             return createAuthClient();
         }
     }
@@ -79,8 +93,7 @@ public class Okta {
     /**
      * The Sync Web Builder.
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
-    public static class SyncWebBuilder extends OktaBuilder<SyncWebAuth, SyncWebBuilder> {
+    public static class SyncWebBuilder extends OktaBuilder<SyncWebAuthClient, SyncWebBuilder> {
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
 
@@ -102,7 +115,7 @@ public class Okta {
          * @param browsers the package name of the browsers.
          * @return current builder
          */
-        public SyncWebBuilder supportedBrowsers(String[] browsers) {
+        public SyncWebBuilder supportedBrowsers(String... browsers) {
             mSupportedBrowsers = browsers;
             return this;
         }
@@ -113,12 +126,12 @@ public class Okta {
         }
 
         /**
-         * Create SyncWebAuth client.
+         * Create SyncWebAuthClient client.
          *
-         * @return the authenticate client {@link SyncWebAuth}
+         * @return the authenticate client {@link SyncWebAuthClient}
          */
         @Override
-        public SyncWebAuth create() {
+        public SyncWebAuthClient create() {
             super.withAuthenticationClientFactory(new SyncWebAuthClientFactory(mCustomTabColor, mSupportedBrowsers));
             return createAuthClient();
         }
@@ -127,7 +140,7 @@ public class Okta {
     /**
      * The Async Native Builder.
      */
-    public static class AsyncNativeBuilder extends OktaBuilder<AsyncNativeAuth, AsyncNativeBuilder> {
+    public static class AsyncNativeBuilder extends OktaBuilder<AuthClient, AsyncNativeBuilder> {
         private Executor mCallbackExecutor;
 
         /**
@@ -150,11 +163,11 @@ public class Okta {
         /**
          * Create AsyncNativeAuth client.
          *
-         * @return the authenticate client {@link AsyncNativeAuth}
+         * @return the authenticate client {@link AuthClient}
          */
         @Override
-        public AsyncNativeAuth create() {
-            super.withAuthenticationClientFactory(new AsyncNativeAuthClientFactory(this.mCallbackExecutor));
+        public AuthClient create() {
+            super.withAuthenticationClientFactory(new AuthClientFactoryImpl(this.mCallbackExecutor));
             return createAuthClient();
         }
     }
@@ -162,7 +175,7 @@ public class Okta {
     /**
      * The Sync Native Builder.
      */
-    public static class SyncNativeBuilder extends OktaBuilder<SyncNativeAuth, SyncNativeBuilder> {
+    public static class SyncNativeBuilder extends OktaBuilder<SyncAuthClient, SyncNativeBuilder> {
 
         @Override
         SyncNativeBuilder toThis() {
@@ -170,13 +183,13 @@ public class Okta {
         }
 
         /**
-         * Create SyncNativeAuth client.
+         * Create SyncAuthClient client.
          *
-         * @return the authenticate client {@link SyncNativeAuth}
+         * @return the authenticate client {@link SyncAuthClient}
          */
         @Override
-        public SyncNativeAuth create() {
-            super.withAuthenticationClientFactory(new SyncNativeAuthClientFactory());
+        public SyncAuthClient create() {
+            super.withAuthenticationClientFactory(new SyncAuthClientFactoryImpl());
             return createAuthClient();
         }
     }

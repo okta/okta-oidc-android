@@ -1,16 +1,33 @@
-package com.okta.oidc.clients;
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
 
-import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.AuthorizationStatus;
-import com.okta.oidc.ResultCallback;
-import com.okta.oidc.clients.sessions.AsyncSession;
-import com.okta.oidc.util.AuthorizationException;
+package com.okta.oidc.clients.web;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.ResultCallback;
+import com.okta.oidc.clients.BaseAuth;
+import com.okta.oidc.clients.sessions.SessionClient;
+import com.okta.oidc.util.AuthorizationException;
+
 /**
- * Client Web Async API for Okta OpenID Connect & OAuth 2.0 APIs.
+ * Client Web Authorization API for Okta OpenID Connect & OAuth 2.0 APIs.
+ * Uses a chrome custom tab enabled browser as a user agent for authorization.
  * <pre>
  * {@code
  * OIDCConfig account = new OIDCConfig.Builder()
@@ -21,7 +38,7 @@ import androidx.fragment.app.FragmentActivity;
  *     .discoveryUri("https://{yourOktaDomain}")
  *     .create();
  *
- * AsyncWebAuth client = new Okta.AsyncWebBuilder()
+ * WebAuthClient client = new Okta.WebBuilder()
  *     .withConfig(config)
  *     .withContext(getApplicationContext())
  *     .withStorage(new SimpleOktaStorage(this))
@@ -36,7 +53,7 @@ import androidx.fragment.app.FragmentActivity;
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
-public interface AsyncWebAuth extends BaseAuth<AsyncSession> {
+public interface WebAuthClient extends BaseAuth<SessionClient> {
     boolean isInProgress();
 
     /**
@@ -94,6 +111,8 @@ public interface AsyncWebAuth extends BaseAuth<AsyncSession> {
      * @param resultCallback returns the result of login or logout attempts.
      * @param activity       the activity which will receive the results.
      */
-    void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity);
+    void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>
+                                  resultCallback, FragmentActivity activity);
+
     void unregisterCallback();
 }

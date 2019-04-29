@@ -1,6 +1,25 @@
-package com.okta.oidc.clients;
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
+package com.okta.oidc.clients.web;
 
 import android.app.Activity;
+
+import androidx.annotation.AnyThread;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -8,8 +27,8 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
-import com.okta.oidc.clients.sessions.AsyncSession;
-import com.okta.oidc.clients.sessions.AsyncSessionClient;
+import com.okta.oidc.clients.sessions.SessionClient;
+import com.okta.oidc.clients.sessions.SessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
@@ -18,35 +37,35 @@ import com.okta.oidc.util.AuthorizationException;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
 
-import androidx.annotation.AnyThread;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
-
-class AsyncWebAuthClient implements AsyncWebAuth {
+class WebAuthClientImpl implements WebAuthClient {
     private WeakReference<FragmentActivity> mActivity;
     private RequestDispatcher mDispatcher;
     private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
-    private SyncWebAuthClient mSyncAuthClient;
-    private AsyncSessionClient sessionClient;
+    private SyncWebAuthClientImpl mSyncAuthClient;
+    private SessionClientImpl mSessionImpl;
 
-
-    AsyncWebAuthClient(Executor executor, OIDCConfig oidcConfig, OktaState oktaState, HttpConnectionFactory httpConnectionFactory, String[] supportedBrowsers, int customTabColor) {
-        this.mSyncAuthClient = new SyncWebAuthClient(oidcConfig, oktaState, httpConnectionFactory, supportedBrowsers, customTabColor);
-        this.sessionClient = new AsyncSessionClient(executor, oidcConfig, oktaState, httpConnectionFactory);
+    WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
+                      HttpConnectionFactory httpConnectionFactory,
+                      int customTabColor, String... supportedBrowsers) {
+        mSyncAuthClient = new SyncWebAuthClientImpl(oidcConfig, oktaState,
+                httpConnectionFactory, customTabColor, supportedBrowsers);
+        mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
+                httpConnectionFactory);
         mDispatcher = new RequestDispatcher(executor);
     }
 
     private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
         mActivity = new WeakReference<>(activity);
-        mActivity.get().getApplication().registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
-            @Override
-            public void onActivityDestroyed(Activity activity) {
-                if (mActivity != null && mActivity.get() == activity) {
-                    stop();
-                    activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-                }
-            }
-        });
+        mActivity.get().getApplication()
+                .registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
+                    @Override
+                    public void onActivityDestroyed(Activity activity) {
+                        if (mActivity != null && mActivity.get() == activity) {
+                            stop();
+                            activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+                        }
+                    }
+                });
     }
 
     private void stop() {
@@ -55,7 +74,8 @@ class AsyncWebAuthClient implements AsyncWebAuth {
     }
 
     @Override
-    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException> resultCallback, FragmentActivity activity) {
+    public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>
+                                         resultCallback, FragmentActivity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
         mSyncAuthClient.registerCallbackIfInterrupt(activity, (result, type) -> {
@@ -74,7 +94,7 @@ class AsyncWebAuthClient implements AsyncWebAuth {
     @Override
     public void unregisterCallback() {
         mResultCb = null;
-        if(mActivity.get()!= null) {
+        if (mActivity.get() != null) {
             mSyncAuthClient.unregisterCallback(mActivity.get());
         }
     }
@@ -87,9 +107,7 @@ class AsyncWebAuthClient implements AsyncWebAuth {
     @Override
     @AnyThread
     public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
-        if (activity != null) {
-            registerActivityLifeCycle(activity);
-        }
+        registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
                 AuthorizationResult result = mSyncAuthClient.logIn(activity, payload);
@@ -172,7 +190,7 @@ class AsyncWebAuthClient implements AsyncWebAuth {
     }
 
     @Override
-    public AsyncSession getSessionClient() {
-        return this.sessionClient;
+    public SessionClient getSessionClient() {
+        return mSessionImpl;
     }
 }

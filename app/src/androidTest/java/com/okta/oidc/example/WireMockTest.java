@@ -19,12 +19,10 @@ import android.content.Context;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.okta.oidc.Okta;
-import com.okta.oidc.clients.AsyncWebAuth;
-import com.okta.oidc.clients.AsyncWebAuthClientFactory;
+import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.clients.sessions.AsyncSession;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -186,7 +184,7 @@ public class WireMockTest {
                 .build();
         mRedirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s", FAKE_CODE, mState);
         //samples sdk test
-        activityRule.getActivity().mOktaAccount = new OIDCConfig.Builder()
+        activityRule.getActivity().mOIDCConfig = new OIDCConfig.Builder()
                 .clientId("0oajqehiy6p81NVzA0h7")
                 .redirectUri("com.oktapreview.samples-test:/callback")
                 .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
@@ -194,14 +192,14 @@ public class WireMockTest {
                 .discoveryUri("https://127.0.0.1:8443")
                 .create();
 
-        AsyncWebAuth mWebOktaAuth = new Okta.AsyncWebBuilder()
-                .withConfig(activityRule.getActivity().mOktaAccount)
+        WebAuthClient mWebOktaAuth = new Okta.AsyncWebBuilder()
+                .withConfig(activityRule.getActivity().mOIDCConfig)
                 .withContext(activityRule.getActivity())
                 .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
                 .withHttpConnectionFactory(new MockConnectionFactory())
                 .create();
 
-        activityRule.getActivity().asyncWebAuthClient = mWebOktaAuth;
+        activityRule.getActivity().mWebAuth = mWebOktaAuth;
 
         activityRule.getActivity().setupCallback();
     }
@@ -243,7 +241,7 @@ public class WireMockTest {
         String tokenResponse = getAsset(mMockContext, "token_response.json");
 
         String jwt = Utils.getJwt(ISSUER, mNonce, getTomorrow(), getNow(),
-                activityRule.getActivity().mOktaAccount.getClientId());
+                activityRule.getActivity().mOIDCConfig.getClientId());
 
         String token = String.format(tokenResponse, jwt);
 

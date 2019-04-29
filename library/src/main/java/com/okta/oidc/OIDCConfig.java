@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.content.Context;
@@ -24,6 +25,10 @@ import androidx.annotation.RawRes;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.SyncAuthClient;
+import com.okta.oidc.clients.sessions.SessionClient;
+import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.net.request.ProviderConfiguration;
 
 import org.json.JSONException;
@@ -38,11 +43,17 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Okta account information. This is used to setup a configuration for {@link AuthenticateClient}
+ * Okta account information. This is used to setup a configuration for AuthClient and SessionClient clients.
+ *
+ * @see {@link AuthClient}
+ * @see {@link SyncAuthClient}
+ * @see {@link SessionClient}
+ * @see {@link SyncSessionClient}
+ * <p>
  * Example usage:
  * <pre>
  * {@code
- * OIDCAccount account = new OIDCAccount.Builder()
+ * OIDCConfig config = new OIDCConfig.Builder()
  *     .clientId("{clientId}")
  *     .redirectUri("{redirectUri}")
  *     .endSessionRedirectUri("{endSessionUri}")
