@@ -43,7 +43,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Okta account information. This is used to setup a configuration for AuthClient and
+ * Okta config information. This is used to setup a configuration for AuthClient and
  * SessionClient clients.
  * {@link AuthClient}
  * {@link SyncAuthClient}
@@ -167,9 +167,9 @@ public class OIDCConfig {
         }
 
         /**
-         * Create OIDC account.
+         * Create OIDC config.
          *
-         * @return the account
+         * @return the config
          */
         public OIDCConfig create() {
             mAccountInfo.validate();

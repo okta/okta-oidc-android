@@ -68,7 +68,7 @@ public class AuthAPI {
         return (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .connectionFactory(mConnectionFactory)
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .createRequest();
     }
 
@@ -93,7 +93,7 @@ public class AuthAPI {
         return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .authRequest((AuthorizeRequest) mOktaState.getAuthorizeRequest())
                 .authResponse(response)
                 .createRequest();

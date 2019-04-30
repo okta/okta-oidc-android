@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 @Config(sdk = 27)
 public class LogoutRequestTest {
     private LogoutRequest mRequest;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
     private TokenResponse mTokenResponse;
@@ -47,7 +47,7 @@ public class LogoutRequestTest {
 
     @Before
     public void setUp() {
-        mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
+        mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
@@ -55,7 +55,7 @@ public class LogoutRequestTest {
                 .provideConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
                 .state(CUSTOM_STATE)
-                .account(mAccount)
+                .config(mConfig)
                 .create();
     }
 
@@ -70,7 +70,7 @@ public class LogoutRequestTest {
     @Test
     public void testBuilderFailTokenMissing() {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
-        builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
+        builder.endSessionEndpoint(mConfig.getEndSessionRedirectUri().toString());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("id_token_hint missing");
         builder.create();
@@ -79,7 +79,7 @@ public class LogoutRequestTest {
     @Test
     public void testBuilderFailRedirectMissing() {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
-        builder.endSessionEndpoint(mAccount.getEndSessionRedirectUri().toString());
+        builder.endSessionEndpoint(mConfig.getEndSessionRedirectUri().toString());
         builder.idTokenHint(mTokenResponse.getIdToken());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("post_logout_redirect_uri missing");
@@ -90,7 +90,7 @@ public class LogoutRequestTest {
     public void testBuilder() {
         LogoutRequest request = new LogoutRequest.Builder()
                 .state(CUSTOM_STATE)
-                .account(mAccount)
+                .config(mConfig)
                 .tokenResponse(mTokenResponse)
                 .provideConfiguration(mConfiguration)
                 .create();
@@ -108,7 +108,7 @@ public class LogoutRequestTest {
         assertEquals(uri.getQueryParameter("id_token_hint"), mTokenResponse.getIdToken());
         assertEquals(uri.getQueryParameter("state"), CUSTOM_STATE);
         assertEquals(uri.getQueryParameter("post_logout_redirect_uri"),
-                mAccount.getEndSessionRedirectUri().toString());
+                mConfig.getEndSessionRedirectUri().toString());
     }
 
     @Test

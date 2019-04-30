@@ -39,7 +39,7 @@ public class IntrospectRequest extends
         super();
         mRequestType = b.mRequestType;
         mUri = Uri.parse(b.mProviderConfiguration.introspection_endpoint).buildUpon()
-                .appendQueryParameter("client_id", b.mAccount.getClientId())
+                .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mIntrospectToken)
                 .appendQueryParameter("token_type_hint", b.mTokenTypeHint)
                 .build();

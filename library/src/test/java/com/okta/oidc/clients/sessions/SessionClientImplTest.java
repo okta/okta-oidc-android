@@ -85,7 +85,7 @@ public class SessionClientImplTest {
 
     private OktaStorage mStorage;
 
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private SessionClient mSessionClientClient;
     private Gson mGson;
 
@@ -104,13 +104,13 @@ public class SessionClientImplTest {
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
 
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
         WebAuthClient okta = new Okta.WebAuthBuilder()
                 .withCallbackExecutor(mExecutor)
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
@@ -133,7 +133,7 @@ public class SessionClientImplTest {
     public void refreshToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         String nonce = CodeVerifierUtil.generateRandomState();
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
         mSessionClientClient.refreshToken(cb);

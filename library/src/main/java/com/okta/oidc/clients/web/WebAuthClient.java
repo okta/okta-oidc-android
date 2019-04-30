@@ -30,7 +30,7 @@ import com.okta.oidc.util.AuthorizationException;
  * Uses a chrome custom tab enabled browser as a user agent for authorization.
  * <pre>
  * {@code
- * OIDCConfig account = new OIDCConfig.Builder()
+ * OIDCConfig config = new OIDCConfig.Builder()
  *     .clientId("{clientId}")
  *     .redirectUri("{redirectUri}")
  *     .endSessionRedirectUri("{endSessionUri}")

@@ -16,6 +16,9 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -26,17 +29,12 @@ import com.okta.oidc.net.response.web.AuthorizeResponse;
 
 import java.util.Map;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpRequestBuilder {
     HttpRequest.Type mRequestType;
     @Nullable
     HttpConnectionFactory mConn;
-    OIDCConfig mAccount;
+    OIDCConfig mConfig;
     ProviderConfiguration mProviderConfiguration;
     AuthorizeRequest mAuthRequest;
     AuthorizeResponse mAuthResponse;
@@ -55,8 +53,8 @@ public class HttpRequestBuilder {
     }
 
     private void validate(HttpRequest.Type type) {
-        if (mAccount == null) {
-            throw new IllegalStateException("Invalid account");
+        if (mConfig == null) {
+            throw new IllegalStateException("Invalid config");
         }
         if (mProviderConfiguration == null && type != HttpRequest.Type.CONFIGURATION) {
             throw new IllegalStateException("Missing service configuration");
@@ -141,8 +139,8 @@ public class HttpRequestBuilder {
         return this;
     }
 
-    public HttpRequestBuilder account(OIDCConfig account) {
-        mAccount = account;
+    public HttpRequestBuilder config(OIDCConfig config) {
+        mConfig = config;
         return this;
     }
 

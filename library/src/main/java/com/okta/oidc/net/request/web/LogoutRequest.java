@@ -141,8 +141,8 @@ public class LogoutRequest extends WebRequest {
             return this;
         }
 
-        public Builder account(OIDCConfig account) {
-            mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
+        public Builder config(OIDCConfig config) {
+            mParameters.post_logout_redirect_uri = config.getEndSessionRedirectUri().toString();
             return this;
         }
     }

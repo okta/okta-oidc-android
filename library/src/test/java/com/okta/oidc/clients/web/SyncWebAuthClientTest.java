@@ -65,7 +65,7 @@ public class SyncWebAuthClientTest {
 
     private Context mContext;
     private HttpConnectionFactory mConnectionFactory;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private OktaStorage mStorage;
     private SyncWebAuthClientImpl mSyncWebAuth;
     private MockEndPoint mEndPoint;
@@ -85,7 +85,7 @@ public class SyncWebAuthClientTest {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mStorage = new SimpleOktaStorage(mContext);
         mGson = new Gson();
 
@@ -93,7 +93,7 @@ public class SyncWebAuthClientTest {
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
         SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
@@ -139,7 +139,7 @@ public class SyncWebAuthClientTest {
 
         AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
                 .authorizeEndpoint(mProviderConfig.authorization_endpoint)
-                .redirectUri(mAccount.getRedirectUri().toString())
+                .redirectUri(mConfig.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(nonce)
                 .create();
@@ -164,7 +164,7 @@ public class SyncWebAuthClientTest {
 
         AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
                 .authorizeEndpoint(mProviderConfig.authorization_endpoint)
-                .redirectUri(mAccount.getRedirectUri().toString())
+                .redirectUri(mConfig.getRedirectUri().toString())
                 .scope("openid", "email", "profile")
                 .nonce(nonce)
                 .create();
@@ -174,7 +174,7 @@ public class SyncWebAuthClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
 
         mEndPoint.enqueueTokenSuccess(jws);
         TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response);

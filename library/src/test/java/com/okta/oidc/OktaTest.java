@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 @Config(sdk = 27)
 public class OktaTest {
 
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private HttpConnectionFactory mConnectionFactory;
     private OktaStorage mStorage;
@@ -64,7 +64,7 @@ public class OktaTest {
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
 
         String url = new MockEndPoint().getUrl();
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
 
         tabColor = Color.BLACK;
         supportBrowsers = new String[]{""};
@@ -75,7 +75,7 @@ public class OktaTest {
     public void testAsyncWebBuilder() {
         Okta.WebAuthBuilder builder = mock(Okta.WebAuthBuilder.class);
         WebAuthClient otherClient = new Okta.WebAuthBuilder()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -85,8 +85,8 @@ public class OktaTest {
                 .create();
         when(builder.create()).thenReturn(otherClient);
 
-        builder.withConfig(mAccount);
-        verify(builder).withConfig(mAccount);
+        builder.withConfig(mConfig);
+        verify(builder).withConfig(mConfig);
 
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
@@ -115,7 +115,7 @@ public class OktaTest {
     public void testAsyncNativeBuilder() {
         Okta.AuthBuilder builder = mock(Okta.AuthBuilder.class);
         AuthClient otherClient = new Okta.AuthBuilder()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -123,8 +123,8 @@ public class OktaTest {
                 .create();
         when(builder.create()).thenReturn(otherClient);
 
-        builder.withConfig(mAccount);
-        verify(builder).withConfig(mAccount);
+        builder.withConfig(mConfig);
+        verify(builder).withConfig(mConfig);
 
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
@@ -147,7 +147,7 @@ public class OktaTest {
     public void testSyncWebBuilder() {
         Okta.SyncWebAuthBuilder builder = mock(Okta.SyncWebAuthBuilder.class);
         SyncWebAuthClient otherClient = new Okta.SyncWebAuthBuilder()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -156,8 +156,8 @@ public class OktaTest {
                 .create();
         when(builder.create()).thenReturn(otherClient);
 
-        builder.withConfig(mAccount);
-        verify(builder).withConfig(mAccount);
+        builder.withConfig(mConfig);
+        verify(builder).withConfig(mConfig);
 
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
@@ -183,15 +183,15 @@ public class OktaTest {
     public void testSyncNativeBuilder() {
         Okta.SyncAuthBuilder builder = mock(Okta.SyncAuthBuilder.class);
         SyncAuthClient otherClient = new Okta.SyncAuthBuilder()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .create();
         when(builder.create()).thenReturn(otherClient);
 
-        builder.withConfig(mAccount);
-        verify(builder).withConfig(mAccount);
+        builder.withConfig(mConfig);
+        verify(builder).withConfig(mConfig);
 
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
@@ -211,7 +211,7 @@ public class OktaTest {
     public void testBuilder() {
         Okta.Builder builder = mock(Okta.Builder.class);
         SyncAuthClient otherClient = new Okta.Builder<SyncAuthClient>()
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -220,8 +220,8 @@ public class OktaTest {
 
         when(builder.create()).thenReturn(otherClient);
 
-        builder.withConfig(mAccount);
-        verify(builder).withConfig(mAccount);
+        builder.withConfig(mConfig);
+        verify(builder).withConfig(mConfig);
 
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);

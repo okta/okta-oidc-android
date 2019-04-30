@@ -159,8 +159,8 @@ public class OktaIdToken {
 
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
-        OIDCConfig account = request.getAccount();
-        ProviderConfiguration config = request.getProviderConfiguration();
+        OIDCConfig config = request.getConfig();
+        ProviderConfiguration providerConfig = request.getProviderConfiguration();
 
         if (!"RS256".equals(mHeader.alg)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
@@ -168,7 +168,7 @@ public class OktaIdToken {
                             "is not supported, only RSA256 signatures are supported"));
         }
 
-        if (!mClaims.iss.equals(config.issuer)) {
+        if (!mClaims.iss.equals(providerConfig.issuer)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issuer mismatch"));
         }
@@ -190,7 +190,7 @@ public class OktaIdToken {
                             "Issuer URL contains query parameters or fragment components"));
         }
 
-        String clientId = account.getClientId();
+        String clientId = config.getClientId();
         if (!this.mClaims.aud.contains(clientId)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Audience mismatch"));

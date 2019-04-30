@@ -300,13 +300,13 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder account(OIDCConfig account) {
-            mMap.put(CLIENT_ID, account.getClientId());
-            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(account.getScopes()));
+        public Builder config(OIDCConfig config) {
+            mMap.put(CLIENT_ID, config.getClientId());
+            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(config.getScopes()));
             if (delimited != null) {
                 mMap.put(SCOPE, delimited);
             }
-            mMap.put(REDIRECT_URI, account.getRedirectUri().toString());
+            mMap.put(REDIRECT_URI, config.getRedirectUri().toString());
             return this;
         }
     }

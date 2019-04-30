@@ -35,8 +35,8 @@ public final class ConfigurationRequest extends
     ConfigurationRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
-        mUri = b.mAccount.getDiscoveryUri().buildUpon()
-                .appendQueryParameter("client_id", b.mAccount.getClientId()).build();
+        mUri = b.mConfig.getDiscoveryUri().buildUpon()
+                .appendQueryParameter("client_id", b.mConfig.getClientId()).build();
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.GET)
                 .create(b.mConn);

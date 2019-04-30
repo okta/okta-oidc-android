@@ -63,7 +63,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.AUTHORIZED)
                 .connectionFactory(mConnectionFactory)
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .httpRequestMethod(method)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .tokenResponse(mOktaState.getTokenResponse())
@@ -79,7 +79,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .createRequest();
     }
 
@@ -95,7 +95,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .introspect(token, tokenType)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .createRequest();
     }
 
@@ -110,7 +110,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .tokenToRevoke(token)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .createRequest();
     }
 
@@ -125,7 +125,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .createRequest();
     }
 

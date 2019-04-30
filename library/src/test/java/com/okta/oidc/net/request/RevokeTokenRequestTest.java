@@ -55,9 +55,9 @@ public class RevokeTokenRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig config = TestValues.getConfigWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
-        mRequest = TestValues.getRevokeTokenRequest(mAccount, ACCESS_TOKEN, mProviderConfig);
+        mRequest = TestValues.getRevokeTokenRequest(config, ACCESS_TOKEN, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 

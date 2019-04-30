@@ -42,7 +42,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * Sets the config used for this client.
      * {@link OIDCConfig}
      *
-     * @param config the account
+     * @param config the config
      * @return current builder
      */
     public T withConfig(@NonNull OIDCConfig config) {

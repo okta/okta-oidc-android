@@ -43,7 +43,7 @@ import static org.junit.Assert.assertNotNull;
 @Config(sdk = 27)
 
 public class OktaIdTokenTest {
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -51,19 +51,19 @@ public class OktaIdTokenTest {
 
     @Before
     public void setUp() throws Exception {
-        mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
+        mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
     }
 
     @Test
     public void validate() throws AuthorizationException {
-        String jwt = TestValues.getJwt(CUSTOM_URL, CUSTOM_NONCE, mAccount.getClientId(),
+        String jwt = TestValues.getJwt(CUSTOM_URL, CUSTOM_NONCE, mConfig.getClientId(),
                 "fakeaud");
         OktaIdToken idToken = OktaIdToken.parseIdToken(jwt);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
 
         TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
         assertNotNull(idToken);
@@ -74,13 +74,13 @@ public class OktaIdTokenTest {
     @Test
     public void validateInvalidNonce() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        String jwt = TestValues.getJwt(CUSTOM_URL, "invalid", mAccount.getClientId(),
+        String jwt = TestValues.getJwt(CUSTOM_URL, "invalid", mConfig.getClientId(),
                 "fakeaud");
         OktaIdToken idToken = OktaIdToken.parseIdToken(jwt);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
 
         TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }
@@ -88,11 +88,11 @@ public class OktaIdTokenTest {
     @Test
     public void validateExpiredToken() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        String jws = TestValues.getExpiredJwt(CUSTOM_URL, CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getExpiredJwt(CUSTOM_URL, CUSTOM_NONCE, mConfig.getClientId());
         OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
         TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }
@@ -103,12 +103,12 @@ public class OktaIdTokenTest {
         OktaIdToken token = OktaIdToken.parseIdToken(JsonStrings.VALID_ID_TOKEN);
 
         String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, CUSTOM_NONCE,
-                mAccount.getClientId());
+                mConfig.getClientId());
         OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
         String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
 
         TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mAccount, getAuthorizeRequest(mAccount, verifier),
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
         idToken.validate(tokenRequest, System::currentTimeMillis);
     }

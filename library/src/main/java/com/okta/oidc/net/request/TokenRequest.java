@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {
@@ -59,7 +57,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     protected String scope;
     private String username;
     private String nonce;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     protected ProviderConfiguration mProviderConfiguration;
 
     //if set, used to verify idtoken auth_Time
@@ -68,11 +66,11 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     TokenRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
-        mAccount = b.mAccount;
+        mConfig = b.mConfig;
         mProviderConfiguration = b.mProviderConfiguration;
         mUri = Uri.parse(mProviderConfiguration.token_endpoint);
-        client_id = b.mAccount.getClientId();
-        redirect_uri = b.mAccount.getRedirectUri().toString();
+        client_id = b.mConfig.getClientId();
+        redirect_uri = b.mConfig.getRedirectUri().toString();
         grant_type = b.mGrantType;
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.POST)
@@ -99,8 +97,8 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         return grant_type;
     }
 
-    public OIDCConfig getAccount() {
-        return mAccount;
+    public OIDCConfig getConfig() {
+        return mConfig;
     }
 
     public ProviderConfiguration getProviderConfiguration() {

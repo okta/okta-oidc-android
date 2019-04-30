@@ -45,7 +45,7 @@ import static org.junit.Assert.assertNull;
 @Config(sdk = 27)
 public class RefreshTokenRequestTest {
     private RefreshTokenRequest mRequest;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;
@@ -57,10 +57,10 @@ public class RefreshTokenRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
         mProviderConfig = TestValues.getProviderConfiguration(url);
-        mRequest = TestValues.getRefreshRequest(mAccount, mTokenResponse, mProviderConfig);
+        mRequest = TestValues.getRefreshRequest(mConfig, mTokenResponse, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 
@@ -72,7 +72,7 @@ public class RefreshTokenRequestTest {
 
     @Test
     public void dispatchRequestSuccess() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<TokenResponse, AuthorizationException> cb
@@ -87,7 +87,7 @@ public class RefreshTokenRequestTest {
 
     @Test
     public void dispatchRequestFailure() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<TokenResponse, AuthorizationException> cb
@@ -101,7 +101,7 @@ public class RefreshTokenRequestTest {
 
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         TokenResponse response = mRequest.executeRequest();
         assertNotNull(response);

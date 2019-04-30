@@ -152,7 +152,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         }
 
         WebRequest request = new AuthorizeRequest.Builder()
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .authenticationPayload(payload)
                 .create();
@@ -217,7 +217,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
         WebRequest request = new LogoutRequest.Builder()
                 .provideConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOIDCConfig)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .state(CodeVerifierUtil.generateRandomState())
                 .create();
