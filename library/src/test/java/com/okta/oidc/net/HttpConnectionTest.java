@@ -39,6 +39,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 import okhttp3.mockwebserver.SocketPolicy;
 
 import static com.okta.oidc.net.HttpConnection.USER_AGENT;
+import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
 import static com.okta.oidc.util.TestValues.CLIENT_ID;
 import static com.okta.oidc.util.TestValues.CUSTOM_USER_AGENT;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
@@ -72,7 +73,8 @@ public class HttpConnectionTest {
         int code = urlConnection.getResponseCode();
         RecordedRequest recordedRequest = mServer.takeRequest();
         assertEquals(code, HTTP_OK);
-        assertEquals(recordedRequest.getHeader(USER_AGENT), CUSTOM_USER_AGENT);
+        //HttpConnection overrides any custom user-agents
+        assertEquals(recordedRequest.getHeader(USER_AGENT), USER_AGENT_HEADER);
     }
 
     @Test
@@ -91,7 +93,8 @@ public class HttpConnectionTest {
         int code = urlConnection.getResponseCode();
         RecordedRequest recordedRequest = mServer.takeRequest();
         assertEquals(code, HTTP_OK);
-        assertEquals(recordedRequest.getHeader(USER_AGENT), CUSTOM_USER_AGENT);
+        //HttpConnection overrides custom user agent.
+        assertEquals(recordedRequest.getHeader(USER_AGENT), USER_AGENT_HEADER);
         assertEquals(recordedRequest.getHeader("PROP"), "PROP");
         assertEquals(recordedRequest.getHeader("PROP1"), "PROP1");
     }

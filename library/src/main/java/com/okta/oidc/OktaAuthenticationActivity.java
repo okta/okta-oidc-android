@@ -21,7 +21,17 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Browser;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.browser.customtabs.CustomTabsClient;
+import androidx.browser.customtabs.CustomTabsIntent;
+import androidx.browser.customtabs.CustomTabsService;
+import androidx.browser.customtabs.CustomTabsServiceConnection;
+import androidx.browser.customtabs.CustomTabsSession;
 
 import com.okta.oidc.util.AuthorizationException;
 
@@ -32,14 +42,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
-import androidx.browser.customtabs.CustomTabsClient;
-import androidx.browser.customtabs.CustomTabsIntent;
-import androidx.browser.customtabs.CustomTabsService;
-import androidx.browser.customtabs.CustomTabsServiceConnection;
-import androidx.browser.customtabs.CustomTabsSession;
+import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
+import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
 
 public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
@@ -159,6 +163,9 @@ public class OktaAuthenticationActivity extends Activity {
         tabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         tabsIntent.intent.setPackage(packageName);
         tabsIntent.intent.setData(mAuthUri);
+        Bundle headers = new Bundle();
+        headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
+        tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);
         return tabsIntent.intent;
     }
 

@@ -16,6 +16,19 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.LargeTest;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
+import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiSelector;
+import androidx.test.uiautomator.Until;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.okta.oidc.Okta;
@@ -47,19 +60,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import androidx.annotation.NonNull;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
-import androidx.test.rule.GrantPermissionRule;
-import androidx.test.uiautomator.By;
-import androidx.test.uiautomator.UiDevice;
-import androidx.test.uiautomator.UiObject;
-import androidx.test.uiautomator.UiObjectNotFoundException;
-import androidx.test.uiautomator.UiSelector;
-import androidx.test.uiautomator.Until;
-
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static androidx.test.espresso.Espresso.onView;
@@ -70,12 +70,18 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.okta.oidc.example.Utils.getAsset;
 import static com.okta.oidc.example.Utils.getNow;
 import static com.okta.oidc.example.Utils.getTomorrow;
 import static com.okta.oidc.example.WireMockStubs.mockConfigurationRequest;
 import static com.okta.oidc.example.WireMockStubs.mockTokenRequest;
 import static com.okta.oidc.example.WireMockStubs.mockWebAuthorizeRequest;
+import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
+import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.core.StringContains.containsString;
@@ -105,6 +111,7 @@ public class WireMockTest {
     private static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
     private static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
     private static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+    private static final String ID_ADDRESS_BAR = "com.android.chrome:id/url_bar";
 
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
@@ -256,7 +263,11 @@ public class WireMockTest {
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
-        acceptChromePrivacyOption();
+        UiSelector selector = new UiSelector();
+        UiObject address = mDevice.findObject(selector.resourceId(ID_ADDRESS_BAR));
+        if (!address.exists()) {
+            acceptChromePrivacyOption();
+        }
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
 
@@ -267,5 +278,8 @@ public class WireMockTest {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
+
+        verify(getRequestedFor(urlMatching("/authorize.*"))
+                .withHeader(X_OKTA_USER_AGENT, equalTo(USER_AGENT_HEADER)));
     }
 }

@@ -14,15 +14,6 @@
  */
 package com.okta.oidc.example;
 
-import com.okta.oidc.AuthenticationPayload;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -32,6 +23,15 @@ import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 import androidx.test.uiautomator.Until;
+
+import com.okta.oidc.AuthenticationPayload;
+
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
@@ -194,6 +194,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
     }
 
+    @Test
     public void test5_refreshToken() {
         onView(withId(R.id.refresh_token)).check(matches(isDisplayed()));
         onView(withId(R.id.refresh_token)).perform(click());
@@ -203,6 +204,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText("token refreshed")));
     }
 
+    @Test
     public void test6_getProfile() {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.get_profile)).perform(click());
@@ -211,6 +213,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString(USERNAME))));
     }
 
+    @Test
     public void test7_revokeRefreshToken() {
         onView(withId(R.id.revoke_refresh)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_refresh)).perform(click());
@@ -219,6 +222,7 @@ public class SampleActivityTest {
         onView(withId(R.id.status)).check(matches(withText(containsString("true"))));
     }
 
+    @Test
     public void test8_revokeAccessToken() {
         onView(withId(R.id.revoke_access)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_access)).perform(click());
@@ -228,7 +232,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test8_signOutFromOkta() {
+    public void test9_signOutFromOkta() {
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_out)).perform(click());
 
@@ -238,7 +242,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test9_cancelSignIn() throws UiObjectNotFoundException {
+    public void testA_cancelSignIn() throws UiObjectNotFoundException {
         onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
         onView(withId(R.id.clear_data)).perform(click());
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
@@ -255,7 +259,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testA_logInWithPayload() throws UiObjectNotFoundException {
+    public void testB_logInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
                 .setLoginHint("devex@okta.com")
                 .addParameter("max_age", "5000")
@@ -292,7 +296,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testB_nativeLogIn() {
+    public void testC_nativeLogIn() {
         onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
             onView(withId(R.id.clear_data)).perform(click());

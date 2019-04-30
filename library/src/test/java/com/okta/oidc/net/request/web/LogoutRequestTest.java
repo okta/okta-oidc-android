@@ -34,7 +34,6 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -124,5 +123,4 @@ public class LogoutRequestTest {
         LogoutRequest request = new LogoutRequest(parameters);
         assertEquals(request.persist(), json);
     }
-
 }
