@@ -48,6 +48,8 @@ public class Tokens {
 
     /**
      * The current ID token, if available.
+     * This is a base64 encoded string. For getting a OktaIdToken use
+     * {@link OktaIdToken#parseIdToken(String)}
      *
      * @return id token.
      */

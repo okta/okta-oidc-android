@@ -14,9 +14,14 @@
  */
 package com.okta.oidc.net.params;
 
+/**
+ * The client informs the authorization server of the desired grant type using the following
+ * parameter
+ */
 @SuppressWarnings("unused")
 public interface ResponseType {
+    /**
+     * For requesting an authorization code
+     */
     String CODE = "code";
-    String TOKEN = "token";
-    String ID_TOKEN = TokenTypeHint.ID_TOKEN;
 }

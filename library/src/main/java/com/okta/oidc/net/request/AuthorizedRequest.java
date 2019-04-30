@@ -14,6 +14,8 @@
  */
 package com.okta.oidc.net.request;
 
+import androidx.annotation.RestrictTo;
+
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
@@ -25,6 +27,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationException> {
     AuthorizedRequest(HttpRequestBuilder b) {
         super();

@@ -15,6 +15,9 @@
 
 package com.okta.oidc;
 
+import androidx.annotation.RestrictTo;
+
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public enum State {
     IDLE,
     OBTAIN_CONFIGURATION,

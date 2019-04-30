@@ -14,6 +14,9 @@
  */
 package com.okta.oidc.net.request;
 
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
+
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -26,12 +29,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import androidx.annotation.RestrictTo;
-import androidx.annotation.WorkerThread;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class ConfigurationRequest extends
         BaseRequest<ProviderConfiguration, AuthorizationException> {
     ConfigurationRequest(HttpRequestBuilder b) {

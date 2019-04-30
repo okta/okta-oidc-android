@@ -34,7 +34,7 @@ import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 /**
  * SSLSocketFactory which wraps default SSLSocketFactory and enable TLS v1.1, v1.2.
  */
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TLSSocketFactory extends SSLSocketFactory {
     private SSLSocketFactory mInternalSslSocketFactory;
     private String[] mProtocolsToEnable = {"TLSv1.1", "TLSv1.2"};

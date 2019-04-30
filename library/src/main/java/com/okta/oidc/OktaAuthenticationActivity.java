@@ -46,6 +46,14 @@ import java.util.Set;
 import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
 import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
 
+/**
+ * This activity starts the authorization with PKCE flow.
+ *
+ * @see "Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
+ * @see "Implementing the Authorization Code with PKCE flow
+ * <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
+ */
 public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
     static final String EXTRA_AUTH_STARTED = "com.okta.auth.AUTH_STARTED";

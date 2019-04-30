@@ -31,7 +31,7 @@ import androidx.annotation.RestrictTo;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpRequestBuilder {
     HttpRequest.Type mRequestType;
     @Nullable

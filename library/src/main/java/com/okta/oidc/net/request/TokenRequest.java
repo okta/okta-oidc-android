@@ -42,7 +42,7 @@ import java.util.Map;
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {
     private static final String TAG = TokenRequest.class.getSimpleName();
 

@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class BaseRequest<T, U extends AuthorizationException>
         implements HttpRequest<T, U> {
     HttpRequest.Type mRequestType;

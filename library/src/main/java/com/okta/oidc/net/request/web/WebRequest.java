@@ -16,12 +16,14 @@ package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class WebRequest implements Persistable {
     @NonNull
     public abstract Uri toUri();

@@ -17,6 +17,8 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -30,6 +32,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class IntrospectRequest extends
         BaseRequest<IntrospectInfo, AuthorizationException> {
     public IntrospectRequest(HttpRequestBuilder b) {

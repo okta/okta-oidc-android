@@ -16,6 +16,8 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
+import androidx.annotation.RestrictTo;
+
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
@@ -25,6 +27,7 @@ import com.okta.oidc.util.AuthorizationException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationException> {
     RevokeTokenRequest(HttpRequestBuilder b) {
         super();

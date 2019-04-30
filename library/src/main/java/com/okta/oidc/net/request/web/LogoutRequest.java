@@ -19,6 +19,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
@@ -27,6 +28,7 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LogoutRequest extends WebRequest {
     private Parameters mParameters;
 
