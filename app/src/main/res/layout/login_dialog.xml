@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
@@ -14,7 +15,8 @@
         android:layout_marginEnd="16dp"
         android:ems="10"
         android:hint="Username"
-        android:inputType="textEmailAddress" />
+        android:inputType="textEmailAddress"
+        tools:ignore="Autofill,HardcodedText" />
 
     <EditText
         android:id="@+id/password"
@@ -24,9 +26,9 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:ems="10"
-        android:importantForAutofill="noExcludeDescendants"
         android:hint="Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        tools:ignore="Autofill,HardcodedText" />
 
     <Button
         android:id="@+id/submit"
@@ -35,6 +37,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:importantForAutofill="noExcludeDescendants"
-        android:text="Sign in" />
+        android:text="Sign in"
+        tools:ignore="HardcodedText" />
 </LinearLayout>

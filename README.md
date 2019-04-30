@@ -93,7 +93,7 @@ Create a file called `okta_oidc_config.json` in your application's `res/raw/` di
     "profile",
     "offline_access"
   ],
-  "issuer_uri": "https://{yourOktaDomain}"
+  "discovery_uri": "https://{yourOktaDomain}"
 }
 ```
 
@@ -101,7 +101,7 @@ Use this JSON file to create a `configuration`:
 
 ```java
 OIDCConfig config = new OIDCConfig.Builder()
-    .withResId(this, R.id.okta_oidc_config)
+    .withConfig(this, R.id.okta_oidc_config)
     .create();
 ```
 

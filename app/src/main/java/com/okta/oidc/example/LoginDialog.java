@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.example;
 
 import android.os.Bundle;
@@ -25,35 +26,51 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
+/**
+ * Login Dialog for username and password entry.
+ * For the Authentication API to get a sessionToken.
+ */
 public class LoginDialog extends DialogFragment {
     private EditText mPassword;
     private EditText mUsername;
-    private Button mSignIn;
 
     private LoginDialogListener mListener;
 
+    /**
+     * Instantiates a new Login dialog.
+     */
     public LoginDialog() {
         //NO-OP
     }
 
+    /**
+     * The interface Login dialog listener.
+     */
     public interface LoginDialogListener {
+        /**
+         * On login.
+         *
+         * @param username the username
+         * @param password the password
+         */
         void onLogin(String username, String password);
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.login_dialog, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.login_dialog, container, false);
 
-        mPassword = v.findViewById(R.id.password);
-        mUsername = v.findViewById(R.id.username);
-        mSignIn = v.findViewById(R.id.submit);
-        mSignIn.setOnClickListener(view -> {
+        mPassword = view.findViewById(R.id.password);
+        mUsername = view.findViewById(R.id.username);
+        Button signIn = view.findViewById(R.id.submit);
+        signIn.setOnClickListener(v -> {
             if (mListener != null) {
                 mListener.onLogin(mUsername.getText().toString(), mPassword.getText().toString());
             }
         });
-        return v;
+        return view;
     }
 
     @Override
@@ -62,6 +79,11 @@ public class LoginDialog extends DialogFragment {
         mListener = null;
     }
 
+    /**
+     * Sets listener.
+     *
+     * @param listener the listener
+     */
     public void setListener(LoginDialogListener listener) {
         mListener = listener;
     }

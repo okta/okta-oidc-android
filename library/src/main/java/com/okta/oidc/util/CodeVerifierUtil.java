@@ -137,10 +137,7 @@ public final class CodeVerifierUtil {
             byte[] digestBytes = sha256Digester.digest();
             return Base64.encodeToString(digestBytes, PKCE_BASE64_ENCODE_SETTINGS);
         } catch (NoSuchAlgorithmException e) {
-            Log.w(TAG, "SHA-256 is not supported on this device! Using plain challenge", e);
             return null;
-            //TODO Okta does not support plain challenge.
-            //return codeVerifier;
         } catch (UnsupportedEncodingException e) {
             Log.e(TAG, "ISO-8859-1 encoding not supported on this device!", e);
             throw new IllegalStateException("ISO-8859-1 encoding not supported", e);
@@ -157,14 +154,11 @@ public final class CodeVerifierUtil {
             // no exception, so SHA-256 is supported
             return CODE_CHALLENGE_METHOD_S256;
         } catch (NoSuchAlgorithmException e) {
-            //TODO Okta does not support plain.
-            //return CODE_CHALLENGE_METHOD_PLAIN;
             return null;
         }
     }
 
-    public static final String CODE_CHALLENGE_METHOD_S256 = "S256";
-    public static final String CODE_CHALLENGE_METHOD_PLAIN = "plain";
+    private static final String CODE_CHALLENGE_METHOD_S256 = "S256";
 
     private static final int STATE_LENGTH = 16;
 

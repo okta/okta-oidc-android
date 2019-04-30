@@ -73,8 +73,8 @@ public class OktaTest {
 
     @Test
     public void testAsyncWebBuilder() {
-        Okta.AsyncWebBuilder builder = mock(Okta.AsyncWebBuilder.class);
-        WebAuthClient otherClient = new Okta.AsyncWebBuilder()
+        Okta.WebAuthBuilder builder = mock(Okta.WebAuthBuilder.class);
+        WebAuthClient otherClient = new Okta.WebAuthBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -113,8 +113,8 @@ public class OktaTest {
 
     @Test
     public void testAsyncNativeBuilder() {
-        Okta.AsyncNativeBuilder builder = mock(Okta.AsyncNativeBuilder.class);
-        AuthClient otherClient = new Okta.AsyncNativeBuilder()
+        Okta.AuthBuilder builder = mock(Okta.AuthBuilder.class);
+        AuthClient otherClient = new Okta.AuthBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -145,8 +145,8 @@ public class OktaTest {
 
     @Test
     public void testSyncWebBuilder() {
-        Okta.SyncWebBuilder builder = mock(Okta.SyncWebBuilder.class);
-        SyncWebAuthClient otherClient = new Okta.SyncWebBuilder()
+        Okta.SyncWebAuthBuilder builder = mock(Okta.SyncWebAuthBuilder.class);
+        SyncWebAuthClient otherClient = new Okta.SyncWebAuthBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)
@@ -181,8 +181,8 @@ public class OktaTest {
 
     @Test
     public void testSyncNativeBuilder() {
-        Okta.SyncNativeBuilder builder = mock(Okta.SyncNativeBuilder.class);
-        SyncAuthClient otherClient = new Okta.SyncNativeBuilder()
+        Okta.SyncAuthBuilder builder = mock(Okta.SyncAuthBuilder.class);
+        SyncAuthClient otherClient = new Okta.SyncAuthBuilder()
                 .withConfig(mAccount)
                 .withStorage(mStorage)
                 .withContext(mContext)

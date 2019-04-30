@@ -46,7 +46,7 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
 public class AuthAPI {
     protected OktaState mOktaState;
     protected OIDCConfig mOIDCConfig;
-    protected HttpConnectionFactory mConnectionFactory;
+    HttpConnectionFactory mConnectionFactory;
 
     protected AuthAPI(OIDCConfig oidcConfig, OktaState oktaState,
                       HttpConnectionFactory connectionFactory) {
@@ -57,7 +57,7 @@ public class AuthAPI {
 
     protected void obtainNewConfiguration() throws AuthorizationException {
         ProviderConfiguration config = mOktaState.getProviderConfiguration();
-        if (config == null || !config.issuer.equals(mOIDCConfig.getDiscoveryUri())) {
+        if (config == null || !mOIDCConfig.getDiscoveryUri().toString().contains(config.issuer)) {
             mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
             mOktaState.save(configurationRequest().executeRequest());
         }

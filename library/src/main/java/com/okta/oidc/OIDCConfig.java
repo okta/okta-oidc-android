@@ -43,14 +43,14 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Okta account information. This is used to setup a configuration for AuthClient and SessionClient clients.
+ * Okta account information. This is used to setup a configuration for AuthClient and
+ * SessionClient clients.
+ * {@link AuthClient}
+ * {@link SyncAuthClient}
+ * {@link SessionClient}
+ * {@link SyncSessionClient}
  *
- * @see {@link AuthClient}
- * @see {@link SyncAuthClient}
- * @see {@link SessionClient}
- * @see {@link SyncSessionClient}
- * <p>
- * Example usage:
+ * <p>Example usage:
  * <pre>
  * {@code
  * OIDCConfig config = new OIDCConfig.Builder()
@@ -111,7 +111,6 @@ public class OIDCConfig {
         return Uri.parse(mAccount.mDiscoveryUri +
                 ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE);
     }
-
 
     /**
      * Returns the set of scopes defined by the configuration. These scopes can be used during
@@ -228,7 +227,8 @@ public class OIDCConfig {
          *
          * @param scopes the scopes
          * @return current builder
-         * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#scopes">Okta OIDC scopes</a>
+         * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#scopes">
+         * Okta OIDC scopes</a>
          */
         public Builder scopes(@NonNull String... scopes) {
             mAccountInfo.mScopes = scopes;
@@ -236,14 +236,14 @@ public class OIDCConfig {
         }
 
         /**
-         * Sets the resource id of the JSON file configuration.
+         * Sets the resource id of the configuration file in JSON format.
          *
-         * @param context a valid context
-         * @param Id      the android resource id
+         * @param context  a valid context
+         * @param rawResId the android resource id
          * @return current builder
          */
-        public Builder withResId(Context context, @RawRes int Id) {
-            try (InputStream inputStream = context.getResources().openRawResource(Id)) {
+        public Builder withConfig(Context context, @RawRes int rawResId) {
+            try (InputStream inputStream = context.getResources().openRawResource(rawResId)) {
                 Writer writer = new StringWriter();
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(inputStream, StandardCharsets.UTF_8));

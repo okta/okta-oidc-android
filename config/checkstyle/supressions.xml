@@ -4,8 +4,9 @@
         "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 <suppressions>
 
-    <!-- Suppress header check for AppAuth codebase-->
-    <suppress checks="RegexpHeader" files="com[\\/]okta[\\/]openid[\\/]appauth"/>
-    <suppress checks="JavadocMethod" files="com[\\/]okta[\\/]openid[\\/]appauth[\\/]internal"/>
-
+    <!-- Suppress header check for util classes from AppAuth codebase-->
+    <suppress checks="RegexpHeader" files="com[\\/]okta[\\/]oidc[\\/]util"/>
+    <suppress checks="JavadocMethod" files="com[\\/]okta[\\/]oidc[\\/]util"/>
+    <!-- Suppress all checks for EncryptionManager -->
+    <suppress files="EncryptionManager\.java" checks="[a-zA-Z0-9]*"/>
 </suppressions>

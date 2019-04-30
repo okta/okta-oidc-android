@@ -12,3 +12,8 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
+/**
+ * Types related to networking responses.
+ */
+package com.okta.oidc.net.response;

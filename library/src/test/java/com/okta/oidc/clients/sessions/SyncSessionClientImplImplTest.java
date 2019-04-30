@@ -103,7 +103,7 @@ public class SyncSessionClientImplImplTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        SyncWebAuthClient okta = new Okta.SyncWebBuilder()
+        SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)

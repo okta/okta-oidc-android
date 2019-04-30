@@ -28,13 +28,12 @@ public class AuthorizationResult extends Result {
     public static AuthorizationResult error(AuthorizationException error) {
         return new AuthorizationResult(error, null, false);
     }
-
-
+    
     public static AuthorizationResult cancel() {
         return new AuthorizationResult(null, null, true);
     }
 
-    AuthorizationResult(AuthorizationException error, Tokens tokens, boolean isCancel) {
+    private AuthorizationResult(AuthorizationException error, Tokens tokens, boolean isCancel) {
         super(error, isCancel);
         this.tokens = tokens;
     }

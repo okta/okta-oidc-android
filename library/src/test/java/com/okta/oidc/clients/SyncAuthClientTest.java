@@ -80,14 +80,14 @@ public class SyncAuthClientTest {
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
         mProviderConfig = TestValues.getProviderConfiguration(url);
 
-        SyncAuthClient okta = new Okta.SyncNativeBuilder()
+        SyncAuthClient okta = new Okta.SyncAuthBuilder()
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .create();
 
-        mSyncNativeAuth = (SyncAuthClientImpl)okta;
+        mSyncNativeAuth = (SyncAuthClientImpl) okta;
 
         mOktaState = mSyncNativeAuth.getOktaState();
         mOktaState.save(mProviderConfig);
@@ -119,11 +119,11 @@ public class SyncAuthClientTest {
         String nonce = CodeVerifierUtil.generateRandomState();
         String state = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
-        AuthenticationPayload payload =
-                new AuthenticationPayload.Builder().addParameter("nonce", nonce)
-                        .setState(state).build();
-
-        mEndPoint.enqueueConfigurationSuccess(mProviderConfig);
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .addParameter("nonce", nonce)
+                .setState(state)
+                .build();
+        
         mEndPoint.enqueueNativeRequestSuccess(state);
         mEndPoint.enqueueTokenSuccess(jws);
 

@@ -16,11 +16,12 @@ package com.okta.oidc.net.response.web;
 
 import android.net.Uri;
 
-import com.google.gson.Gson;
-
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+
 //https://developer.okta.com/docs/api/resources/oidc#response-properties
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
 public class AuthorizeResponse extends WebResponse {
     private String request_type;
     private String code;

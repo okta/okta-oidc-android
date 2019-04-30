@@ -2,7 +2,7 @@ package com.okta.oidc.net.request;
 
 import com.okta.oidc.util.AsciiStringListUtil;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +18,8 @@ public class RefreshTokenRequest extends TokenRequest {
         params.put("client_id", client_id);
         params.put("grant_type", grant_type);
         params.put("refresh_token", refresh_token);
-        params.put("scope", AsciiStringListUtil.iterableToString(Arrays.asList(scope)));
+
+        params.put("scope", AsciiStringListUtil.iterableToString(Collections.singletonList(scope)));
         return params;
     }
 }

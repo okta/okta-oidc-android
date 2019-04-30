@@ -12,3 +12,8 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
+/**
+ * Post and query related parameters for OIDC related networking requests.
+ */
+package com.okta.oidc.net.params;

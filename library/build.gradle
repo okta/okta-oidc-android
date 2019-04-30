@@ -5,7 +5,6 @@ apply from: "${rootDir}/gradle/style.gradle"
 apply plugin: 'com.jfrog.bintray'
 apply plugin: "com.github.dcendents.android-maven"
 
-group = "com.okta.android"
 version = "${rootProject.versionName}"
 
 android {

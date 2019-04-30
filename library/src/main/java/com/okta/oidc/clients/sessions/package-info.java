@@ -12,3 +12,8 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
+/**
+ * Client API for authorized requests.
+ */
+package com.okta.oidc.clients.sessions;

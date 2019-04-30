@@ -20,7 +20,6 @@ import android.net.Uri;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
@@ -54,9 +53,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -111,7 +108,7 @@ public class SessionClientImplTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        WebAuthClient okta = new Okta.AsyncWebBuilder()
+        WebAuthClient okta = new Okta.WebAuthBuilder()
                 .withCallbackExecutor(mExecutor)
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
@@ -282,11 +279,5 @@ public class SessionClientImplTest {
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
-    }
-
-    private Map<String, String> toMap(RecordedRequest request) {
-        final Type mapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-        return mGson.fromJson(request.getBody().readUtf8(), mapType);
     }
 }

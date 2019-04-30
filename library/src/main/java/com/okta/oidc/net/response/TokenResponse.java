@@ -15,13 +15,15 @@
 package com.okta.oidc.net.response;
 
 
-import com.google.gson.Gson;
-import com.okta.oidc.storage.Persistable;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.gson.Gson;
+import com.okta.oidc.storage.Persistable;
+
+@SuppressWarnings("unused")
 public class TokenResponse implements Persistable {
+
     private String access_token;
     private String token_type;
     private String expires_in;
@@ -29,19 +31,23 @@ public class TokenResponse implements Persistable {
     private String refresh_token;
     private String id_token;
 
-    public String getAccessToken() {
+    public @NonNull
+    String getAccessToken() {
         return access_token;
     }
 
-    public String getTokenType() {
+    public @NonNull
+    String getTokenType() {
         return token_type;
     }
 
-    public String getExpiresIn() {
+    public @NonNull
+    String getExpiresIn() {
         return expires_in;
     }
 
-    public String getScope() {
+    public @NonNull
+    String getScope() {
         return scope;
     }
 

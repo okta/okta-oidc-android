@@ -92,7 +92,7 @@ public class SyncWebAuthClientTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        SyncWebAuthClient okta = new Okta.SyncWebBuilder()
+        SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
                 .withConfig(mAccount)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
@@ -138,7 +138,7 @@ public class SyncWebAuthClientTest {
         String nonce = CodeVerifierUtil.generateRandomState();
 
         AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
-                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
+                .authorizeEndpoint(mProviderConfig.authorization_endpoint)
                 .redirectUri(mAccount.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(nonce)
@@ -163,7 +163,7 @@ public class SyncWebAuthClientTest {
         String nonce = CodeVerifierUtil.generateRandomState();
 
         AuthorizeRequest request = new AuthorizeRequest.Builder().codeVerifier(codeVerifier)
-                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
+                .authorizeEndpoint(mProviderConfig.authorization_endpoint)
                 .redirectUri(mAccount.getRedirectUri().toString())
                 .scope("openid", "email", "profile")
                 .nonce(nonce)

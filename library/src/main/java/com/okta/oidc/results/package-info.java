@@ -12,3 +12,8 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
+/**
+ * Result types related to authorization.
+ */
+package com.okta.oidc.results;

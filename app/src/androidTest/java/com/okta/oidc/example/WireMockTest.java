@@ -191,7 +191,7 @@ public class WireMockTest {
                 .build();
         mRedirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s", FAKE_CODE, mState);
         //samples sdk test
-        activityRule.getActivity().mOIDCConfig = new OIDCConfig.Builder()
+        activityRule.getActivity().mOidcConfig = new OIDCConfig.Builder()
                 .clientId("0oajqehiy6p81NVzA0h7")
                 .redirectUri("com.oktapreview.samples-test:/callback")
                 .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
@@ -199,8 +199,8 @@ public class WireMockTest {
                 .discoveryUri("https://127.0.0.1:8443")
                 .create();
 
-        WebAuthClient mWebOktaAuth = new Okta.AsyncWebBuilder()
-                .withConfig(activityRule.getActivity().mOIDCConfig)
+        WebAuthClient mWebOktaAuth = new Okta.WebAuthBuilder()
+                .withConfig(activityRule.getActivity().mOidcConfig)
                 .withContext(activityRule.getActivity())
                 .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
                 .withHttpConnectionFactory(new MockConnectionFactory())
@@ -248,7 +248,7 @@ public class WireMockTest {
         String tokenResponse = getAsset(mMockContext, "token_response.json");
 
         String jwt = Utils.getJwt(ISSUER, mNonce, getTomorrow(), getNow(),
-                activityRule.getActivity().mOIDCConfig.getClientId());
+                activityRule.getActivity().mOidcConfig.getClientId());
 
         String token = String.format(tokenResponse, jwt);
 

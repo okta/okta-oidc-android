@@ -112,11 +112,12 @@ Modified for Okta
                      value="Static variable name ''{0}'' must be prefixed with s and be at least two characters long."/>
         </module>
 
-        <!-- Capitalized abbreviations are forbidden (e.g. URL, XML, HTTP) -->
+        <!-- Capitalized abbreviations are forbidden (e.g. URL, XML, HTTP)
         <module name="AbbreviationAsWordInName">
             <property name="ignoreFinal" value="false"/>
             <property name="allowedAbbreviationLength" value="1"/>
         </module>
+         -->
 
         <!-- Forbid unnecessary escaping. -->
         <module name="IllegalTokenText">

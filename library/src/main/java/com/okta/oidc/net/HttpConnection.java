@@ -14,6 +14,7 @@
  */
 package com.okta.oidc.net;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -149,6 +150,7 @@ public class HttpConnection {
             }
         }
 
+        @SuppressLint("ObsoleteSdkInt")
         @NonNull
         @Override
         public HttpURLConnection build(@NonNull URL url) throws IOException {

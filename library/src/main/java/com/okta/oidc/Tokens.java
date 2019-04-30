@@ -15,10 +15,10 @@
 
 package com.okta.oidc;
 
-import com.okta.oidc.net.response.TokenResponse;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.okta.oidc.net.response.TokenResponse;
 
 /**
  * OpenId tokens.
@@ -79,7 +79,7 @@ public class Tokens {
     /**
      * The time in seconds when tokens expired.
      *
-     * @return refresh token.
+     * @return expiration of token.
      */
     public int getExpiresIn() {
         return mExpiresIn;
@@ -88,7 +88,7 @@ public class Tokens {
     /**
      * List of scopes
      *
-     * @return refresh token.
+     * @return scopes.
      */
     @Nullable
     public String[] getScope() {

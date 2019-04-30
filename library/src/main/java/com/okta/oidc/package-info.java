@@ -12,3 +12,9 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
+/**
+ * Okta's OIDC android is a client SDK for communicating with Okta's OIDC provider.
+ * with an Okta Org.
+ */
+package com.okta.oidc;

@@ -108,24 +108,23 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                                                ResultListener resultListener,
                                                ExecutorService executorService) {
         if (OktaResultFragment.hasRequestInProgress(activity)) {
-            OktaResultFragment.getFragment(activity).setAuthenticationListener((result, type) -> {
-                executorService.execute(() -> {
-                    switch (type) {
-                        case SIGN_IN:
-                            AuthorizationResult authorizationResult = processLogInResult(result);
-                            resetCurrentState();
-                            if (resultListener != null)
-                                resultListener.postResult(authorizationResult, type);
-                            break;
-                        case SIGN_OUT:
-                            Result signOutResult = processSignOutResult(result);
-                            resetCurrentState();
-                            if (resultListener != null)
-                                resultListener.postResult(signOutResult, type);
-                            break;
-                    }
-                });
-            });
+            OktaResultFragment.getFragment(activity).setAuthenticationListener((result, type)
+                    -> executorService.execute(() -> {
+                switch (type) {
+                    case SIGN_IN:
+                        AuthorizationResult authorizationResult = processLogInResult(result);
+                        resetCurrentState();
+                        if (resultListener != null)
+                            resultListener.postResult(authorizationResult, type);
+                        break;
+                    case SIGN_OUT:
+                        Result signOutResult = processSignOutResult(result);
+                        resetCurrentState();
+                        if (resultListener != null)
+                            resultListener.postResult(signOutResult, type);
+                        break;
+                }
+            }));
         }
     }
 
