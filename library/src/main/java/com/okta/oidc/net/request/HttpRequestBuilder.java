@@ -16,7 +16,7 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.GrantTypes;
@@ -36,7 +36,7 @@ public class HttpRequestBuilder {
     HttpRequest.Type mRequestType;
     @Nullable
     HttpConnectionFactory mConn;
-    OIDCAccount mAccount;
+    OIDCConfig mAccount;
     ProviderConfiguration mProviderConfiguration;
     AuthorizeRequest mAuthRequest;
     AuthorizeResponse mAuthResponse;
@@ -141,7 +141,7 @@ public class HttpRequestBuilder {
         return this;
     }
 
-    public HttpRequestBuilder account(OIDCAccount account) {
+    public HttpRequestBuilder account(OIDCConfig account) {
         mAccount = account;
         return this;
     }

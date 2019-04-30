@@ -23,7 +23,7 @@ import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.ResponseType;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
@@ -300,7 +300,7 @@ public class AuthorizeRequest extends WebRequest {
             return this;
         }
 
-        public Builder account(OIDCAccount account) {
+        public Builder account(OIDCConfig account) {
             mMap.put(CLIENT_ID, account.getClientId());
             String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(account.getScopes()));
             if (delimited != null) {

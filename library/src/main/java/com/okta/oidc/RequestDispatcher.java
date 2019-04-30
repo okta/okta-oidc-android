@@ -17,6 +17,8 @@ package com.okta.oidc;
 import android.os.Handler;
 import android.os.Looper;
 
+import androidx.annotation.RestrictTo;
+
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Executor;
@@ -24,11 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.RestrictTo;
-import androidx.annotation.VisibleForTesting;
-
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-import static androidx.annotation.VisibleForTesting.PACKAGE_PRIVATE;
 
 /**
  * Executor Service that runs tasks on worker thread
@@ -52,8 +50,7 @@ public class RequestDispatcher extends AbstractExecutorService {
         }
         return mExecutorService;
     }
-
-    @VisibleForTesting(otherwise = PACKAGE_PRIVATE)
+    
     public RequestDispatcher(Executor callbackExecutor) {
         if (callbackExecutor == null) {
             mHandler = new Handler(Looper.getMainLooper());

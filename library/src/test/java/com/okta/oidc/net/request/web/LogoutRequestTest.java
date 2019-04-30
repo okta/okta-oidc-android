@@ -17,7 +17,7 @@ package com.okta.oidc.net.request.web;
 import android.net.Uri;
 
 import com.google.gson.Gson;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.TestValues;
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 @Config(sdk = 27)
 public class LogoutRequestTest {
     private LogoutRequest mRequest;
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
     private TokenResponse mTokenResponse;

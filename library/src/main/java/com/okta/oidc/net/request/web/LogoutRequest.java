@@ -21,7 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -139,7 +139,7 @@ public class LogoutRequest extends WebRequest {
             return this;
         }
 
-        public Builder account(OIDCAccount account) {
+        public Builder account(OIDCConfig account) {
             mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
             return this;
         }

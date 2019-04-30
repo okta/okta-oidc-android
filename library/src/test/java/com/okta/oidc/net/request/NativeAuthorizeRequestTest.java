@@ -14,7 +14,7 @@
  */
 package com.okta.oidc.net.request;
 
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -57,7 +57,7 @@ public class NativeAuthorizeRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
         mRequest = TestValues.getNativeLogInRequest(mAccount, SESSION_TOKEN, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();

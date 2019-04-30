@@ -14,7 +14,6 @@
  */
 package com.okta.oidc;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 

@@ -18,7 +18,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
@@ -86,8 +86,8 @@ public class TestValues {
     public static final String TYPE_BEARER = "Bearer";
     public static final String EXPIRES_IN = "3600";
 
-    public static OIDCAccount getAccountWithUrl(String url) {
-        return new OIDCAccount.Builder()
+    public static OIDCConfig getAccountWithUrl(String url) {
+        return new OIDCConfig.Builder()
                 .clientId(CLIENT_ID)
                 .redirectUri(REDIRECT_URI)
                 .endSessionRedirectUri(END_SESSION_URI)
@@ -140,7 +140,7 @@ public class TestValues {
                 .compact();
     }
 
-    public static AuthorizeRequest getAuthorizeRequest(OIDCAccount account, String verifier) {
+    public static AuthorizeRequest getAuthorizeRequest(OIDCConfig account, String verifier) {
         return new AuthorizeRequest.Builder().codeVerifier(verifier)
                 .authorizeEndpoint(account.getDiscoveryUri().toString())
                 .redirectUri(account.getRedirectUri().toString())
@@ -167,7 +167,7 @@ public class TestValues {
         return LogoutResponse.fromUri(Uri.parse(uri));
     }
 
-    public static TokenRequest getTokenRequest(OIDCAccount account, AuthorizeRequest request,
+    public static TokenRequest getTokenRequest(OIDCConfig account, AuthorizeRequest request,
                                                AuthorizeResponse response, ProviderConfiguration
                                                        configuration) {
         return (TokenRequest) HttpRequestBuilder.newRequest()
@@ -179,7 +179,7 @@ public class TestValues {
                 .createRequest();
     }
 
-    public static RefreshTokenRequest getRefreshRequest(OIDCAccount account, TokenResponse response,
+    public static RefreshTokenRequest getRefreshRequest(OIDCConfig account, TokenResponse response,
                                                         ProviderConfiguration configuration) {
         return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REFRESH_TOKEN)
@@ -189,7 +189,7 @@ public class TestValues {
                 .createRequest();
     }
 
-    public static RevokeTokenRequest getRevokeTokenRequest(OIDCAccount account, String tokenToRevoke,
+    public static RevokeTokenRequest getRevokeTokenRequest(OIDCConfig account, String tokenToRevoke,
                                                            ProviderConfiguration configuration) {
         return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
@@ -199,7 +199,7 @@ public class TestValues {
                 .createRequest();
     }
 
-    public static IntrospectRequest getIntrospectTokenRequest(OIDCAccount account, String token, String tokenType,
+    public static IntrospectRequest getIntrospectTokenRequest(OIDCConfig account, String token, String tokenType,
                                                               ProviderConfiguration configuration) {
         return (IntrospectRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.INTROSPECT)
@@ -209,7 +209,7 @@ public class TestValues {
                 .createRequest();
     }
 
-    public static NativeAuthorizeRequest getNativeLogInRequest(OIDCAccount account, String token,
+    public static NativeAuthorizeRequest getNativeLogInRequest(OIDCConfig account, String token,
                                                                ProviderConfiguration configuration) {
         return new AuthorizeRequest.Builder()
                 .account(account)

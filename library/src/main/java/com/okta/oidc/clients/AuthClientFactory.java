@@ -12,21 +12,14 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.net.response;
 
-public final class IntrospectResponse {
-    public boolean active;
-    public String token_type;
-    public String scope;
-    public String client_id;
-    public String device_id;
-    public String username;
-    public int nbf;
-    public int exp;
-    public int iat;
-    public String sub;
-    public String aud;
-    public String iss;
-    public String jti;
-    public String uid;
+package com.okta.oidc.clients;
+
+import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.OktaState;
+import com.okta.oidc.net.HttpConnectionFactory;
+
+public interface AuthClientFactory<A> {
+    A createClient(OIDCConfig oidcConfig, OktaState oktaState,
+                   HttpConnectionFactory connectionFactory);
 }

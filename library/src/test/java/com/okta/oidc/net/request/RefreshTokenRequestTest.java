@@ -14,7 +14,7 @@
  */
 package com.okta.oidc.net.request;
 
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertNull;
 @Config(sdk = 27)
 public class RefreshTokenRequestTest {
     private RefreshTokenRequest mRequest;
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;

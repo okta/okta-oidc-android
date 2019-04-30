@@ -18,7 +18,7 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 public class AuthorizeRequestTest {
     private AuthorizeRequest mRequest;
 
-    private OIDCAccount mAccount;
+    private OIDCConfig mAccount;
     private String mCodeVerifier;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();

@@ -20,11 +20,11 @@ android {
         properties.load(project.rootProject.file('local.properties').newDataInputStream())
         def username = properties.getProperty('test.username')
         def password = properties.getProperty('test.password')
-        if (username == null || password == null) {
-            username = password = "";
+        if (username != null && password != null) {
+            buildConfigField "String", "USERNAME", username
+            buildConfigField "String", "PASSWORD", password
         }
-        buildConfigField "String", "USERNAME", username
-        buildConfigField "String", "PASSWORD", password
+
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

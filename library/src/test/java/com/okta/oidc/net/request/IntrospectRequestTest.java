@@ -14,10 +14,10 @@
  */
 package com.okta.oidc.net.request;
 
-import com.okta.oidc.OIDCAccount;
+import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.params.TokenTypeHint;
-import com.okta.oidc.net.response.IntrospectResponse;
+import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
@@ -56,7 +56,7 @@ public class IntrospectRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCAccount mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
         mRequest = TestValues.getIntrospectTokenRequest(mAccount, ACCESS_TOKEN,
                 TokenTypeHint.ACCESS_TOKEN, mProviderConfig);
@@ -73,12 +73,12 @@ public class IntrospectRequestTest {
     public void dispatchRequestSuccess() throws InterruptedException {
         mEndPoint.enqueueIntrospectSuccess();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectResponse, AuthorizationException> cb
+        MockRequestCallback<IntrospectInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
         RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
         mRequest.dispatchRequest(dispatcher, cb);
         latch.await();
-        assertTrue(cb.getResult().active);
+        assertTrue(cb.getResult().isActive());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class IntrospectRequestTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectResponse, AuthorizationException> cb
+        MockRequestCallback<IntrospectInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
         RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
         mRequest.dispatchRequest(dispatcher, cb);
@@ -97,8 +97,8 @@ public class IntrospectRequestTest {
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueIntrospectSuccess();
-        IntrospectResponse result = mRequest.executeRequest();
-        assertTrue(result.active);
+        IntrospectInfo result = mRequest.executeRequest();
+        assertTrue(result.isActive());
     }
 
     @Test

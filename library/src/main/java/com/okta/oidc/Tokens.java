@@ -40,7 +40,7 @@ public class Tokens {
         this.mScope = scope;
     }
 
-    Tokens(@NonNull TokenResponse response) {
+    public Tokens(@NonNull TokenResponse response) {
         this(response.getIdToken(), response.getAccessToken(),
                 response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
                 response.getScope().split(" "));

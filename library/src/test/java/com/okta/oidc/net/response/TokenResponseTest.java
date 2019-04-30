@@ -16,7 +16,6 @@ package com.okta.oidc.net.response;
 
 import com.google.gson.Gson;
 import com.okta.oidc.util.AsciiStringListUtil;
-import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +33,8 @@ import static com.okta.oidc.util.TestValues.ID_TOKEN;
 import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static com.okta.oidc.util.TestValues.TYPE_BEARER;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

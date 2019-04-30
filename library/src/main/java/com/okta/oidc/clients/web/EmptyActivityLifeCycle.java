@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc;
+package com.okta.oidc.clients.web;
 
 import android.app.Activity;
 import android.app.Application;

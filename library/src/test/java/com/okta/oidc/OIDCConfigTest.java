@@ -17,7 +17,6 @@ package com.okta.oidc;
 import android.net.Uri;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -26,22 +25,22 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
-import static com.okta.oidc.util.JsonStrings.VALID_ID_TOKEN;
 import static com.okta.oidc.util.TestValues.CLIENT_ID;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.END_SESSION_URI;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
 import static com.okta.oidc.util.TestValues.SCOPES;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class OIDCAccountTest {
-    private OIDCAccount mAccount;
+public class OIDCConfigTest {
+    private OIDCConfig mAccount;
 
     @Before
     public void setUp() throws Exception {
@@ -86,8 +85,8 @@ public class OIDCAccountTest {
 
     @Test
     public void testBuilder() {
-        OIDCAccount.Builder builder = mock(OIDCAccount.Builder.class);
-        OIDCAccount otherAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
+        OIDCConfig.Builder builder = mock(OIDCConfig.Builder.class);
+        OIDCConfig otherAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
         when(builder.create()).thenReturn(otherAccount);
 
         builder.clientId(CLIENT_ID);
@@ -104,7 +103,7 @@ public class OIDCAccountTest {
 
         builder.discoveryUri(CUSTOM_URL);
         verify(builder).discoveryUri(CUSTOM_URL);
-        OIDCAccount account = builder.create();
+        OIDCConfig account = builder.create();
         assertEquals(mAccount.getClientId(), account.getClientId());
         assertEquals(mAccount.getDiscoveryUri(), account.getDiscoveryUri());
         assertEquals(mAccount.getEndSessionRedirectUri(), account.getEndSessionRedirectUri());

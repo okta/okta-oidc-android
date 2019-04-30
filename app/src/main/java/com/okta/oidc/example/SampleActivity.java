@@ -17,6 +17,7 @@ package com.okta.oidc.example;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -28,29 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.okta.authn.sdk.AuthenticationException;
-import com.okta.authn.sdk.AuthenticationStateHandlerAdapter;
-import com.okta.authn.sdk.client.AuthenticationClient;
-import com.okta.authn.sdk.client.AuthenticationClients;
-import com.okta.authn.sdk.resource.AuthenticationResponse;
-import com.okta.oidc.AuthenticateClient;
-import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.AuthorizationStatus;
-import com.okta.oidc.OIDCAccount;
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.ResultCallback;
-import com.okta.oidc.State;
-import com.okta.oidc.Tokens;
-import com.okta.oidc.net.params.TokenTypeHint;
-import com.okta.oidc.net.response.IntrospectResponse;
-import com.okta.oidc.storage.SimpleOktaStorage;
-import com.okta.oidc.util.AuthorizationException;
-
-import org.json.JSONObject;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -58,13 +36,44 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.okta.authn.sdk.AuthenticationException;
+import com.okta.authn.sdk.AuthenticationStateHandlerAdapter;
+import com.okta.authn.sdk.client.AuthenticationClient;
+import com.okta.authn.sdk.client.AuthenticationClients;
+import com.okta.authn.sdk.resource.AuthenticationResponse;
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
+import com.okta.oidc.RequestCallback;
+import com.okta.oidc.ResultCallback;
+import com.okta.oidc.Tokens;
+import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.AuthClientFactoryImpl;
+import com.okta.oidc.clients.web.SyncWebAuthClient;
+import com.okta.oidc.clients.web.WebAuthClient;
+import com.okta.oidc.clients.web.WebAuthClientFactory;
+import com.okta.oidc.clients.SyncAuthClient;
+import com.okta.oidc.clients.sessions.SessionClient;
+import com.okta.oidc.net.params.TokenTypeHint;
+import com.okta.oidc.net.response.IntrospectInfo;
+import com.okta.oidc.net.response.UserInfo;
+import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.util.AuthorizationException;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 public class SampleActivity extends AppCompatActivity implements LoginDialog.LoginDialogListener {
 
     private static final String TAG = "SampleActivity";
+    WebAuthClient mWebAuth;
+    AuthClient asyncNativeAuthClient;
+    SessionClient mSessionClient;
+
     @VisibleForTesting
-    AuthenticateClient mOktaAuth;
-    @VisibleForTesting
-    OIDCAccount mOktaAccount;
+    OIDCConfig mOIDCConfig;
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
@@ -95,21 +104,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-/*
-        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectAll()
-                .penaltyLog()
-                .build());
 
-        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                .detectLeakedSqlLiteObjects()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .penaltyDeath()
-                .build());
-*/
         setContentView(R.layout.sample_activity_login);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
@@ -128,12 +123,12 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mIntrospectRefresh.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.introspectToken(
-                    mOktaAuth.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+            mSessionClient.introspectToken(
+                    mSessionClient.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("RefreshToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("RefreshToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -148,12 +143,12 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mIntrospectAccess.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.introspectToken(
-                    mOktaAuth.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+            mSessionClient.introspectToken(
+                    mSessionClient.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("AccessToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("AccessToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -168,12 +163,12 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mIntrospectId.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.introspectToken(
-                    mOktaAuth.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
-                    new RequestCallback<IntrospectResponse, AuthorizationException>() {
+            mSessionClient.introspectToken(
+                    mSessionClient.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
-                        public void onSuccess(@NonNull IntrospectResponse result) {
-                            mTvStatus.setText("IdToken active: " + result.active);
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("IdToken active: " + result.isActive());
                             mProgressBar.setVisibility(View.GONE);
                         }
 
@@ -189,7 +184,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
+            mSessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
                 @Override
                 public void onSuccess(@NonNull Tokens result) {
                     mTvStatus.setText("token refreshed");
@@ -205,10 +200,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         });
 
         mRevokeRefresh.setOnClickListener(v -> {
-            Tokens tokens = mOktaAuth.getTokens();
+            Tokens tokens = mSessionClient.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
-                mOktaAuth.revokeToken(mOktaAuth.getTokens().getRefreshToken(),
+                mSessionClient.revokeToken(mSessionClient.getTokens().getRefreshToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull Boolean result) {
@@ -231,10 +226,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         });
 
         mRevokeAccess.setOnClickListener(v -> {
-            Tokens tokens = mOktaAuth.getTokens();
+            Tokens tokens = mSessionClient.getTokens();
             if (tokens != null && tokens.getAccessToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
-                mOktaAuth.revokeToken(mOktaAuth.getTokens().getAccessToken(),
+                mSessionClient.revokeToken(mSessionClient.getTokens().getAccessToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull Boolean result) {
@@ -257,17 +252,17 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mSignOut.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.signOutFromOkta(this);
+            mWebAuth.signOutFromOkta(this);
         });
         mClearData.setOnClickListener(v -> {
-            mOktaAuth.clear();
+            mSessionClient.clear();
             mTvStatus.setText("clear data");
             showLoggedOutMode();
         });
 
         mSignInBrowser.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mOktaAuth.logIn(this, mPayload);
+            mWebAuth.logIn(this, mPayload);
         });
 
         mSignInNative.setOnClickListener(v -> {
@@ -286,7 +281,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .setOrgUrl("https://samples-test.oktapreview.com")
                 .build();
         //samples sdk test
-        mOktaAccount = new OIDCAccount.Builder()
+        mOIDCConfig = new OIDCConfig.Builder()
                 .clientId("0oajqehiy6p81NVzA0h7")
                 .redirectUri("com.oktapreview.samples-test:/callback")
                 .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
@@ -294,14 +289,54 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
-        mOktaAuth = new AuthenticateClient.Builder()
-                .withAccount(mOktaAccount)
+        WebAuthClient mWebOktaAuth = new Okta.AsyncWebBuilder()
+                .withConfig(mOIDCConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
-                .withTabColor(getColorCompat(R.color.colorPrimary))
+                .withCallbackExecutor(null)
+                .withTabColor(0)
+                .supportedBrowsers(null)
                 .create();
 
-        if (mOktaAuth.isLoggedIn()) {
+        AuthClient mNativeOktaAuth = new Okta.AsyncNativeBuilder()
+                .withConfig(mOIDCConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withCallbackExecutor(null)
+                .create();
+
+        SyncWebAuthClient mWebSyncOktaAuth = new Okta.SyncWebBuilder()
+                .withConfig(mOIDCConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withTabColor(0)
+                .create();
+
+        SyncAuthClient mNativeSyncOktaAuth = new Okta.SyncNativeBuilder()
+                .withConfig(mOIDCConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .create();
+
+        WebAuthClient mWebOktaAuthPro = new Okta.Builder<WebAuthClient>()
+                .withConfig(mOIDCConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new WebAuthClientFactory(null, Color.BLUE))
+                .create();
+
+        AuthClient mNativeOktaAuthPro = new Okta.Builder<AuthClient>()
+                .withConfig(mOIDCConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new AuthClientFactoryImpl(null))
+                .create();
+
+        mWebAuth = mWebOktaAuthPro;
+        mSessionClient = mWebOktaAuthPro.getSessionClient();
+        asyncNativeAuthClient = mNativeOktaAuthPro;
+
+        if (mSessionClient.isLoggedIn()) {
             showAuthorizedMode();
         }
 
@@ -310,7 +345,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
     @VisibleForTesting
     void setupCallback() {
-        mOktaAuth.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
+        mWebAuth.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull AuthorizationStatus status) {
                 Log.d("SampleActivity", "AUTHORIZED");
@@ -346,7 +381,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     @Override
     protected void onResume() {
         super.onResume();
-        if(mOktaAuth.getAuthorizationStatus() == AuthorizationStatus.IN_PROGRESS) {
+        if (mWebAuth.isInProgress()) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
     }
@@ -390,9 +425,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
     private void getProfile() {
         mProgressBar.setVisibility(View.VISIBLE);
-        mOktaAuth.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() {
+        mSessionClient.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
             @Override
-            public void onSuccess(@NonNull JSONObject result) {
+            public void onSuccess(@NonNull UserInfo result) {
                 mTvStatus.setText(result.toString());
                 mProgressBar.setVisibility(View.GONE);
             }
@@ -455,7 +490,20 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                     @Override
                     public void handleSuccess(AuthenticationResponse successResponse) {
                         String sessionToken = successResponse.getSessionToken();
-                        mOktaAuth.logIn(sessionToken, mPayload);
+                        //TODO: Implement callback here
+                        asyncNativeAuthClient.logIn(sessionToken, mPayload, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull AuthorizationResult result) {
+                                mTvStatus.setText("authentication authorized");
+                                showAuthorizedMode();
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                mTvStatus.setText(error);
+                            }
+                        });
                     }
                 });
             } catch (AuthenticationException e) {
