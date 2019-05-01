@@ -1,0 +1,23 @@
+<?xml version="1.0"?><!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<suppressions>
+
+    <!-- Suppress header check for util classes from AppAuth codebase-->
+    <suppress checks="RegexpHeader" files="com[\\/]okta[\\/]oidc[\\/]util" />
+    <suppress checks="JavadocMethod" files="com[\\/]okta[\\/]oidc[\\/]util" />
+    <!-- Suppress all checks for EncryptionManager -->
+    <suppress checks="[a-zA-Z0-9]*" files="EncryptionManager\.java" />
+
+    <!-- Suppress abbreviation checks-->
+    <suppress checks="AbbreviationAsWordInName" files="OIDCConfig\.java" />
+    <suppress checks="AbbreviationAsWordInName" files="AuthAPI\.java" />
+
+    <!-- Suppress javadoc for classes with @RestrictTo(RestrictTo.Scope.LIBRARY)-->
+    <suppress checks="Javadoc" files="OktaResultFragment\.java" />
+    <suppress checks="Javadoc" files="OktaState\.java" />
+    <suppress checks="Javadoc" files="RequestDispatcher\.java" />
+    <suppress checks="Javadoc" files="State\.java" />
+    <suppress checks="Javadoc" files="AuthAPI\.java" />
+    <suppress checks="Javadoc" files="AuthorizeRequest\.java" />
+</suppressions>

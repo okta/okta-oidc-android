@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.app.Activity;
@@ -28,7 +29,8 @@ import android.os.Bundle;
  * <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
  */
 public class OktaRedirectActivity extends Activity {
-    public static final String REDIRECT_ACTION = OktaRedirectActivity.class.getCanonicalName() + ".REDIRECT_ACTION";
+    public static final String REDIRECT_ACTION = OktaRedirectActivity.class.getCanonicalName()
+            + ".REDIRECT_ACTION";
 
     @Override
     public void onCreate(Bundle savedInstanceBundle) {

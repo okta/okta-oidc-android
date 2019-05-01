@@ -67,7 +67,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-@SuppressLint({"ApplySharedPref", "ObsoleteSdkInt"})
 public class EncryptionManager {
     private final int RSA_BIT_LENGTH = 2048;
     private final int AES_BIT_LENGTH = 256;
@@ -195,6 +194,7 @@ public class EncryptionManager {
         setup(context, prefStore, bitShiftingKey);
     }
 
+    @SuppressLint("ApplySharedPref")
     void setup(Context context, SharedPreferences prefStore, @Nullable byte[] seed) throws NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException, IOException {
         boolean keyGenerated = generateKey(context, seed, prefStore);
         if (keyGenerated) {
@@ -761,6 +761,7 @@ public class EncryptionManager {
         }
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     @SuppressWarnings("WrongConstant")
     boolean generateRSAKeys(Context context, @Nullable byte[] seed) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
         if (!mStore.containsAlias(RSA_KEY_ALIAS)) {

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
@@ -270,7 +271,7 @@ public class AuthorizeRequest extends WebRequest {
         A JWT created by the client that enables requests to be passed as a single,
         self-contained parameter. See Parameter Details for more.
          */
-        public Builder requestJWT(@NonNull String request) {
+        public Builder requestJwt(@NonNull String request) {
             mMap.put(REQUEST, request);
             return this;
         }
@@ -302,7 +303,8 @@ public class AuthorizeRequest extends WebRequest {
 
         public Builder config(OIDCConfig config) {
             mMap.put(CLIENT_ID, config.getClientId());
-            String delimited = AsciiStringListUtil.iterableToString(Arrays.asList(config.getScopes()));
+            String delimited = AsciiStringListUtil.iterableToString(
+                    Arrays.asList(config.getScopes()));
             if (delimited != null) {
                 mMap.put(SCOPE, delimited);
             }

@@ -67,7 +67,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @SuppressLint("SetTextI18n")
 @SuppressWarnings("FieldCanBeLocal")
 public class SampleActivity extends AppCompatActivity implements LoginDialog.LoginDialogListener {
-    
     private static final String TAG = "SampleActivity";
     /**
      * Authorization client using chrome custom tab as a user agent.
@@ -81,7 +80,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
      * The authorized client to interact with Okta's endpoints.
      */
     SessionClient mSessionClient;
-    
+
     /**
      * Okta OIDC configuration.
      */
@@ -93,37 +92,37 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
-    
+
     private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
     private Button mIntrospectRefresh;
     private Button mIntrospectAccess;
     private Button mIntrospectId;
-    
+
     private ProgressBar mProgressBar;
     private static final String FIRE_FOX = "org.mozilla.firefox";
-    
+
     private LinearLayout mRevokeContainer;
-    
+
     /**
      * The payload to send for authorization.
      */
     @VisibleForTesting
     AuthenticationPayload mPayload;
-    
+
     /**
      * The Authentication API client.
      */
     protected AuthenticationClient mAuthenticationClient;
     private LoginDialog mLoginDialog;
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        
+
         setContentView(R.layout.sample_activity_login);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
@@ -139,67 +138,67 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mIntrospectRefresh = findViewById(R.id.introspect_refresh);
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
-        
+
         mIntrospectRefresh.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mSessionClient.introspectToken(
-                                           mSessionClient.getTokens().getRefreshToken(), TokenTypeHint.REFRESH_TOKEN,
-                                           new RequestCallback<IntrospectInfo, AuthorizationException>() {
-                                               @Override
-                                               public void onSuccess(@NonNull IntrospectInfo result) {
-                                                   mTvStatus.setText("RefreshToken active: " + result.isActive());
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                               
-                                               @Override
-                                               public void onError(String error, AuthorizationException exception) {
-                                                   mTvStatus.setText("RefreshToken Introspect error");
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                           }
-                                           );
+            String refreshToken = mSessionClient.getTokens().getRefreshToken();
+            mSessionClient.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("RefreshToken active: " + result.isActive());
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("RefreshToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+                    }
+            );
         });
-        
+
         mIntrospectAccess.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             mSessionClient.introspectToken(
-                                           mSessionClient.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
-                                           new RequestCallback<IntrospectInfo, AuthorizationException>() {
-                                               @Override
-                                               public void onSuccess(@NonNull IntrospectInfo result) {
-                                                   mTvStatus.setText("AccessToken active: " + result.isActive());
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                               
-                                               @Override
-                                               public void onError(String error, AuthorizationException exception) {
-                                                   mTvStatus.setText("AccessToken Introspect error");
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                           }
-                                           );
+                    mSessionClient.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("AccessToken active: " + result.isActive());
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("AccessToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+                    }
+            );
         });
-        
+
         mIntrospectId.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             mSessionClient.introspectToken(
-                                           mSessionClient.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
-                                           new RequestCallback<IntrospectInfo, AuthorizationException>() {
-                                               @Override
-                                               public void onSuccess(@NonNull IntrospectInfo result) {
-                                                   mTvStatus.setText("IdToken active: " + result.isActive());
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                               
-                                               @Override
-                                               public void onError(String error, AuthorizationException exception) {
-                                                   mTvStatus.setText("IdToken Introspect error");
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                           }
-                                           );
+                    mSessionClient.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                        @Override
+                        public void onSuccess(@NonNull IntrospectInfo result) {
+                            mTvStatus.setText("IdToken active: " + result.isActive());
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            mTvStatus.setText("IdToken Introspect error");
+                            mProgressBar.setVisibility(View.GONE);
+                        }
+                    }
+            );
         });
-        
+
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
@@ -209,7 +208,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                     mTvStatus.setText("token refreshed");
                     mProgressBar.setVisibility(View.GONE);
                 }
-                
+
                 @Override
                 public void onError(String error, AuthorizationException exception) {
                     mTvStatus.setText(exception.errorDescription);
@@ -217,58 +216,58 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 }
             });
         });
-        
+
         mRevokeRefresh.setOnClickListener(v -> {
             Tokens tokens = mSessionClient.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
                 mSessionClient.revokeToken(mSessionClient.getTokens().getRefreshToken(),
-                                           new RequestCallback<Boolean, AuthorizationException>() {
-                                               @Override
-                                               public void onSuccess(@NonNull Boolean result) {
-                                                   
-                                                   String status = "Revoke refresh token : " + result;
-                                                   Log.d(TAG, status);
-                                                   mTvStatus.setText(status);
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                               
-                                               @Override
-                                               public void onError(String error, AuthorizationException exception) {
-                                                   Log.d(TAG, exception.error +
-                                                         " revokeRefreshToken onError " + error, exception);
-                                                   mTvStatus.setText(error);
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                           });
+                        new RequestCallback<Boolean, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull Boolean result) {
+
+                                String status = "Revoke refresh token : " + result;
+                                Log.d(TAG, status);
+                                mTvStatus.setText(status);
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                Log.d(TAG, exception.error +
+                                        " revokeRefreshToken onError " + error, exception);
+                                mTvStatus.setText(error);
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+                        });
             }
         });
-        
+
         mRevokeAccess.setOnClickListener(v -> {
             Tokens tokens = mSessionClient.getTokens();
             if (tokens != null && tokens.getAccessToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
                 mSessionClient.revokeToken(mSessionClient.getTokens().getAccessToken(),
-                                           new RequestCallback<Boolean, AuthorizationException>() {
-                                               @Override
-                                               public void onSuccess(@NonNull Boolean result) {
-                                                   String status = "Revoke Access token : " + result;
-                                                   Log.d(TAG, status);
-                                                   mTvStatus.setText(status);
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                               
-                                               @Override
-                                               public void onError(String error, AuthorizationException exception) {
-                                                   Log.d(TAG, exception.error +
-                                                         " revokeAccessToken onError " + error, exception);
-                                                   mTvStatus.setText(error);
-                                                   mProgressBar.setVisibility(View.GONE);
-                                               }
-                                           });
+                        new RequestCallback<Boolean, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull Boolean result) {
+                                String status = "Revoke Access token : " + result;
+                                Log.d(TAG, status);
+                                mTvStatus.setText(status);
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                Log.d(TAG, exception.error +
+                                        " revokeAccessToken onError " + error, exception);
+                                mTvStatus.setText(error);
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+                        });
             }
         });
-        
+
         mSignOut.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             mWebAuth.signOutFromOkta(this);
@@ -278,12 +277,12 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mTvStatus.setText("clear data");
             showLoggedOutMode();
         });
-        
+
         mSignInBrowser.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             mWebAuth.logIn(this, mPayload);
         });
-        
+
         mSignInNative.setOnClickListener(v -> {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             Fragment prev = getSupportFragmentManager().findFragmentByTag("login");
@@ -295,118 +294,119 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mLoginDialog.setListener(this);
             mLoginDialog.show(ft, "login");
         });
-        
+
         mAuthenticationClient = AuthenticationClients.builder()
-        .setOrgUrl("https://samples-test.oktapreview.com")
-        .build();
-        
+                .setOrgUrl("https://samples-test.oktapreview.com")
+                .build();
+
         //Example of using JSON file to create config
         OIDCConfig config = new OIDCConfig.Builder()
-        .withConfig(this, R.raw.okta_oidc_config)
-        .create();
-        
+                .withConfig(this, R.raw.okta_oidc_config)
+                .create();
+
         //Example of config
         mOidcConfig = new OIDCConfig.Builder()
-        .clientId("0oajqehiy6p81NVzA0h7")
-        .redirectUri("com.oktapreview.samples-test:/callback")
-        .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
-        .scopes("openid", "profile", "offline_access")
-        .discoveryUri("https://samples-test.oktapreview.com")
-        .create();
-        
+                .clientId("0oajqehiy6p81NVzA0h7")
+                .redirectUri("com.oktapreview.samples-test:/callback")
+                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+                .scopes("openid", "profile", "offline_access")
+                .discoveryUri("https://samples-test.oktapreview.com")
+                .create();
+
         WebAuthClient webAuthClient = new Okta.WebAuthBuilder()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withCallbackExecutor(null)
-        .withTabColor(0)
-        .supportedBrowsers(null)
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withCallbackExecutor(null)
+                .withTabColor(0)
+                .supportedBrowsers(null)
+                .create();
+
         AuthClient authClient = new Okta.AuthBuilder()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withCallbackExecutor(null)
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withCallbackExecutor(null)
+                .create();
+
         SyncWebAuthClient syncWebAuthClient = new Okta.SyncWebAuthBuilder()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withTabColor(0)
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withTabColor(0)
+                .create();
+
         SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .create();
+
         WebAuthClient webAuthClientPro = new Okta.Builder<WebAuthClient>()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withAuthenticationClientFactory(new WebAuthClientFactory(null, Color.BLUE))
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new WebAuthClientFactory(
+                        null, Color.BLUE))
+                .create();
+
         AuthClient authClientPro = new Okta.Builder<AuthClient>()
-        .withConfig(mOidcConfig)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withAuthenticationClientFactory(new AuthClientFactoryImpl(null))
-        .create();
-        
+                .withConfig(mOidcConfig)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this))
+                .withAuthenticationClientFactory(new AuthClientFactoryImpl(null))
+                .create();
+
         mWebAuth = webAuthClientPro;
         mSessionClient = webAuthClientPro.getSessionClient();
         mAuthClient = authClientPro;
-        
+
         if (mSessionClient.isLoggedIn()) {
             showAuthorizedMode();
         }
-        
+
         setupCallback();
     }
-    
+
     /**
      * Sets callback.
      */
     @VisibleForTesting
     void setupCallback() {
         mWebAuth.registerCallback(
-                                  new ResultCallback<AuthorizationStatus, AuthorizationException>() {
-                                      @Override
-                                      public void onSuccess(@NonNull AuthorizationStatus status) {
-                                          Log.d("SampleActivity", "AUTHORIZED");
-                                          if (status == AuthorizationStatus.AUTHORIZED) {
-                                              mTvStatus.setText("authentication authorized");
-                                              showAuthorizedMode();
-                                              mProgressBar.setVisibility(View.GONE);
-                                          } else if (status == AuthorizationStatus.LOGGED_OUT) {
-                                              //this only clears the session.
-                                              mTvStatus.setText("signedOutFromOkta");
-                                              mProgressBar.setVisibility(View.GONE);
-                                          } else if (status == AuthorizationStatus.IN_PROGRESS) {
-                                              mTvStatus.setText("in progress");
-                                              mProgressBar.setVisibility(View.VISIBLE);
-                                          }
-                                      }
-                                      
-                                      @Override
-                                      public void onCancel() {
-                                          Log.d(TAG, "CANCELED!");
-                                          mTvStatus.setText("canceled");
-                                      }
-                                      
-                                      @Override
-                                      public void onError(@NonNull String msg, AuthorizationException error) {
-                                          Log.d("SampleActivity", error.error +
-                                                " onActivityResult onError " + msg, error);
-                                          mTvStatus.setText(msg);
-                                      }
-                                  }, this);
+                new ResultCallback<AuthorizationStatus, AuthorizationException>() {
+                    @Override
+                    public void onSuccess(@NonNull AuthorizationStatus status) {
+                        Log.d("SampleActivity", "AUTHORIZED");
+                        if (status == AuthorizationStatus.AUTHORIZED) {
+                            mTvStatus.setText("authentication authorized");
+                            showAuthorizedMode();
+                            mProgressBar.setVisibility(View.GONE);
+                        } else if (status == AuthorizationStatus.LOGGED_OUT) {
+                            //this only clears the session.
+                            mTvStatus.setText("signedOutFromOkta");
+                            mProgressBar.setVisibility(View.GONE);
+                        } else if (status == AuthorizationStatus.IN_PROGRESS) {
+                            mTvStatus.setText("in progress");
+                            mProgressBar.setVisibility(View.VISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Log.d(TAG, "CANCELED!");
+                        mTvStatus.setText("canceled");
+                    }
+
+                    @Override
+                    public void onError(@NonNull String msg, AuthorizationException error) {
+                        Log.d("SampleActivity", error.error +
+                                " onActivityResult onError " + msg, error);
+                        mTvStatus.setText(msg);
+                    }
+                }, this);
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -414,14 +414,14 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mProgressBar.setVisibility(View.VISIBLE);
         }
     }
-    
+
     @Override
     protected void onStop() {
         super.onStop();
         mProgressBar.setVisibility(View.GONE);
-        
+
     }
-    
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -430,7 +430,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             mLoginDialog.dismiss();
         }
     }
-    
+
     private void showAuthorizedMode() {
         mGetProfile.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
@@ -440,7 +440,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mSignInBrowser.setVisibility(View.GONE);
         mSignInNative.setVisibility(View.GONE);
     }
-    
+
     private void showLoggedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
         mSignInNative.setVisibility(View.VISIBLE);
@@ -451,7 +451,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mRevokeContainer.setVisibility(View.GONE);
         mTvStatus.setText("");
     }
-    
+
     private void getProfile() {
         mProgressBar.setVisibility(View.VISIBLE);
         mSessionClient.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
@@ -460,7 +460,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 mTvStatus.setText(result.toString());
                 mProgressBar.setVisibility(View.GONE);
             }
-            
+
             @Override
             public void onError(String error, AuthorizationException exception) {
                 Log.d(TAG, error, exception.getCause());
@@ -469,7 +469,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             }
         });
     }
-    
+
     @Override
     public void onLogin(String username, String password) {
         mLoginDialog.dismiss();
@@ -481,47 +481,47 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mExecutor.submit(() -> {
             try {
                 mAuthenticationClient.authenticate(username, password.toCharArray(),
-                                                   null, new AuthenticationStateHandlerAdapter() {
-                    @Override
-                    public void handleUnknown(
-                                              AuthenticationResponse authenticationResponse) {
-                        SampleActivity.this.runOnUiThread(() -> {
-                            mProgressBar.setVisibility(View.GONE);
-                            mTvStatus.setText(authenticationResponse.getStatus().name());
+                        null, new AuthenticationStateHandlerAdapter() {
+                            @Override
+                            public void handleUnknown(
+                                    AuthenticationResponse authenticationResponse) {
+                                SampleActivity.this.runOnUiThread(() -> {
+                                    mProgressBar.setVisibility(View.GONE);
+                                    mTvStatus.setText(authenticationResponse.getStatus().name());
+                                });
+                            }
+
+                            @Override
+                            public void handleLockedOut(AuthenticationResponse lockedOut) {
+                                SampleActivity.this.runOnUiThread(() -> {
+                                    mProgressBar.setVisibility(View.GONE);
+                                    mTvStatus.setText("Account locked out");
+                                });
+                            }
+
+                            @Override
+                            public void handleSuccess(AuthenticationResponse successResponse) {
+                                String sessionToken = successResponse.getSessionToken();
+                                //TODO: Implement callback here
+                                mAuthClient.logIn(sessionToken, mPayload,
+                                        new RequestCallback<AuthorizationResult,
+                                                AuthorizationException>() {
+                                            @Override
+                                            public void onSuccess(
+                                                    @NonNull AuthorizationResult result) {
+                                                mTvStatus.setText("authentication authorized");
+                                                showAuthorizedMode();
+                                                mProgressBar.setVisibility(View.GONE);
+                                            }
+
+                                            @Override
+                                            public void onError(String error,
+                                                                AuthorizationException exception) {
+                                                mTvStatus.setText(error);
+                                            }
+                                        });
+                            }
                         });
-                    }
-                    
-                    @Override
-                    public void handleLockedOut(AuthenticationResponse lockedOut) {
-                        SampleActivity.this.runOnUiThread(() -> {
-                            mProgressBar.setVisibility(View.GONE);
-                            mTvStatus.setText("Account locked out");
-                        });
-                    }
-                    
-                    @Override
-                    public void handleSuccess(AuthenticationResponse successResponse) {
-                        String sessionToken = successResponse.getSessionToken();
-                        //TODO: Implement callback here
-                        mAuthClient.logIn(sessionToken, mPayload,
-                                          new RequestCallback<AuthorizationResult,
-                                          AuthorizationException>() {
-                                              @Override
-                                              public void onSuccess(
-                                                                    @NonNull AuthorizationResult result) {
-                                                  mTvStatus.setText("authentication authorized");
-                                                  showAuthorizedMode();
-                                                  mProgressBar.setVisibility(View.GONE);
-                                              }
-                                              
-                                              @Override
-                                              public void onError(String error,
-                                                                  AuthorizationException exception) {
-                                                  mTvStatus.setText(error);
-                                              }
-                                          });
-                    }
-                });
             } catch (AuthenticationException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
                 runOnUiThread(() -> {

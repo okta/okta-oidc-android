@@ -45,19 +45,19 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthAPI {
     protected OktaState mOktaState;
-    protected OIDCConfig mOIDCConfig;
+    protected OIDCConfig mOidcConfig;
     HttpConnectionFactory mConnectionFactory;
 
     protected AuthAPI(OIDCConfig oidcConfig, OktaState oktaState,
                       HttpConnectionFactory connectionFactory) {
         mOktaState = oktaState;
-        mOIDCConfig = oidcConfig;
+        mOidcConfig = oidcConfig;
         mConnectionFactory = connectionFactory;
     }
 
     protected void obtainNewConfiguration() throws AuthorizationException {
         ProviderConfiguration config = mOktaState.getProviderConfiguration();
-        if (config == null || !mOIDCConfig.getDiscoveryUri().toString().contains(config.issuer)) {
+        if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
             mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
             mOktaState.save(configurationRequest().executeRequest());
         }
@@ -68,7 +68,7 @@ public class AuthAPI {
         return (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .connectionFactory(mConnectionFactory)
-                .config(mOIDCConfig)
+                .config(mOidcConfig)
                 .createRequest();
     }
 
@@ -93,7 +93,7 @@ public class AuthAPI {
         return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .config(mOIDCConfig)
+                .config(mOidcConfig)
                 .authRequest((AuthorizeRequest) mOktaState.getAuthorizeRequest())
                 .authResponse(response)
                 .createRequest();

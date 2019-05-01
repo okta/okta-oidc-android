@@ -21,6 +21,11 @@ import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.util.AuthorizationException;
 
+/**
+ * The Authentication client for logging in using a sessionToken. For login using web browser
+ *
+ * {@link com.okta.oidc.clients.web.WebAuthClient}
+ */
 public interface AuthClient extends BaseAuth<SessionClient> {
     /**
      * Log in with a session token. This is for logging in without using the implicit flow.
@@ -29,9 +34,8 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
      *
      * @param sessionToken the session token
-     * @param payload      the {@link AuthenticationPayload payload}
-     * @param cb           the @{@link RequestCallback callback}
-     * @see <a href=https://developer.okta.com/docs/api/resources/authn/>Revoke token</a>
+     * @param payload      the {@link AuthenticationPayload}
+     * @param cb           the @{@link RequestCallback}
      */
     void logIn(String sessionToken, AuthenticationPayload payload,
                RequestCallback<AuthorizationResult, AuthorizationException> cb);

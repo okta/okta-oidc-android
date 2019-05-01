@@ -152,13 +152,13 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         }
 
         WebRequest request = new AuthorizeRequest.Builder()
-                .config(mOIDCConfig)
+                .config(mOidcConfig)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .authenticationPayload(payload)
                 .create();
 
         mOktaState.save(request);
-        if (!isRedirectUrisRegistered(mOIDCConfig.getRedirectUri(), activity)) {
+        if (!isRedirectUrisRegistered(mOidcConfig.getRedirectUri(), activity)) {
             Log.e(TAG, "No uri registered to handle redirect " +
                     "or multiple applications registered");
             //FIXME move error to listener
@@ -217,7 +217,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         AtomicReference<OktaResultFragment.Result> resultWrapper = new AtomicReference<>();
         WebRequest request = new LogoutRequest.Builder()
                 .provideConfiguration(mOktaState.getProviderConfiguration())
-                .config(mOIDCConfig)
+                .config(mOidcConfig)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .state(CodeVerifierUtil.generateRandomState())
                 .create();

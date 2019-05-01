@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import androidx.annotation.NonNull;
@@ -25,14 +26,14 @@ import androidx.annotation.NonNull;
  */
 public interface RequestCallback<T, U extends Exception> {
     /**
-     * Method called on authorized with a result
+     * Method called on authorized with a result.
      *
      * @param result Result of the authorized request.
      */
     void onSuccess(@NonNull T result);
 
     /**
-     * Method called on error with a the authorized request call
+     * Method called on error with a the authorized request call.
      *
      * @param error     error string result.
      * @param exception The {@link com.okta.oidc.util.AuthorizationException} type of exception

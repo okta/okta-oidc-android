@@ -12,11 +12,16 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+
+import androidx.annotation.RestrictTo;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -25,10 +30,6 @@ import com.okta.oidc.net.response.web.WebResponse;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
-
-import androidx.annotation.RestrictTo;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
@@ -52,9 +53,9 @@ public class OktaResultFragment extends Fragment {
     private Intent logoutIntent;
 
     public static void addLoginFragment(WebRequest request,
-                                 int customColor,
-                                 FragmentActivity activity,
-                                 AuthResultListener listener, String[] browsers) {
+                                        int customColor,
+                                        FragmentActivity activity,
+                                        AuthResultListener listener, String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationListener(listener);
@@ -68,10 +69,10 @@ public class OktaResultFragment extends Fragment {
     }
 
     public static void addLogoutFragment(WebRequest request,
-                                  int customColor,
-                                  FragmentActivity activity,
-                                  AuthResultListener listener,
-                                  String[] browsers) {
+                                         int customColor,
+                                         FragmentActivity activity,
+                                         AuthResultListener listener,
+                                         String[] browsers) {
 
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.setAuthenticationListener(listener);
@@ -103,11 +104,17 @@ public class OktaResultFragment extends Fragment {
         super.onDestroy();
     }
 
+    public void setAuthenticationListener(AuthResultListener listener) {
+        this.resultListener = listener;
+        postResult();
+    }
+
     public static void setAuthenticationListener(FragmentActivity activity,
                                                  AuthResultListener listener) {
 
-        OktaResultFragment resultFragment = (OktaResultFragment) activity.getSupportFragmentManager()
-                .findFragmentByTag(AUTHENTICATION_REQUEST);
+        OktaResultFragment resultFragment =
+                (OktaResultFragment) activity.getSupportFragmentManager()
+                        .findFragmentByTag(AUTHENTICATION_REQUEST);
         if (resultFragment != null) {
             resultFragment.setAuthenticationListener(listener);
         }
@@ -123,10 +130,6 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
     }
 
-    public void setAuthenticationListener(AuthResultListener listener) {
-        this.resultListener = listener;
-        postResult();
-    }
 
     private void postResult() {
         if (cachedResult != null && resultListener != null) {
@@ -136,7 +139,8 @@ public class OktaResultFragment extends Fragment {
         }
     }
 
-    private Intent createAuthIntent(Activity activity, Uri request, int customColor, String[] browsers) {
+    private Intent createAuthIntent(Activity activity, Uri request, int customColor,
+                                    String[] browsers) {
         Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_BROWSERS, browsers);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_AUTH_URI, request);
@@ -151,7 +155,8 @@ public class OktaResultFragment extends Fragment {
             return;
         }
         getActivity().getSupportFragmentManager().beginTransaction().remove(this).commitNow();
-        cachedResultType = (requestCode == REQUEST_CODE_SIGN_IN) ? ResultType.SIGN_IN : ResultType.SIGN_OUT;
+        cachedResultType = (requestCode == REQUEST_CODE_SIGN_IN) ? ResultType.SIGN_IN
+                : ResultType.SIGN_OUT;
 
         if (resultCode == RESULT_CANCELED) {
             cachedResult = Result.canceled();
@@ -167,9 +172,11 @@ public class OktaResultFragment extends Fragment {
                 cachedResult = Result.exception(AuthorizationException.fromJson(data.getExtras()
                         .getString(EXTRA_EXCEPTION, "")));
             } catch (NullPointerException | IllegalArgumentException e) {
-                cachedResult = Result.exception(AuthorizationException.AuthorizationRequestErrors.OTHER);
+                cachedResult = Result.exception(
+                        AuthorizationException.AuthorizationRequestErrors.OTHER);
             } catch (JSONException je) {
-                cachedResult = Result.exception(AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
+                cachedResult = Result.exception(
+                        AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
             }
         }
         postResult();

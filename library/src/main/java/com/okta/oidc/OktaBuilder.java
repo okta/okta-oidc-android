@@ -25,17 +25,45 @@ import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 
 /**
- * The type Builder.
+ * The base type Okta builder.
+ *
+ * @param <A> the generic type for the auth client
+ * @param <T> the generic type for the auth client builder.
  */
 public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
+    /**
+     * The connection factory.
+     */
     HttpConnectionFactory mConnectionFactory;
-    OIDCConfig mOIDCConfig;
+    /**
+     * The oidc config.
+     */
+    OIDCConfig mOidcConfig;
+    /**
+     * The storage.
+     */
     OktaStorage mStorage;
-    Context context;
-    AuthClientFactory<A> authClientFactory;
+    /**
+     * The Context.
+     */
+    Context mContext;
+    /**
+     * The Auth client factory.
+     */
+    AuthClientFactory<A> mAuthClientFactory;
 
+    /**
+     * Used to prevent lint issues.
+     *
+     * @return the generic of the client builder
+     */
     abstract T toThis();
 
+    /**
+     * Create a.
+     *
+     * @return the a
+     */
     abstract A create();
 
     /**
@@ -46,7 +74,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * @return current builder
      */
     public T withConfig(@NonNull OIDCConfig config) {
-        mOIDCConfig = config;
+        mOidcConfig = config;
         return toThis();
     }
 
@@ -69,7 +97,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * @return current builder
      */
     public T withContext(Context context) {
-        this.context = context;
+        mContext = context;
         return toThis();
     }
 
@@ -85,12 +113,24 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
         return toThis();
     }
 
+    /**
+     * With authentication client factory t.
+     *
+     * @param authClientFactory the auth client factory
+     * @return the t
+     */
     T withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {
-        this.authClientFactory = authClientFactory;
+        mAuthClientFactory = authClientFactory;
         return toThis();
     }
 
+    /**
+     * Create auth client.
+     *
+     * @return the a AuthClient
+     */
     protected A createAuthClient() {
-        return this.authClientFactory.createClient(mOIDCConfig, new OktaState(new OktaRepository(mStorage, context)), mConnectionFactory);
+        return this.mAuthClientFactory.createClient(mOidcConfig,
+                new OktaState(new OktaRepository(mStorage, mContext)), mConnectionFactory);
     }
 }

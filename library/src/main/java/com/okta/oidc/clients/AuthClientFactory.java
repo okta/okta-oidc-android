@@ -19,7 +19,20 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 
+/**
+ * The interface Auth client factory. Used to create a auth client.
+ *
+ * @param <A> the type of client to create
+ */
 public interface AuthClientFactory<A> {
+    /**
+     * Create client a.
+     *
+     * @param oidcConfig        the oidc config
+     * @param oktaState         the okta state
+     * @param connectionFactory the connection factory
+     * @return the type of auth client
+     */
     A createClient(OIDCConfig oidcConfig, OktaState oktaState,
                    HttpConnectionFactory connectionFactory);
 }

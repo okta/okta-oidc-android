@@ -6,7 +6,10 @@
 Checkstyle-Configuration: Android Style
 Description: https://source.android.com/source/code-style.html
 
-Modified for Okta
+Modified for Okta.
+Changed the rule for OIDCConfig to allow abbreviation.
+Changed the rule for member name that must start with 'm'
+See suppression.xml for individual files that skipped style checks.
 -->
 <module name="Checker">
     <property name="fileExtensions" value="java, properties, xml"/>
@@ -18,7 +21,7 @@ Modified for Okta
     <property name="severity" value="warning"/>
 
     <module name="SuppressionFilter">
-        <property name="file" value="config/checkstyle/supressions.xml"/>
+        <property name="file" value="config/checkstyle/suppression.xml"/>
     </module>
 
     <module name="TreeWalker">
@@ -50,9 +53,9 @@ Modified for Okta
                      value="Class type parameter ''{0}'' must either be a single upper-case character, or begin with an upper-case character and end with 'T'."/>
         </module>
 
-        <!-- Non-public, non-static members must start with "m" -->
+        <!-- Non-public, non-static members must start with lowercase -->
         <module name="MemberName">
-            <property name="format" value="^m[A-Z][a-zA-Z0-9]*$"/>
+            <property name="format" value="^[a-zA-Z0-9]*$"/>
             <property name="applyToPublic" value="false"/>
             <message key="name.invalidPattern"
                      value="Member name ''{0}'' must be prefixed with m and be at least two characters long."/>
@@ -112,12 +115,11 @@ Modified for Okta
                      value="Static variable name ''{0}'' must be prefixed with s and be at least two characters long."/>
         </module>
 
-        <!-- Capitalized abbreviations are forbidden (e.g. URL, XML, HTTP)
+        <!-- Capitalized abbreviations are forbidden (e.g. URL, XML, HTTP)-->
         <module name="AbbreviationAsWordInName">
             <property name="ignoreFinal" value="false"/>
             <property name="allowedAbbreviationLength" value="1"/>
         </module>
-         -->
 
         <!-- Forbid unnecessary escaping. -->
         <module name="IllegalTokenText">
@@ -384,7 +386,6 @@ Modified for Okta
         <module name="JavadocType">
             <property name="scope" value="public"/>
         </module>
-
         <!-- Ensure proper Javadoc style for protected and public elements -->
         <module name="JavadocStyle">
             <property name="scope" value="protected"/>
