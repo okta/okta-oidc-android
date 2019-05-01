@@ -16,7 +16,6 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -27,6 +26,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -45,12 +45,8 @@ import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.AuthClient;
-import com.okta.oidc.clients.AuthClientFactoryImpl;
-import com.okta.oidc.clients.SyncAuthClient;
 import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.clients.web.WebAuthClient;
-import com.okta.oidc.clients.web.WebAuthClientFactory;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
@@ -101,6 +97,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     private Button mIntrospectId;
 
     private ProgressBar mProgressBar;
+    @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
 
     private LinearLayout mRevokeContainer;
@@ -300,7 +297,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .build();
 
         //Example of using JSON file to create config
-        OIDCConfig config = new OIDCConfig.Builder()
+        mOidcConfig = new OIDCConfig.Builder()
                 .withConfig(this, R.raw.okta_oidc_config)
                 .create();
 
@@ -313,7 +310,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
-        WebAuthClient webAuthClient = new Okta.WebAuthBuilder()
+        mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
@@ -322,44 +319,14 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .supportedBrowsers(null)
                 .create();
 
-        AuthClient authClient = new Okta.AuthBuilder()
+        mSessionClient = mWebAuth.getSessionClient();
+
+        mAuthClient = new Okta.AuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
                 .withCallbackExecutor(null)
                 .create();
-
-        SyncWebAuthClient syncWebAuthClient = new Okta.SyncWebAuthBuilder()
-                .withConfig(mOidcConfig)
-                .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
-                .withTabColor(0)
-                .create();
-
-        SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
-                .withConfig(mOidcConfig)
-                .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
-                .create();
-
-        WebAuthClient webAuthClientPro = new Okta.Builder<WebAuthClient>()
-                .withConfig(mOidcConfig)
-                .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
-                .withAuthenticationClientFactory(new WebAuthClientFactory(
-                        null, Color.BLUE))
-                .create();
-
-        AuthClient authClientPro = new Okta.Builder<AuthClient>()
-                .withConfig(mOidcConfig)
-                .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
-                .withAuthenticationClientFactory(new AuthClientFactoryImpl(null))
-                .create();
-
-        mWebAuth = webAuthClientPro;
-        mSessionClient = webAuthClientPro.getSessionClient();
-        mAuthClient = authClientPro;
 
         if (mSessionClient.isLoggedIn()) {
             showAuthorizedMode();
@@ -399,7 +366,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                     }
 
                     @Override
-                    public void onError(@NonNull String msg, AuthorizationException error) {
+                    public void onError(@Nullable String msg, AuthorizationException error) {
                         Log.d("SampleActivity", error.error +
                                 " onActivityResult onError " + msg, error);
                         mTvStatus.setText(msg);
@@ -502,7 +469,6 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                             @Override
                             public void handleSuccess(AuthenticationResponse successResponse) {
                                 String sessionToken = successResponse.getSessionToken();
-                                //TODO: Implement callback here
                                 mAuthClient.logIn(sessionToken, mPayload,
                                         new RequestCallback<AuthorizationResult,
                                                 AuthorizationException>() {

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
@@ -43,7 +44,8 @@ public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationExcept
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<Boolean, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<Boolean, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 Boolean success = executeRequest();

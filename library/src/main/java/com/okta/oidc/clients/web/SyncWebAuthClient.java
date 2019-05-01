@@ -25,7 +25,38 @@ import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
 
+/**
+ * Client Web Authorization API for Okta OpenID Connect & OAuth 2.0 APIs.
+ * Uses a chrome custom tab enabled browser as a user agent for authorization.
+ * <pre>
+ * {@code
+ * OIDCConfig config = new OIDCConfig.Builder()
+ *     .clientId("{clientId}")
+ *     .redirectUri("{redirectUri}")
+ *     .endSessionRedirectUri("{endSessionUri}")
+ *     .scopes("openid", "profile", "offline_access")
+ *     .discoveryUri("https://{yourOktaDomain}")
+ *     .create();
+ *
+ * SyncWebAuthClient client = new Okta.SyncWebAuthBuilder()
+ *     .withConfig(config)
+ *     .withContext(getApplicationContext())
+ *     .withStorage(new SimpleOktaStorage(this))
+ *     .withTabColor(getColorCompat(R.color.colorPrimary))
+ *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
+ *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)
+ *     .create();
+ * }
+ * </pre>
+ *
+ * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
+ */
 public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
+    /**
+     * Checks to see if authentication is in progress.
+     *
+     * @return the boolean value of true if authentication is in progress otherwise false.
+     */
     boolean isInProgress();
 
     /**
@@ -34,8 +65,9 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      * @return the result
+     * @throws InterruptedException the interrupted exception
      */
-    AuthorizationResult logIn(@NonNull final FragmentActivity activity,
+    AuthorizationResult logIn(@NonNull FragmentActivity activity,
                               @Nullable AuthenticationPayload payload)
             throws InterruptedException;
 
@@ -44,8 +76,9 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      *
      * @param activity the activity
      * @return the result
+     * @throws InterruptedException the interrupted exception
      */
-    Result signOutFromOkta(@NonNull final FragmentActivity activity)
+    Result signOutFromOkta(@NonNull FragmentActivity activity)
             throws InterruptedException;
 
 }

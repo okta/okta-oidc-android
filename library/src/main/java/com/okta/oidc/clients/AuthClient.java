@@ -22,9 +22,13 @@ import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
- * The Authentication client for logging in using a sessionToken. For login using web browser
+ * The Authentication client for logging in using a sessionToken. The client calls are asynchronous.
  *
+ * <p>Note that callbacks are executed on the uiThread unless a executor is provided to the builder.
+ * For login using web browser
  * {@link com.okta.oidc.clients.web.WebAuthClient}
+ * For synchronous client
+ * {@link com.okta.oidc.clients.SyncAuthClient}
  */
 public interface AuthClient extends BaseAuth<SessionClient> {
     /**

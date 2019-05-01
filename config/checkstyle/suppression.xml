@@ -12,6 +12,7 @@
     <!-- Suppress abbreviation checks-->
     <suppress checks="AbbreviationAsWordInName" files="OIDCConfig\.java" />
     <suppress checks="AbbreviationAsWordInName" files="AuthAPI\.java" />
+    <suppress checks="AbbreviationAsWordInName" files="TLSSocketFactory\.java" />
 
     <!-- Suppress javadoc for classes with @RestrictTo(RestrictTo.Scope.LIBRARY)-->
     <suppress checks="Javadoc" files="OktaResultFragment\.java" />
@@ -19,5 +20,24 @@
     <suppress checks="Javadoc" files="RequestDispatcher\.java" />
     <suppress checks="Javadoc" files="State\.java" />
     <suppress checks="Javadoc" files="AuthAPI\.java" />
-    <suppress checks="Javadoc" files="AuthorizeRequest\.java" />
+    <suppress checks="Javadoc" files="HttpConnection\.java" />
+    <suppress checks="Javadoc" files="HttpResponse\.java" />
+    <suppress checks="Javadoc" files="SyncWebAuthClientFactory\.java" />
+    <suppress checks="Javadoc" files="TokenResponse\.java" />
+    <suppress checks="Javadoc" files="SessionClientImpl\.java" />
+    <suppress checks="Javadoc" files="SyncSessionClientImpl\.java" />
+    <suppress checks="Javadoc" files="WebAuthClientFactory\.java" />
+    <suppress checks="Javadoc" files="OktaRepository\.java" />
+    <suppress checks="Javadoc" files="Persistable\.java" />
+    <suppress checks="Javadoc" files="AuthClientFactoryImpl\.java" />
+    <suppress checks="Javadoc" files="SyncWebAuthClientFactory\.java" />
+    <suppress checks="Javadoc" files="BaseAuth\.java" />
+
+    <!-- Suppress javadoc for packages-->
+    <suppress checks="Javadoc" files="com[\\/]okta[\\/]oidc[\\/]net[\\/]request" />
+    <suppress checks="Javadoc" files="com[\\/]okta[\\/]oidc[\\/]net[\\/]response[\\/]web" />
+    <!--  indentation checks-->
+    <suppress checks="Indentation" files="SyncWebAuthClientImpl\.java" />
+    <suppress checks="Indentation" files="WebRequest\.java" />
+    <suppress checks="Indentation" files="WebResponse\.java" />
 </suppressions>

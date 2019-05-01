@@ -658,8 +658,8 @@ public final class AuthorizationException extends Exception {
     }
 
     /**
-     * Produces a JSON representation of the authorization exception, for transmission or withStorage.
-     * This does not include any provided root cause.
+     * Produces a JSON representation of the authorization exception, for transmission or
+     * withStorage. This does not include any provided root cause.
      */
     @NonNull
     public JSONObject toJson() {

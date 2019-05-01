@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
@@ -30,8 +31,9 @@ public abstract class WebRequest implements Persistable {
 
     public abstract String getState();
 
-    public static final Persistable.Restore<WebRequest> RESTORE = new Persistable.Restore<WebRequest>() {
-        private final String KEY = "WebRequest";
+    public static final Persistable.Restore<WebRequest> RESTORE
+            = new Persistable.Restore<WebRequest>() {
+        private static final String KEY = "WebRequest";
 
         @NonNull
         @Override
@@ -43,13 +45,14 @@ public abstract class WebRequest implements Persistable {
         public WebRequest restore(@Nullable String data) {
             if (data != null) {
                 if (data.contains("authorize")) {
-                    return new AuthorizeRequest(new Gson().fromJson(data, AuthorizeRequest.Parameters.class));
+                    return new AuthorizeRequest(new Gson()
+                            .fromJson(data, AuthorizeRequest.Parameters.class));
                 } else {
-                    return new LogoutRequest(new Gson().fromJson(data, LogoutRequest.Parameters.class));
+                    return new LogoutRequest(new Gson()
+                            .fromJson(data, LogoutRequest.Parameters.class));
                 }
             }
             return null;
         }
-
     };
 }

@@ -12,8 +12,17 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.response;
 
+import androidx.annotation.Nullable;
+
+/**
+ * Encapsulates the response properties of the introspect endpoint.
+ *
+ * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#response-properties-3">
+ * Introspect response properties</a>
+ */
 @SuppressWarnings("unused")
 public final class IntrospectInfo {
     private boolean active;
@@ -31,58 +40,131 @@ public final class IntrospectInfo {
     private String jti;
     private String uid;
 
+    /**
+     * Indicates whether the token is active or not.
+     *
+     * @return active.
+     */
     public boolean isActive() {
         return active;
     }
 
-    public String getToken_type() {
+    /**
+     * The type of token. The value is always Bearer.
+     *
+     * @return the token type. Always Bearer.
+     */
+    public String getTokenType() {
         return token_type;
     }
 
+    /**
+     * A space-delimited list of scopes.
+     *
+     * @return the scope
+     */
     public String getScope() {
         return scope;
     }
 
-    public String getClient_id() {
+    /**
+     * The ID of the client associated with the token.
+     *
+     * @return the client id
+     */
+    public String getClientId() {
         return client_id;
     }
 
-    public String getDevice_id() {
+    /**
+     * The ID of the device associated with the token.
+     *
+     * @return the device id
+     */
+    public String getDeviceId() {
         return device_id;
     }
 
+    /**
+     * The username associated with the token.
+     *
+     * @return the username
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * Identifies the time (a timestamp in seconds since January 1, 1970 UTC) before which the
+     * token must not be accepted for processing.
+     *
+     * @return the nbf
+     */
     public int getNbf() {
         return nbf;
     }
 
+    /**
+     * The expiration time of the token in seconds since January 1, 1970 UTC.
+     *
+     * @return the exp
+     */
     public int getExp() {
         return exp;
     }
 
+    /**
+     * The issuing time of the token in seconds since January 1, 1970 UTC.
+     *
+     * @return the iat
+     */
     public int getIat() {
         return iat;
     }
 
+    /**
+     * The subject of the token.
+     *
+     * @return the sub
+     */
     public String getSub() {
         return sub;
     }
 
+    /**
+     * The audience of the token.
+     *
+     * @return the aud
+     */
     public String getAud() {
         return aud;
     }
 
+    /**
+     * The issuer of the token.
+     *
+     * @return the iss
+     */
     public String getIss() {
         return iss;
     }
 
+    /**
+     * The identifier of the token.
+     *
+     * @return the jti
+     */
     public String getJti() {
         return jti;
     }
 
+    /**
+     * The user ID. This parameter is returned only if the token is an access token and the subject
+     * is an end user.
+     *
+     * @return the uid
+     */
+    @Nullable
     public String getUid() {
         return uid;
     }

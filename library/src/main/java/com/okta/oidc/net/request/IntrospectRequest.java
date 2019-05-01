@@ -49,7 +49,8 @@ public class IntrospectRequest extends
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<IntrospectInfo, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<IntrospectInfo, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 IntrospectInfo response = executeRequest();
@@ -67,8 +68,7 @@ public class IntrospectRequest extends
         try {
             response = openConnection();
             JSONObject json = response.asJson();
-            return new Gson().
-                    fromJson(json.toString(), IntrospectInfo.class);
+            return new Gson().fromJson(json.toString(), IntrospectInfo.class);
         } catch (IOException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.NETWORK_ERROR,

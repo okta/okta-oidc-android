@@ -12,23 +12,51 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.results;
 
+import androidx.annotation.Nullable;
+
+import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.RequestCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.util.AuthorizationException;
 
+/**
+ * The Authorization result returned from a auth requests.
+ * {@link com.okta.oidc.clients.AuthClient#logIn(String, AuthenticationPayload, RequestCallback)}
+ */
 public class AuthorizationResult extends Result {
 
     private final Tokens tokens;
 
+    /**
+     * Creates a successful authorization result with tokens.
+     * {@link Tokens}
+     *
+     * @param tokens the tokens
+     * @return the authorization result
+     */
     public static AuthorizationResult success(Tokens tokens) {
         return new AuthorizationResult(null, tokens, false);
     }
 
+    /**
+     * Creates a authorization result with a AuthorizationException.
+     * {@link AuthorizationException}
+     *
+     * @param error the error
+     * @return the authorization result with exception
+     */
     public static AuthorizationResult error(AuthorizationException error) {
         return new AuthorizationResult(error, null, false);
     }
-    
+
+    /**
+     * Creates a authorization result cancel flag set to true.
+     *
+     * @return the authorization result with cancel perameter
+     */
     public static AuthorizationResult cancel() {
         return new AuthorizationResult(null, null, true);
     }
@@ -38,6 +66,12 @@ public class AuthorizationResult extends Result {
         this.tokens = tokens;
     }
 
+    /**
+     * Gets tokens of a successful authorization.
+     *
+     * @return the tokens
+     */
+    @Nullable
     public Tokens getTokens() {
         return tokens;
     }

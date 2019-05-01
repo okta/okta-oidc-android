@@ -24,15 +24,25 @@ import androidx.annotation.Nullable;
 
 import static android.content.Context.MODE_PRIVATE;
 
+/**
+ * A implementation of {@link OktaStorage}.
+ * The implementation uses SharedPreferences in private mode to save data.
+ * The data will be encrypted by the library before saving.
+ */
+@SuppressLint("ApplySharedPref")
 public class SimpleOktaStorage implements OktaStorage {
     private SharedPreferences prefs;
 
+    /**
+     * Instantiates a new instance.
+     *
+     * @param context the context
+     */
     public SimpleOktaStorage(Context context) {
         prefs = context.getSharedPreferences(SimpleOktaStorage.class.getCanonicalName(),
                 MODE_PRIVATE);
     }
 
-    @SuppressLint("ApplySharedPref")
     @Override
     public void save(@NonNull String key, @NonNull String value) {
         prefs.edit().putString(key, value).commit();
@@ -44,7 +54,7 @@ public class SimpleOktaStorage implements OktaStorage {
         return prefs.getString(key, null);
     }
 
-    @SuppressLint("ApplySharedPref")
+
     @Override
     public void delete(@NonNull String key) {
         prefs.edit().remove(key).commit();

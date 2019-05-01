@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
 
 import androidx.annotation.RestrictTo;
@@ -68,9 +69,8 @@ public final class ConfigurationRequest extends
         try {
             response = openConnection();
             JSONObject json = response.asJson();
-            ProviderConfiguration configuration = new Gson().
-                    fromJson(json.toString(), ProviderConfiguration.class);
-
+            ProviderConfiguration configuration = new Gson()
+                    .fromJson(json.toString(), ProviderConfiguration.class);
             configuration.validate();
             return configuration;
         } catch (IOException ex) {

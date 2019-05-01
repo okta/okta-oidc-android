@@ -263,7 +263,7 @@ public class SyncSessionClientImplImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.authorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
                 null, HttpConnection.RequestMethod.GET);
         JSONObject result = request.executeRequest();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
@@ -285,7 +285,7 @@ public class SyncSessionClientImplImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.authorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
                 null, HttpConnection.RequestMethod.GET);
         JSONObject result = request.executeRequest();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();

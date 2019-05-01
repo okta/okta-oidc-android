@@ -15,7 +15,6 @@
 
 package com.okta.oidc.net.request;
 
-
 import androidx.annotation.RestrictTo;
 
 import java.io.IOException;
@@ -27,9 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
 
 /**
  * SSLSocketFactory which wraps default SSLSocketFactory and enable TLS v1.1, v1.2.

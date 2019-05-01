@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
 
 import android.text.TextUtils;
@@ -29,7 +30,8 @@ import com.okta.oidc.storage.Persistable;
 public class ProviderConfiguration implements Persistable {
     public static final String OPENID_CONFIGURATION_RESOURCE = "/.well-known/openid-configuration";
 
-    public static final String OAUTH2_CONFIGURATION_RESOURCE = "/.well-known/oauth-authorization-server";
+    public static final String OAUTH2_CONFIGURATION_RESOURCE =
+            "/.well-known/oauth-authorization-server";
 
     public String authorization_endpoint;
 

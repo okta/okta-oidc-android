@@ -12,18 +12,23 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.params;
 
 /**
  * Determines the mechanism Okta uses to authorize the creation of the tokens.
  */
-public interface GrantTypes {
+public final class GrantTypes {
     /**
-     * The grant type for authorization code
+     * The grant type for authorization code.
      */
-    String AUTHORIZATION_CODE = "authorization_code";
+    public static final String AUTHORIZATION_CODE = "authorization_code";
     /**
-     * The grant type for refreshing a access token
+     * The grant type for refreshing a access token.
      */
-    String REFRESH_TOKEN = "refresh_token";
+    public static final String REFRESH_TOKEN = "refresh_token";
+
+    private GrantTypes() {
+        throw new AssertionError();
+    }
 }

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.params;
 
 /**
@@ -19,22 +20,27 @@ package com.okta.oidc.net.params;
  * authentication and consent user interface pages to the End-User.
  */
 @SuppressWarnings("unused")
-public interface Display {
+public final class Display {
     /**
      * Display the authentication and consent UI consistent with a full User Agent page view.
      * If the display parameter is not specified, this is the default display mode.
      */
-    String PAGE = "page";
+    public static final String PAGE = "page";
 
     /**
      * Display the authentication and consent UI consistent with a popup User Agent window.
      * The popup User Agent window should be of an appropriate size for a login-focused dialog and
      * should not obscure the entire window that it is popping up over.
      */
-    String POPUP = "popup";
+    public static final String POPUP = "popup";
 
     /**
-     * Display the authentication and consent UI consistent with a device that leverages a touch interface.
+     * Display the authentication and consent UI consistent with a device that leverages a touch
+     * interface.
      */
-    String TOUCH = "touch";
+    public static final String TOUCH = "touch";
+
+    private Display() {
+        throw new AssertionError();
+    }
 }

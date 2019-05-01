@@ -64,11 +64,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private int mCustomTabColor;
     private SyncSessionClientImpl mSessionClient;
 
-    public SyncWebAuthClientImpl(OIDCConfig oidcConfig,
-                                 OktaState oktaState,
-                                 HttpConnectionFactory connectionFactory,
-                                 int customTabColor,
-                                 String... supportedBrowsers) {
+    SyncWebAuthClientImpl(OIDCConfig oidcConfig,
+                          OktaState oktaState,
+                          HttpConnectionFactory connectionFactory,
+                          int customTabColor,
+                          String... supportedBrowsers) {
         super(oidcConfig, oktaState, connectionFactory);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
@@ -112,16 +112,21 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                     -> executorService.execute(() -> {
                 switch (type) {
                     case SIGN_IN:
-                        AuthorizationResult authorizationResult = processLogInResult(result);
+                        AuthorizationResult authorizationResult =
+                                processLogInResult(result);
                         resetCurrentState();
-                        if (resultListener != null)
+                        if (resultListener != null) {
                             resultListener.postResult(authorizationResult, type);
+                        }
                         break;
                     case SIGN_OUT:
                         Result signOutResult = processSignOutResult(result);
                         resetCurrentState();
-                        if (resultListener != null)
+                        if (resultListener != null) {
                             resultListener.postResult(signOutResult, type);
+                        }
+                        break;
+                    default:
                         break;
                 }
             }));
@@ -204,8 +209,9 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 }
                 mOktaState.save(response);
                 return AuthorizationResult.success(new Tokens(response));
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
@@ -246,8 +252,9 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 return Result.error(result.getException());
             case LOGGED_OUT:
                 return Result.success();
+            default:
+                return null;
         }
-        return null;
     }
 
     public interface ResultListener {

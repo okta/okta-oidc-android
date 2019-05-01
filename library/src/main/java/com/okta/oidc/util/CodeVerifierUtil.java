@@ -146,7 +146,7 @@ public final class CodeVerifierUtil {
 
     /**
      * Returns the challenge method utilized on this system: typically
-     * SHA-256
+     * SHA-256.
      */
     public static String getCodeVerifierChallengeMethod() {
         try {

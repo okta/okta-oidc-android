@@ -17,12 +17,14 @@ package com.okta.oidc.clients.web;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncWebAuthClientFactory implements AuthClientFactory<SyncWebAuthClient> {
     @ColorInt
     private int mCustomTabColor;

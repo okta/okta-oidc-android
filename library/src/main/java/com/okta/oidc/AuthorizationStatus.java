@@ -18,15 +18,13 @@ package com.okta.oidc;
 import androidx.fragment.app.FragmentActivity;
 
 /**
- * The Authorization status returned from a auth requests.
- * {@link com.okta.oidc.clients.AuthClient#logIn(String, AuthenticationPayload, RequestCallback)}
+ * The Authorization status returned from a web auth requests.
  * {@link com.okta.oidc.clients.web.WebAuthClient#logIn(FragmentActivity, AuthenticationPayload)}
  * {@link com.okta.oidc.clients.web.WebAuthClient#signOutFromOkta(FragmentActivity)}
  */
 public enum AuthorizationStatus {
     /**
      * Authorized authorization status. User is authorized. Received access, refresh, and ID tokens.
-     * {@link com.okta.oidc.clients.AuthClient}
      * {@link com.okta.oidc.clients.web.WebAuthClient}
      */
     AUTHORIZED,

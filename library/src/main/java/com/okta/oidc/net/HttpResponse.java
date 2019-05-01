@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net;
 
 import androidx.annotation.RestrictTo;
@@ -65,24 +66,23 @@ public final class HttpResponse {
         mConnection = connection;
     }
 
-
-    public final int getStatusCode() {
+    public int getStatusCode() {
         return mStatusCode;
     }
 
-    public final Map<String, List<String>> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return Collections.unmodifiableMap(mHeaders);
     }
 
-    public final String getHeaderField(String field) {
+    public String getHeaderField(String field) {
         return mConnection.getHeaderField(field);
     }
 
-    public final int getContentLength() {
+    public int getContentLength() {
         return mLength;
     }
 
-    public final InputStream getContent() {
+    public InputStream getContent() {
         try {
             mInputStream = mConnection.getInputStream();
         } catch (IOException e) {
@@ -105,7 +105,6 @@ public final class HttpResponse {
     }
 
     public JSONObject asJson() throws IOException, JSONException {
-        JSONObject json;
         if (mStatusCode < HttpURLConnection.HTTP_OK ||
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
             throw new IOException("Invalid status code " + mStatusCode +
@@ -122,7 +121,6 @@ public final class HttpResponse {
             writer.write(line);
             line = reader.readLine();
         }
-        json = new JSONObject(writer.toString());
-        return json;
+        return new JSONObject(writer.toString());
     }
 }
