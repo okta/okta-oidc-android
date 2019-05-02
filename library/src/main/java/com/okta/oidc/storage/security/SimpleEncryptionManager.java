@@ -394,7 +394,7 @@ public class SimpleEncryptionManager implements EncryptionManager {
     private Cipher getCipherAesCompat(byte[] iv, boolean modeEncrypt) throws NoSuchPaddingException,
             NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException,
             InvalidKeyException {
-        Cipher cipher = Cipher.getInstance(AES_CIPHER_COMPAT, BOUNCY_CASTLE_PROVIDER);
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_COMPAT);
         cipher.init(modeEncrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, aesKey,
                 new IvParameterSpec(iv));
 

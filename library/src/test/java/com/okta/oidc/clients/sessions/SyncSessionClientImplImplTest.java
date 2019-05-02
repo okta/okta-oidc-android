@@ -39,6 +39,7 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
+import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.TestValues;
 
@@ -108,6 +109,7 @@ public class SyncSessionClientImplImplTest {
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
+                .withEncriptionManager(new EncryptionManagerStub())
                 .create();
 
         mSyncWebAuth = okta;
