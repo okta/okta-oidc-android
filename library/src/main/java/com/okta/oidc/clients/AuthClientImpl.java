@@ -25,7 +25,7 @@ import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executor;
@@ -47,9 +47,9 @@ class AuthClientImpl implements AuthClient {
     @Override
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
-                       RequestCallback<AuthorizationResult, AuthorizationException> cb) {
+                      RequestCallback<Result, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
-            AuthorizationResult result = mSyncNativeAuthClient.signIn(sessionToken, payload);
+            Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {
                 mDispatcher.submitResults(() -> {
                     if (cb != null) {

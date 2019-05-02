@@ -15,14 +15,11 @@
 
 package com.okta.oidc.results;
 
-import androidx.annotation.RestrictTo;
-
 import com.okta.oidc.util.AuthorizationException;
 
 /**
  * The result of auth and session calls.
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class Result {
 
     private final AuthorizationException error;

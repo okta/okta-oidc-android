@@ -21,6 +21,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 import androidx.browser.customtabs.CustomTabsService;
 import androidx.core.util.Pair;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 /**
  * Utility methods for extracting parameters from Uri objects.
  */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class UriUtil {
     private static final String TAG = "UriUtil";
 

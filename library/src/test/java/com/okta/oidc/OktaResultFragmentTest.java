@@ -85,7 +85,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -103,7 +103,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -122,7 +122,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_OUT, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -140,7 +140,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_OUT, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -159,7 +159,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -179,7 +179,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 
@@ -198,7 +198,7 @@ public class OktaResultFragmentTest {
 
         getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
 
-        ArgumentCaptor<OktaResultFragment.Result> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.Result.class);
+        ArgumentCaptor<OktaResultFragment.StateResult> resultCapture = ArgumentCaptor.forClass(OktaResultFragment.StateResult.class);
         ArgumentCaptor<OktaResultFragment.ResultType> resultTypeCapture = ArgumentCaptor.forClass(OktaResultFragment.ResultType.class);
         verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
 

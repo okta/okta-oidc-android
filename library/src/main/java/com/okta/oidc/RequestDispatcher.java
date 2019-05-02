@@ -20,11 +20,15 @@ import android.os.Looper;
 
 import androidx.annotation.RestrictTo;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
@@ -45,6 +49,8 @@ public class RequestDispatcher extends AbstractExecutorService {
     //main handler for callbacks on main thread.
     private Handler mHandler;
 
+    private Set<Future> mExecutorServiceTasks;
+
     private synchronized ExecutorService getExecutorService() {
         if (mExecutorService == null) {
             mExecutorService = Executors.newSingleThreadExecutor();
@@ -53,6 +59,7 @@ public class RequestDispatcher extends AbstractExecutorService {
     }
 
     public RequestDispatcher(Executor callbackExecutor) {
+        mExecutorServiceTasks = new HashSet<>();
         if (callbackExecutor == null) {
             mHandler = new Handler(Looper.getMainLooper());
         } else {
@@ -72,6 +79,18 @@ public class RequestDispatcher extends AbstractExecutorService {
             mExecutorService.shutdown();
         }
         mShutdown = true;
+    }
+
+    public void stopAllTasks() {
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+        }
+
+        Iterator<Future> executorIterator = mExecutorServiceTasks.iterator();
+        while (executorIterator.hasNext()) {
+            executorIterator.next().cancel(true);
+            executorIterator.remove();
+        }
     }
 
     @Override
@@ -107,7 +126,7 @@ public class RequestDispatcher extends AbstractExecutorService {
 
     @Override
     public void execute(Runnable command) {
-        getExecutorService().submit(command);
+        mExecutorServiceTasks.add(getExecutorService().submit(command));
     }
 
     //Debugging

@@ -29,10 +29,7 @@ public enum AuthorizationStatus {
      */
     AUTHORIZED,
     /**
-     * In progress authorization status.
-     */
-    IN_PROGRESS,
-    /**
+     * Signed out authorization status. Browser session is cleared.
      * Signed out authorization status. Browser session is cleared.
      */
     SIGNED_OUT

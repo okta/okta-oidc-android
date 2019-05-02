@@ -20,10 +20,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Client Web Authorization API for Okta OpenID Connect & OAuth 2.0 APIs.
@@ -67,8 +69,8 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @return the result
      * @throws InterruptedException the interrupted exception
      */
-    AuthorizationResult signIn(@NonNull FragmentActivity activity,
-                               @Nullable AuthenticationPayload payload)
+    Result signIn(@NonNull FragmentActivity activity,
+                              @Nullable AuthenticationPayload payload)
             throws InterruptedException;
 
     /**
@@ -80,5 +82,12 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      */
     Result signOutFromOkta(@NonNull FragmentActivity activity)
             throws InterruptedException;
+
+    void registerCallbackIfInterrupt(FragmentActivity activity,
+                                     SyncWebAuthClientImpl.ResultListener resultListener,
+                                     ExecutorService executorService);
+
+    void unregisterCallback(FragmentActivity activity);
+
 
 }

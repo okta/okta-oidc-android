@@ -47,7 +47,7 @@ public class OktaResultFragment extends Fragment {
     public static final int REQUEST_CODE_SIGN_OUT = 200;
 
     private AuthResultListener resultListener;
-    private Result cachedResult;
+    private StateResult cachedResult;
     private ResultType cachedResultType;
     private Intent authIntent;
     private Intent logoutIntent;
@@ -159,7 +159,7 @@ public class OktaResultFragment extends Fragment {
                 : ResultType.SIGN_OUT;
 
         if (resultCode == RESULT_CANCELED) {
-            cachedResult = Result.canceled();
+            cachedResult = StateResult.canceled();
             postResult();
             return;
         }
@@ -169,27 +169,27 @@ public class OktaResultFragment extends Fragment {
             cachedResult = retrieveResponse(response, requestCode);
         } else {
             try {
-                cachedResult = Result.exception(AuthorizationException.fromJson(data.getExtras()
+                cachedResult = StateResult.exception(AuthorizationException.fromJson(data.getExtras()
                         .getString(EXTRA_EXCEPTION, "")));
             } catch (NullPointerException | IllegalArgumentException e) {
-                cachedResult = Result.exception(
+                cachedResult = StateResult.exception(
                         AuthorizationException.AuthorizationRequestErrors.OTHER);
             } catch (JSONException je) {
-                cachedResult = Result.exception(
+                cachedResult = StateResult.exception(
                         AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);
             }
         }
         postResult();
     }
 
-    private Result retrieveResponse(Uri responseUri, int requestCode) {
+    private StateResult retrieveResponse(Uri responseUri, int requestCode) {
         if (responseUri.getQueryParameterNames().contains(AuthorizationException.PARAM_ERROR)) {
-            return Result.exception(AuthorizationException.fromOAuthRedirect(responseUri));
+            return StateResult.exception(AuthorizationException.fromOAuthRedirect(responseUri));
         } else {
             if (requestCode == REQUEST_CODE_SIGN_IN) {
-                return Result.authorized(AuthorizeResponse.fromUri(responseUri));
+                return StateResult.authorized(AuthorizeResponse.fromUri(responseUri));
             } else if (requestCode == REQUEST_CODE_SIGN_OUT) {
-                return Result.loggedOut(LogoutResponse.fromUri(responseUri));
+                return StateResult.loggedOut(LogoutResponse.fromUri(responseUri));
             }
         }
         throw new IllegalStateException();
@@ -199,29 +199,29 @@ public class OktaResultFragment extends Fragment {
         CANCELED, ERROR, AUTHORIZED, LOGGED_OUT
     }
 
-    public static class Result {
+    public static class StateResult {
 
         private AuthorizationException exception;
         private WebResponse authorizationResponse;
         private Status status;
 
-        public static Result canceled() {
-            return new Result(null, null, Status.CANCELED);
+        public static StateResult canceled() {
+            return new StateResult(null, null, Status.CANCELED);
         }
 
-        public static Result authorized(WebResponse response) {
-            return new Result(null, response, Status.AUTHORIZED);
+        public static StateResult authorized(WebResponse response) {
+            return new StateResult(null, response, Status.AUTHORIZED);
         }
 
-        public static Result loggedOut(WebResponse response) {
-            return new Result(null, response, Status.LOGGED_OUT);
+        public static StateResult loggedOut(WebResponse response) {
+            return new StateResult(null, response, Status.LOGGED_OUT);
         }
 
-        public static Result exception(AuthorizationException exception) {
-            return new Result(exception, null, Status.ERROR);
+        public static StateResult exception(AuthorizationException exception) {
+            return new StateResult(exception, null, Status.ERROR);
         }
 
-        public Result(AuthorizationException exception, WebResponse response, Status status) {
+        public StateResult(AuthorizationException exception, WebResponse response, Status status) {
             this.exception = exception;
             this.authorizationResponse = response;
             this.status = status;
@@ -241,6 +241,6 @@ public class OktaResultFragment extends Fragment {
     }
 
     public interface AuthResultListener {
-        void postResult(Result result, ResultType type);
+        void postResult(StateResult result, ResultType type);
     }
 }

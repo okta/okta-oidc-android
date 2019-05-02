@@ -22,25 +22,24 @@ import androidx.annotation.WorkerThread;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.State;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.sessions.SyncSessionClientImpl;
+import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
 
 class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
-    private SyncSessionClientImpl sessionClient;
+    private SyncSessionClient sessionClient;
 
     SyncAuthClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                        HttpConnectionFactory connectionFactory) {
         super(oidcConfig, oktaState, connectionFactory);
-        sessionClient = new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
+        sessionClient = new SyncSessionClientFactory().createClient(oidcConfig, oktaState, connectionFactory);
     }
 
     @VisibleForTesting
@@ -55,8 +54,8 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     }
 
     @WorkerThread
-    public AuthorizationResult signIn(String sessionToken,
-                                      @Nullable AuthenticationPayload payload) {
+    public Result signIn(String sessionToken,
+                        @Nullable AuthenticationPayload payload) {
         try {
             obtainNewConfiguration();
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
@@ -69,9 +68,9 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
             TokenResponse tokenResponse = tokenExchange(authResponse).executeRequest();
             mOktaState.save(tokenResponse);
-            return AuthorizationResult.success(new Tokens(tokenResponse));
+            return Result.success();
         } catch (AuthorizationException e) {
-            return AuthorizationResult.error(e);
+            return Result.error(e);
         } finally {
             resetCurrentState();
         }

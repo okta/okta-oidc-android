@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 
 /**
  * The Authentication client for logging in using a sessionToken. The client calls are synchronous.
@@ -38,7 +38,7 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      *
      * @param sessionToken the session token
      * @param payload      the {@link AuthenticationPayload payload}
-     * @return the {@link AuthorizationResult authorizationResult}
+     * @return the {@link Result authorizationResult}
      */
-    AuthorizationResult signIn(String sessionToken, @Nullable AuthenticationPayload payload);
+    Result signIn(String sessionToken, @Nullable AuthenticationPayload payload);
 }

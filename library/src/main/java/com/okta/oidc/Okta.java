@@ -18,10 +18,9 @@ package com.okta.oidc;
 import androidx.annotation.ColorInt;
 
 import com.okta.oidc.clients.AuthClient;
-import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.clients.AuthClientFactoryImpl;
 import com.okta.oidc.clients.SyncAuthClient;
-import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
+import com.okta.oidc.clients.SyncAuthClientFactory;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.clients.web.SyncWebAuthClientFactory;
 import com.okta.oidc.clients.web.WebAuthClient;
@@ -80,7 +79,7 @@ public class Okta {
         }
 
         @Override
-        WebAuthBuilder toThis() {
+        protected WebAuthBuilder toThis() {
             return this;
         }
 
@@ -111,7 +110,6 @@ public class Okta {
          * @param customTabColor the custom tab color for the browser
          * @return current builder
          */
-        @SuppressWarnings("WeakerAccess")
         public SyncWebAuthBuilder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
             return this;
@@ -130,7 +128,7 @@ public class Okta {
         }
 
         @Override
-        SyncWebAuthBuilder toThis() {
+        protected SyncWebAuthBuilder toThis() {
             return this;
         }
 
@@ -166,7 +164,7 @@ public class Okta {
         }
 
         @Override
-        AuthBuilder toThis() {
+        protected AuthBuilder toThis() {
             return this;
         }
 
@@ -189,7 +187,7 @@ public class Okta {
     public static class SyncAuthBuilder extends OktaBuilder<SyncAuthClient, SyncAuthBuilder> {
 
         @Override
-        SyncAuthBuilder toThis() {
+        protected SyncAuthBuilder toThis() {
             return this;
         }
 
@@ -200,37 +198,8 @@ public class Okta {
          */
         @Override
         public SyncAuthClient create() {
-            super.withAuthenticationClientFactory(new SyncAuthClientFactoryImpl());
+            super.withAuthenticationClientFactory(new SyncAuthClientFactory());
             return createAuthClient();
-        }
-    }
-
-
-    /**
-     * A generic type Builder.
-     *
-     * @param <A> the generic type parameter
-     */
-    public static class Builder<A> extends OktaBuilder<A, Builder<A>> {
-        /**
-         * Constructor.
-         */
-        public Builder() {
-        }
-
-        @Override
-        public A create() {
-            return createAuthClient();
-        }
-
-        @Override
-        public Builder<A> withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {
-            return super.withAuthenticationClientFactory(authClientFactory);
-        }
-
-        @Override
-        Builder<A> toThis() {
-            return this;
         }
     }
 }
