@@ -242,7 +242,7 @@ public class OIDCConfig {
          * @param rawResId the android resource id
          * @return current builder
          */
-        public Builder withConfig(Context context, @RawRes int rawResId) {
+        public Builder withJsonFile(Context context, @RawRes int rawResId) {
             try (InputStream inputStream = context.getResources().openRawResource(rawResId)) {
                 Writer writer = new StringWriter();
                 BufferedReader reader = new BufferedReader(

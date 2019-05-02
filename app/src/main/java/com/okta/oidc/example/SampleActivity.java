@@ -298,7 +298,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         //Example of using JSON file to create config
         mOidcConfig = new OIDCConfig.Builder()
-                .withConfig(this, R.raw.okta_oidc_config)
+                .withJsonFile(this, R.raw.okta_oidc_config)
                 .create();
 
         //Example of config
