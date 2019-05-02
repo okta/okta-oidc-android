@@ -1,0 +1,52 @@
+package com.okta.oidc.util;
+
+import com.okta.oidc.storage.security.EncryptionManager;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class EncryptionManagerStub implements EncryptionManager {
+
+    public static final String STUPID_SALT = "stupidSalt";
+    private static final String DEFAULT_CHARSET = "UTF-8";
+
+
+    @Override
+    public String encrypt(String value) throws GeneralSecurityException, IOException {
+        if (value != null && value.length() > 0) {
+            return value+STUPID_SALT;
+        }
+        return null;
+    }
+
+    @Override
+    public String decrypt(String value) throws GeneralSecurityException, IOException {
+        if (value != null && value.length() > 0) {
+            return value.replace(STUPID_SALT,"");
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public String getHashed(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        byte[] result = digest.digest(value.getBytes(DEFAULT_CHARSET));
+
+        return toHex(result);
+    }
+
+    private static String toHex(byte[] data) {
+        StringBuilder sb = new StringBuilder();
+
+        for (byte b : data) {
+            sb.append(String.format("%02X", b));
+        }
+
+        return sb.toString();
+    }
+}

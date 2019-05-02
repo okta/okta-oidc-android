@@ -23,6 +23,7 @@ import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 
 /**
  * The base type Okta builder.
@@ -51,6 +52,11 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * The Auth client factory.
      */
     AuthClientFactory<A> mAuthClientFactory;
+
+    /**
+     * The Encryption Manager.
+     */
+    EncryptionManager mEncryptionManager;
 
     /**
      * Used to prevent lint issues.
@@ -125,12 +131,25 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     }
 
     /**
+     * Sets specific implementation of encryption manager that will be used for
+     * encrypting data that is stored locally by oidc.
+     *
+     * @param encryptionManager manager for encryption of locally stored data
+     * @return the t
+     */
+    public T withEncriptionManager(EncryptionManager encryptionManager) {
+        mEncryptionManager = encryptionManager;
+        return toThis();
+    }
+
+    /**
      * Create auth client.
      *
      * @return the a AuthClient
      */
     protected A createAuthClient() {
         return this.mAuthClientFactory.createClient(mOidcConfig,
-                new OktaState(new OktaRepository(mStorage, mContext)), mConnectionFactory);
+                new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager)),
+                mConnectionFactory);
     }
 }

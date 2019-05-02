@@ -18,9 +18,14 @@ package com.okta.oidc.storage;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.EncryptionManager;
+import com.okta.oidc.storage.security.SimpleEncryptionManager;
+
 import java.io.IOException;
+
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
@@ -37,9 +42,14 @@ public class OktaRepository {
 
     private final Object lock = new Object();
 
-    public OktaRepository(OktaStorage storage, Context context) {
+    public OktaRepository(OktaStorage storage, Context context,
+                          @Nullable EncryptionManager encryptionManager) {
         this.storage = storage;
-        this.encryptionManager = buildEncryptionManager(context);
+        if (encryptionManager != null) {
+            this.encryptionManager = encryptionManager;
+        } else {
+            this.encryptionManager = buildSimpleEncryptionManager(context);
+        }
     }
 
     public void save(Persistable persistable) {
@@ -111,7 +121,7 @@ public class OktaRepository {
 
     String getHashed(String value) {
         try {
-            return EncryptionManager.getHashed(value);
+            return encryptionManager.getHashed(value);
         } catch (NoSuchAlgorithmException ex) {
             Log.d(TAG, "getEncrypted: " + ex.getCause());
             return value;
@@ -121,9 +131,9 @@ public class OktaRepository {
         }
     }
 
-    private EncryptionManager buildEncryptionManager(Context context) {
+    private EncryptionManager buildSimpleEncryptionManager(Context context) {
         try {
-            return new EncryptionManager(context);
+            return new SimpleEncryptionManager(context);
         } catch (IOException ex) {
             Log.d(TAG, "getEncrypted: " + ex.getCause());
             return null;

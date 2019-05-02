@@ -38,6 +38,7 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
+import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
@@ -114,11 +115,13 @@ public class SessionClientImplTest {
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
+                .withEncriptionManager(new EncryptionManagerStub())
                 .create();
 
         mSessionClientClient = okta.getSessionClient();
 
-        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext));
+        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext,
+                new EncryptionManagerStub()));
         mOktaState.save(mTokenResponse);
         mOktaState.save(mProviderConfig);
     }

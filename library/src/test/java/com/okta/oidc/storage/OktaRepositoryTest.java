@@ -20,6 +20,7 @@ import android.content.Context;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.okta.oidc.util.EncryptedPersistableMock;
+import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.OktaStorageMock;
 import com.okta.oidc.util.PersistableMock;
 import com.okta.oidc.util.TestValues;
@@ -41,7 +42,8 @@ public class OktaRepositoryTest {
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mOktaStorageMock = new OktaStorageMock();
-        mOktaRepository = new OktaRepository(mOktaStorageMock, mContext);
+        mOktaRepository = new OktaRepository(mOktaStorageMock, mContext,
+                new EncryptionManagerStub());
     }
 
     @Test
@@ -54,7 +56,7 @@ public class OktaRepositoryTest {
 
         assert(mOktaStorageMock.get(encrypted.getKey()) == null);
         assert(mOktaRepository.cacheStorage.get(encrypted.getKey()) == null);
-        //TODO: EncryptionManager use AndroidKeyStore. Robolectric doesn't support it. Follow asserts check if saved data is encrypted
+        //TODO: SimpleEncryptionManager use AndroidKeyStore. Robolectric doesn't support it. Follow asserts check if saved data is encrypted
         //assert(!mOktaStorageMock.get(mOktaRepository.getHashed(encrypted.getKey())).equalsIgnoreCase(encrypted.getData()));
         //assert(!mOktaRepository.cacheStorage.get(mOktaRepository.getHashed(encrypted.getKey())).equalsIgnoreCase(encrypted.getData()));
 

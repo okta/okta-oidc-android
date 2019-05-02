@@ -496,7 +496,23 @@ client = new Okta.WebAuthBuilder()
 
 ## Providing custom encryption
 
-TODO add after encryption and smart lock branch is merged.
+Encryption in OIDC library applied to all data that is stored by library in storage.
+By default we everything that comes to you Storage is already encrypted using our default encryption.
+But if you want to specify your own encryption algorithm you have to follow the following steps:
+
+1. Build your own implementation of `EncryptionManager`
+2. Provide it within selected Okta Client Builder
+
+```java
+client = new Okta.WebAuthBuilder()
+    .withConfig(config)
+    .withContext(getApplicationContext())
+    .withStorage(new MyStorage())
+    .withTabColor(getColorCompat(R.color.colorPrimary))
+    .withEncriptionManager(new CustomEncryptionManager())
+    .supportedBrowsers(FIREFOX, SAMSUNG)
+    .create();
+``` 
 
 ## Advanced techniques
 

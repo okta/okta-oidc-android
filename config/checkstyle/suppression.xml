@@ -7,7 +7,7 @@
     <suppress checks="RegexpHeader" files="com[\\/]okta[\\/]oidc[\\/]util" />
     <suppress checks="JavadocMethod" files="com[\\/]okta[\\/]oidc[\\/]util" />
     <!-- Suppress all checks for EncryptionManager -->
-    <suppress checks="[a-zA-Z0-9]*" files="EncryptionManager\.java" />
+    <!--<suppress checks="[a-zA-Z0-9]*" files="EncryptionManager\.java" />-->
 
     <!-- Suppress abbreviation checks-->
     <suppress checks="AbbreviationAsWordInName" files="OIDCConfig\.java" />
