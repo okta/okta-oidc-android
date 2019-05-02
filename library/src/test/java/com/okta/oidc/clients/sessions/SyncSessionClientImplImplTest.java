@@ -109,7 +109,7 @@ public class SyncSessionClientImplImplTest {
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
-                .withEncriptionManager(new EncryptionManagerStub())
+                .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
         mSyncWebAuth = okta;

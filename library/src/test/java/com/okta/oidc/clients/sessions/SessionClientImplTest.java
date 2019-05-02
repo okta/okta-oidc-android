@@ -115,7 +115,7 @@ public class SessionClientImplTest {
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
-                .withEncriptionManager(new EncryptionManagerStub())
+                .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
         mSessionClientClient = okta.getSessionClient();

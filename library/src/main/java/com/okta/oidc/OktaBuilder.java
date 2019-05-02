@@ -35,28 +35,28 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * The connection factory.
      */
-    HttpConnectionFactory mConnectionFactory;
+    private HttpConnectionFactory mConnectionFactory;
     /**
      * The oidc config.
      */
-    OIDCConfig mOidcConfig;
+    private OIDCConfig mOidcConfig;
     /**
      * The storage.
      */
-    OktaStorage mStorage;
+    private OktaStorage mStorage;
     /**
      * The Context.
      */
-    Context mContext;
+    private Context mContext;
     /**
      * The Auth client factory.
      */
-    AuthClientFactory<A> mAuthClientFactory;
+    private AuthClientFactory<A> mAuthClientFactory;
 
     /**
      * The Encryption Manager.
      */
-    EncryptionManager mEncryptionManager;
+    private EncryptionManager mEncryptionManager;
 
     /**
      * Used to prevent lint issues.
@@ -137,7 +137,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * @param encryptionManager manager for encryption of locally stored data
      * @return the t
      */
-    public T withEncriptionManager(EncryptionManager encryptionManager) {
+    public T withEncryptionManager(EncryptionManager encryptionManager) {
         mEncryptionManager = encryptionManager;
         return toThis();
     }
@@ -147,6 +147,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      *
      * @return the a AuthClient
      */
+    @SuppressWarnings("WeakerAccess")
     protected A createAuthClient() {
         return this.mAuthClientFactory.createClient(mOidcConfig,
                 new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager)),

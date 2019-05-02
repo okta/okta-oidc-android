@@ -316,7 +316,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .withStorage(new SimpleOktaStorage(this))
                 .withCallbackExecutor(null)
                 .withTabColor(0)
-                .supportedBrowsers(null)
+                .supportedBrowsers(FIRE_FOX)
                 .create();
 
         mSessionClient = mWebAuth.getSessionClient();
