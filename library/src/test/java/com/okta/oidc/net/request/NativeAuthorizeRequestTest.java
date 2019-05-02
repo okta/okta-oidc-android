@@ -57,9 +57,9 @@ public class NativeAuthorizeRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig config = TestValues.getConfigWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
-        mRequest = TestValues.getNativeLogInRequest(mAccount, SESSION_TOKEN, mProviderConfig);
+        mRequest = TestValues.getNativeLogInRequest(config, SESSION_TOKEN, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 

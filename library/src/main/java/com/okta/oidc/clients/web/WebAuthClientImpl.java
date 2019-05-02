@@ -86,6 +86,8 @@ class WebAuthClientImpl implements WebAuthClient {
                 case SIGN_OUT:
                     processSignOutResult(result);
                     break;
+                default:
+                    break;
             }
         }, mDispatcher);
 

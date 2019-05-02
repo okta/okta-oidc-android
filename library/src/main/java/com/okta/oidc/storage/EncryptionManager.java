@@ -15,6 +15,7 @@
 
 package com.okta.oidc.storage;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -23,6 +24,8 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+
+import androidx.annotation.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -64,8 +67,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
-import androidx.annotation.Nullable;
-
 public class EncryptionManager {
     private final int RSA_BIT_LENGTH = 2048;
     private final int AES_BIT_LENGTH = 256;
@@ -79,7 +80,6 @@ public class EncryptionManager {
 
     private final String KEYSTORE_PROVIDER = "AndroidKeyStore";
     private final String SSL_PROVIDER = "AndroidOpenSSL";
-    private final String BOUNCY_CASTLE_PROVIDER = "BC";
 
     private final byte[] SHIFTING_KEY;
 
@@ -190,13 +190,10 @@ public class EncryptionManager {
 
         loadKeyStore();
 
-        try {
-            setup(context, prefStore, bitShiftingKey);
-        } catch (Exception ex) {
-            throw ex;
-        }
+        setup(context, prefStore, bitShiftingKey);
     }
 
+    @SuppressLint("ApplySharedPref")
     void setup(Context context, SharedPreferences prefStore, @Nullable byte[] seed) throws NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableEntryException, NoSuchProviderException, InvalidAlgorithmParameterException, IOException {
         boolean keyGenerated = generateKey(context, seed, prefStore);
         if (keyGenerated) {
@@ -227,11 +224,7 @@ public class EncryptionManager {
      */
     public EncryptedData tryEncrypt(byte[] bytes) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, NoSuchProviderException, InvalidKeyException, KeyStoreException, UnrecoverableEntryException {
         EncryptedData result;
-        try {
-            result = encrypt(bytes);
-        } catch (Exception ex) {
-            throw ex;
-        }
+        result = encrypt(bytes);
         return result;
     }
 
@@ -252,11 +245,7 @@ public class EncryptionManager {
     public void tryEncrypt(BufferedInputStream fileIn, BufferedOutputStream fileOut) throws IOException, NoSuchProviderException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, KeyStoreException, UnrecoverableEntryException {
         boolean tryAgain = false;
 
-        try {
-            encrypt(fileIn, fileOut);
-        } catch (Exception ex) {
-            throw ex;
-        }
+        encrypt(fileIn, fileOut);
 
     }
 
@@ -275,11 +264,7 @@ public class EncryptionManager {
      * @throws UnrecoverableEntryException
      */
     public void tryDecrypt(BufferedInputStream fileIn, BufferedOutputStream fileOut) throws IOException, NoSuchProviderException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, KeyStoreException, UnrecoverableEntryException {
-        try {
-            decrypt(fileIn, fileOut);
-        } catch (Exception ex) {
-            throw ex;
-        }
+        decrypt(fileIn, fileOut);
     }
 
     /**
@@ -301,13 +286,7 @@ public class EncryptionManager {
      */
     public byte[] tryDecrypt(EncryptedData data) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, KeyStoreException, UnrecoverableEntryException, NoSuchProviderException, InvalidKeyException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidMacException {
         byte[] result = null;
-
-        try {
-            result = decrypt(data);
-        } catch (Exception ex) {
-            throw ex;
-        }
-
+        result = decrypt(data);
         return result;
     }
 
@@ -593,7 +572,7 @@ public class EncryptionManager {
     }
 
     Cipher getCipherAESCompat(byte[] IV, boolean modeEncrypt) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException {
-        Cipher c = Cipher.getInstance(AES_CIPHER_COMPAT, BOUNCY_CASTLE_PROVIDER);
+        Cipher c = Cipher.getInstance(AES_CIPHER_COMPAT);
         c.init(modeEncrypt ? Cipher.ENCRYPT_MODE : Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(IV));
 
         return c;
@@ -781,6 +760,7 @@ public class EncryptionManager {
         }
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     @SuppressWarnings("WrongConstant")
     boolean generateRSAKeys(Context context, @Nullable byte[] seed) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, KeyStoreException {
         if (!mStore.containsAlias(RSA_KEY_ALIAS)) {

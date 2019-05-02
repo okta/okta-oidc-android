@@ -12,21 +12,24 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.response.web;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class WebResponse implements Persistable {
 
     public abstract String getState();
 
-    public static final Persistable.Restore<WebResponse> RESTORE = new Persistable.Restore<WebResponse>() {
-        private final String KEY = "WebResponse";
+    public static final Persistable.Restore<WebResponse> RESTORE
+            = new Persistable.Restore<WebResponse>() {
+        private static final String KEY = "WebResponse";
 
         @NonNull
         @Override

@@ -13,26 +13,6 @@
  */
 
 /**
- * AppAuth for Android.
- *
- * <p>AppAuth for Android is a client SDK for communication with
- * <a href="https://tools.ietf.org/html/rfc6749">OAuth2</a> and
- * <a href="http://openid.net/specs/openid-connect-core-1_0.html">OpenID Connect</a> providers. It
- * strives to directly map the requests and responses of those specifications, while following the
- * idiomatic style of the implementation language. In addition to mapping the raw protocol flows,
- * convenience methods are available to assist with common tasks like performing an action with
- * fresh tokens.
- *
- * <p>The library follows the best practices set out in
- * <a href="https://tools.ietf.org/html/rfc8252">RFC 8252 - OAuth 2.0 for Native Apps</a>
- * including using
- * <a href="http://developer.android.com/tools/support-library/features.html#custom-tabs">Custom
- * Tabs</a> for the auth request. For this reason, {@link android.webkit.WebView} is explicitly
- * _not_ supported due to usability and security reasons.
- *
- * <p>The library also supports the <a href="https://tools.ietf.org/html/rfc7636">PKCE</a> extension
- * to OAuth which was created to secure authorization codes in public clients when custom URI scheme
- * redirects are used. The library is friendly to other extensions (standard or otherwise) with the
- * ability to handle additional parameters in all protocol requests and responses.
+ * Collection of utility classes from AppAuth library.
  */
 package com.okta.oidc.util;

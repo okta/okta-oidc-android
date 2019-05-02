@@ -32,7 +32,7 @@ You can create an Okta developer account at [https://developer.okta.com/](https:
 In order to redirect back to your application from a web browser, you must specify a unique URI to
 your app. To do this, you must define a gradle manifest placeholder in your app's `build.gradle`:
 
-```java
+```gradle
 android.defaultConfig.manifestPlaceholders = [
     "appAuthRedirectScheme": "com.okta.oidc.example"
 ]

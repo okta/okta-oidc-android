@@ -12,11 +12,16 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,69 +41,215 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-
 import static com.google.gson.stream.JsonToken.BEGIN_ARRAY;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.ID_TOKEN_VALIDATION_ERROR;
 
+/**
+ * The ID Token is a JSON Web Token (JWT) that contains information about an authentication event
+ * and claims about the authenticated user. This information tells your client application that the
+ * user is authenticated, and can also give you information like their username or locale.
+ *
+ * @see "ID Token <https://developer.okta.com/docs/api/resources/oidc/#id-token>"
+ * @see "Validating ID Tokens <https://developer.okta.com/authentication-guide/tokens/validating-id-tokens/>"
+ */
+@SuppressWarnings("unused")
 public class OktaIdToken {
+    private static final int NUMBER_OF_SECTIONS = 3;
+
+    /**
+     * The interface Clock.
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     public interface Clock {
+        /**
+         * Gets current time millis.
+         *
+         * @return the current time millis
+         */
         long getCurrentTimeMillis();
     }
 
+    /**
+     * The header of a idToken.
+     * {@link Header}
+     */
     @VisibleForTesting
     Header mHeader;
+
+    /**
+     * The claims section of a idToken.
+     * {@link Claims}
+     */
     @VisibleForTesting
     Claims mClaims;
+
+    /**
+     * The signature of a idToken.
+     */
     @VisibleForTesting
     String mSignature;
 
     private static final Long MILLIS_PER_SECOND = 1000L;
     private static final Long TEN_MINUTES_IN_SECONDS = 600L;
 
+    /**
+     * The address in the claims section.
+     */
     public static class Address {
+        /**
+         * The Street address.
+         */
         public String street_address;
+        /**
+         * The Locality.
+         */
         public String locality;
+        /**
+         * The Region.
+         */
         public String region;
+        /**
+         * The Postal code.
+         */
         public String postal_code;
+        /**
+         * The Country.
+         */
         public String country;
     }
 
+    /**
+     * Claims in the Header Section.
+     *
+     * @see "ID Token Header <https://developer.okta.com/docs/api/resources/oidc/#id-token-header>"
+     */
     public static class Header {
+        /**
+         * The Alg.
+         */
         public String alg;
+        /**
+         * The Kid.
+         */
         public String kid;
     }
 
+    /**
+     * Claims in the payload are either base claims, independent of scope (always returned),
+     * or dependent on scope (not always returned).
+     *
+     * @see "Claims in the Payload Section <https://developer.okta.com/docs/api/resources/oidc/#id-token-header>"
+     */
     public static class Claims {
+        /**
+         * The Amr.
+         */
         public List<String> amr;
+        /**
+         * The Aud.
+         */
         public List<String> aud;
+        /**
+         * The Auth time.
+         */
         public int auth_time;
+        /**
+         * The Exp.
+         */
         public int exp;
+        /**
+         * The Iat.
+         */
         public int iat;
+        /**
+         * The Idp.
+         */
         public String idp;
+        /**
+         * The Iss.
+         */
         public String iss;
+        /**
+         * The Jti.
+         */
         public String jti;
+        /**
+         * The Sub.
+         */
         public String sub;
+        /**
+         * The Ver.
+         */
         public String ver;
+        /**
+         * The Nonce.
+         */
         public String nonce;
 
+        /**
+         * The At hash.
+         */
         public String at_hash;
 
+        /**
+         * The Name.
+         */
         public String name;
+        /**
+         * The Preferred username.
+         */
         public String preferred_username;
+        /**
+         * The Nickname.
+         */
         public String nickname;
+        /**
+         * The Given name.
+         */
         public String given_name;
+        /**
+         * The Middle name.
+         */
         public String middle_name;
+        /**
+         * The Family name.
+         */
         public String family_name;
+        /**
+         * The Profile.
+         */
         public String profile;
+        /**
+         * The Zoneinfo.
+         */
         public String zoneinfo;
+        /**
+         * The Locale.
+         */
         public String locale;
+        /**
+         * The Updated at.
+         */
         public int updated_at;
+        /**
+         * The Email.
+         */
         public String email;
+        /**
+         * The Email verified.
+         */
         public String email_verified;
+        /**
+         * The Address.
+         */
         public Address address;
+        /**
+         * The Phone number.
+         */
         public String phone_number;
+        /**
+         * The Groups.
+         */
         public List<String> groups;
     }
 
@@ -108,21 +259,45 @@ public class OktaIdToken {
         mSignature = signature;
     }
 
+    /**
+     * Get the header claims. {@link Header}
+     *
+     * @return the header
+     */
     public Header getHeader() {
         return mHeader;
     }
 
+    /**
+     * Get the payload claims. {@link Claims}
+     *
+     * @return the claims
+     */
     public Claims getClaims() {
         return mClaims;
     }
 
+    /**
+     * Get the signature.
+     *
+     * @return the signature
+     * @see "ID Token Signature <https://developer.okta.com/docs/api/resources/oidc/#id-token-signature>"
+     */
     public String getSignature() {
         return mSignature;
     }
 
+    /**
+     * Validate.
+     *
+     * @param request the request
+     * @param clock   the clock
+     * @throws AuthorizationException the authorization exception
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
-        OIDCConfig account = request.getAccount();
-        ProviderConfiguration config = request.getProviderConfiguration();
+        final OIDCConfig config = request.getConfig();
+        ProviderConfiguration providerConfig = request.getProviderConfiguration();
 
         if (!"RS256".equals(mHeader.alg)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
@@ -130,7 +305,7 @@ public class OktaIdToken {
                             "is not supported, only RSA256 signatures are supported"));
         }
 
-        if (!mClaims.iss.equals(config.issuer)) {
+        if (!mClaims.iss.equals(providerConfig.issuer)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Issuer mismatch"));
         }
@@ -152,7 +327,7 @@ public class OktaIdToken {
                             "Issuer URL contains query parameters or fragment components"));
         }
 
-        String clientId = account.getClientId();
+        String clientId = config.getClientId();
         if (!this.mClaims.aud.contains(clientId)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     new IllegalStateException("Audience mismatch"));
@@ -184,12 +359,16 @@ public class OktaIdToken {
         }
     }
 
-    /*
-     * @param String token based64 encoded idToken
+    /**
+     * Parses a JSON Web Token (JWT).
+     *
+     * @param token the based64 encoded idToken
+     * @return the okta id token
+     * @throws IllegalArgumentException the illegal argument exception
      */
     public static OktaIdToken parseIdToken(@NonNull String token) throws IllegalArgumentException {
         String[] sections = token.split("\\.");
-        if (sections.length < 3) {
+        if (sections.length < NUMBER_OF_SECTIONS) {
             throw new IllegalArgumentException("IdToken missing header, claims or" +
                     " signature section");
         }
@@ -200,18 +379,28 @@ public class OktaIdToken {
         //decode claims
         String claimsSection = new String(Base64.decode(sections[1], Base64.URL_SAFE));
         Claims claims = gson.fromJson(claimsSection, Claims.class);
-        String signature = null;
-        signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
+        String signature = new String(Base64.decode(sections[2], Base64.URL_SAFE));
         return new OktaIdToken(header, claims, signature);
     }
 
-    //Adapter needed for parsing audience which can be a single element or a array.
-    //If audience is a single element then this adapter converts the single element audience
-    //to a list of one element.
+    /*
+     * Adapter needed for parsing audience which can be a single element or a array.
+     * If audience is a single element then this adapter converts the single element audience
+     * to a list of one element.
+     */
     private static final class ArrayTypeAdapter extends TypeAdapter<List<Object>> {
+        /**
+         * The M delegate.
+         */
         final TypeAdapter<List<Object>> mDelegate;
+        /**
+         * The M element.
+         */
         final TypeAdapter<Object> mElement;
 
+        /**
+         * The Create.
+         */
         static final TypeAdapterFactory CREATE = new TypeAdapterFactory() {
             @SuppressWarnings("unchecked")
             @Override
@@ -228,6 +417,12 @@ public class OktaIdToken {
             }
         };
 
+        /**
+         * Instantiates a new Array type adapter.
+         *
+         * @param delegateAdapter the delegate adapter
+         * @param elementAdapter  the element adapter
+         */
         ArrayTypeAdapter(TypeAdapter<List<Object>> delegateAdapter,
                          TypeAdapter<Object> elementAdapter) {
             mDelegate = delegateAdapter;

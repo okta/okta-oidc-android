@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
+
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -25,6 +28,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationException> {
     AuthorizedRequest(HttpRequestBuilder b) {
         super();
@@ -65,11 +69,11 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
             response = openConnection();
             return response.asJson();
         } catch (IOException io) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.NETWORK_ERROR, io);
+            exception = AuthorizationException
+                    .fromTemplate(AuthorizationException.GeneralErrors.NETWORK_ERROR, io);
         } catch (JSONException je) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR, je);
+            exception = AuthorizationException.fromTemplate(AuthorizationException
+                    .GeneralErrors.JSON_DESERIALIZATION_ERROR, je);
         } finally {
             if (response != null) {
                 response.disconnect();

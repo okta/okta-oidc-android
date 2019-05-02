@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
+
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.WebRequest;
@@ -20,10 +23,7 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.RestrictTo;
-
 import static com.okta.oidc.State.IDLE;
-
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaState {

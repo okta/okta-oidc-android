@@ -12,11 +12,21 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.params;
 
+/**
+ * The client informs the authorization server of the desired grant type using the following
+ * parameter.
+ */
 @SuppressWarnings("unused")
-public interface ResponseType {
-    String CODE = "code";
-    String TOKEN = "token";
-    String ID_TOKEN = TokenTypeHint.ID_TOKEN;
+public final class ResponseType {
+    /**
+     * For requesting an authorization code.
+     */
+    public static final String CODE = "code";
+
+    private ResponseType() {
+        throw new AssertionError();
+    }
 }

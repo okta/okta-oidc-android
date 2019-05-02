@@ -17,6 +17,8 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -30,13 +32,14 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class IntrospectRequest extends
         BaseRequest<IntrospectInfo, AuthorizationException> {
     public IntrospectRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
         mUri = Uri.parse(b.mProviderConfiguration.introspection_endpoint).buildUpon()
-                .appendQueryParameter("client_id", b.mAccount.getClientId())
+                .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mIntrospectToken)
                 .appendQueryParameter("token_type_hint", b.mTokenTypeHint)
                 .build();
@@ -46,7 +49,8 @@ public class IntrospectRequest extends
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<IntrospectInfo, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<IntrospectInfo, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 IntrospectInfo response = executeRequest();
@@ -64,8 +68,7 @@ public class IntrospectRequest extends
         try {
             response = openConnection();
             JSONObject json = response.asJson();
-            return new Gson().
-                    fromJson(json.toString(), IntrospectInfo.class);
+            return new Gson().fromJson(json.toString(), IntrospectInfo.class);
         } catch (IOException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.NETWORK_ERROR,

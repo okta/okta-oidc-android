@@ -108,7 +108,7 @@ public class SessionClientImpl implements SessionClient {
                                   @Nullable Map<String, String> postParameters,
                                   @NonNull HttpConnection.RequestMethod method,
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
-        AuthorizedRequest request = mSyncSessionClientImpl.authorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
                 postParameters, method);
         request.dispatchRequest(mDispatcher, cb);
     }

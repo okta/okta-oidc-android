@@ -86,7 +86,7 @@ public class TestValues {
     public static final String TYPE_BEARER = "Bearer";
     public static final String EXPIRES_IN = "3600";
 
-    public static OIDCConfig getAccountWithUrl(String url) {
+    public static OIDCConfig getConfigWithUrl(String url) {
         return new OIDCConfig.Builder()
                 .clientId(CLIENT_ID)
                 .redirectUri(REDIRECT_URI)
@@ -140,10 +140,10 @@ public class TestValues {
                 .compact();
     }
 
-    public static AuthorizeRequest getAuthorizeRequest(OIDCConfig account, String verifier) {
+    public static AuthorizeRequest getAuthorizeRequest(OIDCConfig config, String verifier) {
         return new AuthorizeRequest.Builder().codeVerifier(verifier)
-                .authorizeEndpoint(account.getDiscoveryUri().toString())
-                .redirectUri(account.getRedirectUri().toString())
+                .authorizeEndpoint(config.getDiscoveryUri().toString())
+                .redirectUri(config.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(CUSTOM_NONCE)
                 .authenticationPayload(new AuthenticationPayload.Builder()
@@ -167,52 +167,52 @@ public class TestValues {
         return LogoutResponse.fromUri(Uri.parse(uri));
     }
 
-    public static TokenRequest getTokenRequest(OIDCConfig account, AuthorizeRequest request,
+    public static TokenRequest getTokenRequest(OIDCConfig config, AuthorizeRequest request,
                                                AuthorizeResponse response, ProviderConfiguration
                                                        configuration) {
         return (TokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(request)
                 .authResponse(response)
-                .account(account)
+                .config(config)
                 .providerConfiguration(configuration)
                 .createRequest();
     }
 
-    public static RefreshTokenRequest getRefreshRequest(OIDCConfig account, TokenResponse response,
+    public static RefreshTokenRequest getRefreshRequest(OIDCConfig config, TokenResponse response,
                                                         ProviderConfiguration configuration) {
         return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REFRESH_TOKEN)
                 .tokenResponse(response)
-                .account(account)
+                .config(config)
                 .providerConfiguration(configuration)
                 .createRequest();
     }
 
-    public static RevokeTokenRequest getRevokeTokenRequest(OIDCConfig account, String tokenToRevoke,
+    public static RevokeTokenRequest getRevokeTokenRequest(OIDCConfig config, String tokenToRevoke,
                                                            ProviderConfiguration configuration) {
         return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.REVOKE_TOKEN)
                 .tokenToRevoke(tokenToRevoke)
                 .providerConfiguration(configuration)
-                .account(account)
+                .config(config)
                 .createRequest();
     }
 
-    public static IntrospectRequest getIntrospectTokenRequest(OIDCConfig account, String token, String tokenType,
+    public static IntrospectRequest getIntrospectTokenRequest(OIDCConfig config, String token, String tokenType,
                                                               ProviderConfiguration configuration) {
         return (IntrospectRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.INTROSPECT)
                 .introspect(token, tokenType)
                 .providerConfiguration(configuration)
-                .account(account)
+                .config(config)
                 .createRequest();
     }
 
-    public static NativeAuthorizeRequest getNativeLogInRequest(OIDCConfig account, String token,
+    public static NativeAuthorizeRequest getNativeLogInRequest(OIDCConfig config, String token,
                                                                ProviderConfiguration configuration) {
         return new AuthorizeRequest.Builder()
-                .account(account)
+                .config(config)
                 .providerConfiguration(configuration)
                 .sessionToken(token)
                 .nonce(CUSTOM_NONCE)

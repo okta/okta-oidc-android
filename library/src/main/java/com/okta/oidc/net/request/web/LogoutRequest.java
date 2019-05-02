@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
@@ -19,6 +20,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
@@ -27,6 +29,7 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LogoutRequest extends WebRequest {
     private Parameters mParameters;
 
@@ -139,8 +142,8 @@ public class LogoutRequest extends WebRequest {
             return this;
         }
 
-        public Builder account(OIDCConfig account) {
-            mParameters.post_logout_redirect_uri = account.getEndSessionRedirectUri().toString();
+        public Builder config(OIDCConfig config) {
+            mParameters.post_logout_redirect_uri = config.getEndSessionRedirectUri().toString();
             return this;
         }
     }

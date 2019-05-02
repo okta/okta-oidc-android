@@ -12,16 +12,20 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.response;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
+@SuppressWarnings("unused")
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenResponse implements Persistable {
+
     private String access_token;
     private String token_type;
     private String expires_in;
@@ -29,18 +33,22 @@ public class TokenResponse implements Persistable {
     private String refresh_token;
     private String id_token;
 
+    @NonNull
     public String getAccessToken() {
         return access_token;
     }
 
+    @NonNull
     public String getTokenType() {
         return token_type;
     }
 
+    @NonNull
     public String getExpiresIn() {
         return expires_in;
     }
 
+    @NonNull
     public String getScope() {
         return scope;
     }
@@ -87,5 +95,4 @@ public class TokenResponse implements Persistable {
     public String persist() {
         return new Gson().toJson(this);
     }
-
 }

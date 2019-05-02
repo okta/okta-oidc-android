@@ -56,9 +56,9 @@ public class IntrospectRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig config = TestValues.getConfigWithUrl(url);
         mProviderConfig = getProviderConfiguration(url);
-        mRequest = TestValues.getIntrospectTokenRequest(mAccount, ACCESS_TOKEN,
+        mRequest = TestValues.getIntrospectTokenRequest(config, ACCESS_TOKEN,
                 TokenTypeHint.ACCESS_TOKEN, mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }

@@ -30,7 +30,7 @@ import com.okta.oidc.util.AuthorizationException;
  * Uses a chrome custom tab enabled browser as a user agent for authorization.
  * <pre>
  * {@code
- * OIDCConfig account = new OIDCConfig.Builder()
+ * OIDCConfig config = new OIDCConfig.Builder()
  *     .clientId("{clientId}")
  *     .redirectUri("{redirectUri}")
  *     .endSessionRedirectUri("{endSessionUri}")
@@ -44,43 +44,51 @@ import com.okta.oidc.util.AuthorizationException;
  *     .withStorage(new SimpleOktaStorage(this))
  *     .withTabColor(getColorCompat(R.color.colorPrimary))
  *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
- *     .supportedBrowsers(new String[]{CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID})
+ *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)
  *     .create();
  * }
  * </pre>
- * <p>
- * Note that callbacks are executed on the UI thread unless a executor is provided to the builder.
+ *
+ * <p>Note that callbacks are executed on the UI thread unless a executor is provided to the
+ * builder.
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
 public interface WebAuthClient extends BaseAuth<SessionClient> {
+
+    /**
+     * Checks to see if authentication is in progress.
+     *
+     * @return the boolean value of true if authentication is in progress otherwise false.
+     */
     boolean isInProgress();
 
     /**
      * Log in using implicit flow.
-     * <p>
-     * The result will be returned in the {@link #registerCallback(ResultCallback, FragmentActivity)} callback
+     *
+     * <p>The result will be returned in the
+     * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
      *
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      */
-    void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload);
+    void logIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
 
     /**
      * Sign out from okta. This will clear the browser session
-     * <p>
-     * The result will be returned in the {@link #registerCallback(ResultCallback, FragmentActivity)} callback
+     *
+     * <p>The result will be returned in the
+     * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
      *
      * @param activity the activity
      */
-    void signOutFromOkta(@NonNull final FragmentActivity activity);
+    void signOutFromOkta(@NonNull FragmentActivity activity);
 
     /**
      * Register a callback for login and logout result status. The callback is triggered when
      * {@link #logIn(FragmentActivity, AuthenticationPayload) logIn} or
      * {@link #signOutFromOkta(FragmentActivity)} signOutFromOkta} is completed.
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.registerCallback(new ResultCallback<AuthorizationStatus, AuthorizationException>() {
@@ -106,7 +114,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *      }
      * }, this);
      * </pre>
-     * }
+     * }*
      *
      * @param resultCallback returns the result of login or logout attempts.
      * @param activity       the activity which will receive the results.
@@ -114,5 +122,8 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
     void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>
                                   resultCallback, FragmentActivity activity);
 
+    /**
+     * Unregister the callback.
+     */
     void unregisterCallback();
 }

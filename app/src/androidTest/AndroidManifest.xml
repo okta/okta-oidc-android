@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.okta.oidc.example.test">
 
+    <!--suppress AndroidDomInspection -->
     <instrumentation
         android:name="androidx.test.runner.AndroidJUnitRunner"
         android:targetPackage="com.okta.oidc.example" />

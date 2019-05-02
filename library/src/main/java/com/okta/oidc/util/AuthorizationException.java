@@ -18,15 +18,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.ArrayMap;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
 import java.util.Map;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import static com.okta.oidc.util.Preconditions.checkNotEmpty;
 import static com.okta.oidc.util.Preconditions.checkNotNull;
@@ -34,7 +34,7 @@ import static com.okta.oidc.util.Preconditions.checkNotNull;
 /**
  * Returned as a response to OAuth2 requests if they fail. Specifically:
  */
-@SuppressWarnings({"ThrowableInstanceNeverThrown", "ThrowableResultOfMethodCallIgnored"})
+@SuppressWarnings("WeakerAccess")
 public final class AuthorizationException extends Exception {
 
     /**
@@ -658,8 +658,8 @@ public final class AuthorizationException extends Exception {
     }
 
     /**
-     * Produces a JSON representation of the authorization exception, for transmission or withStorage.
-     * This does not include any provided root cause.
+     * Produces a JSON representation of the authorization exception, for transmission or
+     * withStorage. This does not include any provided root cause.
      */
     @NonNull
     public JSONObject toJson() {

@@ -16,12 +16,12 @@ package com.okta.oidc.util;
 
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import androidx.annotation.Nullable;
 
 import static com.okta.oidc.util.Preconditions.checkArgument;
 

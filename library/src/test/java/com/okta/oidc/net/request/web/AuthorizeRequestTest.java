@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 public class AuthorizeRequestTest {
     private AuthorizeRequest mRequest;
 
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private String mCodeVerifier;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -59,11 +59,11 @@ public class AuthorizeRequestTest {
     @Before
     public void setUp() {
         mCodeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
-        mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
+        mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mProviderConfig = TestValues.getProviderConfiguration(CUSTOM_URL);
         mRequest = new AuthorizeRequest.Builder()
-                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
-                .redirectUri(mAccount.getRedirectUri().toString())
+                .authorizeEndpoint(mConfig.getDiscoveryUri().toString())
+                .redirectUri(mConfig.getRedirectUri().toString())
                 .scope(SCOPES)
                 .nonce(CUSTOM_NONCE)
                 .clientId(CLIENT_ID)
@@ -89,7 +89,7 @@ public class AuthorizeRequestTest {
     @Test
     public void testBuilderFailRedirectUri() {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
-        builder.authorizeEndpoint(mAccount.getDiscoveryUri().toString());
+        builder.authorizeEndpoint(mConfig.getDiscoveryUri().toString());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("redirect_uri missing");
         builder.create();
@@ -98,8 +98,8 @@ public class AuthorizeRequestTest {
     @Test
     public void testBuilderFailScope() {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
-        builder.authorizeEndpoint(mAccount.getDiscoveryUri().toString())
-                .redirectUri(mAccount.getRedirectUri().toString());
+        builder.authorizeEndpoint(mConfig.getDiscoveryUri().toString())
+                .redirectUri(mConfig.getRedirectUri().toString());
         mExpectedEx.expect(IllegalArgumentException.class);
         mExpectedEx.expectMessage("scope missing");
         builder.create();
@@ -108,8 +108,8 @@ public class AuthorizeRequestTest {
     @Test
     public void testBuilder() {
         AuthorizeRequest request = new AuthorizeRequest.Builder()
-                .authorizeEndpoint(mAccount.getDiscoveryUri().toString())
-                .redirectUri(mAccount.getRedirectUri().toString())
+                .authorizeEndpoint(mConfig.getDiscoveryUri().toString())
+                .redirectUri(mConfig.getRedirectUri().toString())
                 .scope(SCOPES)
                 .authenticationPayload(new AuthenticationPayload.Builder()
                         .setState(CUSTOM_STATE)
@@ -144,7 +144,7 @@ public class AuthorizeRequestTest {
     public void toUri() {
         Uri uri = mRequest.toUri();
         assertEquals(uri.getQueryParameter("redirect_uri"),
-                mAccount.getRedirectUri().toString());
+                mConfig.getRedirectUri().toString());
         assertEquals(uri.getQueryParameter("scope"),
                 AsciiStringListUtil.iterableToString(Arrays.asList(SCOPES)));
         assertEquals(uri.getQueryParameter("nonce"), CUSTOM_NONCE);

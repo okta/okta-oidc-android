@@ -12,19 +12,20 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import androidx.fragment.app.FragmentActivity;
 
 /**
- * The Authorization status returned from a
- * {@link AuthenticateClient#logIn(FragmentActivity, AuthenticationPayload)} logIn} or
- * {@link AuthenticateClient#signOutFromOkta(FragmentActivity)}  signOutFromOkta}
+ * The Authorization status returned from a web auth requests.
+ * {@link com.okta.oidc.clients.web.WebAuthClient#logIn(FragmentActivity, AuthenticationPayload)}
+ * {@link com.okta.oidc.clients.web.WebAuthClient#signOutFromOkta(FragmentActivity)}
  */
 public enum AuthorizationStatus {
     /**
-     * Authorized authorization status. User is authorized.
-     * {@link AuthenticateClient} received access, refresh, and ID tokens.
+     * Authorized authorization status. User is authorized. Received access, refresh, and ID tokens.
+     * {@link com.okta.oidc.clients.web.WebAuthClient}
      */
     AUTHORIZED,
     /**

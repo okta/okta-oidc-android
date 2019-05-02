@@ -61,7 +61,7 @@ public class AuthorizedRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig config = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = new Gson().fromJson(JsonStrings.TOKEN_RESPONSE, TokenResponse.class);
 
@@ -69,7 +69,7 @@ public class AuthorizedRequestTest {
                 .request(HttpRequest.Type.AUTHORIZED)
                 .uri(Uri.parse(mEndPoint.getUrl()))
                 .httpRequestMethod(HttpConnection.RequestMethod.POST)
-                .account(mAccount)
+                .config(config)
                 .providerConfiguration(mProviderConfig)
                 .tokenResponse(mTokenResponse)
                 .createRequest();

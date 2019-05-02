@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class HttpRequestBuilderTest {
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -64,7 +64,7 @@ public class HttpRequestBuilderTest {
     public void setUp() {
         mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mTokenResponse = new Gson().fromJson(JsonStrings.TOKEN_RESPONSE, TokenResponse.class);
-        mAccount = TestValues.getAccountWithUrl(TestValues.CUSTOM_URL);
+        mConfig = TestValues.getConfigWithUrl(TestValues.CUSTOM_URL);
     }
 
     @Test
@@ -73,16 +73,16 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void createWithNoAccountRequest() {
+    public void createWithNoConfigRequest() {
         mExpectedEx.expect(IllegalStateException.class);
-        mExpectedEx.expectMessage("Invalid account");
+        mExpectedEx.expectMessage("Invalid config");
         HttpRequestBuilder.newRequest().createRequest();
     }
 
     @Test
     public void createInvalidConfigurationRequest() {
         mExpectedEx.expect(IllegalStateException.class);
-        mExpectedEx.expectMessage("Invalid account");
+        mExpectedEx.expectMessage("Invalid config");
         HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
                 .createRequest();
@@ -92,7 +92,7 @@ public class HttpRequestBuilderTest {
     public void createConfigurationRequest() {
         ConfigurationRequest request = (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.CONFIGURATION.toString()));
@@ -104,7 +104,7 @@ public class HttpRequestBuilderTest {
         mExpectedEx.expectMessage("Missing service configuration");
         HttpRequestBuilder.newRequest()
                 .request(TOKEN_EXCHANGE)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
     }
 
@@ -116,7 +116,7 @@ public class HttpRequestBuilderTest {
                 .providerConfiguration(mConfiguration)
                 .request(TOKEN_EXCHANGE)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
     }
 
@@ -125,10 +125,10 @@ public class HttpRequestBuilderTest {
         TokenRequest request = (TokenRequest) HttpRequestBuilder.newRequest()
                 .providerConfiguration(mConfiguration)
                 .request(HttpRequest.Type.TOKEN_EXCHANGE)
-                .authRequest(getAuthorizeRequest(mAccount,
+                .authRequest(getAuthorizeRequest(mConfig,
                         CodeVerifierUtil.generateRandomCodeVerifier()))
                 .authResponse(getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE))
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.TOKEN_EXCHANGE.toString()));
@@ -143,7 +143,7 @@ public class HttpRequestBuilderTest {
                 .providerConfiguration(configuration)
                 .request(AUTHORIZED)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
     }
 
@@ -155,7 +155,7 @@ public class HttpRequestBuilderTest {
                 .request(HttpRequest.Type.AUTHORIZED)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .uri(Uri.parse(CUSTOM_URL))
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.AUTHORIZED.toString()));
@@ -169,7 +169,7 @@ public class HttpRequestBuilderTest {
                 .providerConfiguration(mConfiguration)
                 .request(PROFILE)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
     }
 
@@ -180,7 +180,7 @@ public class HttpRequestBuilderTest {
                 .tokenResponse(mTokenResponse)
                 .request(HttpRequest.Type.PROFILE)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.PROFILE.toString()));
@@ -194,7 +194,7 @@ public class HttpRequestBuilderTest {
                 .providerConfiguration(mConfiguration)
                 .request(REVOKE_TOKEN)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
     }
 
@@ -206,7 +206,7 @@ public class HttpRequestBuilderTest {
                 .tokenResponse(mTokenResponse)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .tokenToRevoke(ACCESS_TOKEN)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.REVOKE_TOKEN.toString()));
@@ -219,7 +219,7 @@ public class HttpRequestBuilderTest {
                 .providerConfiguration(mConfiguration)
                 .httpRequestMethod(HttpConnection.RequestMethod.POST)
                 .introspect(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN)
-                .account(mAccount)
+                .config(mConfig)
                 .createRequest();
         assertNotNull(request);
         assertTrue(request.toString().contains(HttpRequest.Type.INTROSPECT.toString()));
@@ -240,16 +240,16 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void account() {
+    public void config() {
         HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
-                .account(mAccount);
-        assertNotNull(builder.mAccount);
+                .config(mConfig);
+        assertNotNull(builder.mConfig);
     }
 
     @Test
     public void authRequest() {
         HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
-                .authRequest(TestValues.getAuthorizeRequest(mAccount,
+                .authRequest(TestValues.getAuthorizeRequest(mConfig,
                         CodeVerifierUtil.generateRandomCodeVerifier()));
         assertNotNull(builder.mAuthRequest);
     }

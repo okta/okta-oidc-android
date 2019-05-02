@@ -12,12 +12,8 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.net.params;
 
-@SuppressWarnings("unused")
-public interface ResponseMode {
-    String FRAGMENT = "fragment";
-    String QUERY = "query";
-    String FORM_POST = "form_post";
-    String OKTA_POST_MESSAGE = "okta_post_message";
-}
+/**
+ * Types related to networking requests.
+ */
+package com.okta.oidc.net.request;

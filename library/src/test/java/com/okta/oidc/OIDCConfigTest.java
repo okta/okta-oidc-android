@@ -40,37 +40,37 @@ import static org.mockito.Mockito.when;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class OIDCConfigTest {
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
 
     @Before
     public void setUp() throws Exception {
-        mAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
+        mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
     }
 
     @Test
     public void getClientId() {
-        String id = mAccount.getClientId();
+        String id = mConfig.getClientId();
         assertNotNull(id);
         assertEquals(CLIENT_ID, id);
     }
 
     @Test
     public void getRedirectUri() {
-        Uri uri = mAccount.getRedirectUri();
+        Uri uri = mConfig.getRedirectUri();
         assertNotNull(uri);
         assertEquals(uri, Uri.parse(REDIRECT_URI));
     }
 
     @Test
     public void getEndSessionRedirectUri() {
-        Uri uri = mAccount.getEndSessionRedirectUri();
+        Uri uri = mConfig.getEndSessionRedirectUri();
         assertNotNull(uri);
         assertEquals(uri, Uri.parse(END_SESSION_URI));
     }
 
     @Test
     public void getDiscoveryUri() {
-        Uri uri = mAccount.getDiscoveryUri();
+        Uri uri = mConfig.getDiscoveryUri();
         assertNotNull(uri);
         assertEquals(uri, Uri.parse(CUSTOM_URL +
                 ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE));
@@ -78,7 +78,7 @@ public class OIDCConfigTest {
 
     @Test
     public void getScopes() {
-        String[] scopes = mAccount.getScopes();
+        String[] scopes = mConfig.getScopes();
         assertNotNull(scopes);
         assertArrayEquals(SCOPES, scopes);
     }
@@ -86,8 +86,8 @@ public class OIDCConfigTest {
     @Test
     public void testBuilder() {
         OIDCConfig.Builder builder = mock(OIDCConfig.Builder.class);
-        OIDCConfig otherAccount = TestValues.getAccountWithUrl(CUSTOM_URL);
-        when(builder.create()).thenReturn(otherAccount);
+        OIDCConfig otherConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
+        when(builder.create()).thenReturn(otherConfig);
 
         builder.clientId(CLIENT_ID);
         verify(builder).clientId(CLIENT_ID);
@@ -103,11 +103,11 @@ public class OIDCConfigTest {
 
         builder.discoveryUri(CUSTOM_URL);
         verify(builder).discoveryUri(CUSTOM_URL);
-        OIDCConfig account = builder.create();
-        assertEquals(mAccount.getClientId(), account.getClientId());
-        assertEquals(mAccount.getDiscoveryUri(), account.getDiscoveryUri());
-        assertEquals(mAccount.getEndSessionRedirectUri(), account.getEndSessionRedirectUri());
-        assertEquals(mAccount.getRedirectUri(), account.getRedirectUri());
-        assertArrayEquals(mAccount.getScopes(), account.getScopes());
+        OIDCConfig config = builder.create();
+        assertEquals(mConfig.getClientId(), config.getClientId());
+        assertEquals(mConfig.getDiscoveryUri(), config.getDiscoveryUri());
+        assertEquals(mConfig.getEndSessionRedirectUri(), config.getEndSessionRedirectUri());
+        assertEquals(mConfig.getRedirectUri(), config.getRedirectUri());
+        assertArrayEquals(mConfig.getScopes(), config.getScopes());
     }
 }

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.app.Activity;
@@ -45,25 +46,55 @@ import java.util.Set;
 import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
 import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
 
+/**
+ * This activity starts the authorization with PKCE flow.
+ *
+ * @see "Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
+ * @see "Implementing the Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
+ */
 public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
+    /**
+     * The Extra auth started.
+     */
     static final String EXTRA_AUTH_STARTED = "com.okta.auth.AUTH_STARTED";
+    /**
+     * The Extra auth uri.
+     */
     static final String EXTRA_AUTH_URI = "com.okta.auth.AUTH_URI";
+    /**
+     * The Extra tab options.
+     */
     static final String EXTRA_TAB_OPTIONS = "com.okta.auth.TAB_OPTIONS";
+    /**
+     * The Extra exception.
+     */
     static final String EXTRA_EXCEPTION = "com.okta.auth.EXCEPTION";
+    /**
+     * The Extra browsers.
+     */
     static final String EXTRA_BROWSERS = "com.okta.auth.BROWSERS";
 
     private static final String CHROME_STABLE = "com.android.chrome";
     private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
     private static final String CHROME_BETA = "com.android.chrome.beta";
 
+    /**
+     * The M supported browsers.
+     */
     @VisibleForTesting
     protected Set<String> mSupportedBrowsers = new LinkedHashSet<>();
 
     private CustomTabsServiceConnection mConnection;
+    /**
+     * The M auth started.
+     */
     @VisibleForTesting
     protected boolean mAuthStarted = false;
     private Uri mAuthUri;
+    /**
+     * The M custom tab color.
+     */
     @VisibleForTesting
     protected int mCustomTabColor;
     private boolean mBound = false;
@@ -130,6 +161,11 @@ public class OktaAuthenticationActivity extends Activity {
         }
     }
 
+    /**
+     * Gets the chrome custom tab web browser package.
+     *
+     * @return the browser package name.
+     */
     @Nullable
     @VisibleForTesting
     protected String getBrowser() {
@@ -153,6 +189,13 @@ public class OktaAuthenticationActivity extends Activity {
         return null;
     }
 
+    /**
+     * Create browser intent intent.
+     *
+     * @param packageName the package name
+     * @param session     the session
+     * @return the intent
+     */
     @VisibleForTesting
     protected Intent createBrowserIntent(String packageName, CustomTabsSession session) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
@@ -182,6 +225,11 @@ public class OktaAuthenticationActivity extends Activity {
         return session;
     }
 
+    /**
+     * Bind service and start.
+     *
+     * @param browserPackage the browser package
+     */
     @VisibleForTesting
     protected void bindServiceAndStart(@NonNull final String browserPackage) {
         if (mConnection != null) {

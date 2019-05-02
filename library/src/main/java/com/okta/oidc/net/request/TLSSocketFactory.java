@@ -15,11 +15,11 @@
 
 package com.okta.oidc.net.request;
 
+import androidx.annotation.RestrictTo;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
@@ -27,15 +27,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import androidx.annotation.RestrictTo;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-
 /**
  * SSLSocketFactory which wraps default SSLSocketFactory and enable TLS v1.1, v1.2.
  */
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TLSSocketFactory extends SSLSocketFactory {
     private SSLSocketFactory mInternalSslSocketFactory;
     private String[] mProtocolsToEnable = {"TLSv1.1", "TLSv1.2"};
@@ -74,13 +69,13 @@ public class TLSSocketFactory extends SSLSocketFactory {
     }
 
     @Override
-    public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+    public Socket createSocket(String host, int port) throws IOException {
         return enableTlsOnSocket(mInternalSslSocketFactory.createSocket(host, port));
     }
 
     @Override
     public Socket createSocket(String host, int port, InetAddress localHost, int localPort)
-            throws IOException, UnknownHostException {
+            throws IOException {
         return enableTlsOnSocket(mInternalSslSocketFactory
                 .createSocket(host, port, localHost, localPort));
     }

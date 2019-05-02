@@ -12,14 +12,52 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.params;
 
-public interface Scope {
-    String OPENID = "openid";
-    String PROFILE = "profile";
-    String EMAIL = "email";
-    String PHONE = "phone";
-    String ADDRESS = "address";
-    String GROUPS = "groups";
-    String OFFLINE_ACCESS = "offline_access";
+/**
+ * Access tokens include reserved scopes and claims and can optionally include custom scopes and
+ * claims.
+ *
+ * <p>Scopes are requested in the initial authorization request, and the Authorization Server uses
+ * the Access Policies to decide whether they can be granted. If any of the requested scopes are
+ * rejected by the Access Policies, the request is rejected.
+ *
+ * @see "Access Token Scopes and Claims
+ * <https://developer.okta.com/docs/api/resources/oidc/#access-token-scopes-and-claims>"
+ */
+@SuppressWarnings("unused")
+public final class Scope {
+    /**
+     * The openid scope.
+     */
+    public static final String OPENID = "openid";
+    /**
+     * The profile scope.
+     */
+    public static final String PROFILE = "profile";
+    /**
+     * The email scope.
+     */
+    public static final String EMAIL = "email";
+    /**
+     * The phone scope.
+     */
+    public static final String PHONE = "phone";
+    /**
+     * The address scope.
+     */
+    public static final String ADDRESS = "address";
+    /**
+     * The groups scope.
+     */
+    public static final String GROUPS = "groups";
+    /**
+     * The offline_access scope.
+     */
+    public static final String OFFLINE_ACCESS = "offline_access";
+
+    private Scope() {
+        throw new AssertionError();
+    }
 }

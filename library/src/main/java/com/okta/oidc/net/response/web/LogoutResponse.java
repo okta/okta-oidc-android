@@ -12,14 +12,17 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.response.web;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 
-import androidx.annotation.NonNull;
-
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LogoutResponse extends WebResponse {
     private String state;
 

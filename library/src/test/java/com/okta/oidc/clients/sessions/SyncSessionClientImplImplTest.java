@@ -75,7 +75,7 @@ import static org.junit.Assert.assertTrue;
 public class SyncSessionClientImplImplTest {
 
     private Context mContext;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private HttpConnectionFactory mConnectionFactory;
     private OktaStorage mStorage;
     ProviderConfiguration mProviderConfig;
@@ -96,15 +96,15 @@ public class SyncSessionClientImplImplTest {
 
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mGson = new Gson();
         mStorage = new SimpleOktaStorage(mContext);
 
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        SyncWebAuthClient okta = new Okta.SyncWebBuilder()
-                .withConfig(mAccount)
+        SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
+                .withConfig(mConfig)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
@@ -128,7 +128,7 @@ public class SyncSessionClientImplImplTest {
     public void clear_success() {
         mOktaState.save(mProviderConfig);
         mOktaState.save(mTokenResponse);
-        mOktaState.save(TestValues.getAuthorizeRequest(mAccount, null));
+        mOktaState.save(TestValues.getAuthorizeRequest(mConfig, null));
 
         mSyncSessionClientImpl.clear();
 
@@ -162,7 +162,7 @@ public class SyncSessionClientImplImplTest {
         mOktaState.save(mTokenResponse);
         RefreshTokenRequest request = mSyncSessionClientImpl.refreshTokenRequest();
         String nonce = CodeVerifierUtil.generateRandomState();
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         TokenResponse response = request.executeRequest();
         assertNotNull(response);
@@ -263,7 +263,7 @@ public class SyncSessionClientImplImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.authorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
                 null, HttpConnection.RequestMethod.GET);
         JSONObject result = request.executeRequest();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
@@ -285,7 +285,7 @@ public class SyncSessionClientImplImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.authorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
                 null, HttpConnection.RequestMethod.GET);
         JSONObject result = request.executeRequest();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();

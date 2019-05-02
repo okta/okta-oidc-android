@@ -1,8 +1,11 @@
 {
-  "client_id": "",
-  "redirect_uri": "",
-  "end_session_redirect_uri": "",
+  "client_id": "{clientId}",
+  "redirect_uri": "{redirectUri}",
+  "end_session_redirect_uri": "{endSessionUri}",
   "scopes": [
+    "openid",
+    "profile",
+    "offline_access"
   ],
-  "discovery_uri": ""
+  "discovery_uri": "https://{yourOktaDomain}"
 }

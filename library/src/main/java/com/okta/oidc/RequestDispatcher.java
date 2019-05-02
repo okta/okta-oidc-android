@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
 import android.os.Handler;
@@ -50,7 +51,7 @@ public class RequestDispatcher extends AbstractExecutorService {
         }
         return mExecutorService;
     }
-    
+
     public RequestDispatcher(Executor callbackExecutor) {
         if (callbackExecutor == null) {
             mHandler = new Handler(Looper.getMainLooper());

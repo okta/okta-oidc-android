@@ -21,6 +21,14 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.AuthorizationResult;
 
+/**
+ * The Authentication client for logging in using a sessionToken. The client calls are synchronous.
+ *
+ * <p>For login using web browser
+ * {@link com.okta.oidc.clients.web.WebAuthClient}
+ * For asynchronous client
+ * {@link com.okta.oidc.clients.AuthClient}
+ */
 public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
     /**
      * Log in with a session token. This is for logging in without using the implicit flow.

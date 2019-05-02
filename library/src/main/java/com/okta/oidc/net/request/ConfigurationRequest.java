@@ -12,7 +12,11 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
+
+import androidx.annotation.RestrictTo;
+import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 import com.okta.oidc.RequestCallback;
@@ -26,19 +30,14 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import androidx.annotation.RestrictTo;
-import androidx.annotation.WorkerThread;
-
-import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
-
-@RestrictTo(LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class ConfigurationRequest extends
         BaseRequest<ProviderConfiguration, AuthorizationException> {
     ConfigurationRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
-        mUri = b.mAccount.getDiscoveryUri().buildUpon()
-                .appendQueryParameter("client_id", b.mAccount.getClientId()).build();
+        mUri = b.mConfig.getDiscoveryUri().buildUpon()
+                .appendQueryParameter("client_id", b.mConfig.getClientId()).build();
         mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.GET)
                 .create(b.mConn);
@@ -70,9 +69,8 @@ public final class ConfigurationRequest extends
         try {
             response = openConnection();
             JSONObject json = response.asJson();
-            ProviderConfiguration configuration = new Gson().
-                    fromJson(json.toString(), ProviderConfiguration.class);
-
+            ProviderConfiguration configuration = new Gson()
+                    .fromJson(json.toString(), ProviderConfiguration.class);
             configuration.validate();
             return configuration;
         } catch (IOException ex) {

@@ -52,7 +52,7 @@ import static org.junit.Assert.assertNull;
 public class TokenRequestTest {
 
     private TokenRequest mRequest;
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;
@@ -63,10 +63,10 @@ public class TokenRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
-        mRequest = TestValues.getTokenRequest(mAccount,
-                getAuthorizeRequest(mAccount, CodeVerifierUtil.generateRandomCodeVerifier()),
+        mRequest = TestValues.getTokenRequest(mConfig,
+                getAuthorizeRequest(mConfig, CodeVerifierUtil.generateRandomCodeVerifier()),
                 getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mProviderConfig);
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
@@ -79,7 +79,7 @@ public class TokenRequestTest {
 
     @Test
     public void dispatchRequestSuccess() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<TokenResponse, AuthorizationException> cb
@@ -94,7 +94,7 @@ public class TokenRequestTest {
 
     @Test
     public void dispatchRequestFailure() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<TokenResponse, AuthorizationException> cb
@@ -113,7 +113,7 @@ public class TokenRequestTest {
 
     @Test
     public void getAccount() {
-        assertEquals(mRequest.getAccount(), mAccount);
+        assertEquals(mRequest.getConfig(), mConfig);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class TokenRequestTest {
 
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         TokenResponse response = mRequest.executeRequest();
         assertNotNull(response);

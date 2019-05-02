@@ -47,7 +47,7 @@ import java.util.Map;
  *     .discoveryUri("https://{yourOktaDomain}")
  *     .create();
  *
- * WebAuthClient auth = new Okta.WebBuilder()
+ * WebAuthClient auth = new Okta.WebAuthBuilder()
  *     .withConfig(config)
  *     .withContext(getApplicationContext())
  *     .withStorage(new SimpleOktaStorage(this))
@@ -59,8 +59,8 @@ import java.util.Map;
  * SessionClient client = auth.getSessionClient();
  * }
  * </pre>
- * <p>
- * Note that callbacks are executed on the UI thread unless a executor is provided to the builder.
+ *
+ * <p>Note that callbacks are executed on the uiThread unless a executor is provided to the builder.
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
@@ -69,7 +69,6 @@ public interface SessionClient {
      * Performs a custom authorized request with the access token automatically added to the
      * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.authorizedRequest(uri, properties,
@@ -97,14 +96,13 @@ public interface SessionClient {
     void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                            @Nullable Map<String, String> postParameters,
                            @NonNull HttpConnection.RequestMethod method,
-                           final RequestCallback<JSONObject, AuthorizationException> cb);
+                           RequestCallback<JSONObject, AuthorizationException> cb);
 
     /**
      * Get user profile returns any claims for the currently logged-in user.
-     * <p>
-     * This must be done after the user is logged-in (client has a valid access token).
+     *
+     * <p>This must be done after the user is logged-in (client has a valid access token).
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.getUserProfile(new RequestCallback<JSONObject, AuthorizationException>() {
@@ -125,7 +123,7 @@ public interface SessionClient {
      * @param cb the RequestCallback to be executed when request is finished.
      * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#userinfo">User info</a>
      */
-    void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb);
+    void getUserProfile(RequestCallback<UserInfo, AuthorizationException> cb);
 
     /**
      * Introspect token takes an access, refresh, or ID token, and returns a boolean
@@ -133,11 +131,11 @@ public interface SessionClient {
      * the token is also returned {@link IntrospectInfo}. If the token is invalid, expired,
      * or revoked, it is considered inactive.
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.introspectToken(client.getTokens().getRefreshToken(),
-     *     TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectResponse, AuthorizationException>() {
+     *     TokenTypeHint.REFRESH_TOKEN,
+     *         new RequestCallback<IntrospectResponse, AuthorizationException>() {
      *         @Override
      *         public void onSuccess(@NonNull IntrospectResponse result) {
      *             //handle introspect response.
@@ -158,13 +156,12 @@ public interface SessionClient {
      * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#introspect">Introspect token</a>
      */
     void introspectToken(String token, String tokenType,
-                         final RequestCallback<IntrospectInfo, AuthorizationException> cb);
+                         RequestCallback<IntrospectInfo, AuthorizationException> cb);
 
     /**
      * Revoke token takes an access or refresh token and revokes it. Revoked tokens are considered
      * inactive at the introspection endpoint. A client may only revoke its own tokens.
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.revokeToken(client.getTokens().getRefreshToken(),
@@ -185,12 +182,11 @@ public interface SessionClient {
      * @param cb    the RequestCallback to be executed when request is finished.
      * @see <a href="https://developer.okta.com/docs/api/resources/oidc/#revoke">Revoke token</a>
      */
-    void revokeToken(String token, final RequestCallback<Boolean, AuthorizationException> cb);
+    void revokeToken(String token, RequestCallback<Boolean, AuthorizationException> cb);
 
     /**
      * Refresh token returns access, refresh, and ID tokens {@link Tokens}.
      * Example usage:
-     * <p>
      * {@code
      * <pre>
      * client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
@@ -209,7 +205,7 @@ public interface SessionClient {
      *
      * @param cb the RequestCallback to be executed when request is finished.
      */
-    void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb);
+    void refreshToken(RequestCallback<Tokens, AuthorizationException> cb);
 
     /**
      * Gets tokens {@link Tokens}.

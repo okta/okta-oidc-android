@@ -12,40 +12,84 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.results;
+
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.util.AuthorizationException;
 
+/**
+ * The result of auth and session calls.
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class Result {
 
     private final AuthorizationException error;
-    protected boolean isCancel;
+    private boolean isCancel;
 
+    /**
+     * Instantiates a new Result.
+     *
+     * @param error    the error
+     * @param isCancel the is cancel
+     */
     Result(AuthorizationException error, boolean isCancel) {
         this.error = error;
         this.isCancel = isCancel;
     }
 
+    /**
+     * Success result.
+     *
+     * @return the result
+     */
     public static Result success() {
         return new Result(null, false);
     }
 
+    /**
+     * Cancel result.
+     *
+     * @return the result
+     */
     public static Result cancel() {
         return new Result(null, true);
     }
 
+    /**
+     * Error result.
+     *
+     * @param error the error
+     * @return the result
+     */
     public static Result error(AuthorizationException error) {
         return new Result(error, false);
     }
 
+    /**
+     * Is success boolean.
+     *
+     * @return the boolean
+     */
     public boolean isSuccess() {
         return getError() == null && !isCancel;
     }
 
+    /**
+     * Is cancel boolean.
+     *
+     * @return the boolean
+     */
     public boolean isCancel() {
         return isCancel;
     }
 
+    /**
+     * Gets error.
+     *
+     * @return the error
+     */
     public AuthorizationException getError() {
         return error;
     }

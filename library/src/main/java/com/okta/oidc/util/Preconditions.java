@@ -16,10 +16,10 @@ package com.okta.oidc.util;
 
 import android.text.TextUtils;
 
-import java.util.Collection;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.Collection;
 
 /**
  * Utility class for guava style pre-condition checks. Not an official part of the AppAuth API;
@@ -45,9 +45,9 @@ public final class Preconditions {
     /**
      * Ensures that an object reference passed as a parameter to the calling method is not null.
      *
-     * @param reference an object reference
+     * @param reference    an object reference
      * @param errorMessage the exception message to use if the check fails; will be converted to a
-     *     string using {@link String#valueOf(Object)}
+     *                     string using {@link String#valueOf(Object)}
      * @return the non-null reference that was validated
      * @throws NullPointerException if `reference` is `null`
      */
@@ -107,9 +107,9 @@ public final class Preconditions {
     /**
      * Ensures the truth of an expression involving one or more parameters to the calling method.
      *
-     * @param expression a boolean expression
+     * @param expression   a boolean expression
      * @param errorMessage the exception message to use if the check fails; will be converted to a
-     *     string using {@link String#valueOf(Object)}
+     *                     string using {@link String#valueOf(Object)}
      * @throws IllegalArgumentException if `expression` is `false`
      */
     public static void checkArgument(boolean expression, @Nullable Object errorMessage) {
@@ -120,10 +120,11 @@ public final class Preconditions {
 
     /**
      * Ensures the truth of an expression involving one or more parameters to the calling method.
-     * @param expression a boolean expression
+     *
+     * @param expression    a boolean expression
      * @param errorTemplate the exception message to use if the check fails; this is used
-     *     as the template for String.format.
-     * @param params the parameters to the exception message.
+     *                      as the template for String.format.
+     * @param params        the parameters to the exception message.
      */
     public static void checkArgument(
             boolean expression,

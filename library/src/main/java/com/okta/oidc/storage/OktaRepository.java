@@ -12,10 +12,13 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.storage;
 
 import android.content.Context;
 import android.util.Log;
+
+import androidx.annotation.RestrictTo;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -24,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
 
@@ -76,7 +80,9 @@ public class OktaRepository {
     }
 
     private String getEncrypted(String value) {
-        if (encryptionManager == null) return value;
+        if (encryptionManager == null) {
+            return value;
+        }
         try {
             return encryptionManager.encrypt(value);
         } catch (GeneralSecurityException ex) {
@@ -89,7 +95,9 @@ public class OktaRepository {
     }
 
     private String getDecrypted(String value) {
-        if (encryptionManager == null) return value;
+        if (encryptionManager == null) {
+            return value;
+        }
         try {
             return encryptionManager.decrypt(value);
         } catch (GeneralSecurityException ex) {

@@ -12,10 +12,27 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.params;
 
-public interface TokenTypeHint {
-    String ACCESS_TOKEN = "access_token";
-    String ID_TOKEN = "id_token";
-    String REFRESH_TOKEN = "refresh_token";
+/**
+ * Indicates the type of token being passed in a request.
+ */
+public final class TokenTypeHint {
+    /**
+     * The type of token is a access_token.
+     */
+    public static final String ACCESS_TOKEN = "access_token";
+    /**
+     * The type of token is a id_token.
+     */
+    public static final String ID_TOKEN = "id_token";
+    /**
+     * The type of token is a refresh_token.
+     */
+    public static final String REFRESH_TOKEN = "refresh_token";
+
+    private TokenTypeHint() {
+        throw new AssertionError();
+    }
 }

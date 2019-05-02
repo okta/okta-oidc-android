@@ -37,17 +37,17 @@ import com.okta.oidc.util.AuthorizationException;
 class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     private SyncSessionClientImpl sessionClient;
 
-    SyncAuthClientImpl(OIDCConfig mOIDCConfig, OktaState mOktaState,
-                       HttpConnectionFactory mConnectionFactory) {
-        super(mOIDCConfig, mOktaState, mConnectionFactory);
-        sessionClient = new SyncSessionClientImpl(mOIDCConfig, mOktaState, mConnectionFactory);
+    SyncAuthClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
+                       HttpConnectionFactory connectionFactory) {
+        super(oidcConfig, oktaState, connectionFactory);
+        sessionClient = new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
     }
 
     @VisibleForTesting
     NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
                                                   AuthenticationPayload payload) {
         return new AuthorizeRequest.Builder()
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .sessionToken(sessionToken)
                 .authenticationPayload(payload)
@@ -61,8 +61,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             obtainNewConfiguration();
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
             NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, payload);
-            //FIXME Need to the parameters of native request in a web request because
-            //oktaState uses it to verify the returned response.
+            //Save the nativeAuth request in a AuthRequest because it is needed to verify results.
             AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
             mOktaState.save(authRequest);
             AuthorizeResponse authResponse = request.executeRequest();

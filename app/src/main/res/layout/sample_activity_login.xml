@@ -10,11 +10,9 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:id="@+id/init"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -27,7 +25,7 @@
                 android:layout_width="96dp"
                 android:layout_height="96dp"
                 android:layout_gravity="center"
-                android:contentDescription="@string/openid_logo_content_description"
+                android:contentDescription="@string/logo_content_description"
                 app:srcCompat="@drawable/appauth_96dp" />
 
             <TextView
@@ -42,7 +40,6 @@
             being negotiated
             -->
             <LinearLayout
-                android:id="@+id/loading_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -50,7 +47,6 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/loading_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
@@ -66,41 +62,47 @@
                     android:id="@+id/sign_in"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sign In" />
+                    android:text="Sign In"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/sign_in_native"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sign In Native" />
+                    android:text="Sign In Native"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/get_profile"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Get Profile"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/sign_out"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Sign out from Okta"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/refresh_token"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Refresh Token"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/clear_data"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Clear Data"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
 
                 <TextView
                     android:id="@+id/status"
@@ -122,37 +124,41 @@
                     android:id="@+id/revoke_refresh"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Revoke refresh token" />
+                    android:text="Revoke refresh token"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/revoke_access"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Revoke access token" />
+                    android:text="Revoke access token"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/introspect_refresh"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Instrospect refresh token" />
+                    android:text="Instrospect refresh token"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/introspect_access"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Instrospect access token" />
+                    android:text="Instrospect access token"
+                    tools:ignore="HardcodedText" />
 
                 <Button
                     android:id="@+id/introspect_id"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Instrospect id token" />
+                    android:text="Instrospect id token"
+                    tools:ignore="HardcodedText" />
 
             </LinearLayout>
 
             <!-- Displayed once the authorization server configuration is resolved -->
             <LinearLayout
-                android:id="@+id/auth_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="@dimen/section_margin"
@@ -167,13 +173,11 @@
                     android:text="@string/auth_options" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/login_hint_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/login_hint_value"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/login_hint_value"

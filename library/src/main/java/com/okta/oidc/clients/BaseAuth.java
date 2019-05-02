@@ -15,6 +15,16 @@
 
 package com.okta.oidc.clients;
 
+/**
+ * The interface Base auth.
+ *
+ * @param <S> the generic type of session client
+ */
 public interface BaseAuth<S> {
+    /**
+     * Gets session client.
+     *
+     * @return the session client
+     */
     S getSessionClient();
 }

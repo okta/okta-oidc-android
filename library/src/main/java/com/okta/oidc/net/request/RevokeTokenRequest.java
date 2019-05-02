@@ -12,9 +12,12 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
+
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -25,12 +28,13 @@ import com.okta.oidc.util.AuthorizationException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationException> {
     RevokeTokenRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
         mUri = Uri.parse(b.mProviderConfiguration.revocation_endpoint).buildUpon()
-                .appendQueryParameter("client_id", b.mAccount.getClientId())
+                .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mTokenToRevoke)
                 .build();
 
@@ -40,7 +44,8 @@ public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationExcept
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<Boolean, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<Boolean, AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 Boolean success = executeRequest();

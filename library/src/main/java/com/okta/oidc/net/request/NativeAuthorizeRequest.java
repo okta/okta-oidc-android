@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.request;
 
 import android.net.Uri;
+
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.HttpResponse;
-import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest.Parameters;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -29,13 +31,11 @@ import com.okta.oidc.util.AuthorizationException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import androidx.annotation.RestrictTo;
-
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, AuthorizationException> {
     private Parameters mParameters;
 
-    public NativeAuthorizeRequest(AuthorizeRequest.Parameters parameters, HttpConnectionFactory conn) {
+    public NativeAuthorizeRequest(Parameters parameters, HttpConnectionFactory conn) {
         mParameters = parameters;
         mUri = mParameters.toUri();
         mConnection = new HttpConnection.Builder()
@@ -48,7 +48,9 @@ public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, Autho
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<AuthorizeResponse, AuthorizationException> callback) {
+    public void dispatchRequest(RequestDispatcher dispatcher,
+                                RequestCallback<AuthorizeResponse,
+                                        AuthorizationException> callback) {
         dispatcher.submit(() -> {
             try {
                 AuthorizeResponse response = executeRequest();

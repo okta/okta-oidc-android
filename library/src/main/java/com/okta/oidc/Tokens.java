@@ -15,10 +15,10 @@
 
 package com.okta.oidc;
 
-import com.okta.oidc.net.response.TokenResponse;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.okta.oidc.net.response.TokenResponse;
 
 /**
  * OpenId tokens.
@@ -31,15 +31,28 @@ public class Tokens {
     private int mExpiresIn;
     private String[] mScope;
 
-    Tokens(String idToken, String accessToken, String refreshToken, int expiresIn,
-           String[] scope) {
-        this.mIdToken = idToken;
-        this.mAccessToken = accessToken;
-        this.mRefreshToken = refreshToken;
-        this.mExpiresIn = expiresIn;
-        this.mScope = scope;
+    /**
+     * Instantiates a new Tokens.
+     *
+     * @param idToken      the id token
+     * @param accessToken  the access token
+     * @param refreshToken the refresh token
+     * @param expiresIn    the expires in
+     * @param scope        the scope
+     */
+    Tokens(String idToken, String accessToken, String refreshToken, int expiresIn, String[] scope) {
+        mIdToken = idToken;
+        mAccessToken = accessToken;
+        mRefreshToken = refreshToken;
+        mExpiresIn = expiresIn;
+        mScope = scope;
     }
 
+    /**
+     * Instantiates a new Tokens from a TokenResponse.
+     *
+     * @param response the TokenResponse
+     */
     public Tokens(@NonNull TokenResponse response) {
         this(response.getIdToken(), response.getAccessToken(),
                 response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
@@ -48,6 +61,8 @@ public class Tokens {
 
     /**
      * The current ID token, if available.
+     * This is a base64 encoded string. For getting a OktaIdToken use
+     * {@link OktaIdToken#parseIdToken(String)}
      *
      * @return id token.
      */
@@ -79,16 +94,16 @@ public class Tokens {
     /**
      * The time in seconds when tokens expired.
      *
-     * @return refresh token.
+     * @return expiration of token.
      */
     public int getExpiresIn() {
         return mExpiresIn;
     }
 
     /**
-     * List of scopes
+     * List of scopes.
      *
-     * @return refresh token.
+     * @return scopes. string [ ]
      */
     @Nullable
     public String[] getScope() {

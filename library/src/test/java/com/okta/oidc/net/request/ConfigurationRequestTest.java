@@ -52,10 +52,10 @@ public class ConfigurationRequestTest {
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        OIDCConfig mAccount = TestValues.getAccountWithUrl(url);
+        OIDCConfig config = TestValues.getConfigWithUrl(url);
         mRequest = (ConfigurationRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.CONFIGURATION)
-                .account(mAccount)
+                .config(config)
                 .createRequest();
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }

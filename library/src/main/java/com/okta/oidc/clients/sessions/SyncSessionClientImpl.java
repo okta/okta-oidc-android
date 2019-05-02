@@ -45,25 +45,25 @@ import static com.okta.oidc.State.IDLE;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncSessionClientImpl implements SyncSessionClient {
-    private OIDCConfig mOIDCConfig;
+    private OIDCConfig mOidcConfig;
     private OktaState mOktaState;
     private HttpConnectionFactory mConnectionFactory;
 
     public SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                                  HttpConnectionFactory connectionFactory) {
-        mOIDCConfig = oidcConfig;
+        mOidcConfig = oidcConfig;
         mOktaState = oktaState;
         mConnectionFactory = connectionFactory;
     }
 
-    public AuthorizedRequest authorizedRequest(@NonNull Uri uri,
-                                               @Nullable Map<String, String> properties,
-                                               @Nullable Map<String, String> postParameters,
-                                               @NonNull HttpConnection.RequestMethod method) {
+    AuthorizedRequest createAuthorizedRequest(@NonNull Uri uri,
+                                              @Nullable Map<String, String> properties,
+                                              @Nullable Map<String, String> postParameters,
+                                              @NonNull HttpConnection.RequestMethod method) {
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.AUTHORIZED)
                 .connectionFactory(mConnectionFactory)
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .httpRequestMethod(method)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .tokenResponse(mOktaState.getTokenResponse())
@@ -73,13 +73,21 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .createRequest();
     }
 
+    public JSONObject authorizedRequest(@NonNull Uri uri,
+                                        @Nullable Map<String, String> properties,
+                                        @Nullable Map<String, String> postParameters,
+                                        @NonNull HttpConnection.RequestMethod method)
+            throws AuthorizationException {
+        return createAuthorizedRequest(uri, properties, postParameters, method).executeRequest();
+    }
+
     AuthorizedRequest userProfileRequest() {
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.PROFILE)
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .createRequest();
     }
 
@@ -95,12 +103,13 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .introspect(token, tokenType)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .createRequest();
     }
 
     @Override
-    public IntrospectInfo introspectToken(String token, String tokenType) throws AuthorizationException {
+    public IntrospectInfo introspectToken(String token, String tokenType)
+            throws AuthorizationException {
         return introspectTokenRequest(token, tokenType).executeRequest();
     }
 
@@ -110,7 +119,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .tokenToRevoke(token)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .createRequest();
     }
 
@@ -125,7 +134,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .providerConfiguration(mOktaState.getProviderConfiguration())
-                .account(mOIDCConfig)
+                .config(mOidcConfig)
                 .createRequest();
     }
 
@@ -139,7 +148,9 @@ public class SyncSessionClientImpl implements SyncSessionClient {
     @Override
     public Tokens getTokens() {
         TokenResponse response = mOktaState.getTokenResponse();
-        if (response == null) return null;
+        if (response == null) {
+            return null;
+        }
         return new Tokens(response);
     }
 

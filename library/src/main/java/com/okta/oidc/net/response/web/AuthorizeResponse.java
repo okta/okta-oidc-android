@@ -12,15 +12,19 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.net.response.web;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+
 import com.google.gson.Gson;
 
-import androidx.annotation.NonNull;
-
 //https://developer.okta.com/docs/api/resources/oidc#response-properties
+@SuppressWarnings({"unused", "FieldCanBeLocal"})
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthorizeResponse extends WebResponse {
     private String request_type;
     private String code;

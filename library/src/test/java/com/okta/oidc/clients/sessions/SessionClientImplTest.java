@@ -20,7 +20,6 @@ import android.net.Uri;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
@@ -54,9 +53,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -88,7 +85,7 @@ public class SessionClientImplTest {
 
     private OktaStorage mStorage;
 
-    private OIDCConfig mAccount;
+    private OIDCConfig mConfig;
     private SessionClient mSessionClientClient;
     private Gson mGson;
 
@@ -107,13 +104,13 @@ public class SessionClientImplTest {
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
 
-        mAccount = TestValues.getAccountWithUrl(url);
+        mConfig = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        WebAuthClient okta = new Okta.AsyncWebBuilder()
+        WebAuthClient okta = new Okta.WebAuthBuilder()
                 .withCallbackExecutor(mExecutor)
-                .withConfig(mAccount)
+                .withConfig(mConfig)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
@@ -136,7 +133,7 @@ public class SessionClientImplTest {
     public void refreshToken() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         String nonce = CodeVerifierUtil.generateRandomState();
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mAccount.getClientId());
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
         mSessionClientClient.refreshToken(cb);
@@ -282,11 +279,5 @@ public class SessionClientImplTest {
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
-    }
-
-    private Map<String, String> toMap(RecordedRequest request) {
-        final Type mapType = new TypeToken<Map<String, String>>() {
-        }.getType();
-        return mGson.fromJson(request.getBody().readUtf8(), mapType);
     }
 }

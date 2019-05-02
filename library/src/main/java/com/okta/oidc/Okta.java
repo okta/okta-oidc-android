@@ -18,22 +18,28 @@ package com.okta.oidc;
 import androidx.annotation.ColorInt;
 
 import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.clients.AuthClientFactoryImpl;
 import com.okta.oidc.clients.SyncAuthClient;
+import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
+import com.okta.oidc.clients.web.SyncWebAuthClientFactory;
 import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.clients.web.WebAuthClientFactory;
-import com.okta.oidc.clients.AuthClientFactory;
-import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
-import com.okta.oidc.clients.web.SyncWebAuthClientFactory;
 
 import java.util.concurrent.Executor;
 
+/**
+ * A collection of builders for creating different type of authentication clients.
+ * {@link WebAuthClient}
+ * {@link AuthClient}
+ * {@link SyncAuthClient}
+ */
 public class Okta {
     /**
-     * The Async Web Builder.
+     * The asynchronous web authentication client builder.
      */
-    public static class AsyncWebBuilder extends OktaBuilder<WebAuthClient, AsyncWebBuilder> {
+    public static class WebAuthBuilder extends OktaBuilder<WebAuthClient, WebAuthBuilder> {
         private Executor mCallbackExecutor;
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
@@ -45,7 +51,7 @@ public class Okta {
          * @param executor custom executor
          * @return current builder
          */
-        public AsyncWebBuilder withCallbackExecutor(Executor executor) {
+        public WebAuthBuilder withCallbackExecutor(Executor executor) {
             mCallbackExecutor = executor;
             return this;
         }
@@ -56,7 +62,7 @@ public class Okta {
          * @param customTabColor the custom tab color for the browser
          * @return current builder
          */
-        public AsyncWebBuilder withTabColor(@ColorInt int customTabColor) {
+        public WebAuthBuilder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
             return this;
         }
@@ -68,13 +74,13 @@ public class Okta {
          * @param browsers the package name of the browsers.
          * @return current builder
          */
-        public AsyncWebBuilder supportedBrowsers(String[] browsers) {
+        public WebAuthBuilder supportedBrowsers(String[] browsers) {
             mSupportedBrowsers = browsers;
             return this;
         }
 
         @Override
-        AsyncWebBuilder toThis() {
+        WebAuthBuilder toThis() {
             return this;
         }
 
@@ -85,15 +91,17 @@ public class Okta {
          */
         @Override
         public WebAuthClient create() {
-            super.withAuthenticationClientFactory(new WebAuthClientFactory(this.mCallbackExecutor, mCustomTabColor, mSupportedBrowsers));
+            super.withAuthenticationClientFactory(new WebAuthClientFactory(mCallbackExecutor,
+                    mCustomTabColor, mSupportedBrowsers));
             return createAuthClient();
         }
     }
 
     /**
-     * The Sync Web Builder.
+     * The synchronous web authentication client builder.
      */
-    public static class SyncWebBuilder extends OktaBuilder<SyncWebAuthClient, SyncWebBuilder> {
+    public static class SyncWebAuthBuilder extends
+            OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
 
@@ -103,7 +111,7 @@ public class Okta {
          * @param customTabColor the custom tab color for the browser
          * @return current builder
          */
-        public SyncWebBuilder withTabColor(@ColorInt int customTabColor) {
+        public SyncWebAuthBuilder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
             return this;
         }
@@ -115,13 +123,13 @@ public class Okta {
          * @param browsers the package name of the browsers.
          * @return current builder
          */
-        public SyncWebBuilder supportedBrowsers(String... browsers) {
+        public SyncWebAuthBuilder supportedBrowsers(String... browsers) {
             mSupportedBrowsers = browsers;
             return this;
         }
 
         @Override
-        SyncWebBuilder toThis() {
+        SyncWebAuthBuilder toThis() {
             return this;
         }
 
@@ -132,15 +140,16 @@ public class Okta {
          */
         @Override
         public SyncWebAuthClient create() {
-            super.withAuthenticationClientFactory(new SyncWebAuthClientFactory(mCustomTabColor, mSupportedBrowsers));
+            super.withAuthenticationClientFactory(
+                    new SyncWebAuthClientFactory(mCustomTabColor, mSupportedBrowsers));
             return createAuthClient();
         }
     }
 
     /**
-     * The Async Native Builder.
+     * The asynchronous authentication client builder using sessionTokens.
      */
-    public static class AsyncNativeBuilder extends OktaBuilder<AuthClient, AsyncNativeBuilder> {
+    public static class AuthBuilder extends OktaBuilder<AuthClient, AuthBuilder> {
         private Executor mCallbackExecutor;
 
         /**
@@ -150,40 +159,41 @@ public class Okta {
          * @param executor custom executor
          * @return current builder
          */
-        public AsyncNativeBuilder withCallbackExecutor(Executor executor) {
+        public AuthBuilder withCallbackExecutor(Executor executor) {
             mCallbackExecutor = executor;
             return toThis();
         }
 
         @Override
-        AsyncNativeBuilder toThis() {
+        AuthBuilder toThis() {
             return this;
         }
 
         /**
-         * Create AsyncNativeAuth client.
+         * Create AuthClient.
          *
          * @return the authenticate client {@link AuthClient}
          */
         @Override
         public AuthClient create() {
-            super.withAuthenticationClientFactory(new AuthClientFactoryImpl(this.mCallbackExecutor));
+            super.withAuthenticationClientFactory(
+                    new AuthClientFactoryImpl(this.mCallbackExecutor));
             return createAuthClient();
         }
     }
 
     /**
-     * The Sync Native Builder.
+     * The synchronous authentication client builder using sessionTokens.
      */
-    public static class SyncNativeBuilder extends OktaBuilder<SyncAuthClient, SyncNativeBuilder> {
+    public static class SyncAuthBuilder extends OktaBuilder<SyncAuthClient, SyncAuthBuilder> {
 
         @Override
-        SyncNativeBuilder toThis() {
+        SyncAuthBuilder toThis() {
             return this;
         }
 
         /**
-         * Create SyncAuthClient client.
+         * Create SyncAuthClient.
          *
          * @return the authenticate client {@link SyncAuthClient}
          */
@@ -194,10 +204,16 @@ public class Okta {
         }
     }
 
+
     /**
-     * The Custom Builder.
+     * A generic type Builder.
+     *
+     * @param <A> the generic type parameter
      */
     public static class Builder<A> extends OktaBuilder<A, Builder<A>> {
+        /**
+         * Constructor.
+         */
         public Builder() {
         }
 

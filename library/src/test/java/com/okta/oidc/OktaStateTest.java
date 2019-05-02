@@ -56,7 +56,7 @@ public class OktaStateTest {
 
     @Test
     public void getAuthorizeRequest() {
-        WebRequest authorizedRequest = TestValues.getAuthorizeRequest(TestValues.getAccountWithUrl(CUSTOM_URL), null);
+        WebRequest authorizedRequest = TestValues.getAuthorizeRequest(TestValues.getConfigWithUrl(CUSTOM_URL), null);
         mOktaState.save(authorizedRequest);
 
         AuthorizeRequest expected = (AuthorizeRequest) mOktaState.getAuthorizeRequest();

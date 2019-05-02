@@ -12,17 +12,39 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-package com.okta.oidc.storage;
 
+package com.okta.oidc.storage;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+/**
+ * The interface Okta storage.
+ */
 public interface OktaStorage {
+    /**
+     * Save the data, must provide a key-value pair.
+     * The data will be encrypted by the library before saving.
+     *
+     * @param key   the key
+     * @param value the value
+     */
     void save(@NonNull String key, @NonNull String value);
 
+    /**
+     * Get the value based on the key parameter.
+     * The value will be decrypted by the library.
+     *
+     * @param key the key
+     * @return the value
+     */
     @Nullable
     String get(@NonNull String key);
 
+    /**
+     * Delete the data based on the key parameter.
+     *
+     * @param key the key
+     */
     void delete(@NonNull String key);
 }
