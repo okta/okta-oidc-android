@@ -74,7 +74,7 @@ public class Okta {
          * @param browsers the package name of the browsers.
          * @return current builder
          */
-        public WebAuthBuilder supportedBrowsers(String[] browsers) {
+        public WebAuthBuilder supportedBrowsers(String... browsers) {
             mSupportedBrowsers = browsers;
             return this;
         }
@@ -111,6 +111,7 @@ public class Okta {
          * @param customTabColor the custom tab color for the browser
          * @return current builder
          */
+        @SuppressWarnings("WeakerAccess")
         public SyncWebAuthBuilder withTabColor(@ColorInt int customTabColor) {
             mCustomTabColor = customTabColor;
             return this;
@@ -221,7 +222,6 @@ public class Okta {
         public A create() {
             return createAuthClient();
         }
-
 
         @Override
         public Builder<A> withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {

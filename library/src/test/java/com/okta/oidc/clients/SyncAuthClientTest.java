@@ -86,7 +86,7 @@ public class SyncAuthClientTest {
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
                 .withStorage(mStorage)
-                .withEncriptionManager(new EncryptionManagerStub())
+                .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
         mSyncNativeAuth = (SyncAuthClientImpl) okta;
