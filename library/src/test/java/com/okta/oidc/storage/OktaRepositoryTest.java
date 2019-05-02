@@ -54,7 +54,7 @@ public class OktaRepositoryTest {
 
         assert(mOktaStorageMock.get(encrypted.getKey()) == null);
         assert(mOktaRepository.cacheStorage.get(encrypted.getKey()) == null);
-        //TODO: EncryptionManager use AndroidKeyStore. Robolectric doesn't support it. Follow asserts check if saved data is encrypted
+        //TODO: SimpleEncryptionManager use AndroidKeyStore. Robolectric doesn't support it. Follow asserts check if saved data is encrypted
         //assert(!mOktaStorageMock.get(mOktaRepository.getHashed(encrypted.getKey())).equalsIgnoreCase(encrypted.getData()));
         //assert(!mOktaRepository.cacheStorage.get(mOktaRepository.getHashed(encrypted.getKey())).equalsIgnoreCase(encrypted.getData()));
 

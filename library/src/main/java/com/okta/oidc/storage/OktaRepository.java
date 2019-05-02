@@ -20,6 +20,8 @@ import android.util.Log;
 
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.SimpleEncryptionManager;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -32,7 +34,7 @@ public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
 
     private final OktaStorage storage;
-    private final EncryptionManager encryptionManager;
+    private final SimpleEncryptionManager encryptionManager;
     final Map<String, String> cacheStorage = new HashMap<>();
 
     private final Object lock = new Object();
@@ -111,7 +113,7 @@ public class OktaRepository {
 
     String getHashed(String value) {
         try {
-            return EncryptionManager.getHashed(value);
+            return encryptionManager.getHashed(value);
         } catch (NoSuchAlgorithmException ex) {
             Log.d(TAG, "getEncrypted: " + ex.getCause());
             return value;
@@ -121,9 +123,9 @@ public class OktaRepository {
         }
     }
 
-    private EncryptionManager buildEncryptionManager(Context context) {
+    private SimpleEncryptionManager buildEncryptionManager(Context context) {
         try {
-            return new EncryptionManager(context);
+            return new SimpleEncryptionManager(context);
         } catch (IOException ex) {
             Log.d(TAG, "getEncrypted: " + ex.getCause());
             return null;
