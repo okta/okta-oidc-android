@@ -43,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 @Config(sdk = 27)
 public class ConfigurationRequestTest {
     private ConfigurationRequest mRequest;
+    private ConfigurationRequest mRequestOAuth2;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     @Rule
@@ -57,6 +58,12 @@ public class ConfigurationRequestTest {
                 .request(HttpRequest.Type.CONFIGURATION)
                 .config(config)
                 .createRequest();
+
+        OIDCConfig configOAuth2 = TestValues.getConfigWithUrl(url + "/oauth2/default/");
+        mRequestOAuth2 = (ConfigurationRequest) HttpRequestBuilder.newRequest()
+                .request(HttpRequest.Type.CONFIGURATION)
+                .config(configOAuth2)
+                .createRequest();
         mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 
@@ -69,7 +76,7 @@ public class ConfigurationRequestTest {
     @Test
     public void dispatchRequestSuccess() throws InterruptedException {
         mEndPoint.enqueueConfigurationSuccess();
-        final CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<ProviderConfiguration, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
         RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
@@ -79,9 +86,24 @@ public class ConfigurationRequestTest {
         ProviderConfiguration other = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
         ProviderConfiguration configuration = cb.getResult();
-        configuration.validate();
+        configuration.validate(false);
         assertNotNull(configuration);
         assertEquals(configuration.persist(), other.persist());
+
+        //oauth2 config
+        mEndPoint.enqueueOAuth2ConfigurationSuccess();
+        CountDownLatch oauth2Latch = new CountDownLatch(1);
+        MockRequestCallback<ProviderConfiguration, AuthorizationException> oauth2Cb
+                = new MockRequestCallback<>(oauth2Latch);
+        mRequestOAuth2.dispatchRequest(dispatcher, oauth2Cb);
+        oauth2Latch.await();
+
+        ProviderConfiguration oauth2Config = new Gson().
+                fromJson(JsonStrings.PROVIDER_CONFIG_OAUTH2, ProviderConfiguration.class);
+        ProviderConfiguration oauth2ConfigResult = oauth2Cb.getResult();
+        oauth2ConfigResult.validate(true);
+        assertNotNull(oauth2ConfigResult);
+        assertEquals(oauth2ConfigResult.persist(), oauth2Config.persist());
     }
 
     @Test
@@ -105,8 +127,18 @@ public class ConfigurationRequestTest {
         ProviderConfiguration other = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
         assertNotNull(configuration);
-        configuration.validate();
+        configuration.validate(false);
         assertEquals(configuration.persist(), other.persist());
+
+        //oauth2
+        mEndPoint.enqueueOAuth2ConfigurationSuccess();
+        ProviderConfiguration oauth2Result = mRequestOAuth2.executeRequest();
+        ProviderConfiguration oauth2Config = new Gson().
+                fromJson(JsonStrings.PROVIDER_CONFIG_OAUTH2, ProviderConfiguration.class);
+        assertNotNull(oauth2Result);
+        oauth2Config.validate(true);
+        assertEquals(oauth2Result.persist(), oauth2Config.persist());
+
     }
 
     @Test

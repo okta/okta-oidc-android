@@ -82,6 +82,11 @@ public class SyncSessionClientImpl implements SyncSessionClient {
     }
 
     AuthorizedRequest userProfileRequest() {
+        if (mOidcConfig.isOAuth2Configuration()) {
+            throw new UnsupportedOperationException("Invalid operation. " +
+                    "Please check your configuration. OAuth2 authorization servers does not" +
+                    "support /userinfo endpoint ");
+        }
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.PROFILE)
                 .connectionFactory(mConnectionFactory)

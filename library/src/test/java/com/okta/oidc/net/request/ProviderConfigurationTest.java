@@ -25,15 +25,16 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.okta.oidc.util.TestValues.CUSTOM_OAUTH2_URL;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
 public class ProviderConfigurationTest {
     private ProviderConfiguration mValidConfiguration;
+    private ProviderConfiguration mValidOAuth2Configuration;
 
     private ProviderConfiguration mInvalidConfiguration;
 
@@ -44,17 +45,25 @@ public class ProviderConfigurationTest {
     public void setUp() throws Exception {
         mValidConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mInvalidConfiguration = TestValues.getProviderConfiguration(null);
+        mValidOAuth2Configuration = TestValues.getOAuth2ProviderConfiguration(CUSTOM_OAUTH2_URL);
     }
 
     @Test
     public void validate() throws IllegalArgumentException {
-        mValidConfiguration.validate();
+        mValidConfiguration.validate(false);
+        mValidOAuth2Configuration.validate(true);
     }
 
     @Test
     public void validateFail() throws IllegalArgumentException {
         mExpectedEx.expect(IllegalArgumentException.class);
-        mInvalidConfiguration.validate();
+        mInvalidConfiguration.validate(false);
+    }
+
+    @Test
+    public void validateMissingUserInfo() throws IllegalArgumentException {
+        mExpectedEx.expect(IllegalArgumentException.class);
+        mValidOAuth2Configuration.validate(false);
     }
 
     @Test
@@ -66,7 +75,7 @@ public class ProviderConfigurationTest {
     public void persist() {
         String json = mValidConfiguration.persist();
         ProviderConfiguration other = new Gson().fromJson(json, ProviderConfiguration.class);
-        other.validate();
+        other.validate(false);
         assertNotNull(other);
         assertEquals(other.persist(), json);
     }

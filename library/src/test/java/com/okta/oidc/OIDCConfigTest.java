@@ -26,13 +26,16 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.util.TestValues.CLIENT_ID;
+import static com.okta.oidc.util.TestValues.CUSTOM_OAUTH2_URL;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.END_SESSION_URI;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,10 +44,12 @@ import static org.mockito.Mockito.when;
 @Config(sdk = 27)
 public class OIDCConfigTest {
     private OIDCConfig mConfig;
+    private OIDCConfig mConfigOAuth2;
 
     @Before
     public void setUp() throws Exception {
         mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
+        mConfigOAuth2 = TestValues.getConfigWithUrl(CUSTOM_OAUTH2_URL);
     }
 
     @Test
@@ -74,6 +79,16 @@ public class OIDCConfigTest {
         assertNotNull(uri);
         assertEquals(uri, Uri.parse(CUSTOM_URL +
                 ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE));
+        assertFalse(mConfig.isOAuth2Configuration());
+    }
+
+    @Test
+    public void getDiscoveryUriOAuth2() {
+        Uri uri = mConfigOAuth2.getDiscoveryUri();
+        assertNotNull(uri);
+        assertEquals(uri, Uri.parse(CUSTOM_OAUTH2_URL +
+                ProviderConfiguration.OAUTH2_CONFIGURATION_RESOURCE));
+        assertTrue(mConfigOAuth2.isOAuth2Configuration());
     }
 
     @Test

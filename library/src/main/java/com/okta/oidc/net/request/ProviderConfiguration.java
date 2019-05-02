@@ -82,7 +82,7 @@ public class ProviderConfiguration implements Persistable {
         //NO-OP
     }
 
-    void validate() throws IllegalArgumentException {
+    void validate(boolean isOAuth2) throws IllegalArgumentException {
         if (TextUtils.isEmpty(authorization_endpoint)) {
             throw new IllegalArgumentException("authorization_endpoint is missing");
         }
@@ -107,7 +107,8 @@ public class ProviderConfiguration implements Persistable {
         if (TextUtils.isEmpty(token_endpoint)) {
             throw new IllegalArgumentException("token_endpoint is missing");
         }
-        if (TextUtils.isEmpty(userinfo_endpoint)) {
+        //Oauth2 server configuration doesn't contain userinfo_endpoint.
+        if (!isOAuth2 && TextUtils.isEmpty(userinfo_endpoint)) {
             throw new IllegalArgumentException("userinfo_endpoint is missing");
         }
     }

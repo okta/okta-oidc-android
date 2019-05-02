@@ -73,20 +73,17 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
-public class SyncSessionClientImplImplTest {
+public class SyncSessionClientImplTest {
 
     private Context mContext;
     private OIDCConfig mConfig;
     private HttpConnectionFactory mConnectionFactory;
-    private OktaStorage mStorage;
-    ProviderConfiguration mProviderConfig;
+    private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
-    private SyncWebAuthClient mSyncWebAuth;
     private SyncSessionClientImpl mSyncSessionClientImpl;
     private MockEndPoint mEndPoint;
     private Gson mGson;
     private OktaState mOktaState;
-
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -99,21 +96,20 @@ public class SyncSessionClientImplImplTest {
         String url = mEndPoint.getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
         mGson = new Gson();
-        mStorage = new SimpleOktaStorage(mContext);
+        OktaStorage storage = new SimpleOktaStorage(mContext);
 
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
-        SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
+        SyncWebAuthClient mSyncWebAuth = new Okta.SyncWebAuthBuilder()
                 .withConfig(mConfig)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
-                .withStorage(mStorage)
+                .withStorage(storage)
                 .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
-        mSyncWebAuth = okta;
-        mSyncSessionClientImpl = (SyncSessionClientImpl) okta.getSessionClient();
+        mSyncSessionClientImpl = (SyncSessionClientImpl) mSyncWebAuth.getSessionClient();
 
         mOktaState = mSyncSessionClientImpl.getOktaState();
 
@@ -200,6 +196,29 @@ public class SyncSessionClientImplImplTest {
         assertNotNull(result);
         assertEquals("John Doe", result.getString("name"));
         assertEquals("Jimmy", result.getString("nickname"));
+    }
+
+    @Test
+    public void userProfileRequestOAuth2() throws InterruptedException, AuthorizationException,
+            JSONException {
+        mExpectedEx.expect(UnsupportedOperationException.class);
+        //create sessionclient from oauth2 resource
+        OIDCConfig oauth2Config = TestValues
+                .getConfigWithUrl(mEndPoint.getUrl() + "/oauth2/default/");
+
+        SyncWebAuthClient syncWebAuthClient = new Okta.SyncWebAuthBuilder()
+                .withConfig(oauth2Config)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .withContext(mContext)
+                .withStorage(new SimpleOktaStorage(mContext, "oauth2prefs"))
+                .withEncryptionManager(new EncryptionManagerStub())
+                .create();
+
+        SyncSessionClientImpl sessionClient = (SyncSessionClientImpl) syncWebAuthClient
+                .getSessionClient();
+
+        AuthorizedRequest request = sessionClient.userProfileRequest();
+        request.executeRequest();
     }
 
     @Test

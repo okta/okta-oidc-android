@@ -46,6 +46,7 @@ import static com.okta.oidc.util.JsonStrings.FORBIDDEN;
 import static com.okta.oidc.util.JsonStrings.INTROSPECT_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.INVALID_CLIENT;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
+import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG_OAUTH2;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.JsonStrings.UNAUTHORIZED_INVALID_TOKEN;
 import static com.okta.oidc.util.JsonStrings.USER_PROFILE;
@@ -103,6 +104,10 @@ public class MockEndPoint {
 
     public void enqueueConfigurationSuccess() {
         mServer.enqueue(jsonResponse(HTTP_OK, PROVIDER_CONFIG));
+    }
+
+    public void enqueueOAuth2ConfigurationSuccess() {
+        mServer.enqueue(jsonResponse(HTTP_OK, PROVIDER_CONFIG_OAUTH2));
     }
 
     public void enqueueConfigurationSuccess(ProviderConfiguration configuration) {

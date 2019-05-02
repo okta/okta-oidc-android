@@ -29,7 +29,6 @@ import com.okta.oidc.clients.AuthClient;
 import com.okta.oidc.clients.SyncAuthClient;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.net.request.ProviderConfiguration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,6 +40,9 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+
+import static com.okta.oidc.net.request.ProviderConfiguration.OAUTH2_CONFIGURATION_RESOURCE;
+import static com.okta.oidc.net.request.ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE;
 
 /**
  * Okta config information. This is used to setup a configuration for AuthClient and
@@ -65,11 +67,13 @@ import java.nio.charset.StandardCharsets;
  */
 public class OIDCConfig {
     private static final String TAG = OIDCConfig.class.getSimpleName();
-
+    private static final String OAUTH2 = "oauth2";
     private AccountInfo mAccount;
+    private boolean mIsOAuth2Configuration;
 
     private OIDCConfig(AccountInfo account) {
         mAccount = account;
+        mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2);
     }
 
     /**
@@ -108,8 +112,17 @@ public class OIDCConfig {
      * @return The Uri where the discovery document can be found
      */
     public Uri getDiscoveryUri() {
-        return Uri.parse(mAccount.mDiscoveryUri +
-                ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE);
+        return Uri.parse(mAccount.mDiscoveryUri + (mIsOAuth2Configuration ?
+                OAUTH2_CONFIGURATION_RESOURCE : OPENID_CONFIGURATION_RESOURCE));
+    }
+
+    /**
+     * Check to see if the configuration is from OAuth2 or OpenID Connect.
+     *
+     * @return true if the authorization server is OAuth2 instead of OpenID Connect.
+     */
+    public boolean isOAuth2Configuration() {
+        return mIsOAuth2Configuration;
     }
 
     /**

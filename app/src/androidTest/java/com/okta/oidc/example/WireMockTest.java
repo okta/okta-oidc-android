@@ -31,10 +31,9 @@ import androidx.test.uiautomator.Until;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.okta.oidc.Okta;
-import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -199,14 +198,12 @@ public class WireMockTest {
                 .discoveryUri("https://127.0.0.1:8443")
                 .create();
 
-        WebAuthClient mWebOktaAuth = new Okta.WebAuthBuilder()
+        activityRule.getActivity().mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(activityRule.getActivity().mOidcConfig)
                 .withContext(activityRule.getActivity())
                 .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
                 .withHttpConnectionFactory(new MockConnectionFactory())
                 .create();
-
-        activityRule.getActivity().mWebAuth = mWebOktaAuth;
 
         activityRule.getActivity().setupCallback();
     }

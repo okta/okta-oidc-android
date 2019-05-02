@@ -58,6 +58,84 @@ public interface JsonStrings {
             "    \"id_token\" : \"%s\"" +
             "}";
 
+    String PROVIDER_CONFIG_OAUTH2 = "{\n" +
+            "    \"issuer\": \"https://dev-486177.oktapreview.com/oauth2/default/\",\n" +
+            "    \"authorization_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/authorize\",\n" +
+            "    \"token_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/token\",\n" +
+            "    \"registration_endpoint\": \"https://{baseUrl}/clients\",\n" +
+            "    \"jwks_uri\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/keys\",\n" +
+            "    \"response_types_supported\": [\n" +
+            "        \"code\",\n" +
+            "        \"token\",\n" +
+            "        \"id_token\",\n" +
+            "        \"code id_token\",\n" +
+            "        \"code token\",\n" +
+            "        \"id_token token\",\n" +
+            "        \"code id_token token\"\n" +
+            "    ],\n" +
+            "    \"response_modes_supported\": [\n" +
+            "        \"query\",\n" +
+            "        \"fragment\",\n" +
+            "        \"form_post\",\n" +
+            "        \"okta_post_message\"\n" +
+            "    ],\n" +
+            "    \"grant_types_supported\": [\n" +
+            "        \"authorization_code\",\n" +
+            "        \"implicit\",\n" +
+            "        \"refresh_token\",\n" +
+            "        \"password\",\n" +
+            "        \"client_credentials\"\n" +
+            "    ],\n" +
+            "    \"subject_types_supported\": [\n" +
+            "        \"public\"\n" +
+            "    ],\n" +
+            "    \"scopes_supported\": [\n" +
+            "        \"offline_access\",\n" +
+            "    ],\n" +
+            "    \"token_endpoint_auth_methods_supported\": [\n" +
+            "        \"client_secret_basic\",\n" +
+            "        \"client_secret_post\",\n" +
+            "        \"client_secret_jwt\",\n" +
+            "        \"none\"\n" +
+            "    ],\n" +
+            "    \"claims_supported\": [\n" +
+            "       \"ver\",\n" +
+            "       \"jti\",\n" +
+            "       \"iss\",\n" +
+            "       \"aud\",\n" +
+            "       \"iat\",\n" +
+            "       \"exp\",\n" +
+            "       \"cid\",\n" +
+            "       \"uid\",\n" +
+            "       \"scp\",\n" +
+            "       \"sub\"\n" +
+            "  ],\n" +
+            "    \"code_challenge_methods_supported\": [\n" +
+            "        \"S256\"\n" +
+            "    ],\n" +
+            "    \"introspection_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/introspect\",\n" +
+            "    \"introspection_endpoint_auth_methods_supported\": [\n" +
+            "        \"client_secret_basic\",\n" +
+            "        \"client_secret_post\",\n" +
+            "        \"client_secret_jwt\",\n" +
+            "        \"none\"\n" +
+            "    ],\n" +
+            "    \"revocation_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/revoke\",\n" +
+            "    \"revocation_endpoint_auth_methods_supported\": [\n" +
+            "        \"client_secret_basic\",\n" +
+            "        \"client_secret_post\",\n" +
+            "        \"client_secret_jwt\",\n" +
+            "        \"none\"\n" +
+            "    ],\n" +
+            "    \"end_session_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/logout\",\n" +
+            "    \"request_parameter_supported\": true,\n" +
+            "    \"request_object_signing_alg_values_supported\": [\n" +
+            "        \"HS256\",\n" +
+            "        \"HS384\",\n" +
+            "        \"HS512\"\n" +
+            "    ]\n" +
+            "}";
+
     String PROVIDER_CONFIG = "{\n" +
             "    \"issuer\": \"https://dev-486177.oktapreview.com/oauth2/default\",\n" +
             "    \"authorization_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/authorize\",\n" +

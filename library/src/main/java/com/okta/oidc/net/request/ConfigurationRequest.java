@@ -33,9 +33,12 @@ import java.io.IOException;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class ConfigurationRequest extends
         BaseRequest<ProviderConfiguration, AuthorizationException> {
+    private boolean mIsOAuth2;
+
     ConfigurationRequest(HttpRequestBuilder b) {
         super();
         mRequestType = b.mRequestType;
+        mIsOAuth2 = b.mConfig.isOAuth2Configuration();
         mUri = b.mConfig.getDiscoveryUri().buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId()).build();
         mConnection = new HttpConnection.Builder()
@@ -71,7 +74,7 @@ public final class ConfigurationRequest extends
             JSONObject json = response.asJson();
             ProviderConfiguration configuration = new Gson()
                     .fromJson(json.toString(), ProviderConfiguration.class);
-            configuration.validate();
+            configuration.validate(mIsOAuth2);
             return configuration;
         } catch (IOException ex) {
             exception = AuthorizationException.fromTemplate(
