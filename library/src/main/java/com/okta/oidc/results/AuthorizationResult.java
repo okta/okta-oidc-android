@@ -24,7 +24,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 /**
  * The Authorization result returned from a auth requests.
- * {@link com.okta.oidc.clients.AuthClient#logIn(String, AuthenticationPayload, RequestCallback)}
+ * {@link com.okta.oidc.clients.AuthClient#signIn(String, AuthenticationPayload, RequestCallback)}
  */
 public class AuthorizationResult extends Result {
 

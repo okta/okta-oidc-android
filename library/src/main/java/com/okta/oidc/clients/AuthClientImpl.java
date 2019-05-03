@@ -46,10 +46,10 @@ class AuthClientImpl implements AuthClient {
 
     @Override
     @AnyThread
-    public void logIn(String sessionToken, AuthenticationPayload payload,
-                      RequestCallback<AuthorizationResult, AuthorizationException> cb) {
+    public void signIn(String sessionToken, AuthenticationPayload payload,
+                       RequestCallback<AuthorizationResult, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
-            AuthorizationResult result = mSyncNativeAuthClient.logIn(sessionToken, payload);
+            AuthorizationResult result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {
                 mDispatcher.submitResults(() -> {
                     if (cb != null) {

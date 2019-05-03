@@ -64,7 +64,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
     boolean isInProgress();
 
     /**
-     * Log in using implicit flow.
+     * Sign in using implicit flow.
      *
      * <p>The result will be returned in the
      * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
@@ -72,7 +72,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      */
-    void logIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
+    void signIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
 
     /**
      * Sign out from okta. This will clear the browser session
@@ -86,7 +86,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
 
     /**
      * Register a callback for login and logout result status. The callback is triggered when
-     * {@link #logIn(FragmentActivity, AuthenticationPayload) logIn} or
+     * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
      * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
      * Example usage:
      * {@code

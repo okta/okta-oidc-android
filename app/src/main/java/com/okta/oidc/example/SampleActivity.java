@@ -307,7 +307,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mSignInBrowser.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             WebAuthClient client = getWebAuthClient();
-            client.logIn(this, mPayload);
+            client.signIn(this, mPayload);
         });
 
         mSignInNative.setOnClickListener(v -> {
@@ -536,7 +536,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                             @Override
                             public void handleSuccess(AuthenticationResponse successResponse) {
                                 String sessionToken = successResponse.getSessionToken();
-                                mAuthClient.logIn(sessionToken, mPayload,
+                                mAuthClient.signIn(sessionToken, mPayload,
                                         new RequestCallback<AuthorizationResult,
                                                 AuthorizationException>() {
                                             @Override

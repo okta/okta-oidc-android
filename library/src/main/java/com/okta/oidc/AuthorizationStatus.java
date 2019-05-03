@@ -19,7 +19,7 @@ import androidx.fragment.app.FragmentActivity;
 
 /**
  * The Authorization status returned from a web auth requests.
- * {@link com.okta.oidc.clients.web.WebAuthClient#logIn(FragmentActivity, AuthenticationPayload)}
+ * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(FragmentActivity, AuthenticationPayload)}
  * {@link com.okta.oidc.clients.web.WebAuthClient#signOutOfOkta(FragmentActivity)}
  */
 public enum AuthorizationStatus {

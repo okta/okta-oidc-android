@@ -129,7 +129,7 @@ public class SyncAuthClientTest {
         mEndPoint.enqueueNativeRequestSuccess(state);
         mEndPoint.enqueueTokenSuccess(jws);
 
-        AuthorizationResult result = mSyncNativeAuth.logIn(SESSION_TOKEN, payload);
+        AuthorizationResult result = mSyncNativeAuth.signIn(SESSION_TOKEN, payload);
         assertNotNull(result);
         Tokens tokens = result.getTokens();
         assertNotNull(tokens);

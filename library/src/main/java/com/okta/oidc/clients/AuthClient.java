@@ -32,7 +32,7 @@ import com.okta.oidc.util.AuthorizationException;
  */
 public interface AuthClient extends BaseAuth<SessionClient> {
     /**
-     * Log in with a session token. This is for logging in without using the implicit flow.
+     * Sign in with a session token. This is for logging in without using the implicit flow.
      * A session token can be obtained by using the AuthClient API. For more information
      * about different types of
      * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
@@ -41,6 +41,6 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * @param payload      the {@link AuthenticationPayload}
      * @param cb           the @{@link RequestCallback}
      */
-    void logIn(String sessionToken, AuthenticationPayload payload,
-               RequestCallback<AuthorizationResult, AuthorizationException> cb);
+    void signIn(String sessionToken, AuthenticationPayload payload,
+                RequestCallback<AuthorizationResult, AuthorizationException> cb);
 }

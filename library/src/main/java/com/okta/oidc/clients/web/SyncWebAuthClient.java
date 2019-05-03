@@ -60,15 +60,15 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
     boolean isInProgress();
 
     /**
-     * Log in using implicit flow.
+     * Sign in using implicit flow.
      *
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      * @return the result
      * @throws InterruptedException the interrupted exception
      */
-    AuthorizationResult logIn(@NonNull FragmentActivity activity,
-                              @Nullable AuthenticationPayload payload)
+    AuthorizationResult signIn(@NonNull FragmentActivity activity,
+                               @Nullable AuthenticationPayload payload)
             throws InterruptedException;
 
     /**

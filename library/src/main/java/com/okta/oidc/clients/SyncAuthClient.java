@@ -31,7 +31,7 @@ import com.okta.oidc.results.AuthorizationResult;
  */
 public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
     /**
-     * Log in with a session token. This is for logging in without using the implicit flow.
+     * Sign in with a session token. This is for logging in without using the implicit flow.
      * A session token can be obtained by using the AuthClient API. For more information
      * about different types of
      * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
@@ -40,5 +40,5 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      * @param payload      the {@link AuthenticationPayload payload}
      * @return the {@link AuthorizationResult authorizationResult}
      */
-    AuthorizationResult logIn(String sessionToken, @Nullable AuthenticationPayload payload);
+    AuthorizationResult signIn(String sessionToken, @Nullable AuthenticationPayload payload);
 }

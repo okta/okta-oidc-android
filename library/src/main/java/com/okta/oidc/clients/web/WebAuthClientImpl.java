@@ -108,11 +108,11 @@ class WebAuthClientImpl implements WebAuthClient {
 
     @Override
     @AnyThread
-    public void logIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
+    public void signIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
-                AuthorizationResult result = mSyncAuthClient.logIn(activity, payload);
+                AuthorizationResult result = mSyncAuthClient.signIn(activity, payload);
 
                 processLogInResult(result);
             } catch (InterruptedException e) {

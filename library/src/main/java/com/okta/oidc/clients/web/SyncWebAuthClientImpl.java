@@ -146,8 +146,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
     @Override
     @WorkerThread
-    public AuthorizationResult logIn(@NonNull final FragmentActivity activity,
-                                     @Nullable AuthenticationPayload payload)
+    public AuthorizationResult signIn(@NonNull final FragmentActivity activity,
+                                      @Nullable AuthenticationPayload payload)
             throws InterruptedException {
         try {
             obtainNewConfiguration();

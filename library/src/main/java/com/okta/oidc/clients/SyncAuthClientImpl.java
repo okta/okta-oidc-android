@@ -55,8 +55,8 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     }
 
     @WorkerThread
-    public AuthorizationResult logIn(String sessionToken,
-                                     @Nullable AuthenticationPayload payload) {
+    public AuthorizationResult signIn(String sessionToken,
+                                      @Nullable AuthenticationPayload payload) {
         try {
             obtainNewConfiguration();
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);

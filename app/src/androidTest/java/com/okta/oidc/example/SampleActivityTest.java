@@ -126,7 +126,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test1_loginNoSession() throws UiObjectNotFoundException {
+    public void test1_signInNoSession() throws UiObjectNotFoundException {
         onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
             onView(withId(R.id.clear_data)).perform(click());
@@ -150,7 +150,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test3_logInWithSession() {
+    public void test3_signInWithSession() {
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
@@ -260,7 +260,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testB_logInWithPayload() throws UiObjectNotFoundException {
+    public void testB_signInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
                 .setLoginHint("devex@okta.com")
                 .addParameter("max_age", "5000")
