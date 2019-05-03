@@ -33,7 +33,7 @@ public enum AuthorizationStatus {
      */
     IN_PROGRESS,
     /**
-     * Logged out authorization status. Browser session is cleared.
+     * Signed out authorization status. Browser session is cleared.
      */
-    LOGGED_OUT
+    SIGNED_OUT
 }

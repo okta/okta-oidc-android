@@ -63,7 +63,7 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 @SuppressLint("SetTextI18n")
 @SuppressWarnings("FieldCanBeLocal")
-public class SampleActivity extends AppCompatActivity implements LoginDialog.LoginDialogListener {
+public class SampleActivity extends AppCompatActivity implements SignInDialog.SignInDialogListener {
     private static final String TAG = "SampleActivity";
     /**
      * Authorization client using chrome custom tab as a user agent.
@@ -119,7 +119,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
      * The Authentication API client.
      */
     protected AuthenticationClient mAuthenticationClient;
-    private LoginDialog mLoginDialog;
+    private SignInDialog mSignInDialog;
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
     @Override
@@ -127,7 +127,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.sample_activity_login);
+        setContentView(R.layout.sample_activity);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
         mSignOut = findViewById(R.id.sign_out);
@@ -149,10 +149,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mSwitch.setChecked(checked);
         mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (getSessionClient().isLoggedIn()) {
-                showAuthorizedMode();
+            if (getSessionClient().isAuthenticated()) {
+                showAuthenticatedMode();
             } else {
-                showLoggedOutMode();
+                showSignedOutMode();
             }
             mSwitch.setText(isChecked ? "OIDC" : "OAuth2");
         });
@@ -301,7 +301,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             SessionClient client = getSessionClient();
             client.clear();
             mTvStatus.setText("clear data");
-            showLoggedOutMode();
+            showSignedOutMode();
         });
 
         mSignInBrowser.setOnClickListener(v -> {
@@ -312,14 +312,14 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mSignInNative.setOnClickListener(v -> {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentByTag("login");
+            Fragment prev = getSupportFragmentManager().findFragmentByTag("signin");
             if (prev != null) {
                 ft.remove(prev);
             }
             ft.addToBackStack(null);
-            mLoginDialog = new LoginDialog();
-            mLoginDialog.setListener(this);
-            mLoginDialog.show(ft, "login");
+            mSignInDialog = new SignInDialog();
+            mSignInDialog.setListener(this);
+            mSignInDialog.show(ft, "signin");
         });
 
         mAuthenticationClient = AuthenticationClients.builder()
@@ -377,8 +377,8 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .withCallbackExecutor(null)
                 .create();
 
-        if (getSessionClient().isLoggedIn()) {
-            showAuthorizedMode();
+        if (getSessionClient().isAuthenticated()) {
+            showAuthenticatedMode();
         }
 
         setupCallback();
@@ -396,9 +396,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                         Log.d("SampleActivity", "AUTHORIZED");
                         if (status == AuthorizationStatus.AUTHORIZED) {
                             mTvStatus.setText("authentication authorized");
-                            showAuthorizedMode();
+                            showAuthenticatedMode();
                             mProgressBar.setVisibility(View.GONE);
-                        } else if (status == AuthorizationStatus.LOGGED_OUT) {
+                        } else if (status == AuthorizationStatus.SIGNED_OUT) {
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
                             mProgressBar.setVisibility(View.GONE);
@@ -455,12 +455,12 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     protected void onDestroy() {
         super.onDestroy();
         mExecutor.shutdownNow();
-        if (mLoginDialog != null && mLoginDialog.isVisible()) {
-            mLoginDialog.dismiss();
+        if (mSignInDialog != null && mSignInDialog.isVisible()) {
+            mSignInDialog.dismiss();
         }
     }
 
-    private void showAuthorizedMode() {
+    private void showAuthenticatedMode() {
         mGetProfile.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
@@ -470,7 +470,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mSignInNative.setVisibility(View.GONE);
     }
 
-    private void showLoggedOutMode() {
+    private void showSignedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
         mSignInNative.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
@@ -505,8 +505,8 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     }
 
     @Override
-    public void onLogin(String username, String password) {
-        mLoginDialog.dismiss();
+    public void onSignIn(String username, String password) {
+        mSignInDialog.dismiss();
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
             mTvStatus.setText("Invalid username or password");
             return;
@@ -543,7 +543,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                                             public void onSuccess(
                                                     @NonNull AuthorizationResult result) {
                                                 mTvStatus.setText("authentication authorized");
-                                                showAuthorizedMode();
+                                                showAuthenticatedMode();
                                                 mProgressBar.setVisibility(View.GONE);
                                             }
 

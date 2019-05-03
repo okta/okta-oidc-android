@@ -160,7 +160,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
     }
 
     @Override
-    public boolean isLoggedIn() {
+    public boolean isAuthenticated() {
         TokenResponse tokenResponse = mOktaState.getTokenResponse();
         return tokenResponse != null &&
                 (tokenResponse.getAccessToken() != null || tokenResponse.getIdToken() != null);

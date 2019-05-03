@@ -234,7 +234,7 @@ public class WireMockTest {
     }
 
     @Test
-    public void test1_loginNoSession() throws UiObjectNotFoundException, InterruptedException {
+    public void test1_signInNoSession() throws UiObjectNotFoundException, InterruptedException {
         activityRule.getActivity().mPayload = mMockPayload;
         mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)

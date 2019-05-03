@@ -96,7 +96,7 @@ public class SyncAuthClientTest {
     }
 
     @Test
-    public void nativeLogInRequestSuccess() throws AuthorizationException {
+    public void nativeSignInRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueNativeRequestSuccess(CUSTOM_STATE);
         NativeAuthorizeRequest request =
                 mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, null);
@@ -107,7 +107,7 @@ public class SyncAuthClientTest {
     }
 
     @Test
-    public void nativeLogInRequestFailure() throws AuthorizationException {
+    public void nativeSignInRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         NativeAuthorizeRequest request =
@@ -117,7 +117,7 @@ public class SyncAuthClientTest {
     }
 
     @Test
-    public void loginNative() throws AuthorizationException {
+    public void signInNative() throws AuthorizationException {
         String nonce = CodeVerifierUtil.generateRandomState();
         String state = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());

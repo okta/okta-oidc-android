@@ -85,7 +85,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
     void signOutOfOkta(@NonNull FragmentActivity activity);
 
     /**
-     * Register a callback for login and logout result status. The callback is triggered when
+     * Register a callback for sign in and sign out result status. The callback is triggered when
      * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
      * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
      * Example usage:
@@ -95,9 +95,9 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *      @Override
      *      public void onSuccess(@NonNull AuthorizationStatus status) {
      *          if (status == AuthorizationStatus.AUTHORIZED) {
-     *              //login success. client can be used to perform protected resource requests.
-     *          } else if (status == AuthorizationStatus.LOGGED_OUT) {
-     *              //logout success. browser session is cleared.
+     *              //sign in success. client can be used to perform protected resource requests.
+     *          } else if (status == AuthorizationStatus.SIGNED_OUT) {
+     *              //sing out success. browser session is cleared.
      *          } else if (status == AuthorizationStatus.IN_PROGRESS) {
      *              //request in progress.
      *          }
@@ -116,7 +116,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * </pre>
      * }*
      *
-     * @param resultCallback returns the result of login or logout attempts.
+     * @param resultCallback returns the result of sign in or sign out attempts.
      * @param activity       the activity which will receive the results.
      */
     void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>

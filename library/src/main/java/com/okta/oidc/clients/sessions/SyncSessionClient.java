@@ -187,14 +187,15 @@ public interface SyncSessionClient {
     Tokens getTokens();
 
     /**
-     * Checks to see if the user is logged-in. If the client have a access or ID token then
-     * the user is considered logged-in. This does not check the validity of the access token which
-     * could be expired or revoked. For more information about the tokens see
+     * Checks to see if the user is authenticated. If the client have a access or ID token then
+     * the user is considered authenticated and this call will return true. This does not check the
+     * validity of the access token which could be expired or revoked. For more information about
+     * the tokens see
      * {@link #introspectToken(String, String) introspectToken}
      *
      * @return the boolean
      */
-    boolean isLoggedIn();
+    boolean isAuthenticated();
 
     /**
      * Clears all data. This will remove all tokens from the client.

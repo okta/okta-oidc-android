@@ -172,7 +172,7 @@ class WebAuthClientImpl implements WebAuthClient {
             mDispatcher.submitResults(() -> {
                 if (mResultCb != null) {
                     mResultCb.onSuccess(
-                            AuthorizationStatus.LOGGED_OUT);
+                            AuthorizationStatus.SIGNED_OUT);
                 }
             });
         } else if (result.isCancel()) {

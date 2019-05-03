@@ -133,7 +133,7 @@ public class SyncSessionClientImplTest {
         assertNull(mOktaState.getAuthorizeRequest());
         assertNull(mOktaState.getProviderConfiguration());
         assertNull(mOktaState.getTokenResponse());
-        assertFalse(mSyncSessionClientImpl.isLoggedIn());
+        assertFalse(mSyncSessionClientImpl.isAuthenticated());
         assertNull(mSyncSessionClientImpl.getTokens());
     }
 
@@ -141,7 +141,7 @@ public class SyncSessionClientImplTest {
     public void isLoggedIn_success() {
         mOktaState.save(TestValues.getTokenResponse());
 
-        boolean result = mSyncSessionClientImpl.isLoggedIn();
+        boolean result = mSyncSessionClientImpl.isAuthenticated();
 
         assertTrue(result);
         assertNotNull(mSyncSessionClientImpl.getTokens());
@@ -149,7 +149,7 @@ public class SyncSessionClientImplTest {
 
     @Test
     public void isLoggedIn_false() {
-        boolean result = mSyncSessionClientImpl.isLoggedIn();
+        boolean result = mSyncSessionClientImpl.isAuthenticated();
 
         assertFalse(result);
         assertNull(mSyncSessionClientImpl.getTokens());
