@@ -82,12 +82,12 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *
      * @param activity the activity
      */
-    void signOutFromOkta(@NonNull FragmentActivity activity);
+    void signOutOfOkta(@NonNull FragmentActivity activity);
 
     /**
      * Register a callback for login and logout result status. The callback is triggered when
      * {@link #logIn(FragmentActivity, AuthenticationPayload) logIn} or
-     * {@link #signOutFromOkta(FragmentActivity)} signOutFromOkta} is completed.
+     * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
      * Example usage:
      * {@code
      * <pre>

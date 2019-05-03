@@ -33,14 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-                android:text="OIDC" />
-
-            <TextView
-                style="@style/Base.TextAppearance.AppCompat.Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/intro_header" />
+                android:text="@string/oidc" />
 
             <!--
             Displayed while the discovery document is loaded, and dynamic client registration is

@@ -151,7 +151,7 @@ class WebAuthClientImpl implements WebAuthClient {
 
     @Override
     @AnyThread
-    public void signOutFromOkta(@NonNull final FragmentActivity activity) {
+    public void signOutOfOkta(@NonNull final FragmentActivity activity) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {

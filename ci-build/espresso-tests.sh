@@ -51,7 +51,7 @@ while [ "$1" != "" ]; do
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
-            usage
+            display_usage
             exit 1
             ;;
     esac

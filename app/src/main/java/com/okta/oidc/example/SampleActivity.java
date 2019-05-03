@@ -154,6 +154,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
             } else {
                 showLoggedOutMode();
             }
+            mSwitch.setText(isChecked ? "OIDC" : "OAuth2");
         });
 
         mIntrospectRefresh.setOnClickListener(v -> {
@@ -294,7 +295,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mSignOut.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             WebAuthClient client = getWebAuthClient();
-            client.signOutFromOkta(this);
+            client.signOutOfOkta(this);
         });
         mClearData.setOnClickListener(v -> {
             SessionClient client = getSessionClient();
@@ -399,7 +400,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                             mProgressBar.setVisibility(View.GONE);
                         } else if (status == AuthorizationStatus.LOGGED_OUT) {
                             //this only clears the session.
-                            mTvStatus.setText("signedOutFromOkta");
+                            mTvStatus.setText("signedOutOfOkta");
                             mProgressBar.setVisibility(View.GONE);
                         } else if (status == AuthorizationStatus.IN_PROGRESS) {
                             mTvStatus.setText("in progress");

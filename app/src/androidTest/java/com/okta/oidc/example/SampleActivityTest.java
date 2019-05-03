@@ -38,6 +38,7 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
@@ -49,6 +50,7 @@ import static org.junit.Assert.assertNotNull;
 @LargeTest
 public class SampleActivityTest {
     //apk package names
+    @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
     private static final String CHROME_STABLE = "com.android.chrome";
     private static final String SAMPLE_APP = "com.okta.oidc.example";
@@ -106,6 +108,23 @@ public class SampleActivityTest {
         }
     }
 
+    private void customTabInteraction(boolean enterUserName) throws UiObjectNotFoundException {
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        acceptChromePrivacyOption();
+        UiSelector selector = new UiSelector();
+        if (enterUserName) {
+            UiObject username = mDevice.findObject(selector.resourceId(ID_USERNAME));
+            username.setText(USERNAME);
+        }
+        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
+        password.setText(PASSWORD);
+        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
+        signIn.click();
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        //wait for token exchange
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+    }
+
     @Test
     public void test1_loginNoSession() throws UiObjectNotFoundException {
         onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
@@ -114,25 +133,7 @@ public class SampleActivityTest {
         }).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        acceptChromePrivacyOption();
-
-        UiSelector selector = new UiSelector();
-
-        UiObject username = mDevice.findObject(selector.resourceId(ID_USERNAME));
-        username.setText(USERNAME);
-
-        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
-        password.setText(PASSWORD);
-
-        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
-        signIn.click();
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-
-        //wait for token exchange
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        customTabInteraction(true);
 
         //check if get profile is visible
         getProfileButton().waitForExists(TRANSITION_TIMEOUT);
@@ -232,13 +233,13 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test9_signOutFromOkta() {
+    public void test9_signOutOfOkta() {
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_out)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-        onView(withId(R.id.status)).check(matches(withText(containsString("signedOutFromOkta"))));
+        onView(withId(R.id.status)).check(matches(withText(containsString("signedOutOfOkta"))));
     }
 
     @Test
@@ -272,19 +273,7 @@ public class SampleActivityTest {
 
         onView(withId(R.id.sign_in)).perform(click());
 
-        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
-
-        acceptChromePrivacyOption();
-
-        UiSelector selector = new UiSelector();
-
-        UiObject password = mDevice.findObject(selector.resourceId(ID_PASSWORD));
-        password.setText(PASSWORD);
-
-        UiObject signIn = mDevice.findObject(selector.resourceId(ID_SUBMIT));
-        signIn.click();
-
-        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        customTabInteraction(false);
 
         //wait for token exchange
         getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
@@ -319,5 +308,27 @@ public class SampleActivityTest {
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("authentication authorized"))));
+    }
+
+    @Test
+    public void testD_OAuth2ResourceConfig() throws UiObjectNotFoundException {
+        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
+            onView(withId(R.id.switch1)).perform(click());
+        }).check(matches(isNotChecked()));
+
+        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
+            test9_signOutOfOkta();
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+
+        onView(withId(R.id.sign_in)).perform(click());
+        //check if get profile is visible
+        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
+        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
+        onView(withId(R.id.get_profile)).perform(click());
+        onView(withId(R.id.status))
+                .check(matches(withText(
+                        containsString("Profile not supported for OAuth resource"))));
     }
 }
