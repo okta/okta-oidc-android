@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -82,6 +83,11 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
      */
     @VisibleForTesting
     OIDCConfig mOidcConfig;
+
+    OIDCConfig mOAuth2Config;
+    WebAuthClient mWebOAuth2;
+    SessionClient mSessionOAuth2Client;
+
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
@@ -96,6 +102,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     private Button mIntrospectAccess;
     private Button mIntrospectId;
 
+    private Switch mSwitch;
     private ProgressBar mProgressBar;
     @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
@@ -135,11 +142,25 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mIntrospectRefresh = findViewById(R.id.introspect_refresh);
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
+        mSwitch = findViewById(R.id.switch1);
+
+        boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
+                .getBoolean("switch", true);
+
+        mSwitch.setChecked(checked);
+        mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (getSessionClient().isLoggedIn()) {
+                showAuthorizedMode();
+            } else {
+                showLoggedOutMode();
+            }
+        });
 
         mIntrospectRefresh.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            String refreshToken = mSessionClient.getTokens().getRefreshToken();
-            mSessionClient.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
+            SessionClient client = getSessionClient();
+            String refreshToken = client.getTokens().getRefreshToken();
+            client.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
                     new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
@@ -158,8 +179,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mIntrospectAccess.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mSessionClient.introspectToken(
-                    mSessionClient.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+            SessionClient client = getSessionClient();
+            client.introspectToken(
+                    client.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
                     new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
@@ -178,8 +200,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mIntrospectId.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mSessionClient.introspectToken(
-                    mSessionClient.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+            SessionClient client = getSessionClient();
+            client.introspectToken(
+                    client.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
                     new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
@@ -199,7 +222,8 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mSessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
+            SessionClient client = getSessionClient();
+            client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
                 @Override
                 public void onSuccess(@NonNull Tokens result) {
                     mTvStatus.setText("token refreshed");
@@ -215,10 +239,11 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         });
 
         mRevokeRefresh.setOnClickListener(v -> {
-            Tokens tokens = mSessionClient.getTokens();
+            SessionClient client = getSessionClient();
+            Tokens tokens = client.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
-                mSessionClient.revokeToken(mSessionClient.getTokens().getRefreshToken(),
+                client.revokeToken(client.getTokens().getRefreshToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull Boolean result) {
@@ -241,10 +266,11 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         });
 
         mRevokeAccess.setOnClickListener(v -> {
-            Tokens tokens = mSessionClient.getTokens();
+            SessionClient client = getSessionClient();
+            Tokens tokens = client.getTokens();
             if (tokens != null && tokens.getAccessToken() != null) {
                 mProgressBar.setVisibility(View.VISIBLE);
-                mSessionClient.revokeToken(mSessionClient.getTokens().getAccessToken(),
+                client.revokeToken(client.getTokens().getAccessToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull Boolean result) {
@@ -267,17 +293,20 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
         mSignOut.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mWebAuth.signOutFromOkta(this);
+            WebAuthClient client = getWebAuthClient();
+            client.signOutFromOkta(this);
         });
         mClearData.setOnClickListener(v -> {
-            mSessionClient.clear();
+            SessionClient client = getSessionClient();
+            client.clear();
             mTvStatus.setText("clear data");
             showLoggedOutMode();
         });
 
         mSignInBrowser.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
-            mWebAuth.logIn(this, mPayload);
+            WebAuthClient client = getWebAuthClient();
+            client.logIn(this, mPayload);
         });
 
         mSignInNative.setOnClickListener(v -> {
@@ -310,6 +339,25 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
+        mOAuth2Config = new OIDCConfig.Builder()
+                .clientId("0oajqehiy6p81NVzA0h7")
+                .redirectUri("com.oktapreview.samples-test:/callback")
+                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+                .scopes("openid", "profile", "offline_access")
+                .discoveryUri("https://samples-test.oktapreview.com/oauth2/default")
+                .create();
+
+        mWebOAuth2 = new Okta.WebAuthBuilder()
+                .withConfig(mOAuth2Config)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this, "OAUTH2"))
+                .withCallbackExecutor(null)
+                .withTabColor(0)
+                .supportedBrowsers(FIRE_FOX)
+                .create();
+
+        mSessionOAuth2Client = mWebOAuth2.getSessionClient();
+
         mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
@@ -328,7 +376,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .withCallbackExecutor(null)
                 .create();
 
-        if (mSessionClient.isLoggedIn()) {
+        if (getSessionClient().isLoggedIn()) {
             showAuthorizedMode();
         }
 
@@ -340,7 +388,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
      */
     @VisibleForTesting
     void setupCallback() {
-        mWebAuth.registerCallback(
+        ResultCallback<AuthorizationStatus, AuthorizationException> callback =
                 new ResultCallback<AuthorizationStatus, AuthorizationException>() {
                     @Override
                     public void onSuccess(@NonNull AuthorizationStatus status) {
@@ -371,7 +419,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                                 " onActivityResult onError " + msg, error);
                         mTvStatus.setText(msg);
                     }
-                }, this);
+                };
+
+        mWebAuth.registerCallback(callback, this);
+        mWebOAuth2.registerCallback(callback, this);
     }
 
     @Override
@@ -386,7 +437,17 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     protected void onStop() {
         super.onStop();
         mProgressBar.setVisibility(View.GONE);
+        getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                .putBoolean("switch", mSwitch.isChecked()).apply();
 
+    }
+
+    private SessionClient getSessionClient() {
+        return mSwitch.isChecked() ? mSessionClient : mSessionOAuth2Client;
+    }
+
+    private WebAuthClient getWebAuthClient() {
+        return mSwitch.isChecked() ? mWebAuth : mWebOAuth2;
     }
 
     @Override
@@ -421,20 +482,25 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
 
     private void getProfile() {
         mProgressBar.setVisibility(View.VISIBLE);
-        mSessionClient.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
-            @Override
-            public void onSuccess(@NonNull UserInfo result) {
-                mTvStatus.setText(result.toString());
-                mProgressBar.setVisibility(View.GONE);
-            }
+        SessionClient client = getSessionClient();
+        try {
+            client.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
+                @Override
+                public void onSuccess(@NonNull UserInfo result) {
+                    mTvStatus.setText(result.toString());
+                    mProgressBar.setVisibility(View.GONE);
+                }
 
-            @Override
-            public void onError(String error, AuthorizationException exception) {
-                Log.d(TAG, error, exception.getCause());
-                mTvStatus.setText("Error : " + exception.errorDescription);
-                mProgressBar.setVisibility(View.GONE);
-            }
-        });
+                @Override
+                public void onError(String error, AuthorizationException exception) {
+                    Log.d(TAG, error, exception.getCause());
+                    mTvStatus.setText("Error : " + exception.errorDescription);
+                    mProgressBar.setVisibility(View.GONE);
+                }
+            });
+        } catch (UnsupportedOperationException ue) {
+            mTvStatus.setText("Profile not supported for OAuth resource");
+        }
     }
 
     @Override

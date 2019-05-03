@@ -28,6 +28,13 @@
                 android:contentDescription="@string/logo_content_description"
                 app:srcCompat="@drawable/appauth_96dp" />
 
+            <Switch
+                android:id="@+id/switch1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="OIDC" />
+
             <TextView
                 style="@style/Base.TextAppearance.AppCompat.Title"
                 android:layout_width="wrap_content"
