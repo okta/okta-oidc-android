@@ -331,4 +331,12 @@ public class SampleActivityTest {
                 .check(matches(withText(
                         containsString("Profile not supported for OAuth resource"))));
     }
+
+    @Test
+    public void testE_checkIfTokenExpired() {
+        onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
+        onView(withId(R.id.check_expired)).perform(click());
+        onView(withId(R.id.status))
+                .check(matches(withText(containsString("token not expired"))));
+    }
 }

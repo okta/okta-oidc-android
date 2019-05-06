@@ -101,6 +101,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private Button mIntrospectRefresh;
     private Button mIntrospectAccess;
     private Button mIntrospectId;
+    private Button mCheckExpired;
 
     private Switch mSwitch;
     private ProgressBar mProgressBar;
@@ -128,6 +129,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.sample_activity);
+        mCheckExpired = findViewById(R.id.check_expired);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
         mSignOut = findViewById(R.id.sign_out);
@@ -155,6 +157,12 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 showSignedOutMode();
             }
             mSwitch.setText(isChecked ? "OIDC" : "OAuth2");
+        });
+
+        mCheckExpired.setOnClickListener(v -> {
+            SessionClient client = getSessionClient();
+            mTvStatus.setText(client.getTokens().isAccessTokenExpired() ? "token expired" :
+                    "token not expired");
         });
 
         mIntrospectRefresh.setOnClickListener(v -> {

@@ -17,6 +17,7 @@ package com.okta.oidc;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.net.response.TokenResponse;
 
@@ -30,6 +31,7 @@ public class Tokens {
     private String mRefreshToken;
     private int mExpiresIn;
     private String[] mScope;
+    private long mExpiresAt;
 
     /**
      * Instantiates a new Tokens.
@@ -39,13 +41,16 @@ public class Tokens {
      * @param refreshToken the refresh token
      * @param expiresIn    the expires in
      * @param scope        the scope
+     * @param expiresAt    the expiration.
      */
-    Tokens(String idToken, String accessToken, String refreshToken, int expiresIn, String[] scope) {
+    Tokens(String idToken, String accessToken, String refreshToken, int expiresIn, String[] scope,
+            long expiresAt) {
         mIdToken = idToken;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
         mExpiresIn = expiresIn;
         mScope = scope;
+        mExpiresAt = expiresAt;
     }
 
     /**
@@ -53,10 +58,11 @@ public class Tokens {
      *
      * @param response the TokenResponse
      */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
     public Tokens(@NonNull TokenResponse response) {
         this(response.getIdToken(), response.getAccessToken(),
                 response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
-                response.getScope().split(" "));
+                response.getScope().split(" "), response.getExpiresAt());
     }
 
     /**
@@ -110,4 +116,18 @@ public class Tokens {
         return mScope;
     }
 
+    /**
+     * Checks to see if the access token is expired. If the client have a access token and ID token
+     * this call will use the expiration time of the access token and the time the token was
+     * created to check if the access token is expired. If the client doesn't have a ID or access
+     * token the method will always return true.
+     *
+     * @return the boolean
+     */
+    public boolean isAccessTokenExpired() {
+        if (mAccessToken == null || mIdToken == null) {
+            return true;
+        }
+        return System.currentTimeMillis() > mExpiresAt;
+    }
 }

@@ -154,7 +154,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
                 }
             }
             tokenResponse = new Gson().fromJson(json.toString(), TokenResponse.class);
-
+            tokenResponse.setCreationTime(System.currentTimeMillis());
             if (tokenResponse.getIdToken() != null) {
                 OktaIdToken idToken;
                 try {

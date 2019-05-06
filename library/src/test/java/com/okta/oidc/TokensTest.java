@@ -31,7 +31,9 @@ import static com.okta.oidc.util.TestValues.VALID_EXPIRES_IN;
 import static com.okta.oidc.util.TestValues.VALID_SCOPES;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -51,7 +53,7 @@ public class TokensTest {
                 ACCESS_TOKEN,
                 REFRESH_TOKEN,
                 VALID_EXPIRES_IN,
-                VALID_SCOPES);
+                VALID_SCOPES, System.currentTimeMillis());
 
         assertNotNull(tokens);
         assertEquals(ACCESS_TOKEN, tokens.getAccessToken());
@@ -80,4 +82,24 @@ public class TokensTest {
         new Tokens(tokenResponse);
     }
 
+    @Test
+    public void isAccessTokenExpiredSuccess() {
+        Tokens tokens = new Tokens(ID_TOKEN,
+                ACCESS_TOKEN,
+                REFRESH_TOKEN,
+                VALID_EXPIRES_IN,
+                VALID_SCOPES, System.currentTimeMillis());
+        assertFalse(tokens.isAccessTokenExpired());
+    }
+
+    @Test
+    public void isAccessTokenExpiredFailure() throws InterruptedException {
+        Tokens tokens = new Tokens(ID_TOKEN,
+                ACCESS_TOKEN,
+                REFRESH_TOKEN,
+                1, //expires in 1 sec
+                VALID_SCOPES, System.currentTimeMillis());
+        Thread.sleep(1000);
+        assertTrue(tokens.isAccessTokenExpired());
+    }
 }
