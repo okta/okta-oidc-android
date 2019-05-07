@@ -1,18 +1,16 @@
 apply plugin: "com.android.library"
-apply from: "${rootDir}/gradle/okta-common.gradle"
 apply from: "${rootDir}/gradle/android-common.gradle"
 apply from: "${rootDir}/gradle/style.gradle"
 apply plugin: 'com.jfrog.bintray'
 apply plugin: "com.github.dcendents.android-maven"
-
-version = "${rootProject.versionName}"
+apply plugin: 'maven-publish'
 
 android {
 
     defaultConfig {
-        project.archivesBaseName = "oidc-android"
+        project.archivesBaseName = "oidc-androidx"
         manifestPlaceholders = [
-                "appAuthRedirectScheme": "com.oktapreview.samples-test"
+                "appAuthRedirectScheme": ""
         ]
     }
 
@@ -45,7 +43,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
-
 
 buildscript {
     repositories {
@@ -83,27 +80,8 @@ dependencies {
     }
 }
 
-bintray {
-    user = System.getenv("BINTRAY_USER")
-    key = System.getenv("BINTRAY_KEY")
-    configurations = ["archives"]
-    pkg {
-        repo = "com.okta.android"
-        name = "okta-sdk-appauth-android"
-        desc = "Okta AuthClient using AppAuth"
-        userOrg = "okta"
-        licenses = ["Apache-2.0"]
-        websiteUrl = "https://github.com/okta/okta-sdk-appauth-android"
-        vcsUrl = "https://github.com/okta/okta-sdk-appauth-android.git"
-        issueTrackerUrl = "https://github.com/okta/okta-sdk-appauth-android/issues"
-        version {
-            name = "${rootProject.versionName}"
-            desc = "Okta AuthClient using AppAuth"
-            vcsTag = "${rootProject.versionName}"
-        }
-    }
-}
-
 dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
 }
+
+apply from: 'publish.gradle'
