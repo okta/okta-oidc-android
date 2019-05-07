@@ -16,6 +16,8 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -24,11 +26,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
+import androidx.core.os.CancellationSignal;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -52,10 +58,14 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.security.FingerprintUtils;
+import com.okta.oidc.storage.security.SmartLockEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import javax.crypto.Cipher;
 
 /**
  * Sample to test library functionality. Can be used as a starting reference point.
@@ -82,6 +92,9 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
      */
     @VisibleForTesting
     OIDCConfig mOidcConfig;
+
+    private SmartLockEncryptionManager mEncryptionManager;
+
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
@@ -114,6 +127,7 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
     protected AuthenticationClient mAuthenticationClient;
     private LoginDialog mLoginDialog;
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+    private FingerprintHelper mFingerprintHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -310,14 +324,20 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 .discoveryUri("https://samples-test.oktapreview.com")
                 .create();
 
-        mWebAuth = new Okta.WebAuthBuilder()
+        Okta.WebAuthBuilder builder = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
                 .withCallbackExecutor(null)
                 .withTabColor(0)
-                .supportedBrowsers(FIRE_FOX)
-                .create();
+                .supportedBrowsers(FIRE_FOX);
+
+        if (FingerprintUtils.checkFingerprintCompatibility(this)) {
+            mEncryptionManager = new SmartLockEncryptionManager();
+            builder.withEncryptionManager(mEncryptionManager);
+        }
+
+        mWebAuth = builder.create();
 
         mSessionClient = mWebAuth.getSessionClient();
 
@@ -380,6 +400,10 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         if (mWebAuth.isInProgress()) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
+        if (mEncryptionManager != null) {
+            prepareSensor();
+        }
+
     }
 
     @Override
@@ -417,6 +441,21 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
         mClearData.setVisibility(View.GONE);
         mRevokeContainer.setVisibility(View.GONE);
         mTvStatus.setText("");
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void prepareSensor() {
+        if (FingerprintUtils.isSensorStateAt(FingerprintUtils.SensorState.READY, this)) {
+            FingerprintManagerCompat.CryptoObject cryptoObject = mEncryptionManager.getCryptoObject();
+            if (cryptoObject != null) {
+                Toast.makeText(this, "use fingerprint to login", Toast.LENGTH_LONG).show();
+                mFingerprintHelper = new FingerprintHelper(this);
+                mFingerprintHelper.startAuth(cryptoObject);
+            } else {
+                Toast.makeText(this, "new fingerprint enrolled. enter pin again", Toast.LENGTH_SHORT).show();
+            }
+
+        }
     }
 
     private void getProfile() {
@@ -496,5 +535,49 @@ public class SampleActivity extends AppCompatActivity implements LoginDialog.Log
                 });
             }
         });
+    }
+
+    public class FingerprintHelper extends FingerprintManagerCompat.AuthenticationCallback {
+        private Context mContext;
+        private CancellationSignal mCancellationSignal;
+
+        FingerprintHelper(Context context) {
+            mContext = context;
+        }
+
+        void startAuth(FingerprintManagerCompat.CryptoObject cryptoObject) {
+            mCancellationSignal = new CancellationSignal();
+            FingerprintManagerCompat manager = FingerprintManagerCompat.from(mContext);
+            manager.authenticate(cryptoObject, 0, mCancellationSignal, this, null);
+        }
+
+        void cancel() {
+            if (mCancellationSignal != null) {
+                mCancellationSignal.cancel();
+            }
+        }
+
+        @Override
+        public void onAuthenticationError(int errMsgId, CharSequence errString) {
+            Toast.makeText(mContext, errString, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
+            Toast.makeText(mContext, helpString, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+            Cipher cipher = result.getCryptoObject().getCipher();
+            Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
+            mEncryptionManager.setCipher(cipher);
+        }
+
+        @Override
+        public void onAuthenticationFailed() {
+            Toast.makeText(mContext, "try again", Toast.LENGTH_SHORT).show();
+        }
+
     }
 }
