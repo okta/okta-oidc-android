@@ -49,6 +49,7 @@ import io.jsonwebtoken.security.Keys;
 
 public class TestValues {
     public static final String CUSTOM_URL = "https://com.okta.test/";
+    public static final String CUSTOM_OAUTH2_URL = "https://com.okta.test/oauth2/default/";
     public static final String CUSTOM_STATE = "CUSTOM_STATE";
     public static final String CUSTOM_NONCE = "CUSTOM_NONCE";
     public static final String CUSTOM_CODE = "CUSTOM_CODE";
@@ -107,6 +108,12 @@ public class TestValues {
         configuration.registration_endpoint = url + REGISTRATION_ENDPOINT;
         configuration.end_session_endpoint = url + END_SESSION_ENDPOINT;
         configuration.userinfo_endpoint = url + USERINFO_ENDPOINT;
+        return configuration;
+    }
+
+    public static ProviderConfiguration getOAuth2ProviderConfiguration(String url) {
+        ProviderConfiguration configuration = getProviderConfiguration(url);
+        configuration.userinfo_endpoint = null;
         return configuration;
     }
 

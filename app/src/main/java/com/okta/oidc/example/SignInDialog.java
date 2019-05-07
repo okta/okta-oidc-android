@@ -30,44 +30,44 @@ import androidx.fragment.app.DialogFragment;
  * Login Dialog for username and password entry.
  * For the Authentication API to get a sessionToken.
  */
-public class LoginDialog extends DialogFragment {
+public class SignInDialog extends DialogFragment {
     private EditText mPassword;
     private EditText mUsername;
 
-    private LoginDialogListener mListener;
+    private SignInDialogListener mListener;
 
     /**
      * Instantiates a new Login dialog.
      */
-    public LoginDialog() {
+    public SignInDialog() {
         //NO-OP
     }
 
     /**
-     * The interface Login dialog listener.
+     * The interface dialog listener.
      */
-    public interface LoginDialogListener {
+    public interface SignInDialogListener {
         /**
-         * On login.
+         * On SignIn.
          *
          * @param username the username
          * @param password the password
          */
-        void onLogin(String username, String password);
+        void onSignIn(String username, String password);
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.login_dialog, container, false);
+        View view = inflater.inflate(R.layout.signin_dialog, container, false);
 
         mPassword = view.findViewById(R.id.password);
         mUsername = view.findViewById(R.id.username);
         Button signIn = view.findViewById(R.id.submit);
         signIn.setOnClickListener(v -> {
             if (mListener != null) {
-                mListener.onLogin(mUsername.getText().toString(), mPassword.getText().toString());
+                mListener.onSignIn(mUsername.getText().toString(), mPassword.getText().toString());
             }
         });
         return view;
@@ -84,7 +84,7 @@ public class LoginDialog extends DialogFragment {
      *
      * @param listener the listener
      */
-    public void setListener(LoginDialogListener listener) {
+    public void setListener(SignInDialogListener listener) {
         mListener = listener;
     }
 }

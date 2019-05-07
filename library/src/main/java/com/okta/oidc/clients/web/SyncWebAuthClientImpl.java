@@ -113,7 +113,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 switch (type) {
                     case SIGN_IN:
                         AuthorizationResult authorizationResult =
-                                processLogInResult(result);
+                                processSignInResult(result);
                         resetCurrentState();
                         if (resultListener != null) {
                             resultListener.postResult(authorizationResult, type);
@@ -146,8 +146,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
     @Override
     @WorkerThread
-    public AuthorizationResult logIn(@NonNull final FragmentActivity activity,
-                                     @Nullable AuthenticationPayload payload)
+    public AuthorizationResult signIn(@NonNull final FragmentActivity activity,
+                                      @Nullable AuthenticationPayload payload)
             throws InterruptedException {
         try {
             obtainNewConfiguration();
@@ -181,16 +181,16 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 }, mSupportedBrowsers);
         latch.await();
         OktaResultFragment.Result authResult = resultWrapper.get();
-        AuthorizationResult result = processLogInResult(authResult);
+        AuthorizationResult result = processSignInResult(authResult);
         resetCurrentState();
         if (result == null) {
-            throw new IllegalStateException("login performed in illegal states");
+            throw new IllegalStateException("sign in performed in illegal states");
         }
 
         return result;
     }
 
-    private AuthorizationResult processLogInResult(OktaResultFragment.Result result) {
+    private AuthorizationResult processSignInResult(OktaResultFragment.Result result) {
         switch (result.getStatus()) {
             case CANCELED:
                 return AuthorizationResult.cancel();

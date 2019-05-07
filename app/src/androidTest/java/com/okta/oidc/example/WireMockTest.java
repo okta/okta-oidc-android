@@ -31,10 +31,9 @@ import androidx.test.uiautomator.Until;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.okta.oidc.Okta;
-import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
@@ -65,6 +64,7 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
@@ -199,14 +199,12 @@ public class WireMockTest {
                 .discoveryUri("https://127.0.0.1:8443")
                 .create();
 
-        WebAuthClient mWebOktaAuth = new Okta.WebAuthBuilder()
+        activityRule.getActivity().mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(activityRule.getActivity().mOidcConfig)
                 .withContext(activityRule.getActivity())
                 .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
                 .withHttpConnectionFactory(new MockConnectionFactory())
                 .create();
-
-        activityRule.getActivity().mWebAuth = mWebOktaAuth;
 
         activityRule.getActivity().setupCallback();
     }
@@ -236,7 +234,7 @@ public class WireMockTest {
     }
 
     @Test
-    public void test1_loginNoSession() throws UiObjectNotFoundException, InterruptedException {
+    public void test1_signInNoSession() throws UiObjectNotFoundException, InterruptedException {
         activityRule.getActivity().mPayload = mMockPayload;
         mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)
@@ -254,6 +252,11 @@ public class WireMockTest {
 
         mockTokenRequest(aResponse().withStatus(HTTP_OK)
                 .withBody(token));
+
+        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
+            onView(withId(R.id.switch1)).perform(click());
+        }).check(matches(isChecked()));
 
         onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));

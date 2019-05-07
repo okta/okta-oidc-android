@@ -113,8 +113,8 @@ public class SessionClientImpl implements SessionClient {
         request.dispatchRequest(mDispatcher, cb);
     }
 
-    public boolean isLoggedIn() {
-        return mSyncSessionClientImpl.isLoggedIn();
+    public boolean isAuthenticated() {
+        return mSyncSessionClientImpl.isAuthenticated();
     }
 
     public void clear() {

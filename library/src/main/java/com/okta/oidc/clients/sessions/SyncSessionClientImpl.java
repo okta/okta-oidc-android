@@ -82,6 +82,11 @@ public class SyncSessionClientImpl implements SyncSessionClient {
     }
 
     AuthorizedRequest userProfileRequest() {
+        if (mOidcConfig.isOAuth2Configuration()) {
+            throw new UnsupportedOperationException("Invalid operation. " +
+                    "Please check your configuration. OAuth2 authorization servers does not" +
+                    "support /userinfo endpoint ");
+        }
         return (AuthorizedRequest) HttpRequestBuilder.newRequest()
                 .request(HttpRequest.Type.PROFILE)
                 .connectionFactory(mConnectionFactory)
@@ -155,7 +160,7 @@ public class SyncSessionClientImpl implements SyncSessionClient {
     }
 
     @Override
-    public boolean isLoggedIn() {
+    public boolean isAuthenticated() {
         TokenResponse tokenResponse = mOktaState.getTokenResponse();
         return tokenResponse != null &&
                 (tokenResponse.getAccessToken() != null || tokenResponse.getIdToken() != null);

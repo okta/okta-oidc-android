@@ -64,7 +64,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
     boolean isInProgress();
 
     /**
-     * Log in using implicit flow.
+     * Sign in using implicit flow.
      *
      * <p>The result will be returned in the
      * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
@@ -72,7 +72,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      */
-    void logIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
+    void signIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
 
     /**
      * Sign out from okta. This will clear the browser session
@@ -82,12 +82,12 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *
      * @param activity the activity
      */
-    void signOutFromOkta(@NonNull FragmentActivity activity);
+    void signOutOfOkta(@NonNull FragmentActivity activity);
 
     /**
-     * Register a callback for login and logout result status. The callback is triggered when
-     * {@link #logIn(FragmentActivity, AuthenticationPayload) logIn} or
-     * {@link #signOutFromOkta(FragmentActivity)} signOutFromOkta} is completed.
+     * Register a callback for sign in and sign out result status. The callback is triggered when
+     * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
+     * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
      * Example usage:
      * {@code
      * <pre>
@@ -95,9 +95,9 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *      @Override
      *      public void onSuccess(@NonNull AuthorizationStatus status) {
      *          if (status == AuthorizationStatus.AUTHORIZED) {
-     *              //login success. client can be used to perform protected resource requests.
-     *          } else if (status == AuthorizationStatus.LOGGED_OUT) {
-     *              //logout success. browser session is cleared.
+     *              //sign in success. client can be used to perform protected resource requests.
+     *          } else if (status == AuthorizationStatus.SIGNED_OUT) {
+     *              //sing out success. browser session is cleared.
      *          } else if (status == AuthorizationStatus.IN_PROGRESS) {
      *              //request in progress.
      *          }
@@ -116,7 +116,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * </pre>
      * }*
      *
-     * @param resultCallback returns the result of login or logout attempts.
+     * @param resultCallback returns the result of sign in or sign out attempts.
      * @param activity       the activity which will receive the results.
      */
     void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>

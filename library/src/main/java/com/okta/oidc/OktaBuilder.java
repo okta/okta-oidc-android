@@ -89,7 +89,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * instance for communication with Okta OIDC endpoints.
      *
      * @param connectionFactory the connection factory
-     * @return the builder
+     * @return current builder
      */
     public T withHttpConnectionFactory(HttpConnectionFactory connectionFactory) {
         mConnectionFactory = connectionFactory;
@@ -123,7 +123,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * With authentication client factory t.
      *
      * @param authClientFactory the auth client factory
-     * @return the t
+     * @return current builder
      */
     T withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {
         mAuthClientFactory = authClientFactory;
@@ -135,7 +135,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * encrypting data that is stored locally by oidc.
      *
      * @param encryptionManager manager for encryption of locally stored data
-     * @return the t
+     * @return current builder
      */
     public T withEncryptionManager(EncryptionManager encryptionManager) {
         mEncryptionManager = encryptionManager;

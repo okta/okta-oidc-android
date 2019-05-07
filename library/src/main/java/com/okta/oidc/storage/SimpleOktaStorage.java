@@ -35,12 +35,23 @@ public class SimpleOktaStorage implements OktaStorage {
 
     /**
      * Instantiates a new instance.
+     * Uses default class name as preferences file.
      *
      * @param context the context
      */
     public SimpleOktaStorage(Context context) {
-        prefs = context.getSharedPreferences(SimpleOktaStorage.class.getCanonicalName(),
-                MODE_PRIVATE);
+        this(context, null);
+    }
+
+    /**
+     * Instantiates a new instance.
+     *
+     * @param context  the context
+     * @param prefName the preferences file name.
+     */
+    public SimpleOktaStorage(Context context, String prefName) {
+        prefs = context.getSharedPreferences(prefName == null ?
+                SimpleOktaStorage.class.getCanonicalName() : prefName, MODE_PRIVATE);
     }
 
     @Override

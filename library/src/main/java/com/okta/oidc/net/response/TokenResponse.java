@@ -25,13 +25,14 @@ import com.okta.oidc.storage.Persistable;
 @SuppressWarnings("unused")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenResponse implements Persistable {
-
+    private static final int THOUSAND = 1000;
     private String access_token;
     private String token_type;
     private String expires_in;
     private String scope;
     private String refresh_token;
     private String id_token;
+    private long expiresAt = -1;
 
     @NonNull
     public String getAccessToken() {
@@ -63,6 +64,20 @@ public class TokenResponse implements Persistable {
 
     public TokenResponse() {
         //NO-OP
+    }
+
+    //only called from token request
+    public void setCreationTime(long creationTime) {
+        if (expiresAt < 0) {
+            expiresAt = System.currentTimeMillis();
+        }
+    }
+
+    public long getExpiresAt() {
+        if (expiresAt > 0) {
+            expiresAt += Integer.parseInt(expires_in) * THOUSAND;
+        }
+        return expiresAt;
     }
 
     public static final Persistable.Restore<TokenResponse> RESTORE =

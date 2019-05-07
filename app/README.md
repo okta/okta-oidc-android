@@ -23,7 +23,7 @@ You can create an Okta developer account at [https://developer.okta.com/](https:
 
 4. Click **Finish** to redirect back to the *General Settings* of your application.
 5. Copy the **Client ID**, as it will be needed for the client configuration.
-6. Get your issuer, which is a combination of your Org URL (found in the upper right of the console home page) and /oauth2/default. For example, https://dev-1234.oktapreview.com/oauth2/default.
+6. Get your issuer, which is a combination of your Org URL (found in the upper right of the console home page). For example, https://dev-1234.oktapreview.com/.
 
 **Note:** *As with any Okta application, make sure you assign Users or Groups to the application. Otherwise, no one can use it.*
 

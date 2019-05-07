@@ -46,6 +46,7 @@ import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -90,6 +91,7 @@ public class TokenRequestTest {
         TokenResponse response = cb.getResult();
         assertNotNull(response);
         assertEquals(response.getIdToken(), jws);
+        assertTrue(response.getExpiresAt() > 0);
     }
 
     @Test
