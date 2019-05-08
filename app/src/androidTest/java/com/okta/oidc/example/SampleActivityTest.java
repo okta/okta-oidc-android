@@ -14,6 +14,8 @@
  */
 package com.okta.oidc.example;
 
+import android.os.Build;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -44,6 +46,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4.class)
@@ -286,6 +289,11 @@ public class SampleActivityTest {
 
     @Test
     public void testC_nativeLogIn() {
+        assumeTrue(
+                "Can only run on API Level 24 or later because AuthenticationAPI " +
+                        "requires Java 8",
+                Build.VERSION.SDK_INT >= 24
+        );
         onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
             onView(withId(R.id.clear_data)).perform(click());

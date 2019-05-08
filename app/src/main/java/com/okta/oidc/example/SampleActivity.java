@@ -16,6 +16,7 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -330,9 +331,13 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             mSignInDialog.show(ft, "signin");
         });
 
-        mAuthenticationClient = AuthenticationClients.builder()
-                .setOrgUrl("https://samples-test.oktapreview.com")
-                .build();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mAuthenticationClient = AuthenticationClients.builder()
+                    .setOrgUrl("https://samples-test.oktapreview.com")
+                    .build();
+        } else {
+            mSignInNative.setVisibility(View.GONE);
+        }
 
         //Example of using JSON file to create config
         mOidcConfig = new OIDCConfig.Builder()
@@ -480,7 +485,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
     private void showSignedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
-        mSignInNative.setVisibility(View.VISIBLE);
+        if (mAuthenticationClient != null) {//authentication client requires api 24
+            mSignInNative.setVisibility(View.VISIBLE);
+        } else {
+            mSignInNative.setVisibility(View.GONE);
+        }
         mGetProfile.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
@@ -522,6 +531,9 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mProgressBar.setVisibility(View.VISIBLE);
         mExecutor.submit(() -> {
             try {
+                if (mAuthenticationClient == null) {
+                    return;
+                }
                 mAuthenticationClient.authenticate(username, password.toCharArray(),
                         null, new AuthenticationStateHandlerAdapter() {
                             @Override
