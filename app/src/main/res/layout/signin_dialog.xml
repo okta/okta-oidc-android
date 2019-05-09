@@ -16,7 +16,8 @@
         android:ems="10"
         android:hint="Username"
         android:inputType="textEmailAddress"
-        tools:ignore="Autofill,HardcodedText" />
+        android:importantForAutofill="no"
+        tools:ignore="UnusedAttribute,Autofill,HardcodedText" />
 
     <EditText
         android:id="@+id/password"
@@ -28,7 +29,8 @@
         android:ems="10"
         android:hint="Password"
         android:inputType="textPassword"
-        tools:ignore="Autofill,HardcodedText" />
+        android:importantForAutofill="no"
+        tools:ignore="UnusedAttribute,Autofill,HardcodedText" />
 
     <Button
         android:id="@+id/submit"

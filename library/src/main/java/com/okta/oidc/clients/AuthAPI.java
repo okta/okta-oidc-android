@@ -21,7 +21,6 @@ import androidx.annotation.WorkerThread;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.State;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequest;
@@ -34,7 +33,7 @@ import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.WebResponse;
 import com.okta.oidc.util.AuthorizationException;
 
-import static com.okta.oidc.State.IDLE;
+import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 

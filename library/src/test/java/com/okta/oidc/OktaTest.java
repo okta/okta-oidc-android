@@ -22,7 +22,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.okta.oidc.clients.AuthClient;
 import com.okta.oidc.clients.SyncAuthClient;
 import com.okta.oidc.clients.web.WebAuthClient;
-import com.okta.oidc.clients.SyncAuthClientFactoryImpl;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -188,36 +187,6 @@ public class OktaTest {
                 .withContext(mContext)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .create();
-        when(builder.create()).thenReturn(otherClient);
-
-        builder.withConfig(mConfig);
-        verify(builder).withConfig(mConfig);
-
-        builder.withStorage(mStorage);
-        verify(builder).withStorage(mStorage);
-
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
-
-        builder.withContext(mContext);
-        verify(builder).withContext(mContext);
-
-        Object client = builder.create();
-        verify(builder).create();
-        assertEquals(otherClient, client);
-    }
-
-    @Test
-    public void testBuilder() {
-        Okta.Builder builder = mock(Okta.Builder.class);
-        SyncAuthClient otherClient = new Okta.Builder<SyncAuthClient>()
-                .withConfig(mConfig)
-                .withStorage(mStorage)
-                .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
-                .withAuthenticationClientFactory(new SyncAuthClientFactoryImpl())
-                .create();
-
         when(builder.create()).thenReturn(otherClient);
 
         builder.withConfig(mConfig);

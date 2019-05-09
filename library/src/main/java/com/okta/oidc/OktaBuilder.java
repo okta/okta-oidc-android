@@ -19,7 +19,7 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import com.okta.oidc.clients.AuthClientFactory;
+import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
@@ -31,6 +31,7 @@ import com.okta.oidc.storage.security.EncryptionManager;
  * @param <A> the generic type for the auth client
  * @param <T> the generic type for the auth client builder.
  */
+
 public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * The connection factory.
@@ -51,7 +52,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * The Auth client factory.
      */
-    private AuthClientFactory<A> mAuthClientFactory;
+    private ClientFactory<A> mClientFactory;
 
     /**
      * The Encryption Manager.
@@ -63,14 +64,14 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      *
      * @return the generic of the client builder
      */
-    abstract T toThis();
+    protected abstract T toThis();
 
     /**
      * Create a.
      *
      * @return the a
      */
-    abstract A create();
+    protected abstract A create();
 
     /**
      * Sets the config used for this client.
@@ -122,11 +123,11 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * With authentication client factory t.
      *
-     * @param authClientFactory the auth client factory
+     * @param clientFactory the auth client factory
      * @return current builder
      */
-    T withAuthenticationClientFactory(AuthClientFactory<A> authClientFactory) {
-        mAuthClientFactory = authClientFactory;
+    protected T withAuthenticationClientFactory(ClientFactory<A> clientFactory) {
+        mClientFactory = clientFactory;
         return toThis();
     }
 
@@ -149,7 +150,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      */
     @SuppressWarnings("WeakerAccess")
     protected A createAuthClient() {
-        return this.mAuthClientFactory.createClient(mOidcConfig,
+        return this.mClientFactory.createClient(mOidcConfig,
                 new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager)),
                 mConnectionFactory);
     }

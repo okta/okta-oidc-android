@@ -19,7 +19,6 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
@@ -41,15 +40,14 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
-import static com.okta.oidc.State.IDLE;
+import static com.okta.oidc.clients.State.IDLE;
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SyncSessionClientImpl implements SyncSessionClient {
+class SyncSessionClientImpl implements SyncSessionClient {
     private OIDCConfig mOidcConfig;
     private OktaState mOktaState;
     private HttpConnectionFactory mConnectionFactory;
 
-    public SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
+    SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                                  HttpConnectionFactory connectionFactory) {
         mOidcConfig = oidcConfig;
         mOktaState = oktaState;

@@ -30,7 +30,6 @@ import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.results.AuthorizationResult;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -69,8 +68,8 @@ class WebAuthClientImpl implements WebAuthClient {
     }
 
     private void stop() {
-        mResultCb = null;
-        mDispatcher.shutdown();
+        unregisterCallback();
+        mDispatcher.stopAllTasks();
     }
 
     @Override
@@ -81,7 +80,7 @@ class WebAuthClientImpl implements WebAuthClient {
         mSyncAuthClient.registerCallbackIfInterrupt(activity, (result, type) -> {
             switch (type) {
                 case SIGN_IN:
-                    processLogInResult((AuthorizationResult) result);
+                    processSignInResult(result);
                     break;
                 case SIGN_OUT:
                     processSignOutResult(result);
@@ -112,9 +111,9 @@ class WebAuthClientImpl implements WebAuthClient {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
-                AuthorizationResult result = mSyncAuthClient.signIn(activity, payload);
+                Result result = mSyncAuthClient.signIn(activity, payload);
 
-                processLogInResult(result);
+                processSignInResult(result);
             } catch (InterruptedException e) {
                 mDispatcher.submitResults(() -> {
                     if (mResultCb != null) {
@@ -125,7 +124,7 @@ class WebAuthClientImpl implements WebAuthClient {
         });
     }
 
-    private void processLogInResult(AuthorizationResult result) {
+    private void processSignInResult(Result result) {
         if (result.isSuccess()) {
             mDispatcher.submitResults(() -> {
                 if (mResultCb != null) {

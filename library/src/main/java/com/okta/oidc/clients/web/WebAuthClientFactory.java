@@ -21,13 +21,13 @@ import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.clients.AuthClientFactory;
+import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 
 import java.util.concurrent.Executor;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class WebAuthClientFactory implements AuthClientFactory<WebAuthClient> {
+public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
     private Executor mCallbackExecutor;
     @ColorInt
     private int mCustomTabColor;

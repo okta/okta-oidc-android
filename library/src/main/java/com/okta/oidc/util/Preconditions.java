@@ -18,6 +18,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import java.util.Collection;
 
@@ -26,6 +27,7 @@ import java.util.Collection;
  * only intended for internal use and no guarantees are given on source or binary compatibility
  * for this class between versions of AppAuth.
  */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class Preconditions {
 
     /**

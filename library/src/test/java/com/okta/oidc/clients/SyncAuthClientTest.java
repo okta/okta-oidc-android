@@ -29,7 +29,7 @@ import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -129,9 +129,9 @@ public class SyncAuthClientTest {
         mEndPoint.enqueueNativeRequestSuccess(state);
         mEndPoint.enqueueTokenSuccess(jws);
 
-        AuthorizationResult result = mSyncNativeAuth.signIn(SESSION_TOKEN, payload);
+        Result result = mSyncNativeAuth.signIn(SESSION_TOKEN, payload);
         assertNotNull(result);
-        Tokens tokens = result.getTokens();
+        Tokens tokens = new Tokens(mOktaState.getTokenResponse());
         assertNotNull(tokens);
         assertNotNull(tokens.getAccessToken());
         assertNotNull(tokens.getRefreshToken());

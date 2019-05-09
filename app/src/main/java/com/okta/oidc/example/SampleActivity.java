@@ -52,7 +52,7 @@ import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -415,9 +415,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
                             mProgressBar.setVisibility(View.GONE);
-                        } else if (status == AuthorizationStatus.IN_PROGRESS) {
-                            mTvStatus.setText("in progress");
-                            mProgressBar.setVisibility(View.VISIBLE);
                         }
                     }
 
@@ -557,11 +554,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             public void handleSuccess(AuthenticationResponse successResponse) {
                                 String sessionToken = successResponse.getSessionToken();
                                 mAuthClient.signIn(sessionToken, mPayload,
-                                        new RequestCallback<AuthorizationResult,
+                                        new RequestCallback<Result,
                                                 AuthorizationException>() {
                                             @Override
                                             public void onSuccess(
-                                                    @NonNull AuthorizationResult result) {
+                                                    @NonNull Result result) {
                                                 mTvStatus.setText("authentication authorized");
                                                 showAuthenticatedMode();
                                                 mProgressBar.setVisibility(View.GONE);

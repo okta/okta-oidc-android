@@ -15,26 +15,14 @@
 
 package com.okta.oidc.clients;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 
-import java.util.concurrent.Executor;
-
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
-    private Executor mCallbackExecutor;
-
-    public AuthClientFactoryImpl(@Nullable Executor executor) {
-        mCallbackExecutor = executor;
-    }
-
+public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
     @Override
-    public AuthClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                                   HttpConnectionFactory connectionFactory) {
-        return new AuthClientImpl(mCallbackExecutor, oidcConfig, oktaState, connectionFactory);
+    public SyncAuthClientImpl createClient(OIDCConfig oidcConfig, OktaState oktaState,
+                                           HttpConnectionFactory connectionFactory) {
+        return new SyncAuthClientImpl(oidcConfig, oktaState, connectionFactory);
     }
 }

@@ -18,7 +18,7 @@ package com.okta.oidc.clients;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.results.AuthorizationResult;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
@@ -42,5 +42,5 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * @param cb           the @{@link RequestCallback}
      */
     void signIn(String sessionToken, AuthenticationPayload payload,
-                RequestCallback<AuthorizationResult, AuthorizationException> cb);
+                RequestCallback<Result, AuthorizationException> cb);
 }
