@@ -17,8 +17,6 @@ package com.okta.oidc.clients;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.net.HttpConnectionFactory;
 
 /**

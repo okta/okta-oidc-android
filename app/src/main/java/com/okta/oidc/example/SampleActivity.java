@@ -482,7 +482,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
     private void showSignedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
-        if (mAuthenticationClient != null) {//authentication client requires api 24
+        if (mAuthenticationClient != null) {
             mSignInNative.setVisibility(View.VISIBLE);
         } else {
             mSignInNative.setVisibility(View.GONE);

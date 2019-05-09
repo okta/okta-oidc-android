@@ -22,7 +22,6 @@
     <suppress checks="Javadoc" files="AuthAPI\.java" />
     <suppress checks="Javadoc" files="HttpConnection\.java" />
     <suppress checks="Javadoc" files="HttpResponse\.java" />
-    <suppress checks="Javadoc" files="SyncWebAuthClientFactory\.java" />
     <suppress checks="Javadoc" files="TokenResponse\.java" />
     <suppress checks="Javadoc" files="SessionClientImpl\.java" />
     <suppress checks="Javadoc" files="SyncSessionClientImpl\.java" />
@@ -32,6 +31,10 @@
     <suppress checks="Javadoc" files="AuthClientFactoryImpl\.java" />
     <suppress checks="Javadoc" files="SyncWebAuthClientFactory\.java" />
     <suppress checks="Javadoc" files="BaseAuth\.java" />
+    <suppress checks="Javadoc" files="SyncAuthClientFactory\.java" />
+    <suppress checks="Javadoc" files="SyncSessionClientFactory\.java" />
+
+
 
     <!-- Suppress javadoc for packages-->
     <suppress checks="Javadoc" files="com[\\/]okta[\\/]oidc[\\/]net[\\/]request" />
