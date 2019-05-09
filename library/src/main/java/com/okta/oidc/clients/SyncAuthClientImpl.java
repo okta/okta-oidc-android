@@ -22,7 +22,6 @@ import androidx.annotation.WorkerThread;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -39,7 +38,8 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     SyncAuthClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                        HttpConnectionFactory connectionFactory) {
         super(oidcConfig, oktaState, connectionFactory);
-        sessionClient = new SyncSessionClientFactory().createClient(oidcConfig, oktaState, connectionFactory);
+        sessionClient = new SyncSessionClientFactory()
+                .createClient(oidcConfig, oktaState, connectionFactory);
     }
 
     @VisibleForTesting
@@ -55,7 +55,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
 
     @WorkerThread
     public Result signIn(String sessionToken,
-                        @Nullable AuthenticationPayload payload) {
+                         @Nullable AuthenticationPayload payload) {
         try {
             obtainNewConfiguration();
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);

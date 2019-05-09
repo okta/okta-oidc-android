@@ -169,8 +169,9 @@ public class OktaResultFragment extends Fragment {
             cachedResult = retrieveResponse(response, requestCode);
         } else {
             try {
-                cachedResult = StateResult.exception(AuthorizationException.fromJson(data.getExtras()
-                        .getString(EXTRA_EXCEPTION, "")));
+                cachedResult = StateResult.exception(AuthorizationException
+                        .fromJson(data.getExtras()
+                                .getString(EXTRA_EXCEPTION, "")));
             } catch (NullPointerException | IllegalArgumentException e) {
                 cachedResult = StateResult.exception(
                         AuthorizationException.AuthorizationRequestErrors.OTHER);

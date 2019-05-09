@@ -154,7 +154,7 @@ class WebAuthClientImpl implements WebAuthClient {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
             try {
-                Result result = mSyncAuthClient.signOutFromOkta(activity);
+                Result result = mSyncAuthClient.signOutOfOkta(activity);
                 processSignOutResult(result);
             } catch (InterruptedException e) {
                 mDispatcher.submitResults(() -> {

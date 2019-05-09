@@ -33,9 +33,8 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaRedirectActivity;
 import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.clients.State;
-import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.AuthAPI;
+import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -64,14 +63,15 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private SyncSessionClient mSessionClient;
 
     SyncWebAuthClientImpl(OIDCConfig oidcConfig,
-                                 OktaState oktaState,
-                                 HttpConnectionFactory connectionFactory,
-                                 int customTabColor,
-                                 String... supportedBrowsers) {
+                          OktaState oktaState,
+                          HttpConnectionFactory connectionFactory,
+                          int customTabColor,
+                          String... supportedBrowsers) {
         super(oidcConfig, oktaState, connectionFactory);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
-        mSessionClient = new SyncSessionClientFactory().createClient(oidcConfig, oktaState, connectionFactory);
+        mSessionClient = new SyncSessionClientFactory()
+                .createClient(oidcConfig, oktaState, connectionFactory);
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {
@@ -150,7 +150,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     @WorkerThread
     public Result signIn(@NonNull final FragmentActivity activity,
-                        @Nullable AuthenticationPayload payload)
+                         @Nullable AuthenticationPayload payload)
             throws InterruptedException {
         try {
             obtainNewConfiguration();
@@ -219,7 +219,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
     @Override
     @AnyThread
-    public Result signOutFromOkta(@NonNull final FragmentActivity activity)
+    public Result signOutOfOkta(@NonNull final FragmentActivity activity)
             throws InterruptedException {
         mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
         CountDownLatch latch = new CountDownLatch(1);

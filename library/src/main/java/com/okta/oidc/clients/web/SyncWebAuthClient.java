@@ -20,7 +20,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
-import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.Result;
@@ -48,7 +47,7 @@ import java.util.concurrent.ExecutorService;
  *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
  *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)
  *     .create();
- * }
+ * }*
  * </pre>
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
@@ -70,7 +69,7 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @throws InterruptedException the interrupted exception
      */
     Result signIn(@NonNull FragmentActivity activity,
-                              @Nullable AuthenticationPayload payload)
+                  @Nullable AuthenticationPayload payload)
             throws InterruptedException;
 
     /**
@@ -80,14 +79,42 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @return the result
      * @throws InterruptedException the interrupted exception
      */
-    Result signOutFromOkta(@NonNull FragmentActivity activity)
+    Result signOutOfOkta(@NonNull FragmentActivity activity)
             throws InterruptedException;
 
+    /**
+     * Register a callback for sign in and sign out result status. The callback is triggered when
+     * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
+     * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
+     * Example usage:
+     * {@code
+     * <pre>
+     * client.registerCallbackIfInterrupt(activity, (result, type) -> {
+     *     switch (type) {
+     *         case SIGN_IN:
+     *             //process sign-in
+     *             break;
+     *         case SIGN_OUT:
+     *             //process sign-out
+     *             break;
+     *         default:
+     *             break;
+     *     }
+     * }, Executors.newSingleThreadExecutor());
+     * </pre>
+     * }*
+     *
+     * @param resultListener returns the result of sign in or sign out attempts.
+     * @param activity       the activity which will receive the results.
+     */
     void registerCallbackIfInterrupt(FragmentActivity activity,
                                      SyncWebAuthClientImpl.ResultListener resultListener,
                                      ExecutorService executorService);
 
+    /**
+     * Unregister callback.
+     *
+     * @param activity the activity
+     */
     void unregisterCallback(FragmentActivity activity);
-
-
 }

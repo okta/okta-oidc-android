@@ -24,6 +24,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient> {
     @ColorInt
     private int mCustomTabColor;
@@ -39,7 +40,7 @@ public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient
     public SyncWebAuthClient createClient(OIDCConfig oidcConfig,
                                           OktaState oktaState,
                                           HttpConnectionFactory connectionFactory) {
-        return new SyncWebAuthClientImpl(oidcConfig,  oktaState, connectionFactory,
+        return new SyncWebAuthClientImpl(oidcConfig, oktaState, connectionFactory,
                 mCustomTabColor, mSupportedBrowsers);
     }
 }
