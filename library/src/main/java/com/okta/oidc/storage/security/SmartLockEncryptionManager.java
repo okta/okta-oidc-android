@@ -62,7 +62,7 @@ public class SmartLockEncryptionManager implements EncryptionManager {
     private static final String TAG = SmartLockEncryptionManager.class.getSimpleName();
     private static final String DEFAULT_CHARSET = "UTF-8";
 
-    private static final int CHUNK_SIZE = (256 - 42)/6;
+    private static final int CHUNK_SIZE = (256 - 42) / 6;
     private static final int KEY_SIZE = 2048;
     private static final String CHUNK_SEPARATOR = ",";
 
@@ -106,11 +106,11 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         if (encryptedString != null && encryptedString.length() > 0) {
             if (prepare() && initCipher(Cipher.DECRYPT_MODE)) {
                 StringBuilder decryptedBuilder = new StringBuilder();
-                 String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
-                 for(String chunk : chunks) {
-                     byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
-                     decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
-                 }
+                String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
+                for (String chunk : chunks) {
+                    byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
+                    decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
+                }
                 return decryptedBuilder.toString();
             }
         }
@@ -120,7 +120,6 @@ public class SmartLockEncryptionManager implements EncryptionManager {
     private boolean prepare() {
         return getKeyStore() && getCipher() && getKey();
     }
-
 
     private boolean getKeyStore() {
         try {
@@ -134,7 +133,6 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         return false;
     }
 
-
     @TargetApi(Build.VERSION_CODES.M)
     private boolean getKeyPairGenerator() {
         try {
@@ -146,7 +144,6 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         }
         return false;
     }
-
 
     @SuppressLint("GetInstance")
     private boolean getCipher() {
@@ -163,18 +160,14 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         try {
             return mKeyStore.containsAlias(KEY_ALIAS) || generateNewKey();
         } catch (KeyStoreException e) {
-            e.printStackTrace();
+            Log.e(TAG, "getKey: ", e);
         }
         return false;
-
     }
-
 
     @TargetApi(Build.VERSION_CODES.M)
     private boolean generateNewKey() {
-
         if (getKeyPairGenerator()) {
-
             try {
                 mKeyPairGenerator.initialize(
                         new KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT
@@ -193,7 +186,6 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         }
         return false;
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private boolean initCipher(int mode) {
@@ -275,26 +267,22 @@ public class SmartLockEncryptionManager implements EncryptionManager {
      * @param cipher cipher
      */
     public void setCipher(Cipher cipher) {
-        this.mCipher = cipher;
+        mCipher = cipher;
     }
 
     @Override
     public String getHashed(String value) throws NoSuchAlgorithmException,
             UnsupportedEncodingException {
         final MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-
         byte[] result = digest.digest(value.getBytes(DEFAULT_CHARSET));
-
         return toHex(result);
     }
 
     private static String toHex(byte[] data) {
         StringBuilder sb = new StringBuilder();
-
         for (byte b : data) {
             sb.append(String.format("%02X", b));
         }
-
         return sb.toString();
     }
 }

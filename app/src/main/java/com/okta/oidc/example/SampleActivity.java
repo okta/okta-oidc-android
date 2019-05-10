@@ -16,6 +16,7 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,10 +32,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat.AuthenticationResult;
 import androidx.core.os.CancellationSignal;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -464,7 +465,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         if (mEncryptionManager != null) {
             prepareSensor();
         }
-
     }
 
     @Override
@@ -518,18 +518,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mTvStatus.setText("");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
+    @TargetApi(Build.VERSION_CODES.M)
     private void prepareSensor() {
         if (FingerprintUtils.isSensorStateAt(FingerprintUtils.SensorState.READY, this)) {
-            FingerprintManagerCompat.CryptoObject cryptoObject = mEncryptionManager.getCryptoObject();
+            FingerprintManagerCompat.CryptoObject cryptoObject =
+                    mEncryptionManager.getCryptoObject();
             if (cryptoObject != null) {
                 Toast.makeText(this, "use fingerprint to login", Toast.LENGTH_LONG).show();
                 mFingerprintHelper = new FingerprintHelper(this);
                 mFingerprintHelper.startAuth(cryptoObject);
             } else {
-                Toast.makeText(this, "new fingerprint enrolled. enter pin again", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "new fingerprint enrolled. enter pin again",
+                        Toast.LENGTH_SHORT).show();
             }
-
         }
     }
 
@@ -620,7 +621,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
     }
 
-    public class FingerprintHelper extends FingerprintManagerCompat.AuthenticationCallback {
+    private class FingerprintHelper extends FingerprintManagerCompat.AuthenticationCallback {
         private Context mContext;
         private CancellationSignal mCancellationSignal;
 
@@ -651,10 +652,13 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         }
 
         @Override
-        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+        public void onAuthenticationSucceeded(AuthenticationResult result) {
             Cipher cipher = result.getCryptoObject().getCipher();
             Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
             mEncryptionManager.setCipher(cipher);
+            if (getSessionClient().isAuthenticated()) {
+                showAuthenticatedMode();
+            }
         }
 
         @Override
