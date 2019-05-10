@@ -15,32 +15,21 @@
 
 package com.okta.oidc.clients.web;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
+import com.okta.oidc.Okta;
 import com.okta.oidc.clients.ClientFactory;
-import com.okta.oidc.net.HttpConnectionFactory;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient> {
-    @ColorInt
-    private int mCustomTabColor;
-    private String[] mSupportedBrowsers;
+    private Okta.SyncWebAuthBuilder mBuilder;
 
-    public SyncWebAuthClientFactory(@ColorInt int customTabColor,
-                                    @Nullable String... supportedBrowsers) {
-        mCustomTabColor = customTabColor;
-        mSupportedBrowsers = supportedBrowsers;
+    public SyncWebAuthClientFactory(Okta.SyncWebAuthBuilder builder) {
+        mBuilder = builder;
     }
 
     @Override
-    public SyncWebAuthClient createClient(OIDCConfig oidcConfig,
-                                          OktaState oktaState,
-                                          HttpConnectionFactory connectionFactory) {
-        return new SyncWebAuthClientImpl(oidcConfig, oktaState, connectionFactory,
-                mCustomTabColor, mSupportedBrowsers);
+    public SyncWebAuthClient createClient() {
+        return new SyncWebAuthClientImpl(mBuilder);
     }
 }

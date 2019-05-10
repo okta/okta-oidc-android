@@ -19,6 +19,7 @@ import androidx.annotation.AnyThread;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -36,7 +37,7 @@ class AuthClientImpl implements AuthClient {
     private SessionClientImpl mSessionImpl;
 
     AuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
-                   HttpConnectionFactory httpConnectionFactory) {
+                           HttpConnectionFactory httpConnectionFactory) {
         mSyncNativeAuthClient = new SyncAuthClientImpl(oidcConfig, oktaState,
                 httpConnectionFactory);
         mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
@@ -44,10 +45,15 @@ class AuthClientImpl implements AuthClient {
         mDispatcher = new RequestDispatcher(executor);
     }
 
+    AuthClientImpl(Okta.AuthBuilder b) {
+        this(b.getCallbackExecutor(), b.getOidcConfig(), b.getOktaState(),
+                b.getConnectionFactory());
+    }
+
     @Override
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
-                      RequestCallback<Result, AuthorizationException> cb) {
+                       RequestCallback<Result, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
             Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {

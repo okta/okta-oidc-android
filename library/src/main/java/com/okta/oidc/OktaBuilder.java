@@ -18,6 +18,7 @@ package com.okta.oidc;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
@@ -31,7 +32,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
  * @param <A> the generic type for the auth client
  * @param <T> the generic type for the auth client builder.
  */
-
 public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * The connection factory.
@@ -58,6 +58,51 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      * The Encryption Manager.
      */
     private EncryptionManager mEncryptionManager;
+
+    /**
+     * Gets connection factory.
+     *
+     * @return the connection factory
+     */
+    public HttpConnectionFactory getConnectionFactory() {
+        return mConnectionFactory;
+    }
+
+    /**
+     * Gets oidc config.
+     *
+     * @return the oidc config
+     */
+    public OIDCConfig getOidcConfig() {
+        return mOidcConfig;
+    }
+
+    /**
+     * Gets storage.
+     *
+     * @return the storage
+     */
+    public OktaStorage getStorage() {
+        return mStorage;
+    }
+
+    /**
+     * Gets context.
+     *
+     * @return the context
+     */
+    public Context getContext() {
+        return mContext;
+    }
+
+    /**
+     * Gets encryption manager.
+     *
+     * @return the encryption manager
+     */
+    public EncryptionManager getEncryptionManager() {
+        return mEncryptionManager;
+    }
 
     /**
      * Used to prevent lint issues.
@@ -150,8 +195,16 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      */
     @SuppressWarnings("WeakerAccess")
     protected A createAuthClient() {
-        return this.mClientFactory.createClient(mOidcConfig,
-                new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager)),
-                mConnectionFactory);
+        return mClientFactory.createClient();
+    }
+
+    /**
+     * Gets okta state.
+     *
+     * @return the okta state
+     */
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    public OktaState getOktaState() {
+        return new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager));
     }
 }

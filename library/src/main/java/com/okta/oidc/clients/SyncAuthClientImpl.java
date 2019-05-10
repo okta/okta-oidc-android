@@ -21,9 +21,10 @@ import androidx.annotation.WorkerThread;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
+import com.okta.oidc.clients.sessions.SyncSessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -38,8 +39,12 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     SyncAuthClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                        HttpConnectionFactory connectionFactory) {
         super(oidcConfig, oktaState, connectionFactory);
-        sessionClient = new SyncSessionClientFactory()
-                .createClient(oidcConfig, oktaState, connectionFactory);
+        sessionClient = new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
+    }
+
+    SyncAuthClientImpl(Okta.SyncAuthBuilder b) {
+        this(b.getOidcConfig(), b.getOktaState(), b.getConnectionFactory());
+
     }
 
     @VisibleForTesting

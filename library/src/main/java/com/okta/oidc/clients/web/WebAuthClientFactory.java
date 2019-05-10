@@ -15,36 +15,21 @@
 
 package com.okta.oidc.clients.web;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
+import com.okta.oidc.Okta;
 import com.okta.oidc.clients.ClientFactory;
-import com.okta.oidc.net.HttpConnectionFactory;
-
-import java.util.concurrent.Executor;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
-    private Executor mCallbackExecutor;
-    @ColorInt
-    private int mCustomTabColor;
-    private String[] mSupportedBrowser;
+    private Okta.WebAuthBuilder mBuilder;
 
-    public WebAuthClientFactory(@Nullable Executor callbackExecutor,
-                                @ColorInt int customTabColor,
-                                @Nullable String... supportedBrowser) {
-        mCallbackExecutor = callbackExecutor;
-        mCustomTabColor = customTabColor;
-        mSupportedBrowser = supportedBrowser;
+    public WebAuthClientFactory(Okta.WebAuthBuilder builder) {
+        mBuilder = builder;
     }
 
     @Override
-    public WebAuthClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                                      HttpConnectionFactory connectionFactory) {
-        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, oktaState, connectionFactory,
-                mCustomTabColor, mSupportedBrowser);
+    public WebAuthClient createClient() {
+        return new WebAuthClientImpl(mBuilder);
     }
 }

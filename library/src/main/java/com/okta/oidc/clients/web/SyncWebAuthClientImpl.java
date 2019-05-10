@@ -30,13 +30,14 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.OktaRedirectActivity;
 import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
+import com.okta.oidc.clients.sessions.SyncSessionClientImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -70,8 +71,12 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         super(oidcConfig, oktaState, connectionFactory);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
-        mSessionClient = new SyncSessionClientFactory()
-                .createClient(oidcConfig, oktaState, connectionFactory);
+        mSessionClient = new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
+    }
+
+    SyncWebAuthClientImpl(Okta.SyncWebAuthBuilder b) {
+        this(b.getOidcConfig(), b.getOktaState(), b.getConnectionFactory(), b.getCustomTabColor(),
+                b.getSupportedBrowsers());
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {

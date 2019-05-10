@@ -24,6 +24,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
@@ -51,6 +52,11 @@ class WebAuthClientImpl implements WebAuthClient {
         mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
                 httpConnectionFactory);
         mDispatcher = new RequestDispatcher(executor);
+    }
+
+    WebAuthClientImpl(Okta.WebAuthBuilder b) {
+        this(b.getCallbackExecutor(), b.getOidcConfig(), b.getOktaState(), b.getConnectionFactory(),
+                b.getCustomTabColor(), b.getSupportedBrowsers());
     }
 
     private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {

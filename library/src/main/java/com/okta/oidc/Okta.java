@@ -18,7 +18,7 @@ package com.okta.oidc;
 import androidx.annotation.ColorInt;
 
 import com.okta.oidc.clients.AuthClient;
-import com.okta.oidc.clients.AuthClientFactoryImpl;
+import com.okta.oidc.clients.AuthClientFactory;
 import com.okta.oidc.clients.SyncAuthClient;
 import com.okta.oidc.clients.SyncAuthClientFactory;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
@@ -42,6 +42,33 @@ public class Okta {
         private Executor mCallbackExecutor;
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
+
+        /**
+         * Gets callback executor.
+         *
+         * @return the callback executor
+         */
+        public Executor getCallbackExecutor() {
+            return mCallbackExecutor;
+        }
+
+        /**
+         * Gets custom tab color.
+         *
+         * @return the custom tab color
+         */
+        public int getCustomTabColor() {
+            return mCustomTabColor;
+        }
+
+        /**
+         * Get supported browsers string [ ].
+         *
+         * @return the string [ ]
+         */
+        public String[] getSupportedBrowsers() {
+            return mSupportedBrowsers;
+        }
 
         /**
          * Sets a executor for use for callbacks. Default behaviour will execute
@@ -90,8 +117,7 @@ public class Okta {
          */
         @Override
         public WebAuthClient create() {
-            super.withAuthenticationClientFactory(new WebAuthClientFactory(mCallbackExecutor,
-                    mCustomTabColor, mSupportedBrowsers));
+            super.withAuthenticationClientFactory(new WebAuthClientFactory(this));
             return createAuthClient();
         }
     }
@@ -101,8 +127,27 @@ public class Okta {
      */
     public static class SyncWebAuthBuilder extends
             OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
+
         private int mCustomTabColor;
         private String[] mSupportedBrowsers;
+
+        /**
+         * Gets custom tab color.
+         *
+         * @return the custom tab color
+         */
+        public int getCustomTabColor() {
+            return mCustomTabColor;
+        }
+
+        /**
+         * Get supported browsers string [ ].
+         *
+         * @return the string [ ]
+         */
+        public String[] getSupportedBrowsers() {
+            return mSupportedBrowsers;
+        }
 
         /**
          * Sets the color for custom tab.
@@ -140,7 +185,7 @@ public class Okta {
         @Override
         public SyncWebAuthClient create() {
             super.withAuthenticationClientFactory(
-                    new SyncWebAuthClientFactory(mCustomTabColor, mSupportedBrowsers));
+                    new SyncWebAuthClientFactory(this));
             return createAuthClient();
         }
     }
@@ -149,7 +194,17 @@ public class Okta {
      * The asynchronous authentication client builder using sessionTokens.
      */
     public static class AuthBuilder extends OktaBuilder<AuthClient, AuthBuilder> {
+
         private Executor mCallbackExecutor;
+
+        /**
+         * Gets callback executor.
+         *
+         * @return the callback executor
+         */
+        public Executor getCallbackExecutor() {
+            return mCallbackExecutor;
+        }
 
         /**
          * Sets a executor for use for callbacks. Default behaviour will execute
@@ -176,7 +231,7 @@ public class Okta {
         @Override
         public AuthClient create() {
             super.withAuthenticationClientFactory(
-                    new AuthClientFactoryImpl(this.mCallbackExecutor));
+                    new AuthClientFactory(this));
             return createAuthClient();
         }
     }
@@ -198,7 +253,7 @@ public class Okta {
          */
         @Override
         public SyncAuthClient create() {
-            super.withAuthenticationClientFactory(new SyncAuthClientFactory());
+            super.withAuthenticationClientFactory(new SyncAuthClientFactory(this));
             return createAuthClient();
         }
     }

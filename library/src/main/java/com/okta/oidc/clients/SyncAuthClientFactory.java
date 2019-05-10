@@ -17,15 +17,18 @@ package com.okta.oidc.clients;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.Okta;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
+    private Okta.SyncAuthBuilder mBuilder;
+
+    public SyncAuthClientFactory(Okta.SyncAuthBuilder builder) {
+        mBuilder = builder;
+    }
+
     @Override
-    public SyncAuthClientImpl createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                                           HttpConnectionFactory connectionFactory) {
-        return new SyncAuthClientImpl(oidcConfig, oktaState, connectionFactory);
+    public SyncAuthClient createClient() {
+        return new SyncAuthClientImpl(mBuilder);
     }
 }

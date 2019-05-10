@@ -13,20 +13,22 @@
  * License.
  */
 
-package com.okta.oidc.clients.sessions;
+package com.okta.oidc.clients;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
-import com.okta.oidc.clients.ClientFactory;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.Okta;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SyncSessionClientFactory implements ClientFactory<SyncSessionClient> {
+public class AuthClientFactory implements ClientFactory<AuthClient> {
+    private Okta.AuthBuilder mBuilder;
+
+    public AuthClientFactory(Okta.AuthBuilder builder) {
+        mBuilder = builder;
+    }
+
     @Override
-    public SyncSessionClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                                          HttpConnectionFactory connectionFactory) {
-        return new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
+    public AuthClient createClient() {
+        return new AuthClientImpl(mBuilder);
     }
 }

@@ -42,9 +42,13 @@ public class OktaRepository {
 
     private final Object lock = new Object();
 
-    public OktaRepository(OktaStorage storage, Context context,
+    public OktaRepository(@Nullable OktaStorage storage, Context context,
                           @Nullable EncryptionManager encryptionManager) {
-        this.storage = storage;
+        if (storage == null) {
+            this.storage = new SimpleOktaStorage(context);
+        } else {
+            this.storage = storage;
+        }
         if (encryptionManager != null) {
             this.encryptionManager = encryptionManager;
         } else {
