@@ -37,4 +37,19 @@ public class WireMockStubs {
         stubFor(post(urlMatching("/token"))
                 .willReturn(responseDefinitionBuilder));
     }
+
+    static void mockProfileRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(post(urlMatching("/userinfo"))
+                .willReturn(responseDefinitionBuilder));
+    }
+
+    static void mockRevokeRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(post(urlMatching("/revoke"))
+                .willReturn(responseDefinitionBuilder));
+    }
+
+    static void mockIntrospectRequest(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(post(urlMatching("/introspect"))
+                .willReturn(responseDefinitionBuilder));
+    }
 }
