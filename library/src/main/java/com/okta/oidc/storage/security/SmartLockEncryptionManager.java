@@ -62,6 +62,10 @@ public class SmartLockEncryptionManager implements EncryptionManager {
     private static final String TAG = SmartLockEncryptionManager.class.getSimpleName();
     private static final String DEFAULT_CHARSET = "UTF-8";
 
+    private static final int CHUNK_SIZE = (256 - 42)/6;
+    private static final int KEY_SIZE = 2048;
+    private static final String CHUNK_SEPARATOR = ",";
+
     private static final String KEY_ALIAS = "key_for_pin";
     private static final String KEY_STORE = "AndroidKeyStore";
     private static final String TRANSFORMATION = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
@@ -75,8 +79,22 @@ public class SmartLockEncryptionManager implements EncryptionManager {
     public String encrypt(String inputString) throws GeneralSecurityException {
         if (inputString != null && inputString.length() > 0) {
             if (prepare() && initCipher(Cipher.ENCRYPT_MODE)) {
-                byte[] bytes = mCipher.doFinal(inputString.getBytes());
-                return Base64.encodeToString(bytes, Base64.NO_WRAP);
+                StringBuilder encryptedBuilder = new StringBuilder();
+                int chunkStart = 0;
+                while (chunkStart < inputString.length()) {
+                    int chunkEnd = chunkStart + CHUNK_SIZE;
+                    byte[] chunk = inputString.substring(
+                            chunkStart,
+                            chunkEnd < inputString.length() ? chunkEnd : inputString.length()
+                    ).getBytes();
+                    byte[] bytes = mCipher.doFinal(chunk);
+                    chunkStart = chunkEnd;
+                    encryptedBuilder.append(Base64.encodeToString(bytes, Base64.NO_WRAP));
+                    if (chunkStart < inputString.length()) {
+                        encryptedBuilder.append(CHUNK_SEPARATOR);
+                    }
+                }
+                return encryptedBuilder.toString();
             }
         }
         return inputString;
@@ -84,14 +102,19 @@ public class SmartLockEncryptionManager implements EncryptionManager {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
-    public String decrypt(String encodedString) throws GeneralSecurityException {
-        if (encodedString != null && encodedString.length() > 0) {
-            if (prepare() && initCipher(Cipher.ENCRYPT_MODE)) {
-                byte[] bytes = Base64.decode(encodedString, Base64.NO_WRAP);
-                return new String(mCipher.doFinal(bytes));
+    public String decrypt(String encryptedString) throws GeneralSecurityException {
+        if (encryptedString != null && encryptedString.length() > 0) {
+            if (prepare() && initCipher(Cipher.DECRYPT_MODE)) {
+                StringBuilder decryptedBuilder = new StringBuilder();
+                 String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
+                 for(String chunk : chunks) {
+                     byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
+                     decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
+                 }
+                return decryptedBuilder.toString();
             }
         }
-        return encodedString;
+        return encryptedString;
     }
 
     private boolean prepare() {
@@ -156,6 +179,7 @@ public class SmartLockEncryptionManager implements EncryptionManager {
                 mKeyPairGenerator.initialize(
                         new KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT
                                 | KeyProperties.PURPOSE_DECRYPT)
+                                .setKeySize(KEY_SIZE)
                                 .setDigests(KeyProperties.DIGEST_SHA256,
                                         KeyProperties.DIGEST_SHA512)
                                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
@@ -175,7 +199,6 @@ public class SmartLockEncryptionManager implements EncryptionManager {
     private boolean initCipher(int mode) {
         try {
             mKeyStore.load(null);
-
             switch (mode) {
                 case Cipher.ENCRYPT_MODE:
                     initEncodeCipher(mode);
