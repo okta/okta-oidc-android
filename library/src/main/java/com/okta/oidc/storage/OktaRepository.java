@@ -84,6 +84,14 @@ public class OktaRepository {
         }
     }
 
+    public boolean contains(Persistable.Restore persistable) {
+        synchronized (lock) {
+            String key = getHashed(persistable.getKey());
+            return cacheStorage.get(key) != null
+                    || storage.get(key) != null;
+        }
+    }
+
     public void delete(Persistable persistable) {
         if (persistable == null) {
             return;

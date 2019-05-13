@@ -159,9 +159,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public boolean isAuthenticated() {
-        TokenResponse tokenResponse = mOktaState.getTokenResponse();
-        return tokenResponse != null &&
-                (tokenResponse.getAccessToken() != null || tokenResponse.getIdToken() != null);
+        return mOktaState.hasTokenResponse();
     }
 
     @Override

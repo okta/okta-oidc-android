@@ -41,6 +41,10 @@ public class OktaState {
         return mOktaRepo.get(TokenResponse.RESTORE);
     }
 
+    public boolean hasTokenResponse(){
+        return mOktaRepo.contains(TokenResponse.RESTORE);
+    }
+
     public ProviderConfiguration getProviderConfiguration() {
         return mOktaRepo.get(ProviderConfiguration.RESTORE);
     }
