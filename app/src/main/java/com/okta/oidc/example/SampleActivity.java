@@ -99,9 +99,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     WebAuthClient mWebOAuth2;
     SessionClient mSessionOAuth2Client;
 
-
-    private SmartLockEncryptionManager mEncryptionManager;
-
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
@@ -136,7 +133,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     protected AuthenticationClient mAuthenticationClient;
     private SignInDialog mSignInDialog;
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
-    private FingerprintHelper mFingerprintHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -394,11 +390,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);
 
-        if (FingerprintUtils.checkFingerprintCompatibility(this)) {
-            mEncryptionManager = new SmartLockEncryptionManager();
-            builder.withEncryptionManager(mEncryptionManager);
-        }
-
         mWebAuth = builder.create();
 
         mSessionClient = mWebAuth.getSessionClient();
@@ -462,9 +453,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         if (mWebAuth.isInProgress()) {
             mProgressBar.setVisibility(View.VISIBLE);
         }
-        if (mEncryptionManager != null) {
-            prepareSensor();
-        }
     }
 
     @Override
@@ -516,22 +504,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mClearData.setVisibility(View.GONE);
         mRevokeContainer.setVisibility(View.GONE);
         mTvStatus.setText("");
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private void prepareSensor() {
-        if (FingerprintUtils.isSensorStateAt(FingerprintUtils.SensorState.READY, this)) {
-            FingerprintManagerCompat.CryptoObject cryptoObject =
-                    mEncryptionManager.getCryptoObject();
-            if (cryptoObject != null) {
-                Toast.makeText(this, "use fingerprint to login", Toast.LENGTH_LONG).show();
-                mFingerprintHelper = new FingerprintHelper(this);
-                mFingerprintHelper.startAuth(cryptoObject);
-            } else {
-                Toast.makeText(this, "new fingerprint enrolled. enter pin again",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     private void getProfile() {
@@ -621,50 +593,4 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
     }
 
-    private class FingerprintHelper extends FingerprintManagerCompat.AuthenticationCallback {
-        private Context mContext;
-        private CancellationSignal mCancellationSignal;
-
-        FingerprintHelper(Context context) {
-            mContext = context;
-        }
-
-        void startAuth(FingerprintManagerCompat.CryptoObject cryptoObject) {
-            mCancellationSignal = new CancellationSignal();
-            FingerprintManagerCompat manager = FingerprintManagerCompat.from(mContext);
-            manager.authenticate(cryptoObject, 0, mCancellationSignal, this, null);
-        }
-
-        void cancel() {
-            if (mCancellationSignal != null) {
-                mCancellationSignal.cancel();
-            }
-        }
-
-        @Override
-        public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            Toast.makeText(mContext, errString, Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            Toast.makeText(mContext, helpString, Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onAuthenticationSucceeded(AuthenticationResult result) {
-            Cipher cipher = result.getCryptoObject().getCipher();
-            Toast.makeText(mContext, "success", Toast.LENGTH_SHORT).show();
-            mEncryptionManager.setCipher(cipher);
-            if (getSessionClient().isAuthenticated()) {
-                showAuthenticatedMode();
-            }
-        }
-
-        @Override
-        public void onAuthenticationFailed() {
-            Toast.makeText(mContext, "try again", Toast.LENGTH_SHORT).show();
-        }
-
-    }
 }
