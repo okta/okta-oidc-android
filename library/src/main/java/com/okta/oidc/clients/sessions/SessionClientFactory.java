@@ -19,14 +19,23 @@ import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 
+/**
+ * The interface Session client factory. Used to create a session client.
+ *
+ * @param <A> the type of client to create
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SyncSessionClientFactory implements ClientFactory<SyncSessionClient> {
-    @Override
-    public SyncSessionClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
-                                          HttpConnectionFactory connectionFactory) {
-        return new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
-    }
+public interface SessionClientFactory<A> {
+    /**
+     * Create client a.
+     *
+     * @param oidcConfig        the oidc config
+     * @param oktaState         the okta state
+     * @param connectionFactory the connection factory
+     * @return the type of auth client
+     */
+    A createClient(OIDCConfig oidcConfig, OktaState oktaState,
+                   HttpConnectionFactory connectionFactory);
 }

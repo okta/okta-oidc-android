@@ -41,12 +41,11 @@ import org.json.JSONObject;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SessionClientImpl implements SessionClient {
+class SessionClientImpl implements SessionClient {
     private SyncSessionClientImpl mSyncSessionClientImpl;
     private RequestDispatcher mDispatcher;
 
-    public SessionClientImpl(Executor callbackExecutor, OIDCConfig oidcConfig, OktaState oktaState,
+    SessionClientImpl(Executor callbackExecutor, OIDCConfig oidcConfig, OktaState oktaState,
                              HttpConnectionFactory connectionFactory) {
         mSyncSessionClientImpl =
                 new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);

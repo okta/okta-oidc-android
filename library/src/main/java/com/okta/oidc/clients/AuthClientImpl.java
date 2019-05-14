@@ -23,7 +23,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.clients.sessions.SessionClientImpl;
+import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
@@ -32,14 +32,13 @@ import java.util.concurrent.Executor;
 
 class AuthClientImpl implements AuthClient {
     private RequestDispatcher mDispatcher;
-    private SyncAuthClientImpl mSyncNativeAuthClient;
-    private SessionClientImpl mSessionImpl;
+    private SyncAuthClient mSyncNativeAuthClient;
+    private SessionClient mSessionImpl;
 
     AuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
                    HttpConnectionFactory httpConnectionFactory) {
-        mSyncNativeAuthClient = new SyncAuthClientImpl(oidcConfig, oktaState,
-                httpConnectionFactory);
-        mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, oktaState, httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(oidcConfig, oktaState,
                 httpConnectionFactory);
         mDispatcher = new RequestDispatcher(executor);
     }

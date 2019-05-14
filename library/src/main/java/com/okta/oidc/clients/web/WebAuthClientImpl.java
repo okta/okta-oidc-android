@@ -28,7 +28,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.clients.sessions.SessionClientImpl;
+import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.util.AuthorizationException;
@@ -40,15 +40,15 @@ class WebAuthClientImpl implements WebAuthClient {
     private WeakReference<FragmentActivity> mActivity;
     private RequestDispatcher mDispatcher;
     private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
-    private SyncWebAuthClientImpl mSyncAuthClient;
-    private SessionClientImpl mSessionImpl;
+    private SyncWebAuthClient mSyncAuthClient;
+    private SessionClient mSessionImpl;
 
     WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
                       HttpConnectionFactory httpConnectionFactory,
                       int customTabColor, String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientImpl(oidcConfig, oktaState,
-                httpConnectionFactory, customTabColor, supportedBrowsers);
-        mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, oktaState,
+                httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(oidcConfig, oktaState,
                 httpConnectionFactory);
         mDispatcher = new RequestDispatcher(executor);
     }

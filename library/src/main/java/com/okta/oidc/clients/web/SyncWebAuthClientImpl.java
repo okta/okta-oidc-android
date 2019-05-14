@@ -36,7 +36,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
+import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -70,7 +70,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         super(oidcConfig, oktaState, connectionFactory);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
-        mSessionClient = new SyncSessionClientFactory()
+        mSessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, oktaState, connectionFactory);
     }
 

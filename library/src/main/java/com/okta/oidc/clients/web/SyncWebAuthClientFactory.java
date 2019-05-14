@@ -24,7 +24,6 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient> {
     @ColorInt
     private int mCustomTabColor;
