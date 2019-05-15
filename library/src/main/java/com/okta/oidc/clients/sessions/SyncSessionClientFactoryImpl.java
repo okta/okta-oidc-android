@@ -7,8 +7,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SyncSessionClientFactoryImpl implements SessionClientFactory<SyncSessionClient> {
-    @Override
+public class SyncSessionClientFactoryImpl {
     public SyncSessionClient createClient(OIDCConfig oidcConfig, OktaState oktaState, HttpConnectionFactory connectionFactory) {
         return new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
     }

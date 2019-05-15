@@ -34,7 +34,6 @@ import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static com.okta.oidc.util.TestValues.TYPE_BEARER;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

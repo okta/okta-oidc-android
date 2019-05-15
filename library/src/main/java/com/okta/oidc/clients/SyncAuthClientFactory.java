@@ -15,14 +15,20 @@
 
 package com.okta.oidc.clients;
 
+import android.content.Context;
+
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 
 public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
     @Override
-    public SyncAuthClientImpl createClient(OIDCConfig oidcConfig, OktaState oktaState,
+    public SyncAuthClientImpl createClient(OIDCConfig oidcConfig,
+                                           Context context,
+                                           OktaStorage oktaStorage,
+                                           EncryptionManager encryptionManager,
                                            HttpConnectionFactory connectionFactory) {
-        return new SyncAuthClientImpl(oidcConfig, oktaState, connectionFactory);
+        return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
     }
 }

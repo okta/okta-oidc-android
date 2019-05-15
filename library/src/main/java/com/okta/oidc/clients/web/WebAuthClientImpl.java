@@ -16,6 +16,7 @@
 package com.okta.oidc.clients.web;
 
 import android.app.Activity;
+import android.content.Context;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
@@ -24,13 +25,14 @@ import androidx.fragment.app.FragmentActivity;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.lang.ref.WeakReference;
@@ -43,13 +45,14 @@ class WebAuthClientImpl implements WebAuthClient {
     private SyncWebAuthClient mSyncAuthClient;
     private SessionClient mSessionImpl;
 
-    WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
+    WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig,
+                      Context context,
+                      OktaStorage oktaStorage,
+                      EncryptionManager encryptionManager,
                       HttpConnectionFactory httpConnectionFactory,
                       int customTabColor, String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, oktaState,
-                httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(oidcConfig, oktaState,
-                httpConnectionFactory);
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 

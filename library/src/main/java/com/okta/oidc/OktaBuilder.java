@@ -21,7 +21,6 @@ import androidx.annotation.NonNull;
 
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -150,8 +149,9 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      */
     @SuppressWarnings("WeakerAccess")
     protected A createAuthClient() {
+
         return this.mClientFactory.createClient(mOidcConfig,
-                new OktaState(new OktaRepository(mStorage, mContext, mEncryptionManager)),
+                mContext, mStorage, mEncryptionManager,
                 mConnectionFactory);
     }
 }

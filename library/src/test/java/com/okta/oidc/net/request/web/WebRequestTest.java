@@ -16,18 +16,17 @@ package com.okta.oidc.net.request.web;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import androidx.annotation.NonNull;
-
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
