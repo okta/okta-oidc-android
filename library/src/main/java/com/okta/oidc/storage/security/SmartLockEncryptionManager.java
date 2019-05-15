@@ -19,6 +19,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
@@ -57,6 +58,7 @@ import javax.crypto.spec.PSource;
  * Manager responsible for encrypting and decrypting all data that is stored by Okta Oidc
  * on local storage using AES encryption using FingerPrintManager.
  */
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class SmartLockEncryptionManager implements EncryptionManager {
 
     private static final String TAG = SmartLockEncryptionManager.class.getSimpleName();
@@ -276,6 +278,31 @@ public class SmartLockEncryptionManager implements EncryptionManager {
         final MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
         byte[] result = digest.digest(value.getBytes(DEFAULT_CHARSET));
         return toHex(result);
+    }
+
+    @Override
+    public boolean isHardwareBackedKeyStore() {
+        boolean isHardware = false;
+        if (getKeyStore() && getKey()) {
+            try {
+                PrivateKey key = (PrivateKey) mKeyStore.getKey(KEY_ALIAS, null);
+                if (key != null) {
+                    KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(),
+                            KEY_STORE);
+                    KeyInfo keyInfo;
+                    try {
+                        keyInfo = factory.getKeySpec(key, KeyInfo.class);
+                        isHardware = keyInfo.isInsideSecureHardware();
+                    } catch (InvalidKeySpecException e) {
+                        Log.w(TAG, "isHardwareBackedKeyStore: ", e);
+                    }
+                }
+            } catch (NoSuchAlgorithmException | NoSuchProviderException | UnrecoverableKeyException
+                    | KeyStoreException e) {
+                Log.w(TAG, "isHardwareBackedKeyStore: ", e);
+            }
+        }
+        return isHardware;
     }
 
     private static String toHex(byte[] data) {
