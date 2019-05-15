@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -31,7 +32,10 @@ import static android.content.Context.MODE_PRIVATE;
  */
 @SuppressLint("ApplySharedPref")
 public class SimpleOktaStorage implements OktaStorage {
-    private SharedPreferences prefs;
+    @VisibleForTesting
+    protected SharedPreferences prefs;
+    @VisibleForTesting
+    public boolean requireHardwareKeyStore = true;
 
     /**
      * Instantiates a new instance.
@@ -69,5 +73,10 @@ public class SimpleOktaStorage implements OktaStorage {
     @Override
     public void delete(@NonNull String key) {
         prefs.edit().remove(key).commit();
+    }
+
+    @Override
+    public boolean requireHardwareBackedKeyStore() {
+        return requireHardwareKeyStore;
     }
 }

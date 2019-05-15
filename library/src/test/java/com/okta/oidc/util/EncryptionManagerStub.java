@@ -13,11 +13,20 @@ public class EncryptionManagerStub implements EncryptionManager {
     public static final String STUPID_SALT = "stupidSalt";
     private static final String DEFAULT_CHARSET = "UTF-8";
 
+    private boolean mHardwareBacked;
+
+    public EncryptionManagerStub() {
+        mHardwareBacked = true;
+    }
+
+    public EncryptionManagerStub(boolean hardwareBacked) {
+        mHardwareBacked = hardwareBacked;
+    }
 
     @Override
     public String encrypt(String value) throws GeneralSecurityException, IOException {
         if (value != null && value.length() > 0) {
-            return value+STUPID_SALT;
+            return value + STUPID_SALT;
         }
         return null;
     }
@@ -25,7 +34,7 @@ public class EncryptionManagerStub implements EncryptionManager {
     @Override
     public String decrypt(String value) throws GeneralSecurityException, IOException {
         if (value != null && value.length() > 0) {
-            return value.replace(STUPID_SALT,"");
+            return value.replace(STUPID_SALT, "");
         } else {
             return null;
         }
@@ -38,6 +47,11 @@ public class EncryptionManagerStub implements EncryptionManager {
         byte[] result = digest.digest(value.getBytes(DEFAULT_CHARSET));
 
         return toHex(result);
+    }
+
+    @Override
+    public boolean isHardwareBackedKeyStore() {
+        return mHardwareBacked;
     }
 
     private static String toHex(byte[] data) {
