@@ -15,14 +15,17 @@
 
 package com.okta.oidc.clients.web;
 
+import android.content.Context;
+
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.util.concurrent.Executor;
 
@@ -42,9 +45,12 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
     }
 
     @Override
-    public WebAuthClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
+    public WebAuthClient createClient(OIDCConfig oidcConfig,
+                                      Context context,
+                                      OktaStorage oktaStorage,
+                                      EncryptionManager encryptionManager,
                                       HttpConnectionFactory connectionFactory) {
-        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, oktaState, connectionFactory,
+        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory,
                 mCustomTabColor, mSupportedBrowser);
     }
 }

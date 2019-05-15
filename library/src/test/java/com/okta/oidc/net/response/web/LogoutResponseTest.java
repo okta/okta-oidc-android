@@ -27,7 +27,6 @@ import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)

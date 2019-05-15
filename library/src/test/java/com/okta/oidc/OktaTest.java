@@ -21,8 +21,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.okta.oidc.clients.AuthClient;
 import com.okta.oidc.clients.SyncAuthClient;
-import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
+import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaStorage;

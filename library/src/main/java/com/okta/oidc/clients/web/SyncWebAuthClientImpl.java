@@ -15,6 +15,7 @@
 
 package com.okta.oidc.clients.web;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -32,11 +33,10 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaRedirectActivity;
 import com.okta.oidc.OktaResultFragment;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
-import com.okta.oidc.clients.sessions.SyncSessionClientFactory;
+import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -44,6 +44,8 @@ import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -63,15 +65,17 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private SyncSessionClient mSessionClient;
 
     SyncWebAuthClientImpl(OIDCConfig oidcConfig,
-                          OktaState oktaState,
+                          Context context,
+                          OktaStorage oktaStorage,
+                          EncryptionManager encryptionManager,
                           HttpConnectionFactory connectionFactory,
                           int customTabColor,
                           String... supportedBrowsers) {
-        super(oidcConfig, oktaState, connectionFactory);
+        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
-        mSessionClient = new SyncSessionClientFactory()
-                .createClient(oidcConfig, oktaState, connectionFactory);
+        mSessionClient = new SyncSessionClientFactoryImpl()
+                .createClient(oidcConfig, mOktaState, connectionFactory);
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {

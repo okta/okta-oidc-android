@@ -25,7 +25,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.SimpleEncryptionManager;
 
 import java.io.IOException;
-
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;

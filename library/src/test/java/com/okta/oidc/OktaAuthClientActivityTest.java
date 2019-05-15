@@ -19,6 +19,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import com.okta.oidc.util.AuthorizationException;
 
 import org.assertj.android.api.Assertions;
@@ -32,8 +34,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
-
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
