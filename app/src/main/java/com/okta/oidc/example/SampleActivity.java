@@ -172,6 +172,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mSwitch.setChecked(checked);
         mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            setupCallback();//reset callbacks
             if (getSessionClient().isAuthenticated()) {
                 showAuthenticatedMode();
             } else {
@@ -452,9 +453,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         mTvStatus.setText(msg);
                     }
                 };
-
-        mWebAuth.registerCallback(callback, this);
-        mWebOAuth2.registerCallback(callback, this);
+        if (mSwitch.isChecked()) {
+            mWebAuth.registerCallback(callback, this);
+        } else {
+            mWebOAuth2.registerCallback(callback, this);
+        }
     }
 
     @Override

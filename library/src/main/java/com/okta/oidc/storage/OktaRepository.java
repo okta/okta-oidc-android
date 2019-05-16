@@ -62,7 +62,7 @@ public class OktaRepository {
                         getEncrypted(persistable.persist()));
             }
             cacheStorage.put(getHashed(persistable.getKey()),
-                    value);
+                    getEncrypted(persistable.persist()));
         }
     }
 
