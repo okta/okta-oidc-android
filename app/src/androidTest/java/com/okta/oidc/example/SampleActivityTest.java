@@ -369,7 +369,7 @@ public class SampleActivityTest {
         onView(withId(R.id.get_profile)).perform(click());
         onView(withId(R.id.status))
                 .check(matches(withText(
-                        containsString("Profile not supported for OAuth resource"))));
+                        containsString("Invalid operation"))));
     }
 
 

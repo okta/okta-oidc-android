@@ -155,7 +155,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @WorkerThread
     public Result signIn(@NonNull final FragmentActivity activity,
                          @Nullable AuthenticationPayload payload)
-            throws InterruptedException {
+            throws InterruptedException, AuthorizationException {
         try {
             obtainNewConfiguration();
         } catch (AuthorizationException e) {
@@ -224,7 +224,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     @AnyThread
     public Result signOutOfOkta(@NonNull final FragmentActivity activity)
-            throws InterruptedException {
+            throws InterruptedException, AuthorizationException {
         mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();

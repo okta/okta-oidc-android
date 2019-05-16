@@ -16,8 +16,6 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -28,15 +26,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
-import androidx.core.hardware.fingerprint.FingerprintManagerCompat.AuthenticationResult;
-import androidx.core.os.CancellationSignal;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -60,14 +54,10 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.SimpleOktaStorage;
-import com.okta.oidc.storage.security.FingerprintUtils;
-import com.okta.oidc.storage.security.SmartLockEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-
-import javax.crypto.Cipher;
 
 /**
  * Sample to test library functionality. Can be used as a starting reference point.
@@ -522,24 +512,20 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private void getProfile() {
         mProgressBar.setVisibility(View.VISIBLE);
         SessionClient client = getSessionClient();
-        try {
-            client.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
-                @Override
-                public void onSuccess(@NonNull UserInfo result) {
-                    mTvStatus.setText(result.toString());
-                    mProgressBar.setVisibility(View.GONE);
-                }
+        client.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull UserInfo result) {
+                mTvStatus.setText(result.toString());
+                mProgressBar.setVisibility(View.GONE);
+            }
 
-                @Override
-                public void onError(String error, AuthorizationException exception) {
-                    Log.d(TAG, error, exception.getCause());
-                    mTvStatus.setText("Error : " + exception.errorDescription);
-                    mProgressBar.setVisibility(View.GONE);
-                }
-            });
-        } catch (UnsupportedOperationException ue) {
-            mTvStatus.setText("Profile not supported for OAuth resource");
-        }
+            @Override
+            public void onError(String error, AuthorizationException exception) {
+                Log.d(TAG, error, exception.getCause());
+                mTvStatus.setText("Error : " + exception.errorDescription);
+                mProgressBar.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override

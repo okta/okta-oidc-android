@@ -20,7 +20,6 @@ import android.text.TextUtils;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
@@ -147,7 +146,8 @@ public class TestValues {
                 .compact();
     }
 
-    public static AuthorizeRequest getAuthorizeRequest(OIDCConfig config, String verifier) {
+    public static AuthorizeRequest getAuthorizeRequest(OIDCConfig config, String verifier)
+            throws AuthorizationException {
         return new AuthorizeRequest.Builder().codeVerifier(verifier)
                 .authorizeEndpoint(config.getDiscoveryUri().toString())
                 .redirectUri(config.getRedirectUri().toString())
@@ -176,9 +176,9 @@ public class TestValues {
 
     public static TokenRequest getTokenRequest(OIDCConfig config, AuthorizeRequest request,
                                                AuthorizeResponse response, ProviderConfiguration
-                                                       configuration) {
-        return (TokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.TOKEN_EXCHANGE)
+                                                       configuration)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newTokenRequest()
                 .authRequest(request)
                 .authResponse(response)
                 .config(config)
@@ -187,9 +187,9 @@ public class TestValues {
     }
 
     public static RefreshTokenRequest getRefreshRequest(OIDCConfig config, TokenResponse response,
-                                                        ProviderConfiguration configuration) {
-        return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.REFRESH_TOKEN)
+                                                        ProviderConfiguration configuration)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newRefreshTokenRequest()
                 .tokenResponse(response)
                 .config(config)
                 .providerConfiguration(configuration)
@@ -197,9 +197,9 @@ public class TestValues {
     }
 
     public static RevokeTokenRequest getRevokeTokenRequest(OIDCConfig config, String tokenToRevoke,
-                                                           ProviderConfiguration configuration) {
-        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.REVOKE_TOKEN)
+                                                           ProviderConfiguration configuration)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newRevokeTokenRequest()
                 .tokenToRevoke(tokenToRevoke)
                 .providerConfiguration(configuration)
                 .config(config)
@@ -207,9 +207,9 @@ public class TestValues {
     }
 
     public static IntrospectRequest getIntrospectTokenRequest(OIDCConfig config, String token, String tokenType,
-                                                              ProviderConfiguration configuration) {
-        return (IntrospectRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.INTROSPECT)
+                                                              ProviderConfiguration configuration)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newIntrospectRequest()
                 .introspect(token, tokenType)
                 .providerConfiguration(configuration)
                 .config(config)
@@ -217,7 +217,8 @@ public class TestValues {
     }
 
     public static NativeAuthorizeRequest getNativeLogInRequest(OIDCConfig config, String token,
-                                                               ProviderConfiguration configuration) {
+                                                               ProviderConfiguration configuration)
+            throws AuthorizationException {
         return new AuthorizeRequest.Builder()
                 .config(config)
                 .providerConfiguration(configuration)

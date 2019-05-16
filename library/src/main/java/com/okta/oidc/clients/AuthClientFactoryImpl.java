@@ -41,6 +41,7 @@ public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
                                    OktaStorage oktaStorage,
                                    EncryptionManager encryptionManager,
                                    HttpConnectionFactory connectionFactory) {
-        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
+        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
+                encryptionManager, connectionFactory);
     }
 }

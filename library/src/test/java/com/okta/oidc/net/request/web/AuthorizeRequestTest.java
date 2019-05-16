@@ -21,6 +21,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.TestValues;
 
@@ -57,7 +58,7 @@ public class AuthorizeRequestTest {
     private ProviderConfiguration mProviderConfig;
 
     @Before
-    public void setUp() {
+    public void setUp() throws AuthorizationException {
         mCodeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mProviderConfig = TestValues.getProviderConfiguration(CUSTOM_URL);
@@ -79,34 +80,34 @@ public class AuthorizeRequestTest {
     }
 
     @Test
-    public void testBuilderFailEndpoint() {
+    public void testBuilderFailEndpoint() throws AuthorizationException {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("authorize_endpoint missing");
         builder.create();
     }
 
     @Test
-    public void testBuilderFailRedirectUri() {
+    public void testBuilderFailRedirectUri() throws AuthorizationException {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
         builder.authorizeEndpoint(mConfig.getDiscoveryUri().toString());
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("redirect_uri missing");
         builder.create();
     }
 
     @Test
-    public void testBuilderFailScope() {
+    public void testBuilderFailScope() throws AuthorizationException {
         AuthorizeRequest.Builder builder = new AuthorizeRequest.Builder();
         builder.authorizeEndpoint(mConfig.getDiscoveryUri().toString())
                 .redirectUri(mConfig.getRedirectUri().toString());
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("scope missing");
         builder.create();
     }
 
     @Test
-    public void testBuilder() {
+    public void testBuilder() throws AuthorizationException {
         AuthorizeRequest request = new AuthorizeRequest.Builder()
                 .authorizeEndpoint(mConfig.getDiscoveryUri().toString())
                 .redirectUri(mConfig.getRedirectUri().toString())

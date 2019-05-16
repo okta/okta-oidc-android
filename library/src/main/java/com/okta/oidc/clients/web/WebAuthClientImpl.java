@@ -51,8 +51,11 @@ class WebAuthClientImpl implements WebAuthClient {
                       EncryptionManager encryptionManager,
                       HttpConnectionFactory httpConnectionFactory,
                       int customTabColor, String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncAuthClient.getSessionClient());
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers)
+                .createClient(oidcConfig, context, oktaStorage, encryptionManager,
+                        httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor)
+                .createClient(mSyncAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 
@@ -123,6 +126,12 @@ class WebAuthClientImpl implements WebAuthClient {
                         mResultCb.onCancel();
                     }
                 });
+            } catch (AuthorizationException e) {
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onError(e.errorDescription, e);
+                    }
+                });
             }
         });
     }
@@ -163,6 +172,12 @@ class WebAuthClientImpl implements WebAuthClient {
                 mDispatcher.submitResults(() -> {
                     if (mResultCb != null) {
                         mResultCb.onCancel();
+                    }
+                });
+            } catch (AuthorizationException e) {
+                mDispatcher.submitResults(() -> {
+                    if (mResultCb != null) {
+                        mResultCb.onError(e.errorDescription, e);
                     }
                 });
             }

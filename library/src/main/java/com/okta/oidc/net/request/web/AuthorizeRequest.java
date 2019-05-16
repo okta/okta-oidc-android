@@ -30,6 +30,7 @@ import com.okta.oidc.net.params.ResponseType;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AsciiStringListUtil;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 import java.util.Arrays;
@@ -142,33 +143,35 @@ public class AuthorizeRequest extends WebRequest {
             }
         }
 
-        private void validate(boolean isNative) {
+        private void validate(boolean isNative) throws AuthorizationException {
             if (TextUtils.isEmpty(mMap.get(AUTHORIZE_ENDPOINT))) {
-                throw new IllegalArgumentException("authorize_endpoint missing");
+                throw new AuthorizationException("authorize_endpoint missing",
+                        new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(CODE_CHALLENGE))) {
-                throw new IllegalArgumentException("code_challenge missing");
+                throw new AuthorizationException("code_challenge missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(CODE_CHALLENGE_METHOD))) {
-                throw new IllegalArgumentException("code_challenge_method missing");
+                throw new AuthorizationException("code_challenge_method missing",
+                        new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(NONCE))) {
-                throw new IllegalArgumentException("nonce missing");
+                throw new AuthorizationException("nonce missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(REDIRECT_URI))) {
-                throw new IllegalArgumentException("redirect_uri missing");
+                throw new AuthorizationException("redirect_uri missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(RESPONSE_TYPE))) {
-                throw new IllegalArgumentException("response_type missing");
+                throw new AuthorizationException("response_type missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(SCOPE))) {
-                throw new IllegalArgumentException("scope missing");
+                throw new AuthorizationException("scope missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mMap.get(STATE))) {
-                throw new IllegalArgumentException("state missing");
+                throw new AuthorizationException("state missing", new RuntimeException());
             }
             if (isNative && TextUtils.isEmpty(mMap.get(SESSION_TOKEN))) {
-                throw new IllegalArgumentException("sessionToken is missing");
+                throw new AuthorizationException("sessionToken is missing", new RuntimeException());
             }
         }
 
@@ -182,7 +185,7 @@ public class AuthorizeRequest extends WebRequest {
             setCodeVerifier(null);
         }
 
-        public AuthorizeRequest create() {
+        public AuthorizeRequest create() throws AuthorizationException {
             if (mParameters.mPayloadParams != null) {
                 mMap.putAll(mParameters.mPayloadParams);
             }
@@ -190,7 +193,8 @@ public class AuthorizeRequest extends WebRequest {
             return new AuthorizeRequest(mParameters);
         }
 
-        public NativeAuthorizeRequest createNativeRequest(HttpConnectionFactory factory) {
+        public NativeAuthorizeRequest createNativeRequest(HttpConnectionFactory factory)
+                throws AuthorizationException {
             if (mParameters.mPayloadParams != null) {
                 mMap.putAll(mParameters.mPayloadParams);
             }

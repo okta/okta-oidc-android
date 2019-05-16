@@ -123,7 +123,7 @@ public class SyncSessionClientImplTest {
 
 
     @Test
-    public void clear_success() {
+    public void clear_success() throws AuthorizationException {
         mOktaState.save(mProviderConfig);
         mOktaState.save(mTokenResponse);
         mOktaState.save(TestValues.getAuthorizeRequest(mConfig, null));
@@ -201,7 +201,7 @@ public class SyncSessionClientImplTest {
     @Test
     public void userProfileRequestOAuth2() throws InterruptedException, AuthorizationException,
             JSONException {
-        mExpectedEx.expect(UnsupportedOperationException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         //create sessionclient from oauth2 resource
         OIDCConfig oauth2Config = TestValues
                 .getConfigWithUrl(mEndPoint.getUrl() + "/oauth2/default/");

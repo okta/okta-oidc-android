@@ -54,14 +54,12 @@ public class ConfigurationRequestTest {
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         OIDCConfig config = TestValues.getConfigWithUrl(url);
-        mRequest = (ConfigurationRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
+        mRequest = HttpRequestBuilder.newConfigurationRequest()
                 .config(config)
                 .createRequest();
 
         OIDCConfig configOAuth2 = TestValues.getConfigWithUrl(url + "/oauth2/default/");
-        mRequestOAuth2 = (ConfigurationRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
+        mRequestOAuth2 = HttpRequestBuilder.newConfigurationRequest()
                 .config(configOAuth2)
                 .createRequest();
         mCallbackExecutor = Executors.newSingleThreadExecutor();

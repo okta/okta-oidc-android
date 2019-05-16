@@ -35,9 +35,9 @@ public final class ConfigurationRequest extends
         BaseRequest<ProviderConfiguration, AuthorizationException> {
     private boolean mIsOAuth2;
 
-    ConfigurationRequest(HttpRequestBuilder b) {
+    ConfigurationRequest(HttpRequestBuilder.Configuration b) {
         super();
-        mRequestType = b.mRequestType;
+        mRequestType = Type.CONFIGURATION;
         mIsOAuth2 = b.mConfig.isOAuth2Configuration();
         mUri = b.mConfig.getDiscoveryUri().buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId()).build();

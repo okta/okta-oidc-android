@@ -77,7 +77,7 @@ public class OktaResultFragmentTest {
 
 
     @Test
-    public void handleAuthorizationResponseLoginSuccess() {
+    public void handleAuthorizationResponseLoginSuccess() throws AuthorizationException {
         OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -95,7 +95,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseLoginFailed() {
+    public void handleAuthorizationResponseLoginFailed() throws AuthorizationException {
         OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -114,7 +114,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseLogoutSuccess() {
+    public void handleAuthorizationResponseLogoutSuccess() throws AuthorizationException {
         OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -132,7 +132,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseLogoutFailed() {
+    public void handleAuthorizationResponseLogoutFailed() throws AuthorizationException {
         OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -151,7 +151,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseWithEmptyIntent() {
+    public void handleAuthorizationResponseWithEmptyIntent() throws AuthorizationException {
         OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -171,7 +171,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseWithInvalidJsonErrorInIntent() {
+    public void handleAuthorizationResponseWithInvalidJsonErrorInIntent() throws AuthorizationException {
         OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();
@@ -190,7 +190,7 @@ public class OktaResultFragmentTest {
     }
 
     @Test
-    public void handleAuthorizationResponseWithValidJsonErrorInIntent() {
+    public void handleAuthorizationResponseWithValidJsonErrorInIntent() throws AuthorizationException {
         OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, listener, new String[]{});
 
         Intent intent = new Intent();

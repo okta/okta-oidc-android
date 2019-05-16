@@ -35,9 +35,9 @@ import java.io.IOException;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class IntrospectRequest extends
         BaseRequest<IntrospectInfo, AuthorizationException> {
-    public IntrospectRequest(HttpRequestBuilder b) {
+    public IntrospectRequest(HttpRequestBuilder.Introspect b) {
         super();
-        mRequestType = b.mRequestType;
+        mRequestType = Type.INTROSPECT;
         mUri = Uri.parse(b.mProviderConfiguration.introspection_endpoint).buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mIntrospectToken)

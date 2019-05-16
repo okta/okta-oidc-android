@@ -25,7 +25,6 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.ConfigurationRequest;
-import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -39,7 +38,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import static com.okta.oidc.clients.State.IDLE;
-import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 
 /**
@@ -71,9 +69,8 @@ public class AuthAPI {
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
-    public ConfigurationRequest configurationRequest() {
-        return (ConfigurationRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
+    public ConfigurationRequest configurationRequest() throws AuthorizationException {
+        return HttpRequestBuilder.newConfigurationRequest()
                 .connectionFactory(mConnectionFactory)
                 .config(mOidcConfig)
                 .createRequest();
@@ -96,9 +93,8 @@ public class AuthAPI {
 
     @WorkerThread
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    public TokenRequest tokenExchange(AuthorizeResponse response) {
-        return (TokenRequest) HttpRequestBuilder.newRequest()
-                .request(TOKEN_EXCHANGE)
+    public TokenRequest tokenExchange(AuthorizeResponse response) throws AuthorizationException {
+        return (TokenRequest) HttpRequestBuilder.newTokenRequest()
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .config(mOidcConfig)
                 .authRequest((AuthorizeRequest) mOktaState.getAuthorizeRequest())

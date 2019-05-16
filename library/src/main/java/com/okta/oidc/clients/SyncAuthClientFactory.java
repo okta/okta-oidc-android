@@ -29,6 +29,7 @@ public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
                                            OktaStorage oktaStorage,
                                            EncryptionManager encryptionManager,
                                            HttpConnectionFactory connectionFactory) {
-        return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
+        return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
+                connectionFactory);
     }
 }

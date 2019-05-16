@@ -46,9 +46,9 @@ class SessionClientImpl implements SessionClient {
         mDispatcher.submit(() -> {
             try {
                 UserInfo userInfo = mSyncSessionClient.getUserProfile();
-                mDispatcher.submitResults(()-> cb.onSuccess(userInfo));
+                mDispatcher.submitResults(() -> cb.onSuccess(userInfo));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }
         });
     }
@@ -57,10 +57,11 @@ class SessionClientImpl implements SessionClient {
                                 final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
             try {
-                IntrospectInfo introspectInfo = mSyncSessionClient.introspectToken(token, tokenType);
-                mDispatcher.submitResults(()-> cb.onSuccess(introspectInfo));
+                IntrospectInfo introspectInfo = mSyncSessionClient
+                        .introspectToken(token, tokenType);
+                mDispatcher.submitResults(() -> cb.onSuccess(introspectInfo));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }
         });
     }
@@ -70,9 +71,9 @@ class SessionClientImpl implements SessionClient {
         mDispatcher.submit(() -> {
             try {
                 Boolean isRevoke = mSyncSessionClient.revokeToken(token);
-                mDispatcher.submitResults(()-> cb.onSuccess(isRevoke));
+                mDispatcher.submitResults(() -> cb.onSuccess(isRevoke));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }
         });
     }
@@ -83,9 +84,9 @@ class SessionClientImpl implements SessionClient {
         mDispatcher.submit(() -> {
             try {
                 Tokens result = mSyncSessionClient.refreshToken();
-                mDispatcher.submitResults(()-> cb.onSuccess(result));
+                mDispatcher.submitResults(() -> cb.onSuccess(result));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }
         });
     }
@@ -101,10 +102,11 @@ class SessionClientImpl implements SessionClient {
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
             try {
-                JSONObject result = mSyncSessionClient.authorizedRequest(uri, properties, postParameters, method);
-                mDispatcher.submitResults(()-> cb.onSuccess(result));
+                JSONObject result = mSyncSessionClient
+                        .authorizedRequest(uri, properties, postParameters, method);
+                mDispatcher.submitResults(() -> cb.onSuccess(result));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }
         });
     }

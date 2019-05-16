@@ -15,8 +15,11 @@
 
 package com.okta.oidc.net.request;
 
+import android.net.Uri;
+
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.util.AsciiStringListUtil;
 
 import java.util.Collections;
@@ -25,18 +28,28 @@ import java.util.Map;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RefreshTokenRequest extends TokenRequest {
-    RefreshTokenRequest(HttpRequestBuilder b) {
-        super(b);
+    RefreshTokenRequest(HttpRequestBuilder.RefreshToken b) {
+        super();
+        mRequestType = Type.REFRESH_TOKEN;
+        scope = b.mTokenResponse.getScope();
+        mConfig = b.mConfig;
+        refresh_token = b.mTokenResponse.getRefreshToken();
+        mProviderConfiguration = b.mProviderConfiguration;
+        mUri = Uri.parse(b.mProviderConfiguration.token_endpoint);
+        client_id = b.mConfig.getClientId();
+        grant_type = b.mGrantType;
+        mConnection = new HttpConnection.Builder()
+                .setRequestMethod(HttpConnection.RequestMethod.POST)
+                .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
+                .setPostParameters(buildParameters())
+                .create(b.mConn);
     }
 
-    protected Map<String, String> buildParameters(HttpRequestBuilder b) {
-        scope = b.mTokenResponse.getScope();
-        refresh_token = b.mTokenResponse.getRefreshToken();
+    private Map<String, String> buildParameters() {
         Map<String, String> params = new HashMap<>();
         params.put("client_id", client_id);
         params.put("grant_type", grant_type);
         params.put("refresh_token", refresh_token);
-
         params.put("scope", AsciiStringListUtil.iterableToString(Collections.singletonList(scope)));
         return params;
     }

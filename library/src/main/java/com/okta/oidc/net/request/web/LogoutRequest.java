@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 //https://developer.okta.com/docs/api/resources/oidc#logout
@@ -90,16 +91,19 @@ public class LogoutRequest extends WebRequest {
     public static final class Builder {
         private Parameters mParameters;
 
-        private void validate() {
+        private void validate() throws AuthorizationException {
             if (TextUtils.isEmpty(mParameters.end_session_endpoint)) {
-                throw new IllegalArgumentException("end_session_endpoint missing");
+                throw new AuthorizationException("end_session_endpoint missing",
+                        new RuntimeException());
             }
             if (TextUtils.isEmpty(mParameters.id_token_hint)) {
-                throw new IllegalArgumentException("id_token_hint missing");
+                throw new AuthorizationException("id_token_hint missing", new RuntimeException());
             }
             if (TextUtils.isEmpty(mParameters.post_logout_redirect_uri)) {
-                throw new IllegalArgumentException("post_logout_redirect_uri missing");
+                throw new AuthorizationException("post_logout_redirect_uri missing",
+                        new RuntimeException());
             }
+
         }
 
         public Builder() {
@@ -107,7 +111,7 @@ public class LogoutRequest extends WebRequest {
             mParameters.state = CodeVerifierUtil.generateRandomState();
         }
 
-        public LogoutRequest create() {
+        public LogoutRequest create() throws AuthorizationException {
             validate();
             return new LogoutRequest(mParameters);
         }

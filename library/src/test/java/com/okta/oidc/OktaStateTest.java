@@ -23,6 +23,7 @@ import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaRepository;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.OktaStorageMock;
 import com.okta.oidc.util.TestValues;
@@ -56,7 +57,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getAuthorizeRequest() {
+    public void getAuthorizeRequest() throws AuthorizationException {
         WebRequest authorizedRequest = TestValues.getAuthorizeRequest(TestValues.getConfigWithUrl(CUSTOM_URL), null);
         mOktaState.save(authorizedRequest);
 

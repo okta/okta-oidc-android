@@ -26,7 +26,6 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
-import com.okta.oidc.net.request.HttpRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.RefreshTokenRequest;
@@ -48,7 +47,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
     private HttpConnectionFactory mConnectionFactory;
 
     SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
-                                 HttpConnectionFactory connectionFactory) {
+                          HttpConnectionFactory connectionFactory) {
         mOidcConfig = oidcConfig;
         mOktaState = oktaState;
         mConnectionFactory = connectionFactory;
@@ -57,9 +56,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
     AuthorizedRequest createAuthorizedRequest(@NonNull Uri uri,
                                               @Nullable Map<String, String> properties,
                                               @Nullable Map<String, String> postParameters,
-                                              @NonNull HttpConnection.RequestMethod method) {
-        return (AuthorizedRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.AUTHORIZED)
+                                              @NonNull HttpConnection.RequestMethod method)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newAuthorizedRequest()
                 .connectionFactory(mConnectionFactory)
                 .config(mOidcConfig)
                 .httpRequestMethod(method)
@@ -79,14 +78,13 @@ class SyncSessionClientImpl implements SyncSessionClient {
         return createAuthorizedRequest(uri, properties, postParameters, method).executeRequest();
     }
 
-    AuthorizedRequest userProfileRequest() {
+    AuthorizedRequest userProfileRequest() throws AuthorizationException {
         if (mOidcConfig.isOAuth2Configuration()) {
-            throw new UnsupportedOperationException("Invalid operation. " +
+            throw new AuthorizationException("Invalid operation. " +
                     "Please check your configuration. OAuth2 authorization servers does not" +
-                    "support /userinfo endpoint ");
+                    "support /userinfo endpoint ", new RuntimeException());
         }
-        return (AuthorizedRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.PROFILE)
+        return HttpRequestBuilder.newProfileRequest()
                 .connectionFactory(mConnectionFactory)
                 .tokenResponse(mOktaState.getTokenResponse())
                 .providerConfiguration(mOktaState.getProviderConfiguration())
@@ -100,9 +98,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
         return new UserInfo(userInfo);
     }
 
-    IntrospectRequest introspectTokenRequest(String token, String tokenType) {
-        return (IntrospectRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.INTROSPECT)
+    IntrospectRequest introspectTokenRequest(String token, String tokenType)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newIntrospectRequest()
                 .connectionFactory(mConnectionFactory)
                 .introspect(token, tokenType)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
@@ -116,9 +114,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
         return introspectTokenRequest(token, tokenType).executeRequest();
     }
 
-    RevokeTokenRequest revokeTokenRequest(String token) {
-        return (RevokeTokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.REVOKE_TOKEN)
+    RevokeTokenRequest revokeTokenRequest(String token) throws AuthorizationException {
+        return HttpRequestBuilder.newRevokeTokenRequest()
                 .connectionFactory(mConnectionFactory)
                 .tokenToRevoke(token)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
@@ -131,11 +128,10 @@ class SyncSessionClientImpl implements SyncSessionClient {
         return revokeTokenRequest(token).executeRequest();
     }
 
-    RefreshTokenRequest refreshTokenRequest() {
-        return (RefreshTokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.REFRESH_TOKEN)
-                .connectionFactory(mConnectionFactory)
+    RefreshTokenRequest refreshTokenRequest() throws AuthorizationException {
+        return HttpRequestBuilder.newRefreshTokenRequest()
                 .tokenResponse(mOktaState.getTokenResponse())
+                .connectionFactory(mConnectionFactory)
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .config(mOidcConfig)
                 .createRequest();

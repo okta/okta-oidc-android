@@ -44,15 +44,17 @@ class AuthClientImpl implements AuthClient {
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
                    HttpConnectionFactory httpConnectionFactory) {
-        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncNativeAuthClient.getSessionClient());
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context,
+                oktaStorage, encryptionManager, httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor)
+                .createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 
     @Override
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
-                      RequestCallback<Result, AuthorizationException> cb) {
+                       RequestCallback<Result, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
             Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {

@@ -50,7 +50,7 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       OktaStorage oktaStorage,
                                       EncryptionManager encryptionManager,
                                       HttpConnectionFactory connectionFactory) {
-        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory,
-                mCustomTabColor, mSupportedBrowser);
+        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
+                encryptionManager, connectionFactory, mCustomTabColor, mSupportedBrowser);
     }
 }
