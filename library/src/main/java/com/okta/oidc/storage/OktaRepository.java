@@ -62,21 +62,34 @@ public class OktaRepository {
                         getEncrypted(persistable.persist()));
             }
             cacheStorage.put(getHashed(persistable.getKey()),
-                    getEncrypted(persistable.persist()));
+                    value);
         }
     }
 
     public <T extends Persistable> T get(Persistable.Restore<T> persistable) {
         synchronized (lock) {
-            String data = null;
+            String data;
             String key = getHashed(persistable.getKey());
             if (cacheStorage.get(key) != null) {
                 data = cacheStorage.get(key);
             } else {
                 data = storage.get(key);
+                try {
+                    data = getDecrypted(data);
+                } catch (GeneralSecurityException e) {
+                    storage.delete(key);
+                    data = null;
+                }
             }
-            data = getDecrypted(data);
             return persistable.restore(data);
+        }
+    }
+
+    public boolean contains(Persistable.Restore persistable) {
+        synchronized (lock) {
+            String key = getHashed(persistable.getKey());
+            return cacheStorage.get(key) != null
+                    || storage.get(key) != null;
         }
     }
 
@@ -103,13 +116,13 @@ public class OktaRepository {
         }
     }
 
-    private String getDecrypted(String value) {
+    private String getDecrypted(String value) throws GeneralSecurityException {
         if (encryptionManager == null) {
             return value;
         }
         try {
             return encryptionManager.decrypt(value);
-        } catch (GeneralSecurityException | IOException ex) {
+        } catch (IOException ex) {
             Log.d(TAG, "getDecrypted: ", ex);
             return value;
         }

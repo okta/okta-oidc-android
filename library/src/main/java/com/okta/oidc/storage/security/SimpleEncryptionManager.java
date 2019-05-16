@@ -70,7 +70,8 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.x500.X500Principal;
 
 /**
- * TODO .
+ * Manager responsible for encrypting and decrypting all data that is stored by Okta Oidc
+ * on local storage using AES encryption.
  */
 public class SimpleEncryptionManager implements EncryptionManager {
     private static final String TAG = SimpleEncryptionManager.class.getSimpleName();
