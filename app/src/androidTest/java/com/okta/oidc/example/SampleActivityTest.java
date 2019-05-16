@@ -39,6 +39,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -85,7 +86,10 @@ public class SampleActivityTest {
         mDevice = UiDevice.getInstance(getInstrumentation());
         USERNAME = BuildConfig.USERNAME;
         PASSWORD = BuildConfig.PASSWORD;
-
+        if (Utils.isEmulator()) {
+            activityRule.getActivity().mStorageOidc.requireHardwareKeyStore = false;
+            activityRule.getActivity().mStorageOAuth2.requireHardwareKeyStore = false;
+        }
     }
 
     private UiObject getProgressBar() {
@@ -128,8 +132,21 @@ public class SampleActivityTest {
         getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
     }
 
+    //Need this to keep signing in. if device doesn't support hardware encryption, data
+    //is not persisted.
+    private void signInIfNotAlready() {
+        onView(withId(R.id.clear_data)).withFailureHandler((error, viewMatcher) -> {
+            test3_signInWithSession();
+        }).check(matches(isDisplayed()));
+    }
+
     @Test
     public void test1_signInNoSession() throws UiObjectNotFoundException {
+        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
+            onView(withId(R.id.switch1)).perform(click());
+        }).check(matches(isChecked()));
+
         onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
             onView(withId(R.id.clear_data)).perform(click());
@@ -147,7 +164,7 @@ public class SampleActivityTest {
 
     @Test
     public void test2_clearData() {
-        onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+        signInIfNotAlready();
         onView(withId(R.id.clear_data)).perform(click());
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
     }
@@ -166,6 +183,7 @@ public class SampleActivityTest {
 
     @Test
     public void test4_introspect() {
+        signInIfNotAlready();
         introspectAccessToken();
         introspectRefreshToken();
         introspectIdToken();
@@ -200,6 +218,7 @@ public class SampleActivityTest {
 
     @Test
     public void test5_refreshToken() {
+        signInIfNotAlready();
         onView(withId(R.id.refresh_token)).check(matches(isDisplayed()));
         onView(withId(R.id.refresh_token)).perform(click());
 
@@ -210,6 +229,7 @@ public class SampleActivityTest {
 
     @Test
     public void test6_getProfile() {
+        signInIfNotAlready();
         onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
         onView(withId(R.id.get_profile)).perform(click());
         //wait for network
@@ -219,6 +239,7 @@ public class SampleActivityTest {
 
     @Test
     public void test7_revokeRefreshToken() {
+        signInIfNotAlready();
         onView(withId(R.id.revoke_refresh)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_refresh)).perform(click());
         //wait for network
@@ -228,6 +249,7 @@ public class SampleActivityTest {
 
     @Test
     public void test8_revokeAccessToken() {
+        signInIfNotAlready();
         onView(withId(R.id.revoke_access)).check(matches(isDisplayed()));
         onView(withId(R.id.revoke_access)).perform(click());
         //wait for network
@@ -237,6 +259,7 @@ public class SampleActivityTest {
 
     @Test
     public void test9_signOutOfOkta() {
+        signInIfNotAlready();
         onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_out)).perform(click());
 
@@ -319,7 +342,16 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testD_OAuth2ResourceConfig() throws UiObjectNotFoundException {
+    public void testD_checkIfTokenExpired() {
+        signInIfNotAlready();
+        onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
+        onView(withId(R.id.check_expired)).perform(click());
+        onView(withId(R.id.status))
+                .check(matches(withText(containsString("token not expired"))));
+    }
+
+    @Test
+    public void testE_OAuth2ResourceConfig() throws UiObjectNotFoundException {
         onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.switch1)).check(matches(isDisplayed()));
             onView(withId(R.id.switch1)).perform(click());
@@ -340,11 +372,5 @@ public class SampleActivityTest {
                         containsString("Profile not supported for OAuth resource"))));
     }
 
-    @Test
-    public void testE_checkIfTokenExpired() {
-        onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
-        onView(withId(R.id.check_expired)).perform(click());
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("token not expired"))));
-    }
+
 }

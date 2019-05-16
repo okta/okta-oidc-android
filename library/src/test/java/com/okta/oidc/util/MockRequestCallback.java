@@ -14,11 +14,11 @@
  */
 package com.okta.oidc.util;
 
+import androidx.annotation.NonNull;
+
 import com.okta.oidc.RequestCallback;
 
 import java.util.concurrent.CountDownLatch;
-
-import androidx.annotation.NonNull;
 
 public class MockRequestCallback<T, U extends Exception> implements RequestCallback<T, U> {
     private U mException;

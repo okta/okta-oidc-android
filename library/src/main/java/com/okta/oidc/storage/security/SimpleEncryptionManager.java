@@ -15,14 +15,19 @@
 
 package com.okta.oidc.storage.security;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.security.KeyChain;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 
 import java.io.ByteArrayInputStream;
@@ -33,6 +38,7 @@ import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -44,6 +50,7 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -56,6 +63,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -66,6 +74,7 @@ import javax.security.auth.x500.X500Principal;
  * on local storage using AES encryption.
  */
 public class SimpleEncryptionManager implements EncryptionManager {
+    private static final String TAG = SimpleEncryptionManager.class.getSimpleName();
     private static final int RSA_BIT_LENGTH = 2048;
     private static final int AES_BIT_LENGTH = 256;
     private static final int MAC_BIT_LENGTH = 256;
@@ -141,18 +150,18 @@ public class SimpleEncryptionManager implements EncryptionManager {
      * builds configured instance of SimpleEncryptionManager.
      *
      * @param context application context
-     * @throws IOException if has issues with IO
-     * @throws CertificateException if certificates can not be generated.
-     * @throws NoSuchAlgorithmException if the algorithm for recovering the
-     *                                  entry cannot be found
-     * @throws KeyStoreException if no keystore present
-     * @throws UnrecoverableEntryException if the specified
-     *                                     {@link java.security.KeyStore.ProtectionParameter}
-     *                                     were insufficient or invalid
+     * @throws IOException                        if has issues with IO
+     * @throws CertificateException               if certificates can not be generated.
+     * @throws NoSuchAlgorithmException           if the algorithm for recovering the
+     *                                            entry cannot be found
+     * @throws KeyStoreException                  if no keystore present
+     * @throws UnrecoverableEntryException        if the specified
+     *                                            {@link java.security.KeyStore.ProtectionParameter}
+     *                                            were insufficient or invalid
      * @throws InvalidAlgorithmParameterException if algorithms are parameterized wrong
-     * @throws NoSuchPaddingException if padding setup improperly
-     * @throws InvalidKeyException if RSA keys are not working
-     * @throws NoSuchProviderException if keys provider
+     * @throws NoSuchPaddingException             if padding setup improperly
+     * @throws InvalidKeyException                if RSA keys are not working
+     * @throws NoSuchProviderException            if keys provider
      */
     public SimpleEncryptionManager(Context context)
             throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
@@ -163,7 +172,7 @@ public class SimpleEncryptionManager implements EncryptionManager {
     }
 
     private SimpleEncryptionManager(Context context, @Nullable String keyAliasPrefix,
-                            @Nullable byte[] bitShiftingKey)
+                                    @Nullable byte[] bitShiftingKey)
             throws IOException, NoSuchAlgorithmException, InvalidAlgorithmParameterException,
             NoSuchProviderException, NoSuchPaddingException, CertificateException,
             KeyStoreException, UnrecoverableEntryException, InvalidKeyException,
@@ -244,8 +253,7 @@ public class SimpleEncryptionManager implements EncryptionManager {
             byte[] iv = getIv();
             if (isCompatMode) {
                 return encryptAesCompat(bytes, iv);
-            }
-            else {
+            } else {
                 return encryptAes(bytes, iv);
             }
         }
@@ -271,8 +279,7 @@ public class SimpleEncryptionManager implements EncryptionManager {
         if (data != null && data.encryptedData != null) {
             if (isCompatMode) {
                 return decryptAesCompat(data);
-            }
-            else {
+            } else {
                 return decryptAes(data);
             }
         }
@@ -302,6 +309,47 @@ public class SimpleEncryptionManager implements EncryptionManager {
         byte[] result = digest.digest(text.getBytes(DEFAULT_CHARSET));
 
         return toHex(result);
+    }
+
+    @SuppressLint("InlinedApi")
+    @Override
+    public boolean isHardwareBackedKeyStore() {
+        boolean aes = false;
+        boolean rsa = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                if (aesKey != null) {
+                    SecretKeyFactory factory = null;
+                    factory = SecretKeyFactory.getInstance(aesKey.getAlgorithm(),
+                            KEYSTORE_PROVIDER);
+
+                    KeyInfo keyInfo;
+                    try {
+                        keyInfo = (KeyInfo) factory.getKeySpec(aesKey, KeyInfo.class);
+                        aes = keyInfo.isInsideSecureHardware();
+                    } catch (InvalidKeySpecException e) {
+                        Log.w(TAG, "isHardwareBackedKeyStore: ", e);
+                    }
+                }
+                if (privateKey != null) {
+                    KeyFactory factory = KeyFactory.getInstance(privateKey.getAlgorithm(),
+                            KEYSTORE_PROVIDER);
+                    KeyInfo keyInfo;
+                    try {
+                        keyInfo = factory.getKeySpec(privateKey, KeyInfo.class);
+                        rsa = keyInfo.isInsideSecureHardware();
+                    } catch (InvalidKeySpecException e) {
+                        Log.w(TAG, "isHardwareBackedKeyStore: ", e);
+                    }
+                }
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                Log.w(TAG, "isHardwareBackedKeyStore: ", e);
+            }
+        } else {
+            rsa = KeyChain.isBoundKeyAlgorithm(KeyProperties.KEY_ALGORITHM_RSA);
+            aes = KeyChain.isBoundKeyAlgorithm(KeyProperties.KEY_ALGORITHM_AES);
+        }
+        return aes || rsa;
     }
 
     private static String toHex(byte[] data) {
@@ -402,7 +450,7 @@ public class SimpleEncryptionManager implements EncryptionManager {
         return cipher;
     }
 
-    private  EncryptedData encryptAesCompat(byte[] bytes, byte[] iv) throws NoSuchPaddingException,
+    private EncryptedData encryptAesCompat(byte[] bytes, byte[] iv) throws NoSuchPaddingException,
             NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         Cipher cipher = getCipherAesCompat(iv, true);

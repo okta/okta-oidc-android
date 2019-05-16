@@ -15,12 +15,15 @@
 
 package com.okta.oidc.clients;
 
+import android.content.Context;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.util.concurrent.Executor;
 
@@ -33,8 +36,11 @@ public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
     }
 
     @Override
-    public AuthClient createClient(OIDCConfig oidcConfig, OktaState oktaState,
+    public AuthClient createClient(OIDCConfig oidcConfig,
+                                   Context context,
+                                   OktaStorage oktaStorage,
+                                   EncryptionManager encryptionManager,
                                    HttpConnectionFactory connectionFactory) {
-        return new AuthClientImpl(mCallbackExecutor, oidcConfig, oktaState, connectionFactory);
+        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
     }
 }

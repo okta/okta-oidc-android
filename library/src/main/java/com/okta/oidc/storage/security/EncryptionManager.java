@@ -32,16 +32,17 @@ public interface EncryptionManager {
      * @param value value as a string.
      * @return encrypted value.
      * @throws GeneralSecurityException if has problems with algorithms used.
-     * @throws IOException if failed to open input stream
+     * @throws IOException              if failed to open input stream
      */
     String encrypt(String value) throws GeneralSecurityException, IOException;
 
     /**
      * decrypts encrypted value.
+     *
      * @param value encrypted value as a string.
      * @return decrypted value.
-     * @throws GeneralSecurityException  if has problems with algorithms used.
-     * @throws IOException if failed to open input stream
+     * @throws GeneralSecurityException if has problems with algorithms used.
+     * @throws IOException              if failed to open input stream
      */
     String decrypt(String value) throws GeneralSecurityException, IOException;
 
@@ -50,9 +51,15 @@ public interface EncryptionManager {
      *
      * @param value string to generate hash from.
      * @return hashed value.
-     * @throws NoSuchAlgorithmException if device does not support SHA-2.
+     * @throws NoSuchAlgorithmException     if device does not support SHA-2.
      * @throws UnsupportedEncodingException if wrong encoding used.
      */
     String getHashed(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException;
 
+    /**
+     * if the key store is backed by hardware.
+     *
+     * @return true if hardware backed keystore is supported
+     */
+    boolean isHardwareBackedKeyStore();
 }

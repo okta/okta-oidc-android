@@ -14,10 +14,10 @@
  */
 package com.okta.oidc.util;
 
-import com.okta.oidc.ResultCallback;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.okta.oidc.ResultCallback;
 
 public class MockResultCallback<T, AuthorizationException extends Exception>
         implements ResultCallback<T, AuthorizationException> {

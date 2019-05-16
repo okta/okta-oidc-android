@@ -31,7 +31,6 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.ERROR;
 import static com.okta.oidc.util.TestValues.ERROR_DESCRIPTION;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
 @RunWith(RobolectricTestRunner.class)

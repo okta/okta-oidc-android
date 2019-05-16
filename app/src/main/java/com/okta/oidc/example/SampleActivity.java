@@ -128,6 +128,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     AuthenticationPayload mPayload;
 
     /**
+     * The payload to send for authorization.
+     */
+    @VisibleForTesting
+    SimpleOktaStorage mStorageOidc;
+    @VisibleForTesting
+    SimpleOktaStorage mStorageOAuth2;
+
+    /**
      * The Authentication API client.
      */
     protected AuthenticationClient mAuthenticationClient;
@@ -157,6 +165,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mIntrospectId = findViewById(R.id.introspect_id);
         mSwitch = findViewById(R.id.switch1);
 
+        mStorageOAuth2 = new SimpleOktaStorage(this, "OAUTH2");
+        mStorageOidc = new SimpleOktaStorage(this);
         boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .getBoolean("switch", true);
 
@@ -374,7 +384,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mWebOAuth2 = new Okta.WebAuthBuilder()
                 .withConfig(mOAuth2Config)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this, "OAUTH2"))
+                .withStorage(mStorageOAuth2)
                 .withCallbackExecutor(null)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX)
@@ -385,7 +395,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         Okta.WebAuthBuilder builder = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
+                .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);

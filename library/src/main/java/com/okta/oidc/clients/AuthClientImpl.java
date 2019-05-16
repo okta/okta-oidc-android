@@ -15,32 +15,37 @@
 
 package com.okta.oidc.clients;
 
+import android.content.Context;
+
 import androidx.annotation.AnyThread;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.clients.sessions.SessionClient;
-import com.okta.oidc.clients.sessions.SessionClientImpl;
+import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executor;
 
 class AuthClientImpl implements AuthClient {
     private RequestDispatcher mDispatcher;
-    private SyncAuthClientImpl mSyncNativeAuthClient;
-    private SessionClientImpl mSessionImpl;
+    private SyncAuthClient mSyncNativeAuthClient;
+    private SessionClient mSessionImpl;
 
-    AuthClientImpl(Executor executor, OIDCConfig oidcConfig, OktaState oktaState,
+    AuthClientImpl(Executor executor,
+                   OIDCConfig oidcConfig,
+                   Context context,
+                   OktaStorage oktaStorage,
+                   EncryptionManager encryptionManager,
                    HttpConnectionFactory httpConnectionFactory) {
-        mSyncNativeAuthClient = new SyncAuthClientImpl(oidcConfig, oktaState,
-                httpConnectionFactory);
-        mSessionImpl = new SessionClientImpl(executor, oidcConfig, oktaState,
-                httpConnectionFactory);
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 

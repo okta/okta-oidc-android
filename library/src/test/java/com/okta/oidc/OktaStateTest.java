@@ -50,7 +50,7 @@ public class OktaStateTest {
     @Before
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        mOktaStorageMock = new OktaStorageMock();
+        mOktaStorageMock = new OktaStorageMock(mContext, false);
         mOktaRepository = new OktaRepository(mOktaStorageMock, mContext, new EncryptionManagerStub());
         mOktaState = new OktaState(mOktaRepository);
     }

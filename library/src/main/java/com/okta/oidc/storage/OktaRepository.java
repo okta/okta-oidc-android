@@ -25,7 +25,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.SimpleEncryptionManager;
 
 import java.io.IOException;
-
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
@@ -57,9 +56,11 @@ public class OktaRepository {
             return;
         }
         synchronized (lock) {
-            String value = persistable.persist();
-            storage.save(getHashed(persistable.getKey()),
-                    getEncrypted(value));
+            if (encryptionManager.isHardwareBackedKeyStore() ||
+                    !storage.requireHardwareBackedKeyStore()) {
+                storage.save(getHashed(persistable.getKey()),
+                        getEncrypted(persistable.persist()));
+            }
             cacheStorage.put(getHashed(persistable.getKey()),
                     value);
         }
@@ -109,11 +110,8 @@ public class OktaRepository {
         }
         try {
             return encryptionManager.encrypt(value);
-        } catch (GeneralSecurityException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
-            return value;
-        } catch (IOException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
+        } catch (GeneralSecurityException | IOException ex) {
+            Log.d(TAG, "getEncrypted: ", ex);
             return value;
         }
     }
@@ -125,19 +123,16 @@ public class OktaRepository {
         try {
             return encryptionManager.decrypt(value);
         } catch (IOException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
+            Log.d(TAG, "getDecrypted: ", ex);
             return value;
         }
     }
 
-    String getHashed(String value) {
+    private String getHashed(String value) {
         try {
             return encryptionManager.getHashed(value);
-        } catch (NoSuchAlgorithmException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
-            return value;
-        } catch (UnsupportedEncodingException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+            Log.d(TAG, "getHashed: ", ex);
             return value;
         }
     }
@@ -145,11 +140,8 @@ public class OktaRepository {
     private EncryptionManager buildSimpleEncryptionManager(Context context) {
         try {
             return new SimpleEncryptionManager(context);
-        } catch (IOException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
-            return null;
-        } catch (GeneralSecurityException ex) {
-            Log.d(TAG, "getEncrypted: " + ex.getCause());
+        } catch (IOException | GeneralSecurityException ex) {
+            Log.d(TAG, "buildSimpleEncryptionManager: ", ex);
             return null;
         }
     }

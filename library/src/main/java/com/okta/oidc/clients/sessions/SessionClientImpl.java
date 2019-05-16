@@ -19,20 +19,12 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.net.request.AuthorizedRequest;
-import com.okta.oidc.net.request.IntrospectRequest;
-import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.response.IntrospectInfo;
-import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -41,66 +33,65 @@ import org.json.JSONObject;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SessionClientImpl implements SessionClient {
-    private SyncSessionClientImpl mSyncSessionClientImpl;
+class SessionClientImpl implements SessionClient {
+    private SyncSessionClient mSyncSessionClient;
     private RequestDispatcher mDispatcher;
 
-    public SessionClientImpl(Executor callbackExecutor, OIDCConfig oidcConfig, OktaState oktaState,
-                             HttpConnectionFactory connectionFactory) {
-        mSyncSessionClientImpl =
-                new SyncSessionClientImpl(oidcConfig, oktaState, connectionFactory);
+    SessionClientImpl(Executor callbackExecutor, SyncSessionClient syncSessionClient) {
+        mSyncSessionClient = syncSessionClient;
         mDispatcher = new RequestDispatcher(callbackExecutor);
     }
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
-        AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest();
-        request.dispatchRequest(mDispatcher,
-                new RequestCallback<JSONObject, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull JSONObject result) {
-                        cb.onSuccess(new UserInfo(result));
-                    }
-
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        cb.onError(error, exception);
-                    }
-                });
+        mDispatcher.submit(() -> {
+            try {
+                UserInfo userInfo = mSyncSessionClient.getUserProfile();
+                mDispatcher.submitResults(()-> cb.onSuccess(userInfo));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+            }
+        });
     }
 
     public void introspectToken(String token, String tokenType,
                                 final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
-        IntrospectRequest request = mSyncSessionClientImpl.introspectTokenRequest(token, tokenType);
-        request.dispatchRequest(mDispatcher, cb);
+        mDispatcher.submit(() -> {
+            try {
+                IntrospectInfo introspectInfo = mSyncSessionClient.introspectToken(token, tokenType);
+                mDispatcher.submitResults(()-> cb.onSuccess(introspectInfo));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+            }
+        });
     }
 
     public void revokeToken(String token,
                             final RequestCallback<Boolean, AuthorizationException> cb) {
-        RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest(token);
-        request.dispatchRequest(mDispatcher, cb);
+        mDispatcher.submit(() -> {
+            try {
+                Boolean isRevoke = mSyncSessionClient.revokeToken(token);
+                mDispatcher.submitResults(()-> cb.onSuccess(isRevoke));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+            }
+        });
     }
 
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
-        mSyncSessionClientImpl.refreshTokenRequest().dispatchRequest(mDispatcher,
-                new RequestCallback<TokenResponse, AuthorizationException>() {
-                    @Override
-                    public void onSuccess(@NonNull TokenResponse result) {
-                        mSyncSessionClientImpl.getOktaState().save(result);
-                        cb.onSuccess(new Tokens(result));
-                    }
-
-                    @Override
-                    public void onError(String error, AuthorizationException exception) {
-                        cb.onError(error, exception);
-                    }
-                });
+        mDispatcher.submit(() -> {
+            try {
+                Tokens result = mSyncSessionClient.refreshToken();
+                mDispatcher.submitResults(()-> cb.onSuccess(result));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+            }
+        });
     }
 
     public Tokens getTokens() {
-        return mSyncSessionClientImpl.getTokens();
+        return mSyncSessionClient.getTokens();
     }
 
     @Override
@@ -108,16 +99,21 @@ public class SessionClientImpl implements SessionClient {
                                   @Nullable Map<String, String> postParameters,
                                   @NonNull HttpConnection.RequestMethod method,
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
-        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
-                postParameters, method);
-        request.dispatchRequest(mDispatcher, cb);
+        mDispatcher.submit(() -> {
+            try {
+                JSONObject result = mSyncSessionClient.authorizedRequest(uri, properties, postParameters, method);
+                mDispatcher.submitResults(()-> cb.onSuccess(result));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(()-> cb.onError(ae.error, ae));
+            }
+        });
     }
 
     public boolean isAuthenticated() {
-        return mSyncSessionClientImpl.isAuthenticated();
+        return mSyncSessionClient.isAuthenticated();
     }
 
     public void clear() {
-        mSyncSessionClientImpl.clear();
+        mSyncSessionClient.clear();
     }
 }

@@ -30,8 +30,9 @@
   - [Client variants](#Client-variants)
   - [Providing browser used for authorization](#Providing-browser-used-for-authorization)
   - [Customize HTTP requests](#Customize-HTTP-requests)
-  - [Providing custom storage](#Providing-custom-storage)
-  - [Providing custom encryption](Providing-custom-encryption)
+  - [Storage](#Storage)
+  - [Encryption](#Encryption)
+  - [Hardware-backed keystore](#Hardware-backed-keystore)
 - [Advanced techniques](#Advanced-techniques)
   - [Sign in with a sessionToken (Async)](#Sign-in-with-a-sessionToken-(Async))
   - [Sign in with a sessionToken (Sync)](#Sign-in-with-a-sessionToken-(Sync))
@@ -498,9 +499,10 @@ client = new Okta.WebAuthBuilder()
     .create();
 ```
 
-### Providing custom storage
+### Storage
 
-The library uses a simple storage using shared preferences to store data. If you wish to use SQL or any other storage mechanism you can implement the storage interface and use it when creating the various `AuthClient`.
+The library provides storage using shared preferences. If you wish to use SQL or any other storage mechanism you can implement the storage interface and use it when creating the various `AuthClient`.
+The default storage also requires a hardware-backed keystore for encryption. If the device does not provide hardware-backed keystore the library will not store any data. If you wish to override this behavior you can implement or extend the `OktaStorage` interface:
 
 ```java
 public class MyStorage implements OktaStorage {
@@ -519,6 +521,12 @@ public class MyStorage implements OktaStorage {
     public void delete(@NonNull String key) {
         //Provide implementation
     }
+
+    @Override
+    public boolean requireHardwareBackedKeyStore() {
+        //return true if hardware backed keystore is required
+        //return false if hardware backed keystore is not required
+    }
 }
 
 client = new Okta.WebAuthBuilder()
@@ -530,11 +538,9 @@ client = new Okta.WebAuthBuilder()
     .create();
 ```
 
-### Providing custom encryption
+### Encryption
 
-Encryption in OIDC library applied to all data that is stored by library in storage.
-By default we everything that comes to you Storage is already encrypted using our default encryption.
-But if you want to specify your own encryption algorithm you have to follow the following steps:
+Encryption is applied to all data that is stored by the library. You can specify your own encryption algorithm with the following steps:
 
 1. Build your own implementation of `EncryptionManager`
 2. Provide it within selected Okta Client Builder
@@ -545,10 +551,14 @@ client = new Okta.WebAuthBuilder()
     .withContext(getApplicationContext())
     .withStorage(new MyStorage())
     .withTabColor(getColorCompat(R.color.colorPrimary))
-    .withEncriptionManager(new CustomEncryptionManager())
+    .withEncryptionManager(new CustomEncryptionManager())
     .supportedBrowsers(FIREFOX, SAMSUNG)
     .create();
-``` 
+```
+
+### Hardware-backed keystore
+
+The default `EncryptionManager` provides a check to see if the device supports hardware-backed keystore. If you implement your own `EncryptionManager` you'll have to implement this check. You can return `true` to tell the default storage that the device have a hardware-backed keystore. The [storage](#Storage) and [encrytion](#Encryption) mechanisms work together to ensure that data is stored securely.
 
 ## Advanced techniques
 

@@ -15,9 +15,12 @@
 
 package com.okta.oidc.clients;
 
+import android.content.Context;
+
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 
 /**
  * The interface Auth client factory. Used to create a auth client.
@@ -29,10 +32,15 @@ public interface ClientFactory<A> {
      * Create client a.
      *
      * @param oidcConfig        the oidc config
-     * @param oktaState         the okta state
+     * @param context           the context
+     * @param oktaStorage       the storage
+     * @param encryptionManager the encryption manager
      * @param connectionFactory the connection factory
      * @return the type of auth client
      */
-    A createClient(OIDCConfig oidcConfig, OktaState oktaState,
+    A createClient(OIDCConfig oidcConfig,
+                   Context context,
+                   OktaStorage oktaStorage,
+                   EncryptionManager encryptionManager,
                    HttpConnectionFactory connectionFactory);
 }

@@ -38,7 +38,7 @@ public class EncryptedPersistableMock implements Persistable {
     }
 
     public static final Restore<EncryptedPersistableMock> RESTORE = new Restore<EncryptedPersistableMock>() {
-        private final String KEY = "WebRequest";
+        private final String KEY = "PersistableMock";
 
         public String getKey() {
             return KEY;
@@ -46,7 +46,7 @@ public class EncryptedPersistableMock implements Persistable {
 
         @Override
         public EncryptedPersistableMock restore(String data) {
-            if(data != null) {
+            if (data != null) {
                 return new EncryptedPersistableMock(data);
             }
             return null;

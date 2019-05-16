@@ -15,6 +15,8 @@
 
 package com.okta.oidc.clients;
 
+import android.content.Context;
+
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
@@ -31,6 +33,9 @@ import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.WebResponse;
+import com.okta.oidc.storage.OktaRepository;
+import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import static com.okta.oidc.clients.State.IDLE;
@@ -47,9 +52,12 @@ public class AuthAPI {
     protected OIDCConfig mOidcConfig;
     HttpConnectionFactory mConnectionFactory;
 
-    protected AuthAPI(OIDCConfig oidcConfig, OktaState oktaState,
+    protected AuthAPI(OIDCConfig oidcConfig,
+                      Context context,
+                      OktaStorage oktaStorage,
+                      EncryptionManager encryptionManager,
                       HttpConnectionFactory connectionFactory) {
-        mOktaState = oktaState;
+        mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager));
         mOidcConfig = oidcConfig;
         mConnectionFactory = connectionFactory;
     }

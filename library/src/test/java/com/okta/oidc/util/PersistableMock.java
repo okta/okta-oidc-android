@@ -38,7 +38,7 @@ public class PersistableMock implements Persistable {
     }
 
     public static final Persistable.Restore<PersistableMock> RESTORE = new Persistable.Restore<PersistableMock>() {
-        private final String KEY = "WebRequest";
+        private final String KEY = "PersistableMock";
 
         public String getKey() {
             return KEY;
