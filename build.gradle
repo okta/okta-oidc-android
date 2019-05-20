@@ -19,8 +19,8 @@ buildscript {
 allprojects {
     repositories {
         // Insert local test repo here
-        jcenter()
         google()
+        jcenter()
     }
 }
 
@@ -36,18 +36,17 @@ subprojects {
 }
 
 ext {
-    versionNum = 2
-    versionName = "0.2.0"
+    versionNum = 1
+    versionName = "1.0.0"
     versionDate = new Date()
 
-    // These properties should remain in sync with the values from the AppAuth SDK
     minSdkVersion = 19
     compileSdkVersion = 28
     buildToolsVersion = "28.0.3"
     browserVersion = '1.0.0-beta01'
     appcompatVersion = '1.0.0'
     // SDK dependency versions
-    bintrayVersion = "1.7.3"
+    bintrayVersion = "1.8.4"
     gradlePluginVersion = "1.5"
 
     // Test dependency versions
@@ -59,7 +58,6 @@ ext {
     jsonWebTokenVersion = "0.10.5"
     assertjCoreVersion = "3.10.0"
 
-    buildToolsVersion = "28.0.3"
     androidxLibVersion = "1.0.0"
     coreVersion = "1.1.1"
     extJUnitVersion = "1.1.0"
