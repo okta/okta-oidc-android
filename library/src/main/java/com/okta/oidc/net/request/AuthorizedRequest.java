@@ -30,9 +30,10 @@ import java.io.IOException;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationException> {
-    AuthorizedRequest(HttpRequestBuilder b) {
+
+    AuthorizedRequest(HttpRequestBuilder.Authorized b) {
         super();
-        mRequestType = b.mRequestType;
+        mRequestType = Type.AUTHORIZED;
         mUri = b.mUri;
         HttpConnection.Builder builder = new HttpConnection.Builder();
         if (b.mPostParameters != null) {

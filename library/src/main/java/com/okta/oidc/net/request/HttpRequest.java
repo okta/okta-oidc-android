@@ -27,7 +27,6 @@ public interface HttpRequest<T, U extends AuthorizationException> {
         CONFIGURATION,
         TOKEN_EXCHANGE,
         AUTHORIZED,
-        PROFILE,
         REVOKE_TOKEN,
         REFRESH_TOKEN,
         INTROSPECT

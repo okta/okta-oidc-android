@@ -21,6 +21,7 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.TestValues;
@@ -35,17 +36,12 @@ import org.robolectric.annotation.Config;
 
 import java.util.Collections;
 
-import static com.okta.oidc.net.request.HttpRequest.Type.AUTHORIZED;
-import static com.okta.oidc.net.request.HttpRequest.Type.PROFILE;
-import static com.okta.oidc.net.request.HttpRequest.Type.REVOKE_TOKEN;
-import static com.okta.oidc.net.request.HttpRequest.Type.TOKEN_EXCHANGE;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -69,29 +65,32 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void newRequest() {
-        assertNotNull(HttpRequestBuilder.newRequest());
+        assertNotNull(HttpRequestBuilder.newAuthorizedRequest());
+        assertNotNull(HttpRequestBuilder.newConfigurationRequest());
+        assertNotNull(HttpRequestBuilder.newTokenRequest());
+        assertNotNull(HttpRequestBuilder.newRevokeTokenRequest());
+        assertNotNull(HttpRequestBuilder.newProfileRequest());
+        assertNotNull(HttpRequestBuilder.newRefreshTokenRequest());
+        assertNotNull(HttpRequestBuilder.newIntrospectRequest());
     }
 
     @Test
-    public void createWithNoConfigRequest() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createWithNoConfigRequest() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Invalid config");
-        HttpRequestBuilder.newRequest().createRequest();
+        HttpRequestBuilder.newAuthorizedRequest().createRequest();
     }
 
     @Test
-    public void createInvalidConfigurationRequest() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createInvalidConfigurationRequest() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Invalid config");
-        HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
-                .createRequest();
+        HttpRequestBuilder.newConfigurationRequest().createRequest();
     }
 
     @Test
-    public void createConfigurationRequest() {
-        ConfigurationRequest request = (ConfigurationRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.CONFIGURATION)
+    public void createConfigurationRequest() throws AuthorizationException {
+        ConfigurationRequest request = HttpRequestBuilder.newConfigurationRequest()
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
@@ -99,32 +98,28 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void createInvalidTokenExchangeRequest() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createInvalidTokenExchangeRequest() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Missing service configuration");
-        HttpRequestBuilder.newRequest()
-                .request(TOKEN_EXCHANGE)
+        HttpRequestBuilder.newTokenRequest()
                 .config(mConfig)
                 .createRequest();
     }
 
     @Test
-    public void createInvalidTokenExchangeRequestNoAuth() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createInvalidTokenExchangeRequestNoAuth() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Missing auth request or response");
-        HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.newTokenRequest()
                 .providerConfiguration(mConfiguration)
-                .request(TOKEN_EXCHANGE)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
     }
 
     @Test
-    public void createTokenExchangeRequest() {
-        TokenRequest request = (TokenRequest) HttpRequestBuilder.newRequest()
+    public void createTokenExchangeRequest() throws AuthorizationException {
+        TokenRequest request = HttpRequestBuilder.newTokenRequest()
                 .providerConfiguration(mConfiguration)
-                .request(HttpRequest.Type.TOKEN_EXCHANGE)
                 .authRequest(getAuthorizeRequest(mConfig,
                         CodeVerifierUtil.generateRandomCodeVerifier()))
                 .authResponse(getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE))
@@ -135,24 +130,22 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void createInvalidAuthorizedRequest() {
+    public void createInvalidAuthorizedRequest() throws AuthorizationException {
         ProviderConfiguration configuration = TestValues.getProviderConfiguration(CUSTOM_URL);
-        mExpectedEx.expect(IllegalStateException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Not logged in or invalid uri");
-        HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.newAuthorizedRequest()
                 .providerConfiguration(configuration)
-                .request(AUTHORIZED)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
     }
 
     @Test
-    public void createAuthorizedRequest() {
-        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest()
+    public void createAuthorizedRequest() throws AuthorizationException {
+        AuthorizedRequest request = HttpRequestBuilder.newAuthorizedRequest()
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
-                .request(HttpRequest.Type.AUTHORIZED)
                 .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .uri(Uri.parse(CUSTOM_URL))
                 .config(mConfig)
@@ -162,49 +155,41 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void createInvalidProfileRequest() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createInvalidProfileRequest() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Not logged in");
-        HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.newProfileRequest()
                 .providerConfiguration(mConfiguration)
-                .request(PROFILE)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
     }
 
     @Test
-    public void createProfileRequest() {
-        AuthorizedRequest request = (AuthorizedRequest) HttpRequestBuilder.newRequest()
+    public void createProfileRequest() throws AuthorizationException {
+        AuthorizedRequest request = HttpRequestBuilder.newProfileRequest()
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
-                .request(HttpRequest.Type.PROFILE)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.PROFILE.toString()));
+        assertTrue(request.toString().contains(HttpRequest.Type.AUTHORIZED.toString()));
     }
 
     @Test
-    public void createInvalidRevokeRequest() {
-        mExpectedEx.expect(IllegalStateException.class);
+    public void createInvalidRevokeRequest() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Invalid token");
-        HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.newRevokeTokenRequest()
                 .providerConfiguration(mConfiguration)
-                .request(REVOKE_TOKEN)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
     }
 
     @Test
-    public void createRevokeRequest() {
-        RevokeTokenRequest request = (RevokeTokenRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.REVOKE_TOKEN)
+    public void createRevokeRequest() throws AuthorizationException {
+        RevokeTokenRequest request = HttpRequestBuilder.newRevokeTokenRequest()
                 .providerConfiguration(mConfiguration)
-                .tokenResponse(mTokenResponse)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
+                .tokenToRevoke(mTokenResponse.getAccessToken())
                 .tokenToRevoke(ACCESS_TOKEN)
                 .config(mConfig)
                 .createRequest();
@@ -213,11 +198,9 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void createIntrospectRequest() {
-        IntrospectRequest request = (IntrospectRequest) HttpRequestBuilder.newRequest()
-                .request(HttpRequest.Type.INTROSPECT)
+    public void createIntrospectRequest() throws AuthorizationException {
+        IntrospectRequest request = HttpRequestBuilder.newIntrospectRequest()
                 .providerConfiguration(mConfiguration)
-                .httpRequestMethod(HttpConnection.RequestMethod.POST)
                 .introspect(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN)
                 .config(mConfig)
                 .createRequest();
@@ -226,29 +209,22 @@ public class HttpRequestBuilderTest {
     }
 
     @Test
-    public void request() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
-                .request(REVOKE_TOKEN);
-        assertEquals(builder.mRequestType, REVOKE_TOKEN);
-    }
-
-    @Test
     public void connectionFactory() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .connectionFactory(new HttpConnection.DefaultConnectionFactory());
         assertNotNull(builder.mConn);
     }
 
     @Test
     public void config() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .config(mConfig);
         assertNotNull(builder.mConfig);
     }
 
     @Test
-    public void authRequest() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+    public void authRequest() throws AuthorizationException {
+        HttpRequestBuilder.TokenExchange builder = HttpRequestBuilder.newTokenRequest()
                 .authRequest(TestValues.getAuthorizeRequest(mConfig,
                         CodeVerifierUtil.generateRandomCodeVerifier()));
         assertNotNull(builder.mAuthRequest);
@@ -256,35 +232,35 @@ public class HttpRequestBuilderTest {
 
     @Test
     public void authResponse() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.TokenExchange builder = HttpRequestBuilder.newTokenRequest()
                 .authResponse(TestValues.getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE));
         assertNotNull(builder.mAuthResponse);
     }
 
     @Test
     public void postParameters() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .postParameters(Collections.EMPTY_MAP);
         assertNotNull(builder.mPostParameters);
     }
 
     @Test
     public void properties() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .properties(Collections.EMPTY_MAP);
         assertNotNull(builder.mProperties);
     }
 
     @Test
     public void uri() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .uri(Uri.parse(CUSTOM_URL));
         assertNotNull(builder.mUri);
     }
 
     @Test
     public void httpRequestMethod() {
-        HttpRequestBuilder builder = HttpRequestBuilder.newRequest()
+        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
                 .httpRequestMethod(HttpConnection.RequestMethod.GET);
         assertNotNull(builder.mRequestMethod);
     }

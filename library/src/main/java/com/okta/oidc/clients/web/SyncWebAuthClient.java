@@ -23,6 +23,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.ExecutorService;
 
@@ -66,21 +67,23 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      * @return the result
-     * @throws InterruptedException the interrupted exception
+     * @throws InterruptedException   the interrupted exception
+     * @throws AuthorizationException exception due to missing arguments.
      */
     Result signIn(@NonNull FragmentActivity activity,
                   @Nullable AuthenticationPayload payload)
-            throws InterruptedException;
+            throws InterruptedException, AuthorizationException;
 
     /**
      * Sign out from okta. This will clear the browser session
      *
      * @param activity the activity
      * @return the result
-     * @throws InterruptedException the interrupted exception
+     * @throws InterruptedException   the interrupted exception
+     * @throws AuthorizationException exception when trying to log out due to missing arguments.
      */
     Result signOutOfOkta(@NonNull FragmentActivity activity)
-            throws InterruptedException;
+            throws InterruptedException, AuthorizationException;
 
     /**
      * Register a callback for sign in and sign out result status. The callback is triggered when

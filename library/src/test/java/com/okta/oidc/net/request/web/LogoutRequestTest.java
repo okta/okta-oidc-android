@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.TokenResponse;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class LogoutRequestTest {
     private ProviderConfiguration mConfiguration;
 
     @Before
-    public void setUp() {
+    public void setUp() throws AuthorizationException {
         mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
@@ -60,34 +61,34 @@ public class LogoutRequestTest {
     }
 
     @Test
-    public void testBuilderFailEndpointMissing() {
+    public void testBuilderFailEndpointMissing() throws AuthorizationException {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("end_session_endpoint missing");
         builder.create();
     }
 
     @Test
-    public void testBuilderFailTokenMissing() {
+    public void testBuilderFailTokenMissing() throws AuthorizationException {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
         builder.endSessionEndpoint(mConfig.getEndSessionRedirectUri().toString());
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("id_token_hint missing");
         builder.create();
     }
 
     @Test
-    public void testBuilderFailRedirectMissing() {
+    public void testBuilderFailRedirectMissing() throws AuthorizationException {
         LogoutRequest.Builder builder = new LogoutRequest.Builder();
         builder.endSessionEndpoint(mConfig.getEndSessionRedirectUri().toString());
         builder.idTokenHint(mTokenResponse.getIdToken());
-        mExpectedEx.expect(IllegalArgumentException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("post_logout_redirect_uri missing");
         builder.create();
     }
 
     @Test
-    public void testBuilder() {
+    public void testBuilder() throws AuthorizationException {
         LogoutRequest request = new LogoutRequest.Builder()
                 .state(CUSTOM_STATE)
                 .config(mConfig)

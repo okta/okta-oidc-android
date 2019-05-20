@@ -30,9 +30,9 @@ import java.net.HttpURLConnection;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationException> {
-    RevokeTokenRequest(HttpRequestBuilder b) {
+    RevokeTokenRequest(HttpRequestBuilder.RevokeToken b) {
         super();
-        mRequestType = b.mRequestType;
+        mRequestType = Type.REVOKE_TOKEN;
         mUri = Uri.parse(b.mProviderConfiguration.revocation_endpoint).buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mTokenToRevoke)

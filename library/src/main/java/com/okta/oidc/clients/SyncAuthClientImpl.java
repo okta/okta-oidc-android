@@ -50,7 +50,8 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
 
     @VisibleForTesting
     NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
-                                                  AuthenticationPayload payload) {
+                                                  AuthenticationPayload payload)
+            throws AuthorizationException {
         return new AuthorizeRequest.Builder()
                 .config(mOidcConfig)
                 .providerConfiguration(mOktaState.getProviderConfiguration())

@@ -33,7 +33,8 @@
     <suppress checks="Javadoc" files="BaseAuth\.java" />
     <suppress checks="Javadoc" files="SyncAuthClientFactory\.java" />
     <suppress checks="Javadoc" files="SyncSessionClientFactory\.java" />
-
+    <suppress checks="Javadoc" files="SessionClientFactoryImpl\.java" />
+    <suppress checks="Javadoc" files="SyncSessionClientFactoryImpl\.java" />
 
 
     <!-- Suppress javadoc for packages-->

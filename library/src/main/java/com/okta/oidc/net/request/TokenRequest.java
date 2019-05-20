@@ -58,15 +58,18 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     protected String scope;
     private String username;
     private String nonce;
-    private OIDCConfig mConfig;
+    protected OIDCConfig mConfig;
     protected ProviderConfiguration mProviderConfiguration;
 
     //if set, used to verify idtoken auth_Time
     private String mMaxAge;
 
-    TokenRequest(HttpRequestBuilder b) {
+    TokenRequest() {
+    }
+
+    TokenRequest(HttpRequestBuilder.TokenExchange b) {
         super();
-        mRequestType = b.mRequestType;
+        mRequestType = Type.TOKEN_EXCHANGE;
         mConfig = b.mConfig;
         mProviderConfiguration = b.mProviderConfiguration;
         mUri = Uri.parse(mProviderConfiguration.token_endpoint);
@@ -115,7 +118,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         return mMaxAge;
     }
 
-    protected Map<String, String> buildParameters(HttpRequestBuilder b) {
+    protected Map<String, String> buildParameters(HttpRequestBuilder.TokenExchange b) {
         code_verifier = b.mAuthRequest.getCodeVerifier();
         nonce = b.mAuthRequest.getNonce();
         code = b.mAuthResponse.getCode();
