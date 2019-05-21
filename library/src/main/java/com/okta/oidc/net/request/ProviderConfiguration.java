@@ -25,6 +25,9 @@ import androidx.annotation.VisibleForTesting;
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
+/**
+ * @hide
+ */
 @SuppressWarnings("unused")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class ProviderConfiguration implements Persistable {

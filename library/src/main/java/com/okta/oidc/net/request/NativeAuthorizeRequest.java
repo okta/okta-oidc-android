@@ -31,6 +31,9 @@ import com.okta.oidc.util.AuthorizationException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, AuthorizationException> {
     private Parameters mParameters;

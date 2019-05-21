@@ -31,6 +31,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class HttpResponse {
     private final int mStatusCode;

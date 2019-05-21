@@ -22,6 +22,9 @@ import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LogoutResponse extends WebResponse {
     private String state;

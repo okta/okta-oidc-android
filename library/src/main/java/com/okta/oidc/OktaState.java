@@ -26,6 +26,9 @@ import com.okta.oidc.storage.Persistable;
 
 import static com.okta.oidc.clients.State.IDLE;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaState {
     private OktaRepository mOktaRepo;

@@ -41,6 +41,8 @@ import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 
 /**
+ * @hide
+ *
  * This is a helper for authentication. It contains the APIs for getting
  * the provider configuration, validating results, and code exchange.
  */

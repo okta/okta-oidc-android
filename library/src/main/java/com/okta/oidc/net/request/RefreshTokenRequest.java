@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class RefreshTokenRequest extends TokenRequest {
     RefreshTokenRequest(HttpRequestBuilder.RefreshToken b) {

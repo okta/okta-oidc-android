@@ -21,6 +21,9 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SyncSessionClientFactoryImpl {
     public SyncSessionClient createClient(OIDCConfig oidcConfig, OktaState oktaState,

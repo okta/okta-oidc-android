@@ -22,6 +22,9 @@ import androidx.annotation.RestrictTo;
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
+/**
+ * @hide
+ */
 @SuppressWarnings("unused")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenResponse implements Persistable {

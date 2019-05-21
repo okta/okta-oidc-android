@@ -40,6 +40,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @hide
+ */
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {

@@ -29,6 +29,9 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
+/**
+ * @hide
+ */
 //https://developer.okta.com/docs/api/resources/oidc#logout
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LogoutRequest extends WebRequest {
