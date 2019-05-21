@@ -21,11 +21,11 @@
   - [Clear tokens from device](#Clear-tokens-from-device)
 - [Using the Tokens](#Using-the-Tokens)
   - [Get user information](#Get-user-information)
-  - [Performing Authorized Requests](#Performing-Authorized-Requests)
+  - [Performing authorized requests](#Performing-authorized-requests)
   - [Refresh a Token](#Refresh-a-Token)
   - [Revoking a Token](#Revoking-a-Token)
   - [Introspect a token](#Introspect-a-token)
-- [Token Management](#Token-Management)
+- [Token management](#Token-management)
 - [Advance configuration](#Advance-configuration)
   - [Client variants](#Client-variants)
   - [Providing browser used for authorization](#Providing-browser-used-for-authorization)
@@ -36,6 +36,7 @@
 - [Advanced techniques](#Advanced-techniques)
   - [Sign in with a sessionToken (Async)](#Sign-in-with-a-sessionToken-(Async))
   - [Sign in with a sessionToken (Sync)](#Sign-in-with-a-sessionToken-(Sync))
+  - [Multiple Authorization Clients](#Multiple-authorization-clients)
 
 ## Overview
 
@@ -227,7 +228,7 @@ is a two or three step process depending on revoking the tokens.
 
 1. Clear the browser session.
 2. [Revoke the tokens](#Revoking-a-Token) (optional)
-3. Clear the app session (stored tokens) in [memory](#Token-Management).
+3. Clear the app session (stored tokens) in [memory](#Token-management).
 
 If the user is signed in using a [sessionToken](#Sign-in-with-your-own-UI) you can skip clearing the browser.
 
@@ -284,7 +285,7 @@ sessionClient.getUserProfile(new RequestCallback<UserInfo, AuthorizationExceptio
 
 In `onSuccess` the userinfo returned is a `UserInfo` with the [response properties](https://developer.okta.com/docs/api/resources/oidc/#response-example-success-5).
 
-### Performing Authorized Requests
+### Performing authorized requests
 
 In addition to the built in endpoints, you can use the client interface to perform your own authorized requests, whatever they might be. You can call `authorizedRequest` requests and have the access token automatically added to the `Authorization` header with the standard OAuth 2.0 prefix of `Bearer`.
 
@@ -332,7 +333,8 @@ client.getSessionClient().refreshToken(new RequestCallback<Tokens, Authorization
 Tokens can be revoked with the following request:
 
 ```java
-client.getSessionClient().revokeToken(client.getTokens().getRefreshToken(),
+Tokens token = client.getSessionClient.getTokens();
+client.getSessionClient().revokeToken(token.getRefreshToken(),
     new RequestCallback<Boolean, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull Boolean result) {
@@ -353,7 +355,7 @@ Tokens can be checked for more detailed information by using the introspect endp
 
 ```java
 client.getSessionClient().introspectToken(client.getTokens().getRefreshToken(),
-    TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectResponse, AuthorizationException>() {
+    TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectInfo, AuthorizationException>() {
         @Override
         public void onSuccess(@NonNull IntrospectInfo result) {
             //handle introspect response.
@@ -369,7 +371,7 @@ client.getSessionClient().introspectToken(client.getTokens().getRefreshToken(),
 
 A list of the response properties can be found [here](https://developer.okta.com/docs/api/resources/oidc/#response-properties-3)
 
-## Token Management
+## Token management
 
 Tokens are encrypted and securely stored in the private Shared Preferences.
 If you do not want `AuthenticateClient` to store the data you can pass in a empty interface when creating the `client`
@@ -402,7 +404,12 @@ The library allows customization to specific parts the SDK to meet developer nee
 
 ### Client variants
 
-You can create client which do sign in via web in async way
+The library provides asynchronous and synchronous variant of each client type. The corresponding `SessionClient` created from the `AuthClient` will have the same asynchronous or synchronous behavior. The following shows how to create different type of clients.
+
+### WebAuthClient
+
+`WebAuthClient` redirects to a chrome custom tabs enabled browser for authenticaiton.
+The following shows how to create a asynchronous web authentication client.
 
 ```java
 WebAuthClient webAuthClient = new Okta.WebAuthBuilder()
@@ -415,18 +422,9 @@ WebAuthClient webAuthClient = new Okta.WebAuthBuilder()
         .create();
 ```
 
-You can create client which do sign in using sessionToken in async way
+### SyncWebAuthClient
 
-```java
-AuthClient authClient = new Okta.AuthBuilder()
-        .withConfig(config)
-        .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
-        .withCallbackExecutor(Executors.newSingleThreadExecutor())
-        .create();
-```
-
-You can create client which does sign in with a web browser in sync way
+The following shows how to create synchronous web authentication client:
 
 ```java
 SyncWebAuthClient webSyncAuthClient = new Okta.SyncWebAuthBuilder()
@@ -438,7 +436,23 @@ SyncWebAuthClient webSyncAuthClient = new Okta.SyncWebAuthBuilder()
         .create();
 ```
 
-You can create client which do sign in using sessionToken in sync way
+### AuthClient
+
+`AuthClient` will require a `sessionToken`. See [Sign in with your own UI](#Sign-in-with-your-own-UI) for more information on how to obtain a `sessionToken`.
+The following shows how to create a asynchronous authentication client:
+
+```java
+AuthClient authClient = new Okta.AuthBuilder()
+        .withConfig(config)
+        .withContext(getApplicationContext())
+        .withStorage(new SimpleOktaStorage(this))
+        .withCallbackExecutor(Executors.newSingleThreadExecutor())
+        .create();
+```
+
+### SyncAuthClient
+
+The following shows how to create synchronous authentication client:
 
 ```java
 SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
@@ -457,6 +471,9 @@ The default browser used for authorization is Chrome. If you want to change it F
 String SAMSUNG = "com.sec.android.app.sbrowser";
 String FIREFOX = "org.mozilla.firefox";
 
+//ANDROID_BROWSER DOES NOT SUPPORT CHROME CUSTOM TABS! Won't work.
+String ANDROID_BROWSER = "com.android.browser";
+
 client = new Okta.WebAuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
@@ -468,6 +485,8 @@ client = new Okta.WebAuthBuilder()
 
 The library will attempt to use FireFox then Samsung browsers first.
 If none are found it will default to Chrome.
+
+**Note**: The library only supports [Chrome custom tab](https://developer.chrome.com/multidevice/android/customtabs) enabled browsers. If no compatible browsers are found you'll receive a `AuthorizationException` with a `No compatible browser found` message. You should handle this error by redirecting the user to download a compatible browser in the app store.
 
 ### Customize HTTP requests
 
@@ -580,7 +599,7 @@ AuthClient authClient = new Okta.AuthBuilder()
 After building `AuthClient` you should call `signIn` method where you need provide `sessionToken` and `RequestCallback`
 
 ```java
-authClient.signIn("sessionToken", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+authClient.signIn("{sessionToken}", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull AuthorizationResult result) {
 
@@ -615,3 +634,35 @@ syncAuthClient.signIn("sessionToken", null)
 ```
 
 Optionally you can provide `AuthenticationPayload` as a part of sign in call.
+
+### Multiple authorization clients
+
+Multiple `AuthClient` are supported. However for `WebAuthClient` only one callback can be registered. For example you can have multiple authorization servers redirecting to the same application:
+
+```java
+OIDCConfig configFirstApp = new OIDCConfig.Builder()
+    .withJsonFile(this, R.id.okta_oidc_config_first)
+    .create();
+
+//config file with different domain, client_id than config_first but same redirect_uri
+OIDCConfig configSecondApp = new OIDCConfig.Builder()
+    .withJsonFile(this, R.id.okta_oidc_config_second)
+    .create();
+
+WebAuthClient webAuthFirstApp = new Okta.WebAuthBuilder()
+                .withConfig(configFirstApp)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this, "FIRSTAPP"))
+                .create();
+WebAuthClient webAuthSecondApp = new Okta.WebAuthBuilder()
+                .withConfig(configSecondApp)
+                .withContext(getApplicationContext())
+                .withStorage(new SimpleOktaStorage(this, "SECONDAPP"))
+                .create();
+
+if (true) { //provide option to login using different clients.
+    webAuthFirstApp.registerCallback(...);
+} else {
+    webAuthSecondApp.registerCallback(...);
+}
+```
