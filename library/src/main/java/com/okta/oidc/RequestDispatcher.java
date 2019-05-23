@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 /**
+ * @hide
+ *
  * Executor Service that runs tasks on worker thread
  * call back on ui thread or specified executor.
  */

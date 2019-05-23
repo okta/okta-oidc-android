@@ -30,6 +30,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class BaseRequest<T, U extends AuthorizationException>
         implements HttpRequest<T, U> {

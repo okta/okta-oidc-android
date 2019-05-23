@@ -29,9 +29,7 @@
     <suppress checks="Javadoc" files="OktaRepository\.java" />
     <suppress checks="Javadoc" files="Persistable\.java" />
     <suppress checks="Javadoc" files="AuthClientFactoryImpl\.java" />
-    <suppress checks="Javadoc" files="SyncWebAuthClientFactory\.java" />
     <suppress checks="Javadoc" files="BaseAuth\.java" />
-    <suppress checks="Javadoc" files="SyncAuthClientFactory\.java" />
     <suppress checks="Javadoc" files="SyncSessionClientFactory\.java" />
     <suppress checks="Javadoc" files="SessionClientFactoryImpl\.java" />
     <suppress checks="Javadoc" files="SyncSessionClientFactoryImpl\.java" />

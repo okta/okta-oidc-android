@@ -19,6 +19,9 @@ import androidx.annotation.RestrictTo;
 
 import java.util.concurrent.Executor;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SessionClientFactoryImpl {
     private Executor executor;

@@ -28,6 +28,8 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
+ * @hide
+ *
  * SSLSocketFactory which wraps default SSLSocketFactory and enable TLS v1.1, v1.2.
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)

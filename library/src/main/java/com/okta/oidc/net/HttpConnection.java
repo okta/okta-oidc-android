@@ -43,6 +43,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
+/**
+ * @hide
+ */
 @RestrictTo(LIBRARY_GROUP)
 public class HttpConnection {
     private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 15000; //15s

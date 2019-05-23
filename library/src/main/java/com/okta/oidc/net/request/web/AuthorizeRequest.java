@@ -37,6 +37,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @hide
+ */
 //https://developer.okta.com/docs/api/resources/oidc#authorize
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unused")

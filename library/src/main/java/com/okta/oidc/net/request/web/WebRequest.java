@@ -24,6 +24,9 @@ import androidx.annotation.RestrictTo;
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class WebRequest implements Persistable {
     @NonNull

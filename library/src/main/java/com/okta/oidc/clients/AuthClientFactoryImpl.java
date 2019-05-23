@@ -27,6 +27,9 @@ import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.util.concurrent.Executor;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
     private Executor mCallbackExecutor;

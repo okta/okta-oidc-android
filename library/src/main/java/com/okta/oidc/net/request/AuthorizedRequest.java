@@ -28,6 +28,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationException> {
 

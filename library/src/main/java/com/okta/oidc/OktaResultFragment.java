@@ -34,6 +34,9 @@ import org.json.JSONException;
 import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaResultFragment extends Fragment {
     static final String AUTHENTICATION_REQUEST = "authRequest";

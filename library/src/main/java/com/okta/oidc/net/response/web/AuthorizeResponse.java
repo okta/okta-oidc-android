@@ -22,6 +22,9 @@ import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
 
+/**
+ * @hide
+ */
 //https://developer.okta.com/docs/api/resources/oidc#response-properties
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
 @RestrictTo(RestrictTo.Scope.LIBRARY)

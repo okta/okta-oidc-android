@@ -32,6 +32,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class IntrospectRequest extends
         BaseRequest<IntrospectInfo, AuthorizationException> {

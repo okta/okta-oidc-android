@@ -31,6 +31,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();

@@ -31,6 +31,9 @@ import com.okta.oidc.util.AuthorizationException;
 
 import java.util.Map;
 
+/**
+ * @hide
+ */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpRequestBuilder {
 
