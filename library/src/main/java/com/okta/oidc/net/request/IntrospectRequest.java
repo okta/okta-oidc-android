@@ -73,9 +73,7 @@ public class IntrospectRequest extends
             JSONObject json = response.asJson();
             return new Gson().fromJson(json.toString(), IntrospectInfo.class);
         } catch (IOException ex) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.NETWORK_ERROR,
-                    ex);
+            exception = new AuthorizationException(ex.getMessage(), ex);
         } catch (JSONException e) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR,

@@ -27,6 +27,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -91,8 +92,13 @@ public class MockEndPoint {
     }
 
     public MockResponse enqueueUserInfoSuccess() {
+        return enqueueUserInfoSuccess(0);
+    }
+
+    public MockResponse enqueueUserInfoSuccess(int delaySeconds) {
         MockResponse response = jsonResponse(HTTP_OK, USER_PROFILE);
-        mServer.enqueue(response);
+        mServer.enqueue(response.setBodyDelay(delaySeconds, TimeUnit.SECONDS)
+                .setHeadersDelay(delaySeconds, TimeUnit.SECONDS));
         return response;
     }
 
@@ -129,14 +135,25 @@ public class MockEndPoint {
         mServer.enqueue(jsonResponse(HTTP_OK, String.format(TOKEN_SUCCESS, idToken)));
     }
 
+    public void enqueueNativeRequestSuccess(String state, int delaySeconds) {
+        mServer.enqueue((emptyResponse(HTTP_MOVED_TEMP)
+                .setHeadersDelay(delaySeconds, TimeUnit.SECONDS)
+                .addHeader("Location",
+                        "com.okta.test:/callback?code=" + EXCHANGE_CODE +
+                                "&state=" + state)));
+    }
+
     public void enqueueNativeRequestSuccess(String state) {
-        mServer.enqueue((emptyResponse(HTTP_MOVED_TEMP).addHeader("Location",
-                "com.okta.test:/callback?code=" + EXCHANGE_CODE +
-                        "&state=" + state)));
+        enqueueNativeRequestSuccess(state, 0);
     }
 
     public MockResponse enqueueReturnSuccessEmptyBody() {
-        MockResponse response = emptyResponse(HTTP_OK);
+        return enqueueReturnSuccessEmptyBody(0);
+    }
+
+    public MockResponse enqueueReturnSuccessEmptyBody(int delaySeconds) {
+        MockResponse response = emptyResponse(HTTP_OK)
+                .setHeadersDelay(delaySeconds, TimeUnit.SECONDS);
         mServer.enqueue(response);
         return response;
     }

@@ -16,6 +16,7 @@
 package com.okta.oidc.clients;
 
 import android.content.Context;
+import android.os.Process;
 
 import androidx.annotation.AnyThread;
 
@@ -54,8 +55,9 @@ class AuthClientImpl implements AuthClient {
     @Override
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
-                       RequestCallback<Result, AuthorizationException> cb) {
+                       final RequestCallback<Result, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {
                 mDispatcher.submitResults(() -> {
@@ -70,6 +72,13 @@ class AuthClientImpl implements AuthClient {
                     }
                 });
             }
+        });
+    }
+
+    @Override
+    public void cancel() {
+        mDispatcher.runTask(() -> {
+            mSyncNativeAuthClient.cancel();
         });
     }
 

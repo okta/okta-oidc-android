@@ -15,6 +15,7 @@
 package com.okta.oidc.util;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.okta.oidc.RequestCallback;
 
@@ -26,21 +27,25 @@ public class MockRequestCallback<T, U extends Exception> implements RequestCallb
     private String mError;
     private CountDownLatch mLatch;
 
-    public MockRequestCallback(CountDownLatch latch) {
+    public MockRequestCallback(@Nullable CountDownLatch latch) {
         mLatch = latch;
     }
 
     @Override
     public void onSuccess(@NonNull T result) {
         mResult = result;
-        mLatch.countDown();
+        if (mLatch != null) {
+            mLatch.countDown();
+        }
     }
 
     @Override
     public void onError(String error, U exception) {
         mError = error;
         mException = exception;
-        mLatch.countDown();
+        if (mLatch != null) {
+            mLatch.countDown();
+        }
     }
 
     public U getException() {

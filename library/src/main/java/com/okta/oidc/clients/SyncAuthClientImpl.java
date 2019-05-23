@@ -27,6 +27,7 @@ import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
+import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -34,6 +35,9 @@ import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     private SyncSessionClient sessionClient;
@@ -64,20 +68,30 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     public Result signIn(String sessionToken,
                          @Nullable AuthenticationPayload payload) {
         try {
+            mCancel.set(false);
             obtainNewConfiguration();
+            checkIfCanceled();
+
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
-            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, payload);
+            NativeAuthorizeRequest requestNative = nativeAuthorizeRequest(sessionToken, payload);
+            mCurrentRequest.set(new WeakReference<>(requestNative));
             //Save the nativeAuth request in a AuthRequest because it is needed to verify results.
-            AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
+            AuthorizeRequest authRequest = new AuthorizeRequest(requestNative.getParameters());
             mOktaState.save(authRequest);
-            AuthorizeResponse authResponse = request.executeRequest();
+            AuthorizeResponse authResponse = requestNative.executeRequest();
+            checkIfCanceled();
+
             validateResult(authResponse);
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
-            TokenResponse tokenResponse = tokenExchange(authResponse).executeRequest();
+            TokenRequest requestToken = tokenExchange(authResponse);
+            mCurrentRequest.set(new WeakReference<>(requestToken));
+            TokenResponse tokenResponse = requestToken.executeRequest();
             mOktaState.save(tokenResponse);
             return Result.success();
         } catch (AuthorizationException e) {
             return Result.error(e);
+        } catch (IOException e) {
+            return Result.cancel();
         } finally {
             resetCurrentState();
         }

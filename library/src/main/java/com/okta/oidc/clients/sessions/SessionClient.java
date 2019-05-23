@@ -230,4 +230,10 @@ public interface SessionClient {
      * Clears all data. This will remove all tokens from the client.
      */
     void clear();
+
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 }

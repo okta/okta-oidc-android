@@ -120,4 +120,10 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param activity the activity
      */
     void unregisterCallback(FragmentActivity activity);
+
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 }

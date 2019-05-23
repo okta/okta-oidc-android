@@ -43,6 +43,7 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
     protected HttpConnection mConnection;
     private HttpResponse mResponse;
     protected Uri mUri;
+    private HttpURLConnection mUrlConn;
 
     public BaseRequest() {
     }
@@ -52,24 +53,27 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
         Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
                 "only https connections are permitted");
 
-        HttpURLConnection conn = mConnection.openConnection(new URL(mUri.toString()));
-        conn.connect();
+        mUrlConn = mConnection.openConnection(new URL(mUri.toString()));
+        mUrlConn.connect();
+
         if (mCanceled) {
             throw new IOException("Canceled");
         }
+
         boolean keepOpen = false;
         try {
-            int responseCode = conn.getResponseCode();
+            int responseCode = mUrlConn.getResponseCode();
             if (responseCode == -1) {
                 throw new IOException("Invalid response code -1 no code can be discerned");
             }
+
             if (!hasResponseBody(responseCode)) {
-                mResponse = new HttpResponse(responseCode, conn.getHeaderFields());
+                mResponse = new HttpResponse(responseCode, mUrlConn.getHeaderFields());
             } else {
                 keepOpen = true;
                 mResponse = new HttpResponse(
-                        responseCode, conn.getHeaderFields(),
-                        conn.getContentLength(), conn);
+                        responseCode, mUrlConn.getHeaderFields(),
+                        mUrlConn.getContentLength(), mUrlConn);
             }
             return mResponse;
         } finally {
@@ -86,10 +90,19 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         if (mResponse != null) {
             mResponse.disconnect();
             mResponse = null;
+        }
+        if (mUrlConn != null) {
+            try {
+                mUrlConn.getInputStream().close();
+            } catch (IOException | NullPointerException e) {
+                //NO-OP
+            }
+            mUrlConn.disconnect();
+            mUrlConn = null;
         }
     }
 

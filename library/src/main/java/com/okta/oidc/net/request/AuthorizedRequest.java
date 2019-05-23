@@ -73,8 +73,7 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
             response = openConnection();
             return response.asJson();
         } catch (IOException io) {
-            exception = AuthorizationException
-                    .fromTemplate(AuthorizationException.GeneralErrors.NETWORK_ERROR, io);
+            exception = new AuthorizationException(io.getMessage(), io);
         } catch (JSONException je) {
             exception = AuthorizationException.fromTemplate(AuthorizationException
                     .GeneralErrors.JSON_DESERIALIZATION_ERROR, je);

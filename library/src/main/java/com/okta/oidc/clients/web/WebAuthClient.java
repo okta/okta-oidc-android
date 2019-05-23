@@ -97,7 +97,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      *          if (status == AuthorizationStatus.AUTHORIZED) {
      *              //sign in success. client can be used to perform protected resource requests.
      *          } else if (status == AuthorizationStatus.SIGNED_OUT) {
-     *              //sing out success. browser session is cleared.
+     *              //sign out success. browser session is cleared.
      *          } else if (status == AuthorizationStatus.IN_PROGRESS) {
      *              //request in progress.
      *          }
@@ -126,4 +126,10 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * Unregister the callback.
      */
     void unregisterCallback();
+
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 }

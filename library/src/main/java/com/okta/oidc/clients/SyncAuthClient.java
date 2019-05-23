@@ -41,4 +41,10 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      * @return the {@link Result authorizationResult}
      */
     Result signIn(String sessionToken, @Nullable AuthenticationPayload payload);
+
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 }

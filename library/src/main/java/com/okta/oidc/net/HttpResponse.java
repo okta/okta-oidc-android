@@ -36,6 +36,7 @@ import java.util.Map;
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public final class HttpResponse {
+    private static final String TAG = HttpResponse.class.getSimpleName();
     private final int mStatusCode;
     private final Map<String, List<String>> mHeaders;
     private final int mLength;

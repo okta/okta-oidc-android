@@ -24,6 +24,7 @@ import androidx.annotation.WorkerThread;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -36,6 +37,11 @@ import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
@@ -51,6 +57,9 @@ public class AuthAPI {
     protected OktaState mOktaState;
     protected OIDCConfig mOidcConfig;
     HttpConnectionFactory mConnectionFactory;
+    protected AtomicBoolean mCancel = new AtomicBoolean();
+    protected AtomicReference<WeakReference<BaseRequest>> mCurrentRequest =
+            new AtomicReference<>(new WeakReference<>(null));
 
     protected AuthAPI(OIDCConfig oidcConfig,
                       Context context,
@@ -66,7 +75,9 @@ public class AuthAPI {
         ProviderConfiguration config = mOktaState.getProviderConfiguration();
         if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
             mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
-            mOktaState.save(configurationRequest().executeRequest());
+            ConfigurationRequest request = configurationRequest();
+            mCurrentRequest.set(new WeakReference<>(request));
+            mOktaState.save(request.executeRequest());
         }
     }
 
@@ -96,7 +107,7 @@ public class AuthAPI {
     @WorkerThread
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
     public TokenRequest tokenExchange(AuthorizeResponse response) throws AuthorizationException {
-        return (TokenRequest) HttpRequestBuilder.newTokenRequest()
+        return HttpRequestBuilder.newTokenRequest()
                 .providerConfiguration(mOktaState.getProviderConfiguration())
                 .config(mOidcConfig)
                 .authRequest((AuthorizeRequest) mOktaState.getAuthorizeRequest())
@@ -105,11 +116,30 @@ public class AuthAPI {
     }
 
     protected void resetCurrentState() {
+        mCancel.set(false);
         mOktaState.setCurrentState(IDLE);
     }
 
     @VisibleForTesting
     public OktaState getOktaState() {
         return mOktaState;
+    }
+
+    public void cancel() {
+        mCancel.set(true);
+        if (mCurrentRequest.get().get() != null) {
+            mCurrentRequest.get().get().cancelRequest();
+        }
+    }
+
+    /*
+     * Since sign-in is a collection of network ops. This method is used to check after each
+     * network call if cancel was called. So even if the previous network call was successful
+     * this check will stop further progress.
+     */
+    protected void checkIfCanceled() throws IOException {
+        if (mCancel.get()) {
+            throw new IOException("Canceled");
+        }
     }
 }

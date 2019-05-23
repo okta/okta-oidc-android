@@ -38,6 +38,7 @@ import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
 import com.okta.oidc.net.request.web.WebRequest;
@@ -49,6 +50,8 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -156,11 +159,15 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     public Result signIn(@NonNull final FragmentActivity activity,
                          @Nullable AuthenticationPayload payload)
             throws InterruptedException, AuthorizationException {
+        mCancel.set(false);
         try {
             obtainNewConfiguration();
+            checkIfCanceled();
         } catch (AuthorizationException e) {
             resetCurrentState();
             return Result.error(e);
+        } catch (IOException e) {
+            return Result.cancel();
         }
 
         WebRequest request = new AuthorizeRequest.Builder()
@@ -208,9 +215,10 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 TokenResponse response;
                 try {
                     validateResult(result.getAuthorizationResponse());
-                    response = tokenExchange(
-                            (AuthorizeResponse) result.getAuthorizationResponse())
-                            .executeRequest();
+                    TokenRequest request = tokenExchange(
+                            (AuthorizeResponse) result.getAuthorizationResponse());
+                    mCurrentRequest.set(new WeakReference<>(request));
+                    response = request.executeRequest();
                 } catch (AuthorizationException e) {
                     return Result.error(e);
                 }

@@ -26,6 +26,7 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.AuthorizedRequest;
+import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.RefreshTokenRequest;
@@ -37,7 +38,9 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.clients.State.IDLE;
 
@@ -45,6 +48,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
     private OIDCConfig mOidcConfig;
     private OktaState mOktaState;
     private HttpConnectionFactory mConnectionFactory;
+    private AtomicReference<WeakReference<BaseRequest>> mCurrentRequest =
+            new AtomicReference<>(new WeakReference<>(null));
 
     SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
                           HttpConnectionFactory connectionFactory) {
@@ -75,7 +80,10 @@ class SyncSessionClientImpl implements SyncSessionClient {
                                         @Nullable Map<String, String> postParameters,
                                         @NonNull HttpConnection.RequestMethod method)
             throws AuthorizationException {
-        return createAuthorizedRequest(uri, properties, postParameters, method).executeRequest();
+        AuthorizedRequest request =
+                createAuthorizedRequest(uri, properties, postParameters, method);
+        mCurrentRequest.set(new WeakReference<>(request));
+        return request.executeRequest();
     }
 
     AuthorizedRequest userProfileRequest() throws AuthorizationException {
@@ -94,7 +102,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public UserInfo getUserProfile() throws AuthorizationException {
-        JSONObject userInfo = userProfileRequest().executeRequest();
+        AuthorizedRequest request = userProfileRequest();
+        mCurrentRequest.set(new WeakReference<>(request));
+        JSONObject userInfo = request.executeRequest();
         return new UserInfo(userInfo);
     }
 
@@ -111,7 +121,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
     @Override
     public IntrospectInfo introspectToken(String token, String tokenType)
             throws AuthorizationException {
-        return introspectTokenRequest(token, tokenType).executeRequest();
+        IntrospectRequest request = introspectTokenRequest(token, tokenType);
+        mCurrentRequest.set(new WeakReference<>(request));
+        return request.executeRequest();
     }
 
     RevokeTokenRequest revokeTokenRequest(String token) throws AuthorizationException {
@@ -125,7 +137,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public Boolean revokeToken(String token) throws AuthorizationException {
-        return revokeTokenRequest(token).executeRequest();
+        RevokeTokenRequest request = revokeTokenRequest(token);
+        mCurrentRequest.set(new WeakReference<>(request));
+        return request.executeRequest();
     }
 
     RefreshTokenRequest refreshTokenRequest() throws AuthorizationException {
@@ -139,7 +153,9 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public Tokens refreshToken() throws AuthorizationException {
-        TokenResponse tokenResponse = refreshTokenRequest().executeRequest();
+        RefreshTokenRequest request = refreshTokenRequest();
+        mCurrentRequest.set(new WeakReference<>(request));
+        TokenResponse tokenResponse = request.executeRequest();
         mOktaState.save(tokenResponse);
         return new Tokens(tokenResponse);
     }
@@ -164,6 +180,13 @@ class SyncSessionClientImpl implements SyncSessionClient {
         mOktaState.delete(mOktaState.getTokenResponse());
         mOktaState.delete(mOktaState.getAuthorizeRequest());
         mOktaState.setCurrentState(IDLE);
+    }
+
+    @Override
+    public void cancel() {
+        if (mCurrentRequest.get().get() != null) {
+            mCurrentRequest.get().get().cancelRequest();
+        }
     }
 
     OktaState getOktaState() {

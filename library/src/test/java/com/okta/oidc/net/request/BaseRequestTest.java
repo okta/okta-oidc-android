@@ -34,6 +34,7 @@ import org.robolectric.annotation.Config;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.Assert.assertEquals;
@@ -76,16 +77,29 @@ public class BaseRequestTest {
     }
 
     @Test
-    public void cancelRequest() throws IOException {
+    public void cancelRequest() throws IOException, InterruptedException {
         mExpectedEx.expect(IOException.class);
         mExpectedEx.expectMessage("Canceled");
-        mEndPoint.enqueueReturnSuccessEmptyBody();
+        mEndPoint.enqueueReturnSuccessEmptyBody(1);
         mRequest.mUri = Uri.parse(mEndPoint.getUrl());
         mRequest.mConnection = new HttpConnection.Builder()
                 .setRequestMethod(HttpConnection.RequestMethod.GET)
                 .create();
+        AtomicReference<IOException> exception = new AtomicReference<>();
+        Thread t = new Thread(() -> {
+            try {
+                mRequest.openConnection();
+            } catch (IOException e) {
+                exception.set(e);
+            }
+        });
+        t.start();
+
         mRequest.cancelRequest();
-        mRequest.openConnection();
+        t.join();
+        if (exception.get() != null) {
+            throw exception.get();
+        }
     }
 
     @Test

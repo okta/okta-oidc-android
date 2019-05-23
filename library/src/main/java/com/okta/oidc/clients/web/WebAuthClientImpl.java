@@ -17,6 +17,7 @@ package com.okta.oidc.clients.web;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Process;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
@@ -107,6 +108,13 @@ class WebAuthClientImpl implements WebAuthClient {
     }
 
     @Override
+    public void cancel() {
+        mDispatcher.runTask(() -> {
+            mSyncAuthClient.cancel();
+        });
+    }
+
+    @Override
     public boolean isInProgress() {
         return mSyncAuthClient.isInProgress();
     }
@@ -116,9 +124,9 @@ class WebAuthClientImpl implements WebAuthClient {
     public void signIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
         mDispatcher.execute(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Result result = mSyncAuthClient.signIn(activity, payload);
-
                 processSignInResult(result);
             } catch (InterruptedException e) {
                 mDispatcher.submitResults(() -> {

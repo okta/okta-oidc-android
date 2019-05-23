@@ -87,7 +87,7 @@ public class SessionClientImplTest {
     private OktaStorage mStorage;
 
     private OIDCConfig mConfig;
-    private SessionClient mSessionClientClient;
+    private SessionClient mSessionClient;
     private Gson mGson;
 
     private ProviderConfiguration mProviderConfig;
@@ -118,9 +118,9 @@ public class SessionClientImplTest {
                 .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
-        mSessionClientClient = okta.getSessionClient();
+        mSessionClient = okta.getSessionClient();
 
-        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext,
+        OktaState mOktaState = new OktaState(new OktaRepository(mStorage, mContext,
                 new EncryptionManagerStub()));
         mOktaState.save(mTokenResponse);
         mOktaState.save(mProviderConfig);
@@ -139,7 +139,7 @@ public class SessionClientImplTest {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.refreshToken(cb);
+        mSessionClient.refreshToken(cb);
         latch.await();
         Tokens result = cb.getResult();
         TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
@@ -154,11 +154,11 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         mEndPoint.enqueueReturnInvalidClient();
         MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.refreshToken(cb);
+        mSessionClient.refreshToken(cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
-        assertEquals(cb.getException().getMessage(), "Network error");
+        assertEquals(cb.getException().getMessage(), "Invalid status code 401 Client Error");
     }
 
     @Test
@@ -167,7 +167,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mSessionClientClient.getUserProfile(cb);
+        mSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         UserInfo result = cb.getResult();
@@ -185,7 +185,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<UserInfo, AuthorizationException> cb
                 = new MockRequestCallback<>(latch);
-        mSessionClientClient.getUserProfile(cb);
+        mSessionClient.getUserProfile(cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -199,7 +199,7 @@ public class SessionClientImplTest {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.revokeToken("access_token", cb);
+        mSessionClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNotNull(cb.getResult());
@@ -213,7 +213,7 @@ public class SessionClientImplTest {
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<Boolean, AuthorizationException> cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.revokeToken("access_token", cb);
+        mSessionClient.revokeToken("access_token", cb);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         latch.await();
         assertNull(cb.getResult());
@@ -229,7 +229,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNotNull(cb.getResult());
         assertTrue(cb.getResult().isActive());
@@ -241,7 +241,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<IntrospectInfo, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
+        mSessionClient.introspectToken(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -257,7 +257,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNotNull(cb.getResult());
@@ -278,9 +278,30 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClientClient.authorizedRequest(uri, properties,null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
+    }
+
+    @Test
+    public void authorizedRequestCancel() throws InterruptedException, JSONException {
+        mEndPoint.enqueueUserInfoSuccess(2);
+        Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("state", CUSTOM_STATE);
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<JSONObject, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
+        Thread.sleep(100); //wait for request to be created
+        mSessionClient.cancel();
+        latch.await();
+        assertNull(cb.getResult());
+        assertNotNull(cb.getException());
+        String errorMessage = cb.getException().getMessage();
+        //The exception can be canceled or stream is closed.
+        assertTrue("Canceled".equals(errorMessage) || "stream is closed".equals(errorMessage));
     }
 }

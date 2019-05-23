@@ -35,4 +35,12 @@
         <gav regex="true">^androidx\.localbroadcastmanager:localbroadcastmanager:.*$</gav>
         <cve>CVE-2017-16111</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Suppress jackson since it is only used in unit tests. 
+   ]]></notes>
+        <cpe>cpe:/a:fasterxml:jackson:2.9.8</cpe>
+        <cpe>cpe:/a:fasterxml:jackson-databind:2.9.8</cpe>
+	<cve>CVE-2019-12086</cve>
+    </suppress>
 </suppressions>
