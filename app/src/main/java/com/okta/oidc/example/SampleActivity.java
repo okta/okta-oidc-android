@@ -66,6 +66,8 @@ import java.util.concurrent.ScheduledExecutorService;
 @SuppressWarnings("FieldCanBeLocal")
 public class SampleActivity extends AppCompatActivity implements SignInDialog.SignInDialogListener {
     private static final String TAG = "SampleActivity";
+    private static final String PREF_SWITCH = "switch";
+    private static final String PREF_NON_WEB = "nonweb";
     /**
      * Authorization client using chrome custom tab as a user agent.
      */
@@ -88,6 +90,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     OIDCConfig mOAuth2Config;
     WebAuthClient mWebOAuth2;
     SessionClient mSessionOAuth2Client;
+    SessionClient mSessionNonWebClient;
 
     private TextView mTvStatus;
     private Button mSignInBrowser;
@@ -106,6 +109,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
     private Switch mSwitch;
     private ProgressBar mProgressBar;
+    private boolean mIsSessionSignIn;
     @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
 
@@ -158,7 +162,9 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mStorageOAuth2 = new SimpleOktaStorage(this, "OAUTH2");
         mStorageOidc = new SimpleOktaStorage(this);
         boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
-                .getBoolean("switch", true);
+                .getBoolean(PREF_SWITCH, true);
+        mIsSessionSignIn = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
+                .getBoolean(PREF_NON_WEB, true);
 
         mSwitch.setChecked(checked);
         mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -402,6 +408,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withCallbackExecutor(null)
                 .create();
 
+        mSessionNonWebClient = mAuthClient.getSessionClient();
+
         if (getSessionClient().isAuthenticated()) {
             showAuthenticatedMode();
         }
@@ -422,6 +430,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         if (status == AuthorizationStatus.AUTHORIZED) {
                             mTvStatus.setText("authentication authorized");
                             showAuthenticatedMode();
+                            mIsSessionSignIn = false;
                             mProgressBar.setVisibility(View.GONE);
                         } else if (status == AuthorizationStatus.SIGNED_OUT) {
                             //this only clears the session.
@@ -463,11 +472,17 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         super.onStop();
         mProgressBar.setVisibility(View.GONE);
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
-                .putBoolean("switch", mSwitch.isChecked()).apply();
+                .putBoolean(PREF_SWITCH, mSwitch.isChecked()).apply();
+        getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                .putBoolean(PREF_NON_WEB, mIsSessionSignIn).apply();
 
     }
 
     private SessionClient getSessionClient() {
+
+        if (mIsSessionSignIn) {
+            return mSessionNonWebClient;
+        }
         return mSwitch.isChecked() ? mSessionClient : mSessionOAuth2Client;
     }
 
@@ -570,6 +585,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                             public void onSuccess(
                                                     @NonNull Result result) {
                                                 mTvStatus.setText("authentication authorized");
+                                                mIsSessionSignIn = true;
                                                 showAuthenticatedMode();
                                                 mProgressBar.setVisibility(View.GONE);
                                             }
