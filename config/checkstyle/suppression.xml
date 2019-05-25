@@ -9,6 +9,10 @@
     <!-- Suppress all checks for EncryptionManager -->
     <!--<suppress checks="[a-zA-Z0-9]*" files="EncryptionManager\.java" />-->
 
+    <!-- Suppress import order checks -->
+    <suppress checks="ImportOrder" files="OkHttp\.java" />
+    <suppress checks="ImportOrder" files="SyncOkHttp\.java" />
+
     <!-- Suppress abbreviation checks-->
     <suppress checks="AbbreviationAsWordInName" files="OIDCConfig\.java" />
     <suppress checks="AbbreviationAsWordInName" files="AuthAPI\.java" />
@@ -35,7 +39,8 @@
     <suppress checks="Javadoc" files="SyncSessionClientFactory\.java" />
     <suppress checks="Javadoc" files="SessionClientFactoryImpl\.java" />
     <suppress checks="Javadoc" files="SyncSessionClientFactoryImpl\.java" />
-
+    <suppress checks="Javadoc" files="DefaultConnectionFactory\.java" />
+    <suppress checks="Javadoc" files="HttpClientImpl\.java" />
 
     <!-- Suppress javadoc for packages-->
     <suppress checks="Javadoc" files="com[\\/]okta[\\/]oidc[\\/]net[\\/]request" />

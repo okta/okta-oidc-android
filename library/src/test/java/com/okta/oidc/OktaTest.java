@@ -23,8 +23,8 @@ import com.okta.oidc.clients.AuthClient;
 import com.okta.oidc.clients.SyncAuthClient;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.clients.web.WebAuthClient;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.HttpClientImpl;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
@@ -52,7 +52,7 @@ public class OktaTest {
 
     private OIDCConfig mConfig;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    private HttpConnectionFactory mConnectionFactory;
+    private OktaHttpClient mHttpClient;
     private OktaStorage mStorage;
     private Context mContext;
     private int tabColor;
@@ -63,7 +63,7 @@ public class OktaTest {
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mStorage = new SharedPreferenceStorage(mContext);
-        mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
+        mHttpClient = new HttpClientImpl();
         mEncryptionManager = new EncryptionManagerStub();
         String url = new MockEndPoint().getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
@@ -80,7 +80,7 @@ public class OktaTest {
                 .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withCallbackExecutor(mExecutor)
                 .withTabColor(tabColor)
                 .supportedBrowsers(supportBrowsers)
@@ -94,8 +94,8 @@ public class OktaTest {
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
 
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+        builder.withOktaHttpClient(mHttpClient);
+        verify(builder).withOktaHttpClient(mHttpClient);
 
         builder.withContext(mContext);
         verify(builder).withContext(mContext);
@@ -124,7 +124,7 @@ public class OktaTest {
                 .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withCallbackExecutor(mExecutor)
                 .withEncryptionManager(mEncryptionManager)
                 .create();
@@ -136,8 +136,8 @@ public class OktaTest {
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
 
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+        builder.withOktaHttpClient(mHttpClient);
+        verify(builder).withOktaHttpClient(mHttpClient);
 
         builder.withContext(mContext);
         verify(builder).withContext(mContext);
@@ -160,7 +160,7 @@ public class OktaTest {
                 .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withTabColor(tabColor)
                 .supportedBrowsers(supportBrowsers)
                 .withEncryptionManager(mEncryptionManager)
@@ -173,8 +173,8 @@ public class OktaTest {
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
 
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+        builder.withOktaHttpClient(mHttpClient);
+        verify(builder).withOktaHttpClient(mHttpClient);
 
         builder.withContext(mContext);
         verify(builder).withContext(mContext);
@@ -200,7 +200,7 @@ public class OktaTest {
                 .withConfig(mConfig)
                 .withStorage(mStorage)
                 .withContext(mContext)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withEncryptionManager(mEncryptionManager)
                 .create();
         when(builder.create()).thenReturn(otherClient);
@@ -211,8 +211,8 @@ public class OktaTest {
         builder.withStorage(mStorage);
         verify(builder).withStorage(mStorage);
 
-        builder.withHttpConnectionFactory(mConnectionFactory);
-        verify(builder).withHttpConnectionFactory(mConnectionFactory);
+        builder.withOktaHttpClient(mHttpClient);
+        verify(builder).withOktaHttpClient(mHttpClient);
 
         builder.withContext(mContext);
         verify(builder).withContext(mContext);

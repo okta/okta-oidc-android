@@ -15,12 +15,12 @@
 package com.okta.oidc.net.request;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.After;
@@ -29,25 +29,37 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.getProviderConfiguration;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class IntrospectRequestTest {
     private IntrospectRequest mRequest;
-    private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
-
     private ProviderConfiguration mProviderConfig;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public IntrospectRequestTest(int clientType) {
+        mClientType = clientType;
+    }
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -60,44 +72,20 @@ public class IntrospectRequestTest {
         mProviderConfig = getProviderConfiguration(url);
         mRequest = TestValues.getIntrospectTokenRequest(config, ACCESS_TOKEN,
                 TokenTypeHint.ACCESS_TOKEN, mProviderConfig);
-        mCallbackExecutor = Executors.newSingleThreadExecutor();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
     }
 
     @After
     public void tearDown() throws Exception {
-        mCallbackExecutor.shutdown();
         mEndPoint.shutDown();
-    }
-
-    @Test
-    public void dispatchRequestSuccess() throws InterruptedException {
-        mEndPoint.enqueueIntrospectSuccess();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectInfo, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        assertTrue(cb.getResult().isActive());
-    }
-
-    @Test
-    public void dispatchRequestFailure() throws InterruptedException, AuthorizationException {
-        mExpectedEx.expect(AuthorizationException.class);
-        mEndPoint.enqueueReturnUnauthorizedRevoked();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<IntrospectInfo, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        throw cb.getException();
     }
 
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueIntrospectSuccess();
-        IntrospectInfo result = mRequest.executeRequest();
+        IntrospectInfo result = mRequest.executeRequest(mHttpClient);
         assertTrue(result.isActive());
     }
 
@@ -105,6 +93,6 @@ public class IntrospectRequestTest {
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
-        mRequest.executeRequest();
+        mRequest.executeRequest(mHttpClient);
     }
 }

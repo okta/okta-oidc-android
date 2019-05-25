@@ -18,13 +18,14 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
+import com.okta.oidc.util.OkHttp;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -35,27 +36,40 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class AuthorizedRequestTest {
     private AuthorizedRequest mRequest;
-    private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public AuthorizedRequestTest(Integer clientType) {
+        mClientType = clientType;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -64,55 +78,27 @@ public class AuthorizedRequestTest {
         OIDCConfig config = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = new Gson().fromJson(JsonStrings.TOKEN_RESPONSE, TokenResponse.class);
-
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
         mRequest = HttpRequestBuilder.newAuthorizedRequest()
                 .uri(Uri.parse(mEndPoint.getUrl()))
-                .httpRequestMethod(HttpConnection.RequestMethod.POST)
+                .httpRequestMethod(ConnectionParameters.RequestMethod.POST)
                 .config(config)
                 .providerConfiguration(mProviderConfig)
                 .tokenResponse(mTokenResponse)
                 .createRequest();
-        mCallbackExecutor = Executors.newSingleThreadExecutor();
     }
 
     @After
     public void tearDown() throws Exception {
-        mCallbackExecutor.shutdown();
         mEndPoint.shutDown();
-    }
-
-    @Test
-    public void dispatchRequestSuccess() throws InterruptedException, JSONException {
-        mEndPoint.enqueueUserInfoSuccess();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<JSONObject, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        JSONObject profile = cb.getResult();
-        assertNotNull(profile);
-        assertEquals(profile.getString("nickname"), "Jimmy");
-    }
-
-    @Test
-    public void dispatchRequestFailure() throws InterruptedException, AuthorizationException {
-        mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
-        mEndPoint.enqueueReturnInvalidClient();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<JSONObject, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        throw cb.getException();
     }
 
     @Test
     public void executeRequestSuccess() throws AuthorizationException, JSONException {
         mEndPoint.enqueueUserInfoSuccess();
-        JSONObject json = mRequest.executeRequest();
+        JSONObject json = mRequest.executeRequest(mHttpClient);
         assertNotNull(json);
         assertEquals(json.getString("nickname"), "Jimmy");
     }
@@ -122,6 +108,22 @@ public class AuthorizedRequestTest {
         mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Invalid status code 401 Client Error");
         mEndPoint.enqueueReturnInvalidClient();
-        mRequest.executeRequest();
+        mRequest.executeRequest(mHttpClient);
+    }
+
+    @Test
+    public void executeRequestSuccessWithOkHttp() throws AuthorizationException, JSONException {
+        mEndPoint.enqueueUserInfoSuccess();
+        JSONObject json = mRequest.executeRequest(new OkHttp());
+        assertNotNull(json);
+        assertEquals(json.getString("nickname"), "Jimmy");
+    }
+
+    @Test
+    public void executeRequestFailureWithOkHttp() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
+        mEndPoint.enqueueReturnInvalidClient();
+        mRequest.executeRequest(new OkHttp());
     }
 }

@@ -20,7 +20,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.okta.oidc.clients.ClientFactory;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.HttpClientImpl;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.storage.security.DefaultEncryptionManager;
@@ -37,7 +38,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     /**
      * The connection factory.
      */
-    private HttpConnectionFactory mConnectionFactory;
+    private OktaHttpClient mClient;
     /**
      * The oidc config.
      */
@@ -97,14 +98,13 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     }
 
     /**
-     * Sets the connection factory to use, which creates a {@link java.net.HttpURLConnection}
-     * instance for communication with Okta OIDC endpoints.
+     * Sets the OktaHttpClient to use {@link OktaHttpClient}.
      *
-     * @param connectionFactory the connection factory
+     * @param client the OktaHttpClient
      * @return current builder
      */
-    public T withHttpConnectionFactory(HttpConnectionFactory connectionFactory) {
-        mConnectionFactory = connectionFactory;
+    public T withOktaHttpClient(OktaHttpClient client) {
+        mClient = client;
         return toThis();
     }
 
@@ -188,9 +188,11 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
         if (mEncryptionManager == null) {
             this.mEncryptionManager = new DefaultEncryptionManager(mContext);
         }
-
+        if (mClient == null) {
+            mClient = new HttpClientImpl();
+        }
         return this.mClientFactory.createClient(mOidcConfig,
                 mContext, mStorage, mEncryptionManager,
-                mConnectionFactory, mRequireHardwareBackedKeyStore, mCacheMode);
+                mClient, mRequireHardwareBackedKeyStore, mCacheMode);
     }
 }

@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc.example;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -34,7 +34,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
-import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -45,19 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
@@ -83,8 +69,8 @@ import static com.okta.oidc.example.WireMockStubs.mockProfileRequest;
 import static com.okta.oidc.example.WireMockStubs.mockRevokeRequest;
 import static com.okta.oidc.example.WireMockStubs.mockTokenRequest;
 import static com.okta.oidc.example.WireMockStubs.mockWebAuthorizeRequest;
-import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
-import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
+import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
+import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -139,43 +125,6 @@ public class WireMockTest {
 
     public WireMockServer mWireMockServer;
 
-    private class MockConnectionFactory implements HttpConnectionFactory {
-        @NonNull
-        @Override
-        public HttpURLConnection build(@NonNull URL url) throws IOException {
-            try {
-                TrustManager[] trustAllCerts = new TrustManager[]{
-                        new X509TrustManager() {
-                            public X509Certificate[] getAcceptedIssuers() {
-                                return new X509Certificate[0];
-                            }
-
-                            @Override
-                            public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                            }
-
-                            @Override
-                            public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                            }
-                        }
-                };
-
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, trustAllCerts, new SecureRandom());
-                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String arg0, SSLSession arg1) {
-                        return true;
-                    }
-                });
-            } catch (Exception e) {
-                //NO-OP
-            }
-            return (HttpURLConnection) url.openConnection();
-        }
-    }
-
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
@@ -208,7 +157,7 @@ public class WireMockTest {
                 .withConfig(activityRule.getActivity().mOidcConfig)
                 .withContext(activityRule.getActivity())
                 .withStorage(new SharedPreferenceStorage(activityRule.getActivity()))
-                .withHttpConnectionFactory(new MockConnectionFactory())
+                .withOktaHttpClient(new MockOktaHttpClient())
                 .create();
 
         activityRule.getActivity().setupCallback();
@@ -311,7 +260,7 @@ public class WireMockTest {
 
         mockProfileRequest(aResponse()
                 .withStatus(HTTP_UNAUTHORIZED)
-                .withHeader("WWW-Authenticate","Bearer error=\"invalid_token\", error_description=\"The access token is invalid\"")
+                .withHeader("WWW-Authenticate", "Bearer error=\"invalid_token\", error_description=\"The access token is invalid\"")
         );
 
         onView(withId(R.id.get_profile)).perform(click());
@@ -325,7 +274,7 @@ public class WireMockTest {
 
         mockProfileRequest(aResponse()
                 .withStatus(HTTP_FORBIDDEN)
-                .withHeader("Expires","0")
+                .withHeader("Expires", "0")
                 .withHeader("WWW-Authenticate:", "Bearer error=\"insufficient_scope\", " +
                         "error_description=\"The access token must provide access to at least one of" +
                         " these scopes - profile, email, address or phone\"")
@@ -343,7 +292,7 @@ public class WireMockTest {
 
         mockRevokeRequest(aResponse()
                 .withStatus(HTTP_UNAUTHORIZED)
-                .withHeader("Content-Type","application/json;charset=UTF-8")
+                .withHeader("Content-Type", "application/json;charset=UTF-8")
                 .withBody("{\n" +
                         "    \"error\": \"invalid_client\",\n" +
                         "    \"error_description\": \"No client credentials found.\"\n" +
@@ -361,7 +310,7 @@ public class WireMockTest {
 
         mockIntrospectRequest(aResponse()
                 .withStatus(HTTP_UNAUTHORIZED)
-                .withHeader("Content-Type","application/json;charset=UTF-8")
+                .withHeader("Content-Type", "application/json;charset=UTF-8")
                 .withBody("{\n" +
                         "    \"error\" : \"invalid_client\",\n" +
                         "    \"error_description\" : \"No client credentials found.\"\n" +

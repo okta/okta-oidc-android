@@ -19,17 +19,17 @@ import android.net.Uri;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.web.AuthorizeRequest.Parameters;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+
+import static com.okta.oidc.net.params.RequestType.AUTHORIZE;
 
 /**
  * @hide
@@ -38,12 +38,14 @@ import java.net.HttpURLConnection;
 public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, AuthorizationException> {
     private Parameters mParameters;
 
-    public NativeAuthorizeRequest(Parameters parameters, HttpConnectionFactory conn) {
+    public NativeAuthorizeRequest(Parameters parameters) {
         mParameters = parameters;
+        mRequestType = AUTHORIZE;
         mUri = mParameters.toUri();
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.GET)
-                .create(conn);
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.GET)
+                .setRequestType(AUTHORIZE)
+                .create();
     }
 
     public Parameters getParameters() {
@@ -51,25 +53,12 @@ public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, Autho
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher,
-                                RequestCallback<AuthorizeResponse,
-                                        AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            try {
-                AuthorizeResponse response = executeRequest();
-                dispatcher.submitResults(() -> callback.onSuccess(response));
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
-    }
-
-    @Override
-    public AuthorizeResponse executeRequest() throws AuthorizationException {
+    public AuthorizeResponse executeRequest(OktaHttpClient client)
+            throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
-            response = openConnection();
+            response = openConnection(client);
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 exception = AuthorizationException.TokenRequestErrors.INVALID_CLIENT;
             } else if (response.getStatusCode() == HttpURLConnection.HTTP_OK
@@ -79,6 +68,8 @@ public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, Autho
             }
         } catch (IOException ex) {
             exception = new AuthorizationException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            exception = new AuthorizationException(e.getMessage(), e);
         } finally {
             if (response != null) {
                 response.disconnect();

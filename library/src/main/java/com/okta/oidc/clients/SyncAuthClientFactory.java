@@ -18,7 +18,7 @@ package com.okta.oidc.clients;
 import android.content.Context;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -31,10 +31,10 @@ public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
                                            Context context,
                                            OktaStorage oktaStorage,
                                            EncryptionManager encryptionManager,
-                                           HttpConnectionFactory connectionFactory,
+                                           OktaHttpClient httpClient,
                                            boolean requireHardwareBackedKeyStore,
                                            boolean cacheMode) {
         return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
-                connectionFactory, requireHardwareBackedKeyStore, cacheMode);
+                httpClient, requireHardwareBackedKeyStore, cacheMode);
     }
 }

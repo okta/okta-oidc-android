@@ -15,11 +15,11 @@
 package com.okta.oidc.net.request;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.After;
@@ -28,12 +28,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
@@ -41,15 +40,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class RefreshTokenRequestTest {
     private RefreshTokenRequest mRequest;
     private OIDCConfig mConfig;
-    private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public RefreshTokenRequestTest(int clientType) {
+        mClientType = clientType;
+    }
+
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -61,49 +75,21 @@ public class RefreshTokenRequestTest {
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mRequest = TestValues.getRefreshRequest(mConfig, mTokenResponse, mProviderConfig);
-        mCallbackExecutor = Executors.newSingleThreadExecutor();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
     }
 
     @After
     public void tearDown() throws Exception {
-        mCallbackExecutor.shutdown();
         mEndPoint.shutDown();
-    }
-
-    @Test
-    public void dispatchRequestSuccess() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
-        mEndPoint.enqueueTokenSuccess(jws);
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<TokenResponse, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        TokenResponse response = cb.getResult();
-        assertNotNull(response);
-        assertEquals(response.getIdToken(), jws);
-    }
-
-    @Test
-    public void dispatchRequestFailure() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
-        mEndPoint.enqueueReturnInvalidClient();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<TokenResponse, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        assertNull(cb.getResult());
-        assertNotNull(cb.getException());
     }
 
     @Test
     public void executeRequestSuccess() throws AuthorizationException {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
-        TokenResponse response = mRequest.executeRequest();
+        TokenResponse response = mRequest.executeRequest(mHttpClient);
         assertNotNull(response);
         assertEquals(response.getIdToken(), jws);
     }
@@ -112,7 +98,7 @@ public class RefreshTokenRequestTest {
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
-        TokenResponse response = mRequest.executeRequest();
+        TokenResponse response = mRequest.executeRequest(mHttpClient);
         assertNull(response);
     }
 }

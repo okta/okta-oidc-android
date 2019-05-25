@@ -37,7 +37,7 @@ import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
@@ -77,17 +77,18 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                           Context context,
                           OktaStorage oktaStorage,
                           EncryptionManager encryptionManager,
-                          HttpConnectionFactory connectionFactory,
+                          OktaHttpClient httpClient,
                           boolean requireHardwareBackedKeyStore,
                           boolean cacheMode,
                           int customTabColor,
                           String... supportedBrowsers) {
-        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory,
-                requireHardwareBackedKeyStore, cacheMode);
+        super(oidcConfig, context, oktaStorage, encryptionManager, requireHardwareBackedKeyStore,
+                cacheMode);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
+        mHttpClient = httpClient;
         mSessionClient = new SyncSessionClientFactoryImpl()
-                .createClient(oidcConfig, mOktaState, connectionFactory);
+                .createClient(oidcConfig, mOktaState, mHttpClient);
     }
 
     private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {
@@ -253,7 +254,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                             providerConfiguration,
                             (AuthorizeRequest) authorizedRequest);
                     mCurrentRequest.set(new WeakReference<>(request));
-                    response = request.executeRequest();
+                    response = request.executeRequest(mHttpClient);
                     mOktaState.save(response);
                 } catch (OktaRepository.EncryptionException e) {
                     return Result.error(EncryptionErrors.byEncryptionException(e));

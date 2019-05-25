@@ -25,10 +25,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaIdToken;
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.UriUtil;
@@ -72,32 +71,19 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
 
     TokenRequest(HttpRequestBuilder.TokenExchange b) {
         super();
-        mRequestType = Type.TOKEN_EXCHANGE;
+        mRequestType = b.mRequestType;
         mConfig = b.mConfig;
         mProviderConfiguration = b.mProviderConfiguration;
         mUri = Uri.parse(mProviderConfiguration.token_endpoint);
         client_id = b.mConfig.getClientId();
         redirect_uri = b.mConfig.getRedirectUri().toString();
         grant_type = b.mGrantType;
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.POST)
-                .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.POST)
+                .setRequestProperty("Accept", ConnectionParameters.JSON_CONTENT_TYPE)
                 .setPostParameters(buildParameters(b))
-                .create(b.mConn);
-    }
-
-    @Override
-    public void dispatchRequest(final RequestDispatcher dispatcher,
-                                final RequestCallback<TokenResponse,
-                                        AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            try {
-                final TokenResponse response = executeRequest();
-                dispatcher.submitResults(() -> callback.onSuccess(response));
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
+                .setRequestType(mRequestType)
+                .create();
     }
 
     public String getGrantType() {
@@ -137,11 +123,11 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     }
 
     @Override
-    public TokenResponse executeRequest() throws AuthorizationException {
+    public TokenResponse executeRequest(OktaHttpClient client) throws AuthorizationException {
         HttpResponse response = null;
         TokenResponse tokenResponse;
         try {
-            response = openConnection();
+            response = openConnection(client);
             JSONObject json = response.asJson();
             if (json.has(AuthorizationException.PARAM_ERROR)) {
                 try {
@@ -179,6 +165,9 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         } catch (JSONException ex) {
             throw AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR, ex);
+        } catch (Exception e) {
+            throw AuthorizationException.fromTemplate(AuthorizationException
+                    .GeneralErrors.NETWORK_ERROR, e);
         } finally {
             if (response != null) {
                 response.disconnect();
