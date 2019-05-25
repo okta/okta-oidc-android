@@ -23,8 +23,8 @@ import androidx.annotation.Nullable;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.ConnectionParameters;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
@@ -51,26 +51,25 @@ import static com.okta.oidc.clients.State.IDLE;
 class SyncSessionClientImpl implements SyncSessionClient {
     private OIDCConfig mOidcConfig;
     private OktaState mOktaState;
-    private HttpConnectionFactory mConnectionFactory;
+    OktaHttpClient mHttpClient;
     private AtomicReference<WeakReference<BaseRequest>> mCurrentRequest =
             new AtomicReference<>(new WeakReference<>(null));
 
     SyncSessionClientImpl(OIDCConfig oidcConfig, OktaState oktaState,
-                          HttpConnectionFactory connectionFactory) {
+                          OktaHttpClient httpClient) {
         mOidcConfig = oidcConfig;
         mOktaState = oktaState;
-        mConnectionFactory = connectionFactory;
+        mHttpClient = httpClient;
     }
 
     AuthorizedRequest createAuthorizedRequest(@NonNull Uri uri,
                                               @Nullable Map<String, String> properties,
                                               @Nullable Map<String, String> postParameters,
-                                              @NonNull HttpConnection.RequestMethod method,
+                                              @NonNull ConnectionParameters.RequestMethod method,
                                               ProviderConfiguration providerConfiguration,
                                               TokenResponse tokenResponse)
             throws AuthorizationException {
         return HttpRequestBuilder.newAuthorizedRequest()
-                .connectionFactory(mConnectionFactory)
                 .config(mOidcConfig)
                 .httpRequestMethod(method)
                 .providerConfiguration(providerConfiguration)
@@ -84,7 +83,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
     public JSONObject authorizedRequest(@NonNull Uri uri,
                                         @Nullable Map<String, String> properties,
                                         @Nullable Map<String, String> postParameters,
-                                        @NonNull HttpConnection.RequestMethod method)
+                                        @NonNull ConnectionParameters.RequestMethod method)
             throws AuthorizationException {
         try {
             ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
@@ -92,7 +91,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
             AuthorizedRequest request = createAuthorizedRequest(uri, properties, postParameters,
                     method, providerConfiguration, tokenResponse);
             mCurrentRequest.set(new WeakReference<>(request));
-            return request.executeRequest();
+            return request.executeRequest(mHttpClient);
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
@@ -107,7 +106,6 @@ class SyncSessionClientImpl implements SyncSessionClient {
                     "support /userinfo endpoint ", new RuntimeException());
         }
         return HttpRequestBuilder.newProfileRequest()
-                .connectionFactory(mConnectionFactory)
                 .tokenResponse(tokenResponse)
                 .providerConfiguration(providerConfiguration)
                 .config(mOidcConfig)
@@ -120,7 +118,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
             ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
             TokenResponse tokenResponse = mOktaState.getTokenResponse();
             AuthorizedRequest request = userProfileRequest(providerConfiguration, tokenResponse);
-            JSONObject userInfo = request.executeRequest();
+            JSONObject userInfo = request.executeRequest(mHttpClient);
             mCurrentRequest.set(new WeakReference<>(request));
             return new UserInfo(userInfo);
         } catch (OktaRepository.EncryptionException e) {
@@ -132,7 +130,6 @@ class SyncSessionClientImpl implements SyncSessionClient {
                                              ProviderConfiguration providerConfiguration)
             throws AuthorizationException {
         return HttpRequestBuilder.newIntrospectRequest()
-                .connectionFactory(mConnectionFactory)
                 .introspect(token, tokenType)
                 .providerConfiguration(providerConfiguration)
                 .config(mOidcConfig)
@@ -146,7 +143,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
             IntrospectRequest request = introspectTokenRequest(token, tokenType,
                     mOktaState.getProviderConfiguration());
             mCurrentRequest.set(new WeakReference<>(request));
-            return request.executeRequest();
+            return request.executeRequest(mHttpClient);
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
@@ -155,7 +152,6 @@ class SyncSessionClientImpl implements SyncSessionClient {
     RevokeTokenRequest revokeTokenRequest(String token, ProviderConfiguration providerConfiguration)
             throws AuthorizationException {
         return HttpRequestBuilder.newRevokeTokenRequest()
-                .connectionFactory(mConnectionFactory)
                 .tokenToRevoke(token)
                 .providerConfiguration(providerConfiguration)
                 .config(mOidcConfig)
@@ -168,7 +164,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
             RevokeTokenRequest request = revokeTokenRequest(token,
                     mOktaState.getProviderConfiguration());
             mCurrentRequest.set(new WeakReference<>(request));
-            return request.executeRequest();
+            return request.executeRequest(mHttpClient);
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
@@ -178,7 +174,6 @@ class SyncSessionClientImpl implements SyncSessionClient {
                                             TokenResponse tokenResponse)
             throws AuthorizationException {
         return HttpRequestBuilder.newRefreshTokenRequest()
-                .connectionFactory(mConnectionFactory)
                 .tokenResponse(tokenResponse)
                 .providerConfiguration(providerConfiguration)
                 .config(mOidcConfig)
@@ -191,7 +186,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
             RefreshTokenRequest request = refreshTokenRequest(mOktaState.getProviderConfiguration(),
                     mOktaState.getTokenResponse());
             mCurrentRequest.set(new WeakReference<>(request));
-            TokenResponse tokenResponse = request.executeRequest();
+            TokenResponse tokenResponse = request.executeRequest(mHttpClient);
             mOktaState.save(tokenResponse);
             return new Tokens(tokenResponse);
         } catch (OktaRepository.EncryptionException e) {
@@ -227,6 +222,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public void cancel() {
+        mHttpClient.cancel();
         if (mCurrentRequest.get().get() != null) {
             mCurrentRequest.get().get().cancelRequest();
         }

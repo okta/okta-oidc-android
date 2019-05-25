@@ -19,10 +19,9 @@ import android.net.Uri;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.io.IOException;
@@ -35,36 +34,24 @@ import java.net.HttpURLConnection;
 public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationException> {
     RevokeTokenRequest(HttpRequestBuilder.RevokeToken b) {
         super();
-        mRequestType = Type.REVOKE_TOKEN;
+        mRequestType = b.mRequestType;
         mUri = Uri.parse(b.mProviderConfiguration.revocation_endpoint).buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mTokenToRevoke)
                 .build();
 
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.POST)
-                .create(b.mConn);
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.POST)
+                .setRequestType(mRequestType)
+                .create();
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher,
-                                RequestCallback<Boolean, AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            try {
-                Boolean success = executeRequest();
-                dispatcher.submitResults(() -> callback.onSuccess(success));
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
-    }
-
-    @Override
-    public Boolean executeRequest() throws AuthorizationException {
+    public Boolean executeRequest(OktaHttpClient client) throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
-            response = openConnection();
+            response = openConnection(client);
             if (response.getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 exception = AuthorizationException.TokenRequestErrors.INVALID_CLIENT;
             } else if (response.getStatusCode() == HttpURLConnection.HTTP_OK) {
@@ -72,6 +59,9 @@ public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationExcept
             }
         } catch (IOException ex) {
             exception = new AuthorizationException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            exception = AuthorizationException.fromTemplate(AuthorizationException
+                    .GeneralErrors.NETWORK_ERROR, e);
         } finally {
             if (response != null) {
                 response.disconnect();

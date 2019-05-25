@@ -19,7 +19,6 @@ import android.text.TextUtils;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
@@ -225,7 +224,7 @@ public class TestValues {
                 .sessionToken(token)
                 .nonce(CUSTOM_NONCE)
                 .authenticationPayload(null)
-                .createNativeRequest(new HttpConnection.DefaultConnectionFactory());
+                .createNativeRequest();
     }
 
     public static String getAuthorizationExceptionError() {

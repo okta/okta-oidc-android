@@ -18,7 +18,7 @@ package com.okta.oidc.clients;
 import android.content.Context;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -35,7 +35,7 @@ public interface ClientFactory<A> {
      * @param context                       the context
      * @param oktaStorage                   the storage
      * @param encryptionManager             the encryption manager
-     * @param connectionFactory             the connection factory
+     * @param httpClient                    the http client
      * @param requireHardwareBackedKeyStore persist in storage only if hardware backed keystore
      * @return the type of auth client
      */
@@ -43,7 +43,7 @@ public interface ClientFactory<A> {
                    Context context,
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
-                   HttpConnectionFactory connectionFactory,
+                   OktaHttpClient httpClient,
                    boolean requireHardwareBackedKeyStore,
                    boolean cacheMode);
 }

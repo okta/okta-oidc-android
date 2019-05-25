@@ -25,7 +25,6 @@ import androidx.annotation.RestrictTo;
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.params.ResponseType;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -196,13 +195,13 @@ public class AuthorizeRequest extends WebRequest {
             return new AuthorizeRequest(mParameters);
         }
 
-        public NativeAuthorizeRequest createNativeRequest(HttpConnectionFactory factory)
+        public NativeAuthorizeRequest createNativeRequest()
                 throws AuthorizationException {
             if (mParameters.mPayloadParams != null) {
                 mMap.putAll(mParameters.mPayloadParams);
             }
             validate(true);
-            return new NativeAuthorizeRequest(mParameters, factory);
+            return new NativeAuthorizeRequest(mParameters);
         }
 
         public Builder clientId(@NonNull String clientId) {

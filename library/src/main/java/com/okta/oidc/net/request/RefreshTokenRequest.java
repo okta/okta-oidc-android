@@ -19,7 +19,7 @@ import android.net.Uri;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.util.AsciiStringListUtil;
 
 import java.util.Collections;
@@ -33,7 +33,7 @@ import java.util.Map;
 public class RefreshTokenRequest extends TokenRequest {
     RefreshTokenRequest(HttpRequestBuilder.RefreshToken b) {
         super();
-        mRequestType = Type.REFRESH_TOKEN;
+        mRequestType = b.mRequestType;
         scope = b.mTokenResponse.getScope();
         mConfig = b.mConfig;
         refresh_token = b.mTokenResponse.getRefreshToken();
@@ -41,11 +41,12 @@ public class RefreshTokenRequest extends TokenRequest {
         mUri = Uri.parse(b.mProviderConfiguration.token_endpoint);
         client_id = b.mConfig.getClientId();
         grant_type = b.mGrantType;
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.POST)
-                .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.POST)
+                .setRequestProperty("Accept", ConnectionParameters.JSON_CONTENT_TYPE)
                 .setPostParameters(buildParameters())
-                .create(b.mConn);
+                .setRequestType(mRequestType)
+                .create();
     }
 
     private Map<String, String> buildParameters() {

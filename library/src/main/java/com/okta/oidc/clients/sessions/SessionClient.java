@@ -22,7 +22,7 @@ import androidx.annotation.Nullable;
 
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.util.AuthorizationException;
@@ -72,7 +72,7 @@ public interface SessionClient extends BaseSessionClient {
      * {@code
      * <pre>
      * client.authorizedRequest(uri, properties,
-     *                 postParameters, HttpConnection.RequestMethod.POST,
+     *                 postParameters, ConnectionParameters.RequestMethod.POST,
      *                 new RequestCallback<JSONObject, AuthorizationException>() {
      *     @Override
      *     public void onSuccess(@NonNull JSONObject result) {
@@ -90,12 +90,12 @@ public interface SessionClient extends BaseSessionClient {
      * @param uri            the uri to protected resource
      * @param properties     the query request properties
      * @param postParameters the post parameters
-     * @param method         the http method {@link HttpConnection.RequestMethod}
+     * @param method         the http method {@link ConnectionParameters.RequestMethod}
      * @param cb             the RequestCallback to be executed when request is finished.
      */
     void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                            @Nullable Map<String, String> postParameters,
-                           @NonNull HttpConnection.RequestMethod method,
+                           @NonNull ConnectionParameters.RequestMethod method,
                            RequestCallback<JSONObject, AuthorizationException> cb);
 
     /**

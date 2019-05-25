@@ -407,6 +407,10 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .discoveryUri("https://samples-test.oktapreview.com/oauth2/default")
                 .create();
 
+        //use custom connection factory
+        MyConnectionFactory factory = new MyConnectionFactory();
+        factory.setClientType(MyConnectionFactory.USE_SYNC_OK_HTTP);
+
         boolean isEmulator = isEmulator();
         mWebOAuth2 = new Okta.WebAuthBuilder()
                 .withConfig(mOAuth2Config)
@@ -429,6 +433,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withEncryptionManager(new DefaultEncryptionManager(this))
                 .setRequireHardwareBackedKeyStore(!isEmulator)
                 .withTabColor(0)
+                .withOktaHttpClient(factory.build())
                 .supportedBrowsers(FIRE_FOX);
 
         mWebAuth = builder.create();

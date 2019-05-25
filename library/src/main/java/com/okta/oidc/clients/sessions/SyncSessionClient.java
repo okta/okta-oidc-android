@@ -21,7 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.okta.oidc.Tokens;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.util.AuthorizationException;
@@ -71,7 +71,7 @@ public interface SyncSessionClient extends BaseSessionClient {
      * try {
      *     JSONObject result =
      *         client.authorizedRequest(uri, properties, postParameters,
-     *                                  HttpConnection.RequestMethod.POST);
+     *                                  ConnectionParameters.RequestMethod.POST);
      *     //handle results
      * } catch (AuthorizationException ex) {
      *     //handle exception
@@ -83,13 +83,13 @@ public interface SyncSessionClient extends BaseSessionClient {
      * @param uri            the uri to protected resource
      * @param properties     the query request properties
      * @param postParameters the post parameters
-     * @param method         the http method {@link HttpConnection.RequestMethod}
+     * @param method         the http method {@link ConnectionParameters.RequestMethod}
      * @return the JSONObject result
      * @throws AuthorizationException the authorization exception
      */
     JSONObject authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                                  @Nullable Map<String, String> postParameters,
-                                 @NonNull HttpConnection.RequestMethod method)
+                                 @NonNull ConnectionParameters.RequestMethod method)
             throws AuthorizationException;
 
     /**

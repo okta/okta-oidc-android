@@ -19,16 +19,19 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
+import com.okta.oidc.net.params.RequestType;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * @hide
@@ -36,44 +39,41 @@ import java.net.URL;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class BaseRequest<T, U extends AuthorizationException>
         implements HttpRequest<T, U> {
-    HttpRequest.Type mRequestType;
+    RequestType mRequestType;
     private static final String HTTPS_SCHEME = "https";
     private static final int HTTP_CONTINUE = 100;
     private volatile boolean mCanceled;
-    protected HttpConnection mConnection;
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public ConnectionParameters mConnParams;
     private HttpResponse mResponse;
     protected Uri mUri;
-    private HttpURLConnection mUrlConn;
 
     public BaseRequest() {
     }
 
     @WorkerThread
-    protected HttpResponse openConnection() throws IOException {
+    protected HttpResponse openConnection(OktaHttpClient client) throws Exception {
         Preconditions.checkArgument(HTTPS_SCHEME.equals(mUri.getScheme()),
                 "only https connections are permitted");
-
-        mUrlConn = mConnection.openConnection(new URL(mUri.toString()));
-        mUrlConn.connect();
-
+        InputStream stream = client.connect(mUri, mConnParams);
         if (mCanceled) {
             throw new IOException("Canceled");
         }
 
         boolean keepOpen = false;
         try {
-            int responseCode = mUrlConn.getResponseCode();
+            int responseCode = client.getResponseCode();
             if (responseCode == -1) {
                 throw new IOException("Invalid response code -1 no code can be discerned");
             }
 
             if (!hasResponseBody(responseCode)) {
-                mResponse = new HttpResponse(responseCode, mUrlConn.getHeaderFields());
+                mResponse = new HttpResponse(responseCode, client.getHeaderFields());
             } else {
                 keepOpen = true;
                 mResponse = new HttpResponse(
-                        responseCode, mUrlConn.getHeaderFields(),
-                        mUrlConn.getContentLength(), mUrlConn);
+                        responseCode, client.getHeaderFields(),
+                        client.getContentLength(), stream, client);
             }
             return mResponse;
         } finally {
@@ -94,15 +94,6 @@ public abstract class BaseRequest<T, U extends AuthorizationException>
         if (mResponse != null) {
             mResponse.disconnect();
             mResponse = null;
-        }
-        if (mUrlConn != null) {
-            try {
-                mUrlConn.getInputStream().close();
-            } catch (IOException | NullPointerException e) {
-                //NO-OP
-            }
-            mUrlConn.disconnect();
-            mUrlConn = null;
         }
     }
 

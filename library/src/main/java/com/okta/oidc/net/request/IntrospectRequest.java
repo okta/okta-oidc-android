@@ -20,10 +20,9 @@ import android.net.Uri;
 import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.util.AuthorizationException;
 
@@ -38,38 +37,26 @@ import java.io.IOException;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class IntrospectRequest extends
         BaseRequest<IntrospectInfo, AuthorizationException> {
-    public IntrospectRequest(HttpRequestBuilder.Introspect b) {
+    IntrospectRequest(HttpRequestBuilder.Introspect b) {
         super();
-        mRequestType = Type.INTROSPECT;
+        mRequestType = b.mRequestType;
         mUri = Uri.parse(b.mProviderConfiguration.introspection_endpoint).buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId())
                 .appendQueryParameter("token", b.mIntrospectToken)
                 .appendQueryParameter("token_type_hint", b.mTokenTypeHint)
                 .build();
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.POST)
-                .create(b.mConn);
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.POST)
+                .setRequestType(mRequestType)
+                .create();
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher,
-                                RequestCallback<IntrospectInfo, AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            try {
-                IntrospectInfo response = executeRequest();
-                dispatcher.submitResults(() -> callback.onSuccess(response));
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
-    }
-
-    @Override
-    public IntrospectInfo executeRequest() throws AuthorizationException {
+    public IntrospectInfo executeRequest(OktaHttpClient client) throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
-            response = openConnection();
+            response = openConnection(client);
             JSONObject json = response.asJson();
             return new Gson().fromJson(json.toString(), IntrospectInfo.class);
         } catch (IOException ex) {
@@ -78,6 +65,9 @@ public class IntrospectRequest extends
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR,
                     e);
+        } catch (Exception e) {
+            exception = AuthorizationException.fromTemplate(AuthorizationException
+                    .GeneralErrors.NETWORK_ERROR, e);
         } finally {
             if (response != null) {
                 response.disconnect();

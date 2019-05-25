@@ -21,7 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -43,10 +43,11 @@ public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
                                    Context context,
                                    OktaStorage oktaStorage,
                                    EncryptionManager encryptionManager,
-                                   HttpConnectionFactory connectionFactory,
+                                   OktaHttpClient httpClient,
                                    boolean requireHardwareBackedKeyStore,
                                    boolean cacheMode) {
         return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
-                encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
+                encryptionManager, httpClient, requireHardwareBackedKeyStore,
+                cacheMode);
     }
 }

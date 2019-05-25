@@ -30,7 +30,7 @@ import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
@@ -38,6 +38,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 class WebAuthClientImpl implements WebAuthClient {
     private WeakReference<FragmentActivity> mActivity;
@@ -45,19 +46,20 @@ class WebAuthClientImpl implements WebAuthClient {
     private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
     private SyncWebAuthClient mSyncAuthClient;
     private SessionClient mSessionImpl;
+    private volatile Future<?> mFutureTask;
 
     WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig,
                       Context context,
                       OktaStorage oktaStorage,
                       EncryptionManager encryptionManager,
-                      HttpConnectionFactory httpConnectionFactory,
+                      OktaHttpClient httpClient,
                       boolean requireHardwareBackedKeyStore,
                       boolean cacheMode,
                       int customTabColor,
                       String... supportedBrowsers) {
         mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers)
                 .createClient(oidcConfig, context, oktaStorage, encryptionManager,
-                        httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
+                        httpClient, requireHardwareBackedKeyStore, cacheMode);
         mSessionImpl = new SessionClientFactoryImpl(executor)
                 .createClient(mSyncAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
@@ -114,6 +116,7 @@ class WebAuthClientImpl implements WebAuthClient {
     public void cancel() {
         mDispatcher.runTask(() -> {
             mSyncAuthClient.cancel();
+            cancelFuture();
         });
     }
 
@@ -126,7 +129,8 @@ class WebAuthClientImpl implements WebAuthClient {
     @AnyThread
     public void signIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
-        mDispatcher.execute(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Result result = mSyncAuthClient.signIn(activity, payload);
@@ -169,7 +173,8 @@ class WebAuthClientImpl implements WebAuthClient {
     @AnyThread
     public void signOutOfOkta(@NonNull final FragmentActivity activity) {
         registerActivityLifeCycle(activity);
-        mDispatcher.execute(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             try {
                 Result result = mSyncAuthClient.signOutOfOkta(activity);
                 processSignOutResult(result);
@@ -215,5 +220,11 @@ class WebAuthClientImpl implements WebAuthClient {
     @Override
     public SessionClient getSessionClient() {
         return mSessionImpl;
+    }
+
+    private void cancelFuture() {
+        if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
+            mFutureTask.cancel(true);
+        }
     }
 }

@@ -17,6 +17,9 @@ package com.okta.oidc.net;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.google.gson.Gson;
 import com.okta.oidc.net.response.TokenResponse;
 
@@ -29,6 +32,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -40,8 +44,8 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import static com.okta.oidc.net.HttpConnection.CONTENT_TYPE;
-import static com.okta.oidc.net.HttpConnection.JSON_CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.JSON_CONTENT_TYPE;
 import static com.okta.oidc.util.JsonStrings.CONFIGURATION_NOT_FOUND;
 import static com.okta.oidc.util.JsonStrings.FORBIDDEN;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
@@ -70,11 +74,18 @@ public class HttpResponseTest {
 
         URL url = mServer.url("/").url();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
         connection.setRequestProperty("Accept-Language", "en-US");
         connection.setRequestProperty("Content-Length", "4");
-        HttpResponse response = new HttpResponse(HTTP_OK, connection.getHeaderFields(),
-                connection.getContentLength(), connection);
-
+        InputStream inputStream;
+        MockOktaHttpClient httpClient = new MockOktaHttpClient(connection);
+        try {
+            inputStream = connection.getInputStream();
+        } catch (IOException exception) {
+            inputStream = connection.getErrorStream();
+        }
+        HttpResponse response = new HttpResponse(HTTP_OK, httpClient.getHeaderFields(),
+                httpClient.getContentLength(), inputStream, httpClient);
         Map<String, List<String>> headers = response.getHeaders();
         InputStream in = response.getContent();
         int contentLength = response.getContentLength();
@@ -102,8 +113,15 @@ public class HttpResponseTest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Language", "en-US");
         connection.setRequestProperty("Content-Length", "9");
-        HttpResponse response = new HttpResponse(HTTP_FORBIDDEN, connection.getHeaderFields(),
-                connection.getContentLength(), connection);
+        MockOktaHttpClient httpClient = new MockOktaHttpClient(connection);
+        InputStream inputStream;
+        try {
+            inputStream = connection.getInputStream();
+        } catch (IOException exception) {
+            inputStream = connection.getErrorStream();
+        }
+        HttpResponse response = new HttpResponse(HTTP_FORBIDDEN, httpClient.getHeaderFields(),
+                httpClient.getContentLength(), inputStream, httpClient);
 
         Map<String, List<String>> headers = response.getHeaders();
         InputStream in = response.getContent();
@@ -128,11 +146,17 @@ public class HttpResponseTest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Language", "en-US");
         connection.setRequestProperty("Content-Length", TOKEN_SUCCESS.length() + "");
-        HttpResponse response = new HttpResponse(HTTP_OK, connection.getHeaderFields(),
-                connection.getContentLength(), connection);
+        MockOktaHttpClient httpClient = new MockOktaHttpClient(connection);
+        InputStream inputStream;
+        try {
+            inputStream = connection.getInputStream();
+        } catch (IOException exception) {
+            inputStream = connection.getErrorStream();
+        }
+        HttpResponse response = new HttpResponse(HTTP_OK, httpClient.getHeaderFields(),
+                httpClient.getContentLength(), inputStream, httpClient);
 
         Map<String, List<String>> headers = response.getHeaders();
-        InputStream in = response.getContent();
         int contentLength = response.getContentLength();
         int status = response.getStatusCode();
         JSONObject jsonObject = response.asJson();
@@ -156,8 +180,15 @@ public class HttpResponseTest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Language", "en-US");
         connection.setRequestProperty("Content-Length", CONFIGURATION_NOT_FOUND.length() + "");
-        HttpResponse response = new HttpResponse(HTTP_NOT_FOUND, connection.getHeaderFields(),
-                connection.getContentLength(), connection);
+        MockOktaHttpClient httpClient = new MockOktaHttpClient(connection);
+        InputStream inputStream;
+        try {
+            inputStream = connection.getInputStream();
+        } catch (IOException exception) {
+            inputStream = connection.getErrorStream();
+        }
+        HttpResponse response = new HttpResponse(HTTP_NOT_FOUND, httpClient.getHeaderFields(),
+                httpClient.getContentLength(), inputStream, httpClient);
 
         Map<String, List<String>> headers = response.getHeaders();
         InputStream in = response.getContent();
@@ -177,13 +208,71 @@ public class HttpResponseTest {
         URL url = mServer.url("/").url();
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Accept-Language", "en-US");
-        HttpResponse response = new HttpResponse(HTTP_MOVED_TEMP, connection.getHeaderFields(),
-                connection.getContentLength(), connection);
+        MockOktaHttpClient httpClient = new MockOktaHttpClient(connection);
+
+        InputStream inputStream;
+        try {
+            inputStream = connection.getInputStream();
+        } catch (IOException exception) {
+            inputStream = connection.getErrorStream();
+        }
+
+        HttpResponse response = new HttpResponse(HTTP_MOVED_TEMP, httpClient.getHeaderFields(),
+                httpClient.getContentLength(), inputStream, httpClient);
         String location = response.getHeaderField("Location");
         Uri locationUri = Uri.parse(location);
         String code = locationUri.getQueryParameter("code");
         assertNotNull(location);
         assertNotNull(code);
         assertEquals(code, SESSION_TOKEN);
+    }
+
+    private class MockOktaHttpClient implements OktaHttpClient {
+        private HttpURLConnection mConnection;
+
+        public MockOktaHttpClient(HttpURLConnection connection) {
+            mConnection = connection;
+        }
+
+        @Nullable
+        @Override
+        public InputStream connect(@NonNull Uri uri, @NonNull ConnectionParameters param) throws Exception {
+            return null;
+        }
+
+        @Override
+        public void cleanUp() {
+            mConnection = null;
+        }
+
+        @Override
+        public void cancel() {
+            mConnection.disconnect();
+        }
+
+        @Override
+        public Map<String, List<String>> getHeaderFields() {
+            return mConnection.getHeaderFields();
+        }
+
+        @Override
+        public String getHeader(String header) {
+            return mConnection.getHeaderField(header);
+        }
+
+        @Override
+        public int getResponseCode() throws IOException {
+            return mConnection.getResponseCode();
+        }
+
+        @Override
+        public int getContentLength() {
+            return mConnection.getContentLength();
+        }
+
+        @Override
+        public String getResponseMessage() throws IOException {
+            return mConnection.getResponseMessage();
+        }
     }
 }

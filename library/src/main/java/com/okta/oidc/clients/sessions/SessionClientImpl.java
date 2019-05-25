@@ -24,7 +24,7 @@ import androidx.annotation.Nullable;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.storage.security.EncryptionManager;
@@ -34,10 +34,12 @@ import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 class SessionClientImpl implements SessionClient {
     private SyncSessionClient mSyncSessionClient;
     private RequestDispatcher mDispatcher;
+    private volatile Future<?> mFutureTask;
 
     SessionClientImpl(Executor callbackExecutor, SyncSessionClient syncSessionClient) {
         mSyncSessionClient = syncSessionClient;
@@ -45,7 +47,8 @@ class SessionClientImpl implements SessionClient {
     }
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
-        mDispatcher.submit(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 UserInfo userInfo = mSyncSessionClient.getUserProfile();
@@ -58,7 +61,8 @@ class SessionClientImpl implements SessionClient {
 
     public void introspectToken(String token, String tokenType,
                                 final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
-        mDispatcher.submit(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 IntrospectInfo introspectInfo = mSyncSessionClient
@@ -72,7 +76,8 @@ class SessionClientImpl implements SessionClient {
 
     public void revokeToken(String token,
                             final RequestCallback<Boolean, AuthorizationException> cb) {
-        mDispatcher.submit(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Boolean isRevoke = mSyncSessionClient.revokeToken(token);
@@ -86,7 +91,8 @@ class SessionClientImpl implements SessionClient {
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
-        mDispatcher.submit(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Tokens result = mSyncSessionClient.refreshToken();
@@ -105,9 +111,10 @@ class SessionClientImpl implements SessionClient {
     @Override
     public void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                                   @Nullable Map<String, String> postParameters,
-                                  @NonNull HttpConnection.RequestMethod method,
+                                  @NonNull ConnectionParameters.RequestMethod method,
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
-        mDispatcher.submit(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 JSONObject result = mSyncSessionClient
@@ -131,11 +138,18 @@ class SessionClientImpl implements SessionClient {
     public void cancel() {
         mDispatcher.runTask(() -> {
             mSyncSessionClient.cancel();
+            cancelFuture();
         });
     }
 
     @Override
     public void migrateTo(EncryptionManager manager) throws AuthorizationException {
         mSyncSessionClient.migrateTo(manager);
+    }
+
+    private void cancelFuture() {
+        if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
+            mFutureTask.cancel(true);
+        }
     }
 }

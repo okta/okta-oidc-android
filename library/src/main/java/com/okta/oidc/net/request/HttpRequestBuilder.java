@@ -17,19 +17,26 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.params.GrantTypes;
+import com.okta.oidc.net.params.RequestType;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.Map;
+
+import static com.okta.oidc.net.params.RequestType.AUTHORIZED;
+import static com.okta.oidc.net.params.RequestType.CONFIGURATION;
+import static com.okta.oidc.net.params.RequestType.INTROSPECT;
+import static com.okta.oidc.net.params.RequestType.PROFILE;
+import static com.okta.oidc.net.params.RequestType.REFRESH_TOKEN;
+import static com.okta.oidc.net.params.RequestType.REVOKE_TOKEN;
+import static com.okta.oidc.net.params.RequestType.TOKEN_EXCHANGE;
 
 /**
  * @hide
@@ -38,38 +45,37 @@ import java.util.Map;
 public class HttpRequestBuilder {
 
     public static Authorized newAuthorizedRequest() {
-        return new Authorized();
+        return new Authorized().requestType(AUTHORIZED);
     }
 
     public static Configuration newConfigurationRequest() {
-        return new Configuration();
+        return new Configuration().requestType(CONFIGURATION);
     }
 
     public static TokenExchange newTokenRequest() {
-        return new TokenExchange();
+        return new TokenExchange().requestType(TOKEN_EXCHANGE);
     }
 
     public static RevokeToken newRevokeTokenRequest() {
-        return new RevokeToken();
+        return new RevokeToken().requestType(REVOKE_TOKEN);
     }
 
     public static Profile newProfileRequest() {
-        return new Profile();
+        return new Profile().requestType(PROFILE);
     }
 
     public static RefreshToken newRefreshTokenRequest() {
-        return new RefreshToken();
+        return new RefreshToken().requestType(REFRESH_TOKEN);
     }
 
     public static Introspect newIntrospectRequest() {
-        return new Introspect();
+        return new Introspect().requestType(INTROSPECT);
     }
 
     private abstract static class Builder<T extends Builder<T>> {
-        @Nullable
-        HttpConnectionFactory mConn;
         OIDCConfig mConfig;
         ProviderConfiguration mProviderConfiguration;
+        RequestType mRequestType;
 
         /*
          * prevent unchecked cast warning.
@@ -85,11 +91,6 @@ public class HttpRequestBuilder {
             }
         }
 
-        public T connectionFactory(HttpConnectionFactory conn) {
-            mConn = conn;
-            return toThis();
-        }
-
         public T config(OIDCConfig config) {
             mConfig = config;
             return toThis();
@@ -97,6 +98,11 @@ public class HttpRequestBuilder {
 
         public T providerConfiguration(ProviderConfiguration providerConfiguration) {
             mProviderConfiguration = providerConfiguration;
+            return toThis();
+        }
+
+        public T requestType(RequestType requestType) {
+            mRequestType = requestType;
             return toThis();
         }
 
@@ -124,7 +130,7 @@ public class HttpRequestBuilder {
         TokenResponse mTokenResponse;
         Map<String, String> mPostParameters;
         Map<String, String> mProperties;
-        HttpConnection.RequestMethod mRequestMethod;
+        ConnectionParameters.RequestMethod mRequestMethod;
 
         private Authorized() {
         }
@@ -161,7 +167,7 @@ public class HttpRequestBuilder {
             return this;
         }
 
-        public Authorized httpRequestMethod(HttpConnection.RequestMethod requestMethod) {
+        public Authorized httpRequestMethod(ConnectionParameters.RequestMethod requestMethod) {
             mRequestMethod = requestMethod;
             return this;
         }
@@ -294,14 +300,14 @@ public class HttpRequestBuilder {
 
         @Override
         public AuthorizedRequest createRequest() throws AuthorizationException {
-            Authorized authorized = newAuthorizedRequest();
+            Authorized authorized = newAuthorizedRequest().requestType(PROFILE);
             authorized.tokenResponse(mTokenResponse);
             authorized.config(mConfig);
             authorized.providerConfiguration(mProviderConfiguration);
             if (mProviderConfiguration != null) {
                 authorized.uri(Uri.parse(mProviderConfiguration.userinfo_endpoint));
             }
-            authorized.httpRequestMethod(HttpConnection.RequestMethod.POST);
+            authorized.httpRequestMethod(ConnectionParameters.RequestMethod.POST);
             authorized.validate(false);
             return new AuthorizedRequest(authorized);
         }

@@ -17,24 +17,13 @@ package com.okta.oidc.net.request;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface HttpRequest<T, U extends AuthorizationException> {
-    enum Type {
-        CONFIGURATION,
-        TOKEN_EXCHANGE,
-        AUTHORIZED,
-        REVOKE_TOKEN,
-        REFRESH_TOKEN,
-        INTROSPECT
-    }
 
-    void dispatchRequest(RequestDispatcher dispatcher, RequestCallback<T, U> callback);
-
-    T executeRequest() throws AuthorizationException;
+    T executeRequest(OktaHttpClient client) throws AuthorizationException;
 
     void cancelRequest();
 

@@ -23,7 +23,7 @@ import androidx.annotation.RestrictTo;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.clients.ClientFactory;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -49,11 +49,11 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       Context context,
                                       OktaStorage oktaStorage,
                                       EncryptionManager encryptionManager,
-                                      HttpConnectionFactory connectionFactory,
+                                      OktaHttpClient httpClient,
                                       boolean requireHardwareBackedKeyStore,
                                       boolean cacheMode) {
         return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
-                encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode,
+                encryptionManager, httpClient, requireHardwareBackedKeyStore, cacheMode,
                 mCustomTabColor, mSupportedBrowser);
     }
 }

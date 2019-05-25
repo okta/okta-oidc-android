@@ -26,8 +26,7 @@ import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.web.WebAuthClient;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.IntrospectInfo;
@@ -41,6 +40,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -51,10 +51,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -76,13 +78,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class SessionClientImplTest {
 
     private Context mContext;
     private ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    private HttpConnectionFactory mConnectionFactory;
+    private HttpClientFactory mClientFactory;
     private MockEndPoint mEndPoint;
 
     private OktaStorage mStorage;
@@ -96,6 +98,20 @@ public class SessionClientImplTest {
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}
+        });
+    }
+
+    public SessionClientImplTest(int clientType) {
+        mClientType = clientType;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -104,7 +120,8 @@ public class SessionClientImplTest {
         mGson = new Gson();
         mStorage = new SharedPreferenceStorage(mContext);
         String url = mEndPoint.getUrl();
-        mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
 
         mConfig = TestValues.getConfigWithUrl(url);
         mProviderConfig = TestValues.getProviderConfiguration(url);
@@ -113,7 +130,7 @@ public class SessionClientImplTest {
         WebAuthClient okta = new Okta.WebAuthBuilder()
                 .withCallbackExecutor(mExecutor)
                 .withConfig(mConfig)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mClientFactory.build())
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .withEncryptionManager(new EncryptionManagerStub())
@@ -121,8 +138,8 @@ public class SessionClientImplTest {
 
         mSessionClient = okta.getSessionClient();
 
-        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext,
-                new EncryptionManagerStub(), false,false));
+        OktaState mOktaState = new OktaState(new OktaRepository(mStorage, mContext,
+                new EncryptionManagerStub(), false, false));
 
         mOktaState.save(mTokenResponse);
         mOktaState.save(mProviderConfig);
@@ -178,7 +195,7 @@ public class SessionClientImplTest {
         latch.await();
         UserInfo result = cb.getResult();
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
-        assertThat(recordedRequest.getHeader("Accept"), is(HttpConnection.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNotNull(result);
         assertEquals("John Doe", result.get("name"));
@@ -263,7 +280,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClient.authorizedRequest(uri, properties, null, ConnectionParameters.RequestMethod.GET, cb);
         latch.await();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNotNull(cb.getResult());
@@ -284,7 +301,7 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
+        mSessionClient.authorizedRequest(uri, properties, null, ConnectionParameters.RequestMethod.GET, cb);
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
@@ -300,14 +317,21 @@ public class SessionClientImplTest {
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException>
                 cb = new MockRequestCallback<>(latch);
-        mSessionClient.authorizedRequest(uri, properties, null, HttpConnection.RequestMethod.GET, cb);
-        Thread.sleep(100); //wait for request to be created
+        mSessionClient.authorizedRequest(uri, properties, null, ConnectionParameters.RequestMethod.GET, cb);
+        Thread.sleep(200); //wait for request to be created
         mSessionClient.cancel();
         latch.await();
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
         String errorMessage = cb.getException().getMessage();
-        //The exception can be canceled or stream is closed.
-        assertTrue("Canceled".equals(errorMessage) || "stream is closed".equals(errorMessage));
+        //The errorMessage can be null if its a Interrupt. The errorMessage can be of
+        //Socket closed or canceled or stream is closed or network error.
+        if (errorMessage == null) {
+            assertTrue(cb.getException().getCause() instanceof InterruptedException);
+        } else {
+            assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
+                    || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
+                    || "interrupted".equals(errorMessage));
+        }
     }
 }
