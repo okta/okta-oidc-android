@@ -27,9 +27,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.util.concurrent.Executor;
 
-/**
- * @hide
- */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
     private Executor mCallbackExecutor;
@@ -43,8 +40,9 @@ public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
                                    Context context,
                                    OktaStorage oktaStorage,
                                    EncryptionManager encryptionManager,
-                                   HttpConnectionFactory connectionFactory) {
-        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
-                encryptionManager, connectionFactory);
+                                   HttpConnectionFactory connectionFactory,
+                                   boolean requireHardwareBackedKeyStore,
+                                   boolean cacheMode) {
+        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
     }
 }

@@ -67,9 +67,9 @@ public class OktaRepositoryTest {
     }
 
     @Test
-    public void saveEncryptedItemSuccess() {
+    public void saveEncryptedItemSuccess() throws OktaRepository.PersistenceException {
         OktaRepository repository = new OktaRepository(mOktaStorageSoftware, mContext,
-                mSoftwareEncryption);
+                mSoftwareEncryption, false, true);
         EncryptedPersistableMock encrypted = TestValues.getEncryptedPersistable();
         repository.save(encrypted);
 
@@ -86,10 +86,10 @@ public class OktaRepositoryTest {
     }
 
     @Test
-    public void removeItemSuccess() {
+    public void removeItemSuccess() throws OktaRepository.PersistenceException {
         PersistableMock notEncrypted = TestValues.getNotEncryptedPersistable();
         OktaRepository repository = new OktaRepository(mOktaStorageSoftware, mContext,
-                mSoftwareEncryption);
+                mSoftwareEncryption, false, true);
         repository.save(notEncrypted);
         repository.delete(notEncrypted);
 
@@ -98,9 +98,9 @@ public class OktaRepositoryTest {
     }
 
     @Test //should encrypt data and stored to device
-    public void noHwRequiredAndNotSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public void noHwRequiredAndNotSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException, OktaRepository.PersistenceException {
         OktaRepository repository = new OktaRepository(mOktaStorageSoftware, mContext,
-                mSoftwareEncryption);
+                mSoftwareEncryption,false, false);
         PersistableMock persistable = TestValues.getNotEncryptedPersistable();
         repository.save(persistable);
 
@@ -114,9 +114,9 @@ public class OktaRepositoryTest {
     }
 
     @Test //should encrypt data and stored to device
-    public void noHwRequiredAndSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public void noHwRequiredAndSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException, OktaRepository.PersistenceException {
         OktaRepository repository = new OktaRepository(mOktaStorageSoftware, mContext,
-                mHardwareEncryption);
+                mHardwareEncryption, false,false);
         PersistableMock persistable = TestValues.getNotEncryptedPersistable();
         repository.save(persistable);
 
@@ -130,9 +130,9 @@ public class OktaRepositoryTest {
     }
 
     @Test //should encrypt data and not store on device.
-    public void hwRequiredAndNotSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public void hwRequiredAndNotSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException, OktaRepository.PersistenceException {
         OktaRepository repository = new OktaRepository(mOktaStorageHardware, mContext,
-                mSoftwareEncryption);
+                mSoftwareEncryption,true,true);
         PersistableMock persistable = TestValues.getNotEncryptedPersistable();
         repository.save(persistable);
 
@@ -151,9 +151,9 @@ public class OktaRepositoryTest {
     }
 
     @Test //should encrypt data and store on device.
-    public void hwRequiredAndSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public void hwRequiredAndSupported() throws UnsupportedEncodingException, NoSuchAlgorithmException, OktaRepository.PersistenceException {
         OktaRepository repository = new OktaRepository(mOktaStorageHardware, mContext,
-                mHardwareEncryption);
+                mHardwareEncryption, true,false);
         PersistableMock persistable = TestValues.getNotEncryptedPersistable();
         repository.save(persistable);
 

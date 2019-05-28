@@ -432,12 +432,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
                     @Override
                     public void onCancel() {
+                        mProgressBar.setVisibility(View.GONE);
                         Log.d(TAG, "CANCELED!");
                         mTvStatus.setText("canceled");
                     }
 
                     @Override
                     public void onError(@Nullable String msg, AuthorizationException error) {
+                        mProgressBar.setVisibility(View.GONE);
                         Log.d("SampleActivity", error.error +
                                 " onActivityResult onError " + msg, error);
                         mTvStatus.setText(msg);

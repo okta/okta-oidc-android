@@ -24,6 +24,7 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -184,7 +185,7 @@ public interface SyncSessionClient {
      *
      * @return the tokens
      */
-    Tokens getTokens();
+    Tokens getTokens() throws AuthorizationException;
 
     /**
      * Checks to see if the user is authenticated. If the client have a access or ID token then
@@ -201,4 +202,13 @@ public interface SyncSessionClient {
      * Clears all data. This will remove all tokens from the client.
      */
     void clear();
+
+    /**
+     * Use this method to migrate to another Encryption Manager. This method should decrypt data
+     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
+     * by new Encryption Manager
+     * @param manager   new Encryption Manager
+     * @throws AuthorizationException
+     */
+    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

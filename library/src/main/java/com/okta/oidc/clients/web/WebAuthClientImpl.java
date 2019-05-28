@@ -50,12 +50,12 @@ class WebAuthClientImpl implements WebAuthClient {
                       OktaStorage oktaStorage,
                       EncryptionManager encryptionManager,
                       HttpConnectionFactory httpConnectionFactory,
-                      int customTabColor, String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers)
-                .createClient(oidcConfig, context, oktaStorage, encryptionManager,
-                        httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor)
-                .createClient(mSyncAuthClient.getSessionClient());
+                      boolean requireHardwareBackedKeyStore,
+                      boolean cacheMode,
+                      int customTabColor,
+                      String... supportedBrowsers) {
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 
@@ -126,12 +126,6 @@ class WebAuthClientImpl implements WebAuthClient {
                         mResultCb.onCancel();
                     }
                 });
-            } catch (AuthorizationException e) {
-                mDispatcher.submitResults(() -> {
-                    if (mResultCb != null) {
-                        mResultCb.onError(e.errorDescription, e);
-                    }
-                });
             }
         });
     }
@@ -174,12 +168,6 @@ class WebAuthClientImpl implements WebAuthClient {
                         mResultCb.onCancel();
                     }
                 });
-            } catch (AuthorizationException e) {
-                mDispatcher.submitResults(() -> {
-                    if (mResultCb != null) {
-                        mResultCb.onError(e.errorDescription, e);
-                    }
-                });
             }
         });
     }
@@ -206,6 +194,11 @@ class WebAuthClientImpl implements WebAuthClient {
                 }
             });
         }
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        getSessionClient().migrateTo(manager);
     }
 
     @Override

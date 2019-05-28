@@ -2,7 +2,6 @@ package com.okta.oidc.util;
 
 import com.okta.oidc.storage.security.EncryptionManager;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -24,7 +23,7 @@ public class EncryptionManagerStub implements EncryptionManager {
     }
 
     @Override
-    public String encrypt(String value) throws GeneralSecurityException, IOException {
+    public String encrypt(String value) throws GeneralSecurityException {
         if (value != null && value.length() > 0) {
             return value + STUPID_SALT;
         }
@@ -32,7 +31,7 @@ public class EncryptionManagerStub implements EncryptionManager {
     }
 
     @Override
-    public String decrypt(String value) throws GeneralSecurityException, IOException {
+    public String decrypt(String value) throws GeneralSecurityException {
         if (value != null && value.length() > 0) {
             return value.replace(STUPID_SALT, "");
         } else {
@@ -62,5 +61,15 @@ public class EncryptionManagerStub implements EncryptionManager {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public void recreateCipher() {
+
+    }
+
+    @Override
+    public boolean isAuthenticateUser() {
+        return true;
     }
 }

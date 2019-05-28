@@ -9,9 +9,6 @@ android {
 
     defaultConfig {
         project.archivesBaseName = "oidc-androidx"
-        manifestPlaceholders = [
-                "appAuthRedirectScheme": ""
-        ]
     }
 
     testOptions {

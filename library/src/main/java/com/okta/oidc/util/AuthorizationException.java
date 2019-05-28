@@ -22,6 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.okta.oidc.storage.OktaRepository;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -123,6 +125,11 @@ public final class AuthorizationException extends Exception {
      * The error type for OAuth specific errors on the registration endpoint.
      */
     public static final int TYPE_OAUTH_REGISTRATION_ERROR = 4;
+
+    /**
+     * The error type for persistence specific errors.
+     */
+    public static final int TYPE_PERSISTENCE_ERROR = 4;
 
     @VisibleForTesting
     static final String KEY_TYPE = "type";
@@ -465,6 +472,36 @@ public final class AuthorizationException extends Exception {
                 return ex;
             }
             return OTHER;
+        }
+    }
+
+    /**
+     * Error codes related to failed during read/write to storage.
+     */
+    public static final class PersistenceErrors {
+        /**
+         * An `invalid_request` OAuth2 error response.
+         */
+        public static final AuthorizationException INVALID_ENCRYPT_ERROR =
+                registrationEx(5000, "Error during encrypt");
+
+        public static final AuthorizationException INVALID_DECRYPT_ERROR =
+                registrationEx(5001, "Error during decrypt");
+
+        public static final AuthorizationException OTHER =
+                registrationEx(5002, "Internal persistence error");
+
+        public static AuthorizationException byPersistenceException(OktaRepository.PersistenceException exception) {
+            switch (exception.getType()) {
+                case OktaRepository.PersistenceException
+                        .DECRYPT_ERROR:
+                    return registrationEx(5000, "Error during decrypt. "+exception.getLocalizedMessage());
+                case OktaRepository.PersistenceException.ENCRYPT_ERROR:
+                    return registrationEx(5001, "Error during encrypt. "+exception.getLocalizedMessage());
+//                    return AuthorizationException.PersistenceErrors.INVALID_ENCRYPT_ERROR;
+                default:
+                    return AuthorizationException.PersistenceErrors.OTHER;
+            }
         }
     }
 

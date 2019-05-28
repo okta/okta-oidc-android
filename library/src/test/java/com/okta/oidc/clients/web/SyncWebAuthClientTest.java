@@ -32,6 +32,7 @@ import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
+import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -134,7 +135,7 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void tokenExchangeFailure() throws InterruptedException, JSONException, AuthorizationException {
+    public void tokenExchangeFailure() throws InterruptedException, JSONException,  AuthorizationException,  OktaRepository.PersistenceException {
         mExpectedEx.expect(AuthorizationException.class);
         String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         String nonce = CodeVerifierUtil.generateRandomState();
@@ -152,7 +153,7 @@ public class SyncWebAuthClientTest {
                 fromUri(Uri.parse("com.okta.test:/callback?code=CODE&state=CUSTOM_STATE"));
 
         mEndPoint.enqueueReturnInvalidClient();
-        TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response);
+        TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response, mOktaState.getProviderConfiguration(), (AuthorizeRequest) mOktaState.getAuthorizeRequest());
         TokenResponse tokenResponse = tokenRequest.executeRequest();
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(), equalTo("/token"));
@@ -160,7 +161,7 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void tokenExchangeSuccess() throws InterruptedException, JSONException, AuthorizationException {
+    public void tokenExchangeSuccess() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.PersistenceException {
         String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         String nonce = CodeVerifierUtil.generateRandomState();
 
@@ -179,7 +180,7 @@ public class SyncWebAuthClientTest {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
 
         mEndPoint.enqueueTokenSuccess(jws);
-        TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response);
+        TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response, mOktaState.getProviderConfiguration(), (AuthorizeRequest) mOktaState.getAuthorizeRequest());
         TokenResponse tokenResponse = tokenRequest.executeRequest();
 
         RecordedRequest recordedRequest = mEndPoint.takeRequest();

@@ -34,7 +34,7 @@ public interface EncryptionManager {
      * @throws GeneralSecurityException if has problems with algorithms used.
      * @throws IOException              if failed to open input stream
      */
-    String encrypt(String value) throws GeneralSecurityException, IOException;
+    String encrypt(String value) throws GeneralSecurityException;
 
     /**
      * decrypts encrypted value.
@@ -44,7 +44,7 @@ public interface EncryptionManager {
      * @throws GeneralSecurityException if has problems with algorithms used.
      * @throws IOException              if failed to open input stream
      */
-    String decrypt(String value) throws GeneralSecurityException, IOException;
+    String decrypt(String value) throws GeneralSecurityException;
 
     /**
      * generates SHA-2 hash.
@@ -62,4 +62,21 @@ public interface EncryptionManager {
      * @return true if hardware backed keystore is supported
      */
     boolean isHardwareBackedKeyStore();
+
+    /**
+     * recreate cipher using internal settings
+     */
+    void recreateCipher();
+
+    /**
+     * remove current cipher
+     */
+    void clearCipher();
+
+    /**
+     * if user authenticated and cipher is valid to use private key.
+     *
+     * @return true if hardware backed keystore is supported
+     */
+    boolean isAuthenticateUser();
 }

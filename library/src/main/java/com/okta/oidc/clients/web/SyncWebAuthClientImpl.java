@@ -38,12 +38,14 @@ import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
@@ -56,6 +58,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
+import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_AUTHORIZATION_ERROR;
+import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_REGISTRATION_ERROR;
 
 class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private static final String TAG = SyncWebAuthClientImpl.class.getSimpleName();
@@ -69,9 +73,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                           OktaStorage oktaStorage,
                           EncryptionManager encryptionManager,
                           HttpConnectionFactory connectionFactory,
+                          boolean requireHardwareBackedKeyStore,
+                          boolean cacheMode,
                           int customTabColor,
                           String... supportedBrowsers) {
-        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
+        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabColor = customTabColor;
         mSessionClient = new SyncSessionClientFactoryImpl()
@@ -154,28 +160,45 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     @WorkerThread
     public Result signIn(@NonNull final FragmentActivity activity,
-                         @Nullable AuthenticationPayload payload)
-            throws InterruptedException, AuthorizationException {
+                         @Nullable AuthenticationPayload payload) throws InterruptedException {
+        ProviderConfiguration providerConfiguration;
         try {
-            obtainNewConfiguration();
+            providerConfiguration = obtainNewConfiguration();
         } catch (AuthorizationException e) {
+            return Result.error(e);
+        } catch (Exception e) {
+            AuthorizationException authorizationException = new AuthorizationException(
+                    TYPE_OAUTH_AUTHORIZATION_ERROR, AuthorizationException.AuthorizationRequestErrors.OTHER.code, e.getMessage(), e.getLocalizedMessage(), null, null);
+            return Result.error(authorizationException);
+        } finally {
             resetCurrentState();
+        }
+
+        WebRequest request;
+        try {
+            request = new AuthorizeRequest.Builder()
+                    .config(mOidcConfig)
+                    .providerConfiguration(providerConfiguration)
+                    .authenticationPayload(payload)
+                    .create();
+        } catch (AuthorizationException e) {
             return Result.error(e);
         }
 
-        WebRequest request = new AuthorizeRequest.Builder()
-                .config(mOidcConfig)
-                .providerConfiguration(mOktaState.getProviderConfiguration())
-                .authenticationPayload(payload)
-                .create();
-
-        mOktaState.save(request);
+        try {
+            mOktaState.save(request);
+        } catch (OktaRepository.PersistenceException e) {
+            return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
+        }
         if (!isRedirectUrisRegistered(mOidcConfig.getRedirectUri(), activity)) {
-            Log.e(TAG, "No uri registered to handle redirect " +
-                    "or multiple applications registered");
+            String errorDescription = "No uri registered to handle redirect " +
+                    "or multiple applications registered";
+            Log.e(TAG, errorDescription);
             //FIXME move error to listener
             resetCurrentState();
-            return Result.error(INVALID_REDIRECT_URI);
+            AuthorizationException authorizationException = new AuthorizationException(
+                    TYPE_OAUTH_REGISTRATION_ERROR, INVALID_REDIRECT_URI.code, INVALID_REDIRECT_URI.error, errorDescription, null, null);
+            return Result.error(authorizationException);
         }
         mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
         AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();
@@ -207,14 +230,20 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
                 TokenResponse response;
                 try {
-                    validateResult(result.getAuthorizationResponse());
+                    WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
+                    ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
+                    validateResult(result.getAuthorizationResponse(), authorizedRequest);
                     response = tokenExchange(
-                            (AuthorizeResponse) result.getAuthorizationResponse())
-                            .executeRequest();
+                            (AuthorizeResponse) result.getAuthorizationResponse(),
+                            providerConfiguration,
+                            (AuthorizeRequest) authorizedRequest).executeRequest();
+                    mOktaState.save(response);
+                } catch (OktaRepository.PersistenceException e) {
+                    return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
                 } catch (AuthorizationException e) {
                     return Result.error(e);
                 }
-                mOktaState.save(response);
+
                 return Result.success();
             default:
                 return null;
@@ -223,31 +252,39 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
     @Override
     @AnyThread
-    public Result signOutOfOkta(@NonNull final FragmentActivity activity)
-            throws InterruptedException, AuthorizationException {
-        mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();
-        WebRequest request = new LogoutRequest.Builder()
-                .provideConfiguration(mOktaState.getProviderConfiguration())
-                .config(mOidcConfig)
-                .tokenResponse(mOktaState.getTokenResponse())
-                .state(CodeVerifierUtil.generateRandomState())
-                .create();
-        mOktaState.save(request);
-        OktaResultFragment.addLogoutFragment(request, mCustomTabColor,
-                activity, (result, type) -> {
-                    resultWrapper.set(result);
-                    latch.countDown();
-                }, mSupportedBrowsers);
-        latch.await();
-        OktaResultFragment.StateResult logoutResult = resultWrapper.get();
-        Result result = processSignOutResult(logoutResult);
-        resetCurrentState();
-        if (result != null) {
-            return result;
-        } else {
-            return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
+    public Result signOutOfOkta(@NonNull final FragmentActivity activity) throws InterruptedException {
+        try {
+            mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
+            CountDownLatch latch = new CountDownLatch(1);
+            AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();
+            WebRequest request;
+            try {
+                request = new LogoutRequest.Builder()
+                        .provideConfiguration(mOktaState.getProviderConfiguration())
+                        .config(mOidcConfig)
+                        .tokenResponse(mOktaState.getTokenResponse())
+                        .state(CodeVerifierUtil.generateRandomState())
+                        .create();
+            } catch (AuthorizationException e) {
+                return Result.error(e);
+            }
+            mOktaState.save(request);
+            OktaResultFragment.addLogoutFragment(request, mCustomTabColor,
+                    activity, (result, type) -> {
+                        resultWrapper.set(result);
+                        latch.countDown();
+                    }, mSupportedBrowsers);
+            latch.await();
+            OktaResultFragment.StateResult logoutResult = resultWrapper.get();
+            Result result = processSignOutResult(logoutResult);
+            resetCurrentState();
+            if (result != null) {
+                return result;
+            } else {
+                return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
+            }
+        } catch (OktaRepository.PersistenceException e) {
+            return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
         }
     }
 
@@ -266,6 +303,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
     public interface ResultListener {
         void postResult(Result result, OktaResultFragment.ResultType resultType);
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        this.mSessionClient.migrateTo(manager);
     }
 
     @Override
