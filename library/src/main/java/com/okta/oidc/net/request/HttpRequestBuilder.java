@@ -298,7 +298,9 @@ public class HttpRequestBuilder {
             authorized.tokenResponse(mTokenResponse);
             authorized.config(mConfig);
             authorized.providerConfiguration(mProviderConfiguration);
-            authorized.uri(Uri.parse(mProviderConfiguration.userinfo_endpoint));
+            if (mProviderConfiguration != null) {
+                authorized.uri(Uri.parse(mProviderConfiguration.userinfo_endpoint));
+            }
             authorized.httpRequestMethod(HttpConnection.RequestMethod.POST);
             authorized.validate(false);
             return new AuthorizedRequest(authorized);
