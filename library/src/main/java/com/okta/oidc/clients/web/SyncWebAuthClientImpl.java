@@ -187,8 +187,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
 
         try {
             mOktaState.save(request);
-        } catch (OktaRepository.PersistenceException e) {
-            return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
+        } catch (OktaRepository.EncryptionException e) {
+            return Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
         }
         if (!isRedirectUrisRegistered(mOidcConfig.getRedirectUri(), activity)) {
             String errorDescription = "No uri registered to handle redirect " +
@@ -238,8 +238,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                             providerConfiguration,
                             (AuthorizeRequest) authorizedRequest).executeRequest();
                     mOktaState.save(response);
-                } catch (OktaRepository.PersistenceException e) {
-                    return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
+                } catch (OktaRepository.EncryptionException e) {
+                    return Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
                 } catch (AuthorizationException e) {
                     return Result.error(e);
                 }
@@ -283,8 +283,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             } else {
                 return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
             }
-        } catch (OktaRepository.PersistenceException e) {
-            return Result.error(AuthorizationException.PersistenceErrors.byPersistenceException(e));
+        } catch (OktaRepository.EncryptionException e) {
+            return Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
         }
     }
 

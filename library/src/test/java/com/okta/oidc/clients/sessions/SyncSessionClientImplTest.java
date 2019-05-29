@@ -124,7 +124,7 @@ public class SyncSessionClientImplTest {
 
 
     @Test
-    public void clear_success() throws AuthorizationException, OktaRepository.PersistenceException {
+    public void clear_success() throws AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(mProviderConfig);
         mOktaState.save(mTokenResponse);
         mOktaState.save(TestValues.getAuthorizeRequest(mConfig, null));
@@ -139,7 +139,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void isLoggedIn_success() throws AuthorizationException, OktaRepository.PersistenceException {
+    public void isLoggedIn_success() throws AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(TestValues.getTokenResponse());
 
         boolean result = mSyncSessionClientImpl.isAuthenticated();
@@ -157,7 +157,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void refreshTokenRequest() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.PersistenceException {
+    public void refreshTokenRequest() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(mTokenResponse);
         RefreshTokenRequest request = mSyncSessionClientImpl.refreshTokenRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
         String nonce = CodeVerifierUtil.generateRandomState();
@@ -174,7 +174,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void refreshTokenRequestFailure() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.PersistenceException {
+    public void refreshTokenRequestFailure() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(mTokenResponse);
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
@@ -185,7 +185,7 @@ public class SyncSessionClientImplTest {
 
     @Test
     public void userProfileRequest() throws InterruptedException,
-            JSONException, AuthorizationException, OktaRepository.PersistenceException {
+            JSONException, AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(mTokenResponse);
         mEndPoint.enqueueUserInfoSuccess();
         AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
@@ -200,7 +200,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void userProfileRequestOAuth2() throws AuthorizationException, OktaRepository.PersistenceException {
+    public void userProfileRequestOAuth2() throws AuthorizationException, OktaRepository.EncryptionException {
         mExpectedEx.expect(UnsupportedOperationException.class);
         //create sessionclient from oauth2 resource
         OIDCConfig oauth2Config = TestValues
@@ -222,7 +222,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void userProfileRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.PersistenceException {
+    public void userProfileRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
         mOktaState.save(mTokenResponse);
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
@@ -234,7 +234,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void revokeTokenRequest() throws AuthorizationException, InterruptedException, OktaRepository.PersistenceException {
+    public void revokeTokenRequest() throws AuthorizationException, InterruptedException, OktaRepository.EncryptionException {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest("access_token", mOktaState.getProviderConfiguration());
         boolean status = request.executeRequest();
@@ -245,7 +245,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void revokeTokenRequestFailure() throws AuthorizationException, InterruptedException, AuthorizationException, OktaRepository.PersistenceException {
+    public void revokeTokenRequestFailure() throws AuthorizationException, InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
         RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest("access_token",mOktaState.getProviderConfiguration());
@@ -257,7 +257,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void introspectToken() throws AuthorizationException, InterruptedException, OktaRepository.PersistenceException {
+    public void introspectToken() throws AuthorizationException, InterruptedException, OktaRepository.EncryptionException {
         mEndPoint.enqueueIntrospectSuccess();
         IntrospectRequest request =
                 mSyncSessionClientImpl.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, mOktaState.getProviderConfiguration());
@@ -266,7 +266,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void introspectTokenFailure() throws AuthorizationException, InterruptedException, OktaRepository.PersistenceException {
+    public void introspectTokenFailure() throws AuthorizationException, InterruptedException, OktaRepository.EncryptionException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
         IntrospectRequest request
@@ -277,7 +277,7 @@ public class SyncSessionClientImplTest {
 
     @Test
     public void authorizedRequest() throws InterruptedException, AuthorizationException,
-            JSONException, OktaRepository.PersistenceException {
+            JSONException, OktaRepository.EncryptionException {
         mOktaState.save(mTokenResponse);
         //use userinfo for generic authorized request
         mEndPoint.enqueueUserInfoSuccess();
@@ -298,7 +298,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void authorizedRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.PersistenceException {
+    public void authorizedRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
         //use userinfo for generic authorized request
         mOktaState.save(mTokenResponse);
         mExpectedEx.expect(AuthorizationException.class);

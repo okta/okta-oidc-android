@@ -16,16 +16,17 @@
 package com.okta.oidc.storage;
 
 import android.content.Context;
+import android.os.Build;
+import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.BaseEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 
-import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +59,7 @@ public class OktaRepository {
         this.encryptionManager = encryptionManager;
     }
 
-    public void save(Persistable persistable) throws PersistenceException {
+    public void save(Persistable persistable) throws EncryptionException {
         if (persistable == null) {
             return;
         }
@@ -66,12 +67,26 @@ public class OktaRepository {
             if(!requireHardwareBackedKeyStore
                     || (requireHardwareBackedKeyStore && encryptionManager !=null && encryptionManager.isHardwareBackedKeyStore())) {
                 String encryptedData;
-                try {
-                    encryptedData = getEncrypted(persistable.persist());
-                    storage.save(getHashed(persistable.getKey()), encryptedData);
-                } catch (GeneralSecurityException | RuntimeException e) {
-                    throw new PersistenceException(PersistenceException.ENCRYPT_ERROR, "Failed during encrypt data", e.getCause());
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        encryptedData = getEncrypted(persistable.persist());
+                        storage.save(getHashed(persistable.getKey()), encryptedData);
+                    } catch (UserNotAuthenticatedException e) {
+                        String error = "Failed during encrypt data: "+e.getMessage();
+                        throw new EncryptionException(EncryptionException.DECRYPT_ERROR, error, e.getCause());
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
+                } else {
+                    try {
+                        encryptedData = getEncrypted(persistable.persist());
+                        storage.save(getHashed(persistable.getKey()), encryptedData);
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
                 }
+            } else {
+                throw new EncryptionException(EncryptionException.HARDWARE_BACKED_ERROR, "Client require hardware backed keystore, but EncryptionManager doesn't support it.", null);
             }
             if (cacheMode) {
                 cacheStorage.put(getHashed(persistable.getKey()),
@@ -80,7 +95,7 @@ public class OktaRepository {
         }
     }
 
-    public <T extends Persistable> T get(Persistable.Restore<T> persistable) throws PersistenceException {
+    public <T extends Persistable> T get(Persistable.Restore<T> persistable) throws EncryptionException {
         synchronized (lock) {
             String data;
             String key = getHashed(persistable.getKey());
@@ -88,17 +103,26 @@ public class OktaRepository {
                 data = cacheStorage.get(key);
             } else {
                 data = storage.get(key);
-                try {
-                    data = getDecrypted(data);
-                } catch (GeneralSecurityException | RuntimeException e) {
-                    String error = "Failed during decrypt data";
-                    if (e instanceof RuntimeException) {
-                        error += ": " + e.getMessage();
+
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        data = getDecrypted(data);
+                    } catch (UserNotAuthenticatedException e) {
+                        String error = "Failed during decrypt data: "+e.getMessage();
+                        throw new EncryptionException(EncryptionException.DECRYPT_ERROR, error, e.getCause());
+                    } catch (GeneralSecurityException e) {
+                        storage.delete(key);
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
                     }
-                    throw new PersistenceException(PersistenceException.DECRYPT_ERROR, error, e.getCause());
-//                    storage.delete(key);
-//                    data = null;
+                } else {
+                    try {
+                        data = getDecrypted(data);
+                    } catch (GeneralSecurityException e) {
+                        storage.delete(key);
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
                 }
+
             }
             return persistable.restore(data);
         }
@@ -156,13 +180,15 @@ public class OktaRepository {
         }
     }
 
-    public static class PersistenceException extends Exception {
+    public static class EncryptionException extends Exception {
         public final static int ENCRYPT_ERROR = 1;
         public final static int DECRYPT_ERROR = 2;
+        public final static int HARDWARE_BACKED_ERROR = 3;
+        public final static int INVALID_KEYS_ERROR = 4;
 
         private int mType;
 
-        PersistenceException(int type, String message, Throwable cause) {
+        EncryptionException(int type, String message, Throwable cause) {
             super(message, cause);
             this.mType = type;
         }

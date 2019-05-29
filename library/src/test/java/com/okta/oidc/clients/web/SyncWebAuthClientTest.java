@@ -135,7 +135,7 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void tokenExchangeFailure() throws InterruptedException, JSONException,  AuthorizationException,  OktaRepository.PersistenceException {
+    public void tokenExchangeFailure() throws InterruptedException, JSONException,  AuthorizationException, OktaRepository.EncryptionException {
         mExpectedEx.expect(AuthorizationException.class);
         String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         String nonce = CodeVerifierUtil.generateRandomState();
@@ -161,7 +161,7 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void tokenExchangeSuccess() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.PersistenceException {
+    public void tokenExchangeSuccess() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.EncryptionException {
         String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         String nonce = CodeVerifierUtil.generateRandomState();
 

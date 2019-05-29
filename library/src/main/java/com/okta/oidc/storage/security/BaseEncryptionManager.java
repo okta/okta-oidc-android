@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.StrongBoxUnavailableException;
+import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Base64;
 import android.util.Log;
 
@@ -87,7 +88,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
                     mKeyPairGenerator.generateKeyPair();
                 }
             }
-        } catch (KeyStoreException e) {
+        } catch (Exception e) {
             Log.d(TAG, "keyStore: ", e);
             return false;
         }
@@ -179,12 +180,17 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         PrivateKey key = (PrivateKey) mKeyStore.getKey(keyAlias, null);
         try {
             mCipher.init(mode, key);
-        } catch (Exception e) {
-            String errorMessage = "User wasn't authenticated";
-            if(mCipher != null) {
-                errorMessage = "User was authenticated "+getCipherLifeTime()/1000+" seconds ago";
+        } catch (InvalidKeyException e) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (e instanceof UserNotAuthenticatedException) {
+                    String errorMessage = "User wasn't authenticated";
+                    if(mCipher != null) {
+                        errorMessage = "User was authenticated "+getCipherLifeTime()/1000+" seconds ago";
+                    }
+                    throw new OktaUserNotAuthenticateException(errorMessage, e);
+                }
             }
-            throw new RuntimeException(errorMessage, e.getCause());
+            throw e;
         }
     }
 
@@ -241,11 +247,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
                 String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
                 for (String chunk : chunks) {
                     byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
-                    try {
-                        decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
-                    } catch (Exception e) {
-                        throw e;
-                    }
+                    decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
                 }
                 return decryptedBuilder.toString();
             }
@@ -282,4 +284,10 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         return System.currentTimeMillis() - initCipherStartStart;
     }
 
+    @TargetApi(23)
+    public static class OktaUserNotAuthenticateException extends UserNotAuthenticatedException {
+        public OktaUserNotAuthenticateException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

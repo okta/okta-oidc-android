@@ -118,7 +118,7 @@ public class SyncAuthClientTest {
     }
 
     @Test
-    public void signInNative() throws AuthorizationException, OktaRepository.PersistenceException {
+    public void signInNative() throws AuthorizationException, OktaRepository.EncryptionException {
         String nonce = CodeVerifierUtil.generateRandomState();
         String state = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());

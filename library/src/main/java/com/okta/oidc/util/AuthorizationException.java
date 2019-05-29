@@ -129,7 +129,7 @@ public final class AuthorizationException extends Exception {
     /**
      * The error type for persistence specific errors.
      */
-    public static final int TYPE_PERSISTENCE_ERROR = 4;
+    public static final int TYPE_ENCRYPTION_ERROR = 4;
 
     @VisibleForTesting
     static final String KEY_TYPE = "type";
@@ -478,29 +478,27 @@ public final class AuthorizationException extends Exception {
     /**
      * Error codes related to failed during read/write to storage.
      */
-    public static final class PersistenceErrors {
-        /**
-         * An `invalid_request` OAuth2 error response.
-         */
-        public static final AuthorizationException INVALID_ENCRYPT_ERROR =
-                registrationEx(5000, "Error during encrypt");
+    public static final class EncryptionErrors {
+        public static final int OTHER_ERROR = 5000;
+        public static final int DECRYPT_ERROR = 5001;
+        public static final int ENCRYPT_ERROR = 5002;
+        public static final int HARDWARE_BACKED_ERROR = 5003;
+        public static final int INVALID_KEYS_ERROR = 5004;
 
-        public static final AuthorizationException INVALID_DECRYPT_ERROR =
-                registrationEx(5001, "Error during decrypt");
+        public static final AuthorizationException OTHER = new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR, "Internal persistence error", null, null, null);
 
-        public static final AuthorizationException OTHER =
-                registrationEx(5002, "Internal persistence error");
-
-        public static AuthorizationException byPersistenceException(OktaRepository.PersistenceException exception) {
+        public static AuthorizationException byEncryptionException(OktaRepository.EncryptionException exception) {
             switch (exception.getType()) {
-                case OktaRepository.PersistenceException
-                        .DECRYPT_ERROR:
-                    return registrationEx(5000, "Error during decrypt. "+exception.getLocalizedMessage());
-                case OktaRepository.PersistenceException.ENCRYPT_ERROR:
-                    return registrationEx(5001, "Error during encrypt. "+exception.getLocalizedMessage());
-//                    return AuthorizationException.PersistenceErrors.INVALID_ENCRYPT_ERROR;
+                case OktaRepository.EncryptionException.DECRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, DECRYPT_ERROR, "Error during decrypt. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.ENCRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ENCRYPT_ERROR, "Error during encrypt. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.HARDWARE_BACKED_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, HARDWARE_BACKED_ERROR, "Hardware Backed KeyStore. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.INVALID_KEYS_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, INVALID_KEYS_ERROR, "Keys are invalid. "+exception.getLocalizedMessage(), null, null, null);
                 default:
-                    return AuthorizationException.PersistenceErrors.OTHER;
+                    return EncryptionErrors.OTHER;
             }
         }
     }

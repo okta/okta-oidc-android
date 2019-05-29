@@ -62,7 +62,7 @@ import java.util.Map;
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
-public interface SyncSessionClient {
+public interface SyncSessionClient extends BaseSessionClient{
     /**
      * Performs a custom authorized request with the access token automatically added to the
      * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
@@ -188,27 +188,7 @@ public interface SyncSessionClient {
     Tokens getTokens() throws AuthorizationException;
 
     /**
-     * Checks to see if the user is authenticated. If the client have a access or ID token then
-     * the user is considered authenticated and this call will return true. This does not check the
-     * validity of the access token which could be expired or revoked. For more information about
-     * the tokens see
-     * {@link #introspectToken(String, String) introspectToken}
-     *
-     * @return the boolean
-     */
-    boolean isAuthenticated();
-
-    /**
      * Clears all data. This will remove all tokens from the client.
      */
     void clear();
-
-    /**
-     * Use this method to migrate to another Encryption Manager. This method should decrypt data
-     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
-     * by new Encryption Manager
-     * @param manager   new Encryption Manager
-     * @throws AuthorizationException
-     */
-    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

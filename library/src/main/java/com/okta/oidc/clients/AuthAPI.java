@@ -73,8 +73,8 @@ public class AuthAPI {
                 mOktaState.save(config);
             }
             return config;
-        } catch (OktaRepository.PersistenceException ex) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(ex);
+        } catch (OktaRepository.EncryptionException ex) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(ex);
         }
     }
 

@@ -84,8 +84,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
             ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
             TokenResponse tokenResponse = mOktaState.getTokenResponse();
             return createAuthorizedRequest(uri, properties, postParameters, method, providerConfiguration, tokenResponse).executeRequest();
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -110,8 +110,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
             TokenResponse tokenResponse = mOktaState.getTokenResponse();
             JSONObject userInfo = userProfileRequest(providerConfiguration, tokenResponse).executeRequest();
             return new UserInfo(userInfo);
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -129,8 +129,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
             throws AuthorizationException {
         try {
             return introspectTokenRequest(token, tokenType, mOktaState.getProviderConfiguration()).executeRequest();
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -147,8 +147,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
     public Boolean revokeToken(String token) throws AuthorizationException {
         try {
             return revokeTokenRequest(token, mOktaState.getProviderConfiguration()).executeRequest();
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -167,8 +167,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
             TokenResponse tokenResponse = refreshTokenRequest(mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse()).executeRequest();
             mOktaState.save(tokenResponse);
             return new Tokens(tokenResponse);
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -180,8 +180,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
                 return null;
             }
             return new Tokens(response);
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -212,8 +212,8 @@ class SyncSessionClientImpl implements SyncSessionClient {
             mOktaState.save(providerConfiguration);
             mOktaState.save(tokenResponse);
             mOktaState.save(authorizedRequest);
-        } catch (OktaRepository.PersistenceException e) {
-            throw AuthorizationException.PersistenceErrors.byPersistenceException(e);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 

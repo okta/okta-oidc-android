@@ -69,6 +69,11 @@ public class EncryptionManagerStub implements EncryptionManager {
     }
 
     @Override
+    public void clearCipher() {
+
+    }
+
+    @Override
     public boolean isAuthenticateUser() {
         return true;
     }

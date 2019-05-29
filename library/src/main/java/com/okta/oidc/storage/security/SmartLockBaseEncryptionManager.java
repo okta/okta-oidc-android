@@ -21,7 +21,7 @@ public class SmartLockBaseEncryptionManager implements EncryptionManager {
 
     public SmartLockBaseEncryptionManager(Context context, int userAuthenticationValidityDurationSeconds) {
         mSmartLockEncryptionManager = EncryptionManagerFactory
-                .createEncryptionMananger(context,
+                .createEncryptionManager(context,
                         KEY_STORE,
                         KEY_AUTHORIZE_ALIAS,
                         true,

@@ -12,7 +12,7 @@ public class SimpleBaseEncryptionManager implements EncryptionManager {
     private final EncryptionManager encryptionManager;
 
     public SimpleBaseEncryptionManager(Context context) {
-        encryptionManager = EncryptionManagerFactory.createEncryptionMananger(context, KEY_STORE, KEY_ALIAS, false, -1, true);
+        encryptionManager = EncryptionManagerFactory.createEncryptionManager(context, KEY_STORE, KEY_ALIAS, false, -1, true);
     }
 
     @Override

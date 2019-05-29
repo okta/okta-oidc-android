@@ -54,6 +54,7 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.security.SimpleBaseEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
@@ -377,6 +378,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOAuth2)
                 .withCallbackExecutor(null)
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX)
                 .create();
@@ -388,6 +391,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);
 
@@ -399,6 +404,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withCallbackExecutor(null)
                 .create();
 

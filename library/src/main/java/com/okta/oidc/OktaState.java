@@ -41,7 +41,7 @@ public class OktaState {
         this.currentState = IDLE;
     }
 
-    public TokenResponse getTokenResponse() throws OktaRepository.PersistenceException {
+    public TokenResponse getTokenResponse() throws OktaRepository.EncryptionException {
         return mOktaRepo.get(TokenResponse.RESTORE);
     }
 
@@ -49,11 +49,11 @@ public class OktaState {
         return mOktaRepo.contains(TokenResponse.RESTORE);
     }
 
-    public ProviderConfiguration getProviderConfiguration() throws OktaRepository.PersistenceException {
+    public ProviderConfiguration getProviderConfiguration() throws OktaRepository.EncryptionException {
         return mOktaRepo.get(ProviderConfiguration.RESTORE);
     }
 
-    public WebRequest getAuthorizeRequest() throws OktaRepository.PersistenceException {
+    public WebRequest getAuthorizeRequest() throws OktaRepository.EncryptionException {
         return mOktaRepo.get(WebRequest.RESTORE);
     }
 
@@ -65,7 +65,7 @@ public class OktaState {
         return this.currentState;
     }
 
-    public void save(Persistable persistable) throws OktaRepository.PersistenceException {
+    public void save(Persistable persistable) throws OktaRepository.EncryptionException {
         mOktaRepo.save(persistable);
     }
 

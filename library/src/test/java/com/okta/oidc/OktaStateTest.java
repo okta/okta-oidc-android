@@ -57,7 +57,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getAuthorizeRequest() throws OktaRepository.PersistenceException, AuthorizationException {
+    public void getAuthorizeRequest() throws OktaRepository.EncryptionException, AuthorizationException {
         WebRequest authorizedRequest = TestValues.getAuthorizeRequest(TestValues.getConfigWithUrl(CUSTOM_URL), null);
         mOktaState.save(authorizedRequest);
 
@@ -67,7 +67,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getProviderConfiguration() throws OktaRepository.PersistenceException {
+    public void getProviderConfiguration() throws OktaRepository.EncryptionException {
         ProviderConfiguration providerConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mOktaState.save(providerConfiguration);
 
@@ -78,7 +78,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getTokenResponse() throws OktaRepository.PersistenceException {
+    public void getTokenResponse() throws OktaRepository.EncryptionException {
         TokenResponse tokenResponse = TestValues.getTokenResponse();
         mOktaState.save(tokenResponse);
         TokenResponse expected = mOktaState.getTokenResponse();
@@ -88,7 +88,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void validateDelete() throws OktaRepository.PersistenceException {
+    public void validateDelete() throws OktaRepository.EncryptionException {
         TokenResponse tokenResponse = TestValues.getTokenResponse();
         ProviderConfiguration providerConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mOktaState.save(tokenResponse);
