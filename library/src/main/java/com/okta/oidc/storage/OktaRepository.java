@@ -111,14 +111,12 @@ public class OktaRepository {
                         String error = "Failed during decrypt data: "+e.getMessage();
                         throw new EncryptionException(EncryptionException.DECRYPT_ERROR, error, e.getCause());
                     } catch (GeneralSecurityException e) {
-                        storage.delete(key);
                         throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
                     }
                 } else {
                     try {
                         data = getDecrypted(data);
                     } catch (GeneralSecurityException e) {
-                        storage.delete(key);
                         throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
                     }
                 }

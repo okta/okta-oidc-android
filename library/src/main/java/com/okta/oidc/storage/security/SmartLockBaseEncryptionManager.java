@@ -63,4 +63,9 @@ public class SmartLockBaseEncryptionManager implements EncryptionManager {
     public boolean isAuthenticateUser() {
         return mSmartLockEncryptionManager.isAuthenticateUser();
     }
+
+    @Override
+    public void removeKeys() {
+        mSmartLockEncryptionManager.removeKeys();
+    }
 }

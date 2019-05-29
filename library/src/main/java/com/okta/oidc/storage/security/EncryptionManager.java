@@ -74,6 +74,11 @@ public interface EncryptionManager {
     void clearCipher();
 
     /**
+     * remove current keys
+     */
+    void removeKeys();
+
+    /**
      * if user authenticated and cipher is valid to use private key.
      *
      * @return true if hardware backed keystore is supported

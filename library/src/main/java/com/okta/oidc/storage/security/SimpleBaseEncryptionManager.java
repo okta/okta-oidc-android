@@ -49,4 +49,9 @@ public class SimpleBaseEncryptionManager implements EncryptionManager {
     public boolean isAuthenticateUser() {
         return true;
     }
+
+    @Override
+    public void removeKeys() {
+        encryptionManager.removeKeys();
+    }
 }

@@ -16,6 +16,7 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -23,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.ProviderException;
 import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
@@ -67,73 +69,77 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
 
     protected boolean prepare(Context context, boolean initCipher) {
         // Create KeyStore
-        mKeyStore = createKeyStore();
-        if (mKeyStore == null) {
-            return false;
-        }
-
-        KeyPairGenerator mKeyPairGenerator = createKeyPairGenerator();
-        if (mKeyPairGenerator == null) {
-            return false;
+        try {
+            mKeyStore = createKeyStore();
+            if (mKeyStore == null) {
+                throw new RuntimeException("KeyStore is null");
+            }
+        } catch (GeneralSecurityException|IOException e) {
+            throw new RuntimeException("Failed initialize KeyStore", e.getCause());
         }
 
         // Check if exist instead generate new private and public keys
         try {
             if (!mKeyStore.containsAlias(mKeyAlias)) {
+                KeyPairGenerator mKeyPairGenerator;
+                try {
+                    mKeyPairGenerator = createKeyPairGenerator();
+                    if (mKeyPairGenerator == null) {
+                        throw new RuntimeException("KeyPairGenerator is null");
+                    }
+                } catch (GeneralSecurityException e) {
+                    throw new RuntimeException("Failed initialize KeyPairGenerator", e.getCause());
+                }
+                KeyPair keyPair = null;
                 try {
                     generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE, mEncryptionPadding, mBlockMode, true, null);
-                    mKeyPairGenerator.generateKeyPair();
-                } catch (Exception exception) {
-                    generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE, mEncryptionPadding, mBlockMode, false, null);
-                    mKeyPairGenerator.generateKeyPair();
+                    keyPair = mKeyPairGenerator.generateKeyPair();
+                } catch (ProviderException exception) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        if(exception instanceof StrongBoxUnavailableException) {
+                            generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE, mEncryptionPadding, mBlockMode, false, null);
+                            keyPair = mKeyPairGenerator.generateKeyPair();
+                        }
+                    } else {
+                        throw new RuntimeException("Failed generate keys.", exception.getCause());
+                    }
+                }
+                if(keyPair == null) {
+                    throw new RuntimeException("Failed generate keys.");
                 }
             }
-        } catch (Exception e) {
-            Log.d(TAG, "keyStore: ", e);
-            return false;
+        } catch (KeyStoreException e) {
+            throw new RuntimeException("Keystore exception.", e.getCause());
         }
-
 
         // Init Cipher
         if(initCipher) {
-            mCipher = createCipher(mTransformationString);
-            if (mCipher == null) {
-                return false;
+            try {
+                mCipher = createCipher(mTransformationString);
+                if (mCipher == null) {
+                    throw new RuntimeException("Cipher is null");
+                }
+            } catch (GeneralSecurityException e) {
+                throw new RuntimeException("Failed initialize Cipher", e.getCause());
             }
         }
 
         return true;
     }
 
-    private KeyStore createKeyStore() {
-        try {
-            KeyStore keyStore = KeyStore.getInstance(mKeyStoreName);
-            keyStore.load(null);
-            return keyStore;
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException
-                | CertificateException e) {
-            Log.d(TAG, "getKeyStore: ", e);
-        }
-        return null;
+    private KeyStore createKeyStore() throws GeneralSecurityException, IOException {
+        KeyStore keyStore = KeyStore.getInstance(mKeyStoreName);
+        keyStore.load(null);
+        return keyStore;
     }
 
-    private KeyPairGenerator createKeyPairGenerator() {
-        try {
-            return KeyPairGenerator
+    private KeyPairGenerator createKeyPairGenerator() throws GeneralSecurityException {
+        return KeyPairGenerator
                     .getInstance(mKeyStoreAlgorithm, mKeyStoreName);
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            Log.e(TAG, "getKeyPairGenerator: ", e);
-        }
-        return null;
     }
 
-    protected Cipher createCipher(String transformation) {
-        try {
-            return Cipher.getInstance(transformation);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-            Log.e(TAG, "getCipher: ", e);
-        }
-        return null;
+    protected Cipher createCipher(String transformation) throws GeneralSecurityException {
+        return Cipher.getInstance(transformation);
     }
 
     abstract boolean generateKeyPair(Context context, KeyPairGenerator generator, String keyAlias, int keySize, String encryptionPaddings, String blockMode, boolean isStrongBoxBacked, @Nullable byte[] seed);
@@ -153,7 +159,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
             try {
                 mKeyStore.deleteEntry(keyAlias);
             } catch (KeyStoreException e) {
-                e.printStackTrace();
+               throw new RuntimeException("KeyStore exception.", e.getCause());
             }
         }
     }
@@ -267,8 +273,17 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
 
     @Override
     public void recreateCipher() {
-        mCipher = createCipher(mTransformationString);
+        try {
+            mCipher = createCipher(mTransformationString);
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("Failed init Cipher", e.getCause());
+        }
         resetTimer();
+    }
+
+    @Override
+    public void removeKeys() {
+        deleteInvalidKey(mKeyAlias);
     }
 
     @Override
