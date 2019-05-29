@@ -56,17 +56,25 @@ public class AuthAPI {
                       Context context,
                       OktaStorage oktaStorage,
                       EncryptionManager encryptionManager,
-                      HttpConnectionFactory connectionFactory) {
-        mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager));
+                      HttpConnectionFactory connectionFactory,
+                      boolean requireHardwareBackedKeyStore,
+                      boolean cacheMode) {
+        mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager, requireHardwareBackedKeyStore, cacheMode));
         mOidcConfig = oidcConfig;
         mConnectionFactory = connectionFactory;
     }
 
-    protected void obtainNewConfiguration() throws AuthorizationException {
-        ProviderConfiguration config = mOktaState.getProviderConfiguration();
-        if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
-            mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
-            mOktaState.save(configurationRequest().executeRequest());
+    protected ProviderConfiguration obtainNewConfiguration() throws AuthorizationException {
+        try {
+            ProviderConfiguration config = mOktaState.getProviderConfiguration();
+            if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
+                mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
+                config = configurationRequest().executeRequest();
+                mOktaState.save(config);
+            }
+            return config;
+        } catch (OktaRepository.EncryptionException ex) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(ex);
         }
     }
 
@@ -78,8 +86,7 @@ public class AuthAPI {
                 .createRequest();
     }
 
-    protected void validateResult(WebResponse authResponse) throws AuthorizationException {
-        WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
+    protected void validateResult(WebResponse authResponse, WebRequest authorizedRequest) throws AuthorizationException {
         if (authorizedRequest == null) {
             throw USER_CANCELED_AUTH_FLOW;
         }
@@ -95,11 +102,11 @@ public class AuthAPI {
 
     @WorkerThread
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    public TokenRequest tokenExchange(AuthorizeResponse response) throws AuthorizationException {
-        return (TokenRequest) HttpRequestBuilder.newTokenRequest()
-                .providerConfiguration(mOktaState.getProviderConfiguration())
+    public TokenRequest tokenExchange(AuthorizeResponse response, ProviderConfiguration configuration, AuthorizeRequest authorizeRequest) throws AuthorizationException {
+        return HttpRequestBuilder.newTokenRequest()
+                .providerConfiguration(configuration)
                 .config(mOidcConfig)
-                .authRequest((AuthorizeRequest) mOktaState.getAuthorizeRequest())
+                .authRequest(authorizeRequest)
                 .authResponse(response)
                 .createRequest();
     }

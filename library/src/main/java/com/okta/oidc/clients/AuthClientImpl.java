@@ -43,18 +43,18 @@ class AuthClientImpl implements AuthClient {
                    Context context,
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
-                   HttpConnectionFactory httpConnectionFactory) {
-        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context,
-                oktaStorage, encryptionManager, httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor)
-                .createClient(mSyncNativeAuthClient.getSessionClient());
+                   HttpConnectionFactory httpConnectionFactory,
+                   boolean requireHardwareBackedKeyStore,
+                   boolean cacheMode) {
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 
     @Override
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
-                       RequestCallback<Result, AuthorizationException> cb) {
+                      RequestCallback<Result, AuthorizationException> cb) {
         mDispatcher.execute(() -> {
             Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {
@@ -71,6 +71,11 @@ class AuthClientImpl implements AuthClient {
                 });
             }
         });
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        getSessionClient().migrateTo(manager);
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SessionClient;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
@@ -126,4 +127,13 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * Unregister the callback.
      */
     void unregisterCallback();
+
+    /**
+     * Use this method to migrate to another Encryption Manager. This method should decrypt data
+     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
+     * by new Encryption Manager
+     * @param manager   new Encryption Manager
+     * @throws AuthorizationException
+     */
+    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

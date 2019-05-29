@@ -28,6 +28,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
+
 /**
  * @hide
  */
@@ -73,8 +75,10 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
             response = openConnection();
             return response.asJson();
         } catch (IOException io) {
-            exception = AuthorizationException
-                    .fromTemplate(AuthorizationException.GeneralErrors.NETWORK_ERROR, io);
+            exception = new AuthorizationException(TYPE_GENERAL_ERROR,
+                    AuthorizationException.GeneralErrors.NETWORK_ERROR.code,
+                    AuthorizationException.GeneralErrors.NETWORK_ERROR.error,
+                    io.getMessage(), null, io.getCause());
         } catch (JSONException je) {
             exception = AuthorizationException.fromTemplate(AuthorizationException
                     .GeneralErrors.JSON_DESERIALIZATION_ERROR, je);

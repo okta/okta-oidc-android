@@ -146,7 +146,7 @@ public class OktaAuthenticationActivity extends Activity {
             if (browser != null && !mResultSent) {
                 bindServiceAndStart(browser);
             } else {
-                sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
+                sendResult(RESULT_OK, getIntent().putExtra(EXTRA_EXCEPTION,
                         AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
             }
         }

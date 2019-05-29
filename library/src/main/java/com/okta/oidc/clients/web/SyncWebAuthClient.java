@@ -23,6 +23,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.ExecutorService;
@@ -67,23 +68,21 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      * @return the result
-     * @throws InterruptedException   the interrupted exception
-     * @throws AuthorizationException exception due to missing arguments.
+     * @throws InterruptedException the interrupted exception
      */
     Result signIn(@NonNull FragmentActivity activity,
                   @Nullable AuthenticationPayload payload)
-            throws InterruptedException, AuthorizationException;
+            throws InterruptedException;
 
     /**
      * Sign out from okta. This will clear the browser session
      *
      * @param activity the activity
      * @return the result
-     * @throws InterruptedException   the interrupted exception
-     * @throws AuthorizationException exception when trying to log out due to missing arguments.
+     * @throws InterruptedException the interrupted exception
      */
     Result signOutOfOkta(@NonNull FragmentActivity activity)
-            throws InterruptedException, AuthorizationException;
+            throws InterruptedException;
 
     /**
      * Register a callback for sign in and sign out result status. The callback is triggered when
@@ -120,4 +119,14 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param activity the activity
      */
     void unregisterCallback(FragmentActivity activity);
+
+
+    /**
+     * Use this method to migrate to another Encryption Manager. This method should decrypt data
+     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
+     * by new Encryption Manager
+     * @param manager   new Encryption Manager
+     * @throws AuthorizationException
+     */
+    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }
