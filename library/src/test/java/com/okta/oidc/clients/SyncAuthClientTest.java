@@ -37,6 +37,7 @@ import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -46,6 +47,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
@@ -65,8 +70,10 @@ public class SyncAuthClientTest {
     private OktaStorage mStorage;
     private HttpConnectionFactory mConnectionFactory;
     private SyncAuthClientImpl mSyncNativeAuth;
+    private AuthClient mAuthClient;
     private ProviderConfiguration mProviderConfig;
     private OktaState mOktaState;
+    private ExecutorService mCallbackExecutor;
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
@@ -91,6 +98,16 @@ public class SyncAuthClientTest {
                 .create();
 
         mSyncNativeAuth = (SyncAuthClientImpl) okta;
+
+        mCallbackExecutor = Executors.newSingleThreadExecutor();
+        mAuthClient = new Okta.AuthBuilder()
+                .withConfig(mConfig)
+                .withHttpConnectionFactory(mConnectionFactory)
+                .withContext(mContext)
+                .withStorage(mStorage)
+                .withCallbackExecutor(mCallbackExecutor)
+                .withEncryptionManager(new EncryptionManagerStub())
+                .create();
 
         mOktaState = mSyncNativeAuth.getOktaState();
         mOktaState.save(mProviderConfig);
@@ -137,5 +154,32 @@ public class SyncAuthClientTest {
         assertNotNull(tokens.getAccessToken());
         assertNotNull(tokens.getRefreshToken());
         assertNotNull(tokens.getIdToken());
+    }
+
+    @Test
+    public void signInNativeCancel() throws AuthorizationException, InterruptedException {
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String state = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .addParameter("nonce", nonce)
+                .setState(state)
+                .build();
+
+        mEndPoint.enqueueNativeRequestSuccess(state, 3);
+        mEndPoint.enqueueTokenSuccess(jws);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<Result, AuthorizationException> mockCallback
+                = new MockRequestCallback<>(latch);
+
+        mAuthClient.signIn(SESSION_TOKEN, payload, mockCallback);
+        Thread.sleep(200); //wait for request to be created
+        mAuthClient.cancel();
+        latch.await();
+
+        assertNull(mockCallback.getResult());
+        assertNotNull(mockCallback.getException());
+        assertEquals(mockCallback.getException().errorDescription, "Canceled");
     }
 }

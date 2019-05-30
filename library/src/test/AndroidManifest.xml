@@ -1,8 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.okta.oidc">
 
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <application>
-
         <activity
             android:name="com.okta.oidc.OktaAuthenticationActivity"
             android:exported="false"
@@ -11,14 +12,15 @@
 
         <activity
             android:name="com.okta.oidc.OktaRedirectActivity"
-            android:exported="true">
+            android:exported="true"
+            tools:node="replace">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="com.okta.appauth.android.test" />
+                <data android:scheme="com.okta.oidc.test" />
             </intent-filter>
         </activity>
     </application>

@@ -120,6 +120,11 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      */
     void unregisterCallback(FragmentActivity activity);
 
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 
     /**
      * Use this method to migrate to another Encryption Manager. This method should decrypt data

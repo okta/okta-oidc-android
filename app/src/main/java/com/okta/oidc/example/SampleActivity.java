@@ -107,7 +107,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private Button mIntrospectAccess;
     private Button mIntrospectId;
     private Button mCheckExpired;
-
+    private Button mCancel;
     private Switch mSwitch;
     private ProgressBar mProgressBar;
     private boolean mIsSessionSignIn;
@@ -143,6 +143,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.sample_activity);
+        mCancel = findViewById(R.id.cancel);
         mCheckExpired = findViewById(R.id.check_expired);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
@@ -185,7 +186,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
 
         mIntrospectRefresh.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             SessionClient client = getSessionClient();
             String refreshToken = client.getTokens().getRefreshToken();
             client.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
@@ -193,20 +194,20 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
                             mTvStatus.setText("RefreshToken active: " + result.isActive());
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
 
                         @Override
                         public void onError(String error, AuthorizationException exception) {
                             mTvStatus.setText("RefreshToken Introspect error");
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
                     }
             );
         });
 
         mIntrospectAccess.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             SessionClient client = getSessionClient();
             client.introspectToken(
                     client.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
@@ -214,20 +215,20 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
                             mTvStatus.setText("AccessToken active: " + result.isActive());
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
 
                         @Override
                         public void onError(String error, AuthorizationException exception) {
                             mTvStatus.setText("AccessToken Introspect error");
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
                     }
             );
         });
 
         mIntrospectId.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             SessionClient client = getSessionClient();
             client.introspectToken(
                     client.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
@@ -235,13 +236,13 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         @Override
                         public void onSuccess(@NonNull IntrospectInfo result) {
                             mTvStatus.setText("IdToken active: " + result.isActive());
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
 
                         @Override
                         public void onError(String error, AuthorizationException exception) {
                             mTvStatus.setText("IdToken Introspect error");
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
                     }
             );
@@ -249,19 +250,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mGetProfile.setOnClickListener(v -> getProfile());
         mRefreshToken.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             SessionClient client = getSessionClient();
             client.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
                 @Override
                 public void onSuccess(@NonNull Tokens result) {
                     mTvStatus.setText("token refreshed");
-                    mProgressBar.setVisibility(View.GONE);
+                    showNetworkProgress(false);
                 }
 
                 @Override
                 public void onError(String error, AuthorizationException exception) {
                     mTvStatus.setText(exception.errorDescription);
-                    mProgressBar.setVisibility(View.GONE);
+                    showNetworkProgress(false);
                 }
             });
         });
@@ -270,7 +271,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             SessionClient client = getSessionClient();
             Tokens tokens = client.getTokens();
             if (tokens != null && tokens.getRefreshToken() != null) {
-                mProgressBar.setVisibility(View.VISIBLE);
+                showNetworkProgress(true);
                 client.revokeToken(client.getTokens().getRefreshToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
@@ -279,7 +280,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 String status = "Revoke refresh token : " + result;
                                 Log.d(TAG, status);
                                 mTvStatus.setText(status);
-                                mProgressBar.setVisibility(View.GONE);
+                                showNetworkProgress(false);
                             }
 
                             @Override
@@ -287,7 +288,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 Log.d(TAG, exception.error +
                                         " revokeRefreshToken onError " + error, exception);
                                 mTvStatus.setText(error);
-                                mProgressBar.setVisibility(View.GONE);
+                                showNetworkProgress(false);
                             }
                         });
             }
@@ -297,7 +298,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             SessionClient client = getSessionClient();
             Tokens tokens = client.getTokens();
             if (tokens != null && tokens.getAccessToken() != null) {
-                mProgressBar.setVisibility(View.VISIBLE);
+                showNetworkProgress(true);
                 client.revokeToken(client.getTokens().getAccessToken(),
                         new RequestCallback<Boolean, AuthorizationException>() {
                             @Override
@@ -305,7 +306,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 String status = "Revoke Access token : " + result;
                                 Log.d(TAG, status);
                                 mTvStatus.setText(status);
-                                mProgressBar.setVisibility(View.GONE);
+                                showNetworkProgress(false);
                             }
 
                             @Override
@@ -313,14 +314,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 Log.d(TAG, exception.error +
                                         " revokeAccessToken onError " + error, exception);
                                 mTvStatus.setText(error);
-                                mProgressBar.setVisibility(View.GONE);
+                                showNetworkProgress(false);
                             }
                         });
             }
         });
 
         mSignOut.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             WebAuthClient client = getWebAuthClient();
             client.signOutOfOkta(this);
         });
@@ -332,7 +333,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
 
         mSignInBrowser.setOnClickListener(v -> {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
             WebAuthClient client = getWebAuthClient();
             client.signIn(this, mPayload);
         });
@@ -421,6 +422,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             showAuthenticatedMode();
         }
 
+        mCancel.setOnClickListener(v -> {
+            getWebAuthClient().cancel(); //cancel web auth requests
+            getSessionClient().cancel(); //cancel session requests
+            showNetworkProgress(false);
+        });
         setupCallback();
     }
 
@@ -437,12 +443,13 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                         if (status == AuthorizationStatus.AUTHORIZED) {
                             mTvStatus.setText("authentication authorized");
                             showAuthenticatedMode();
+                            showNetworkProgress(false);
                             mIsSessionSignIn = false;
                             mProgressBar.setVisibility(View.GONE);
                         } else if (status == AuthorizationStatus.SIGNED_OUT) {
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
-                            mProgressBar.setVisibility(View.GONE);
+                            showNetworkProgress(false);
                         }
                     }
 
@@ -472,14 +479,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     protected void onResume() {
         super.onResume();
         if (mWebAuth.isInProgress()) {
-            mProgressBar.setVisibility(View.VISIBLE);
+            showNetworkProgress(true);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mProgressBar.setVisibility(View.GONE);
+        showNetworkProgress(false);
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
                 .putBoolean(PREF_SWITCH, mSwitch.isChecked()).apply();
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
@@ -508,6 +515,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         }
     }
 
+    private void showNetworkProgress(boolean visible) {
+        mProgressBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        mCancel.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
     private void showAuthenticatedMode() {
         mGetProfile.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
@@ -534,20 +546,20 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     }
 
     private void getProfile() {
-        mProgressBar.setVisibility(View.VISIBLE);
+        showNetworkProgress(true);
         SessionClient client = getSessionClient();
         client.getUserProfile(new RequestCallback<UserInfo, AuthorizationException>() {
             @Override
             public void onSuccess(@NonNull UserInfo result) {
                 mTvStatus.setText(result.toString());
-                mProgressBar.setVisibility(View.GONE);
+                showNetworkProgress(false);
             }
 
             @Override
             public void onError(String error, AuthorizationException exception) {
                 Log.d(TAG, error, exception.getCause());
                 mTvStatus.setText("Error : " + exception.errorDescription);
-                mProgressBar.setVisibility(View.GONE);
+                showNetworkProgress(false);
             }
         });
     }
@@ -559,7 +571,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             mTvStatus.setText("Invalid username or password");
             return;
         }
-        mProgressBar.setVisibility(View.VISIBLE);
+        showNetworkProgress(true);
         mExecutor.submit(() -> {
             try {
                 if (mAuthenticationClient == null) {
@@ -571,7 +583,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             public void handleUnknown(
                                     AuthenticationResponse authenticationResponse) {
                                 SampleActivity.this.runOnUiThread(() -> {
-                                    mProgressBar.setVisibility(View.GONE);
+                                    showNetworkProgress(false);
                                     mTvStatus.setText(authenticationResponse.getStatus().name());
                                 });
                             }
@@ -579,7 +591,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             @Override
                             public void handleLockedOut(AuthenticationResponse lockedOut) {
                                 SampleActivity.this.runOnUiThread(() -> {
-                                    mProgressBar.setVisibility(View.GONE);
+                                    showNetworkProgress(false);
                                     mTvStatus.setText("Account locked out");
                                 });
                             }
@@ -596,7 +608,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                                 mTvStatus.setText("authentication authorized");
                                                 mIsSessionSignIn = true;
                                                 showAuthenticatedMode();
-                                                mProgressBar.setVisibility(View.GONE);
+                                                showNetworkProgress(false);
                                             }
 
                                             @Override
@@ -610,7 +622,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             } catch (AuthenticationException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
                 runOnUiThread(() -> {
-                    mProgressBar.setVisibility(View.GONE);
+                    showNetworkProgress(false);
                     mTvStatus.setText(e.getMessage());
                 });
             }

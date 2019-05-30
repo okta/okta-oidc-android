@@ -45,6 +45,11 @@ public interface AuthClient extends BaseAuth<SessionClient> {
     void signIn(String sessionToken, AuthenticationPayload payload,
                 RequestCallback<Result, AuthorizationException> cb);
 
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 
     /**
      * Use this method to migrate to another Encryption Manager. This method should decrypt data

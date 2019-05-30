@@ -78,9 +78,7 @@ public class NativeAuthorizeRequest extends BaseRequest<AuthorizeResponse, Autho
                 return AuthorizeResponse.fromUri(locationUri);
             }
         } catch (IOException ex) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.NETWORK_ERROR,
-                    ex);
+            exception = new AuthorizationException(ex.getMessage(), ex);
         } finally {
             if (response != null) {
                 response.disconnect();

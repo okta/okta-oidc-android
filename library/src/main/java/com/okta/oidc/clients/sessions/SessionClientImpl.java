@@ -16,6 +16,7 @@
 package com.okta.oidc.clients.sessions;
 
 import android.net.Uri;
+import android.os.Process;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,6 +46,7 @@ class SessionClientImpl implements SessionClient {
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 UserInfo userInfo = mSyncSessionClient.getUserProfile();
                 mDispatcher.submitResults(() -> cb.onSuccess(userInfo));
@@ -57,6 +59,7 @@ class SessionClientImpl implements SessionClient {
     public void introspectToken(String token, String tokenType,
                                 final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 IntrospectInfo introspectInfo = mSyncSessionClient
                         .introspectToken(token, tokenType);
@@ -70,6 +73,7 @@ class SessionClientImpl implements SessionClient {
     public void revokeToken(String token,
                             final RequestCallback<Boolean, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Boolean isRevoke = mSyncSessionClient.revokeToken(token);
                 mDispatcher.submitResults(() -> cb.onSuccess(isRevoke));
@@ -83,6 +87,7 @@ class SessionClientImpl implements SessionClient {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
         mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Tokens result = mSyncSessionClient.refreshToken();
                 mDispatcher.submitResults(() -> cb.onSuccess(result));
@@ -106,6 +111,7 @@ class SessionClientImpl implements SessionClient {
                                   @NonNull HttpConnection.RequestMethod method,
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
         mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 JSONObject result = mSyncSessionClient
                         .authorizedRequest(uri, properties, postParameters, method);
@@ -122,6 +128,13 @@ class SessionClientImpl implements SessionClient {
 
     public void clear() {
         mSyncSessionClient.clear();
+    }
+
+    @Override
+    public void cancel() {
+        mDispatcher.runTask(() -> {
+            mSyncSessionClient.cancel();
+        });
     }
 
     @Override

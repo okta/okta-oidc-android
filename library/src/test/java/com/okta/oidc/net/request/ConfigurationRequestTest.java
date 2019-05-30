@@ -107,7 +107,7 @@ public class ConfigurationRequestTest {
     @Test
     public void dispatchRequestFailure() throws InterruptedException, AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Network error");
+        mExpectedEx.expectMessage("Invalid status code 404 Client Error");
         mEndPoint.enqueueConfigurationFailure();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<ProviderConfiguration, AuthorizationException> cb
@@ -142,7 +142,7 @@ public class ConfigurationRequestTest {
     @Test
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Network error");
+        mExpectedEx.expectMessage("Invalid status code 404 Client Error");
         mEndPoint.enqueueConfigurationFailure();
         mRequest.executeRequest();
     }

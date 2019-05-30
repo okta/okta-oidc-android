@@ -15,6 +15,8 @@
 
 package com.okta.oidc.net.request;
 
+import android.os.Process;
+
 import androidx.annotation.RestrictTo;
 import androidx.annotation.WorkerThread;
 
@@ -54,6 +56,7 @@ public final class ConfigurationRequest extends
                                 final RequestCallback<ProviderConfiguration,
                                         AuthorizationException> callback) {
         dispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 ProviderConfiguration config = executeRequest();
                 if (config != null) {
@@ -80,9 +83,7 @@ public final class ConfigurationRequest extends
             configuration.validate(mIsOAuth2);
             return configuration;
         } catch (IOException ex) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.NETWORK_ERROR,
-                    ex);
+            exception = new AuthorizationException(ex.getMessage(), ex);
         } catch (JSONException ex) {
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR,

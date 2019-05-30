@@ -51,7 +51,7 @@ public class Result {
      * @return the result
      */
     public static Result cancel() {
-        return new Result(null, true);
+        return new Result(new AuthorizationException("Canceled", null), true);
     }
 
     /**
@@ -90,5 +90,4 @@ public class Result {
     public AuthorizationException getError() {
         return error;
     }
-
 }

@@ -45,6 +45,12 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
     Result signIn(String sessionToken, @Nullable AuthenticationPayload payload);
 
     /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
+
+     /**
      * Use this method to migrate to another Encryption Manager. This method should decrypt data
      * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
      * by new Encryption Manager

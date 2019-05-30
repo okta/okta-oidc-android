@@ -34,16 +34,19 @@ import java.util.concurrent.TimeUnit;
 import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 /**
- * @hide
- *
- * Executor Service that runs tasks on worker thread
+ * @hide Executor Service that runs tasks on worker thread
  * call back on ui thread or specified executor.
  */
 @RestrictTo(LIBRARY_GROUP)
 public class RequestDispatcher extends AbstractExecutorService {
+    private static final int MAX_THREADS = 3;
     private boolean mShutdown = false;
-    //executor used to run async requests
+    //executor used to run async network requests. only single thread
     private ExecutorService mExecutorService;
+
+    //executor used to run async requests not related to networking.
+    private static final ExecutorService sTaskExecutor =
+            Executors.newFixedThreadPool(MAX_THREADS);
 
     //callback executor provide by app for callbacks
     private Executor mCallbackExecutor;
@@ -129,6 +132,10 @@ public class RequestDispatcher extends AbstractExecutorService {
     @Override
     public void execute(Runnable command) {
         mExecutorServiceTasks.add(getExecutorService().submit(command));
+    }
+
+    public void runTask(Runnable runnable) {
+        mExecutorServiceTasks.add(sTaskExecutor.submit(runnable));
     }
 
     //Debugging

@@ -98,7 +98,7 @@ public class AuthorizedRequestTest {
     @Test
     public void dispatchRequestFailure() throws InterruptedException, AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Network error");
+        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
         mEndPoint.enqueueReturnInvalidClient();
         final CountDownLatch latch = new CountDownLatch(1);
         MockRequestCallback<JSONObject, AuthorizationException> cb
@@ -120,7 +120,7 @@ public class AuthorizedRequestTest {
     @Test
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Network error");
+        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
         mEndPoint.enqueueReturnInvalidClient();
         mRequest.executeRequest();
     }

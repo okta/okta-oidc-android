@@ -697,7 +697,7 @@ public final class AuthorizationException extends Exception {
      */
     public AuthorizationException(
             @NonNull String errorDescription,
-            @NonNull Throwable rootCause) {
+            @Nullable Throwable rootCause) {
         this(TYPE_GENERAL_ERROR, TYPE_GENERAL_ERROR, null, errorDescription, null, rootCause);
     }
 

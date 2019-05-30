@@ -71,9 +71,7 @@ public class RevokeTokenRequest extends BaseRequest<Boolean, AuthorizationExcept
                 return true;
             }
         } catch (IOException ex) {
-            exception = AuthorizationException.fromTemplate(
-                    AuthorizationException.GeneralErrors.NETWORK_ERROR,
-                    ex);
+            exception = new AuthorizationException(ex.getMessage(), ex);
         } finally {
             if (response != null) {
                 response.disconnect();

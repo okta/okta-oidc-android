@@ -220,5 +220,9 @@ public interface SessionClient extends BaseSessionClient {
      */
     void clear();
 
-
+    /**
+     * Attempt to cancel the current api request. Does not guarantee that the current call
+     * will not finish.
+     */
+    void cancel();
 }

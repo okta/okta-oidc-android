@@ -38,6 +38,7 @@ import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.LogoutRequest;
@@ -49,8 +50,11 @@ import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
+import com.okta.oidc.util.AuthorizationException.AuthorizationRequestErrors;
 import com.okta.oidc.util.CodeVerifierUtil;
 
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -160,15 +164,22 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     @WorkerThread
     public Result signIn(@NonNull final FragmentActivity activity,
-                         @Nullable AuthenticationPayload payload) throws InterruptedException {
+                         @Nullable AuthenticationPayload payload)
+            throws InterruptedException {
+
+        mCancel.set(false);
         ProviderConfiguration providerConfiguration;
         try {
             providerConfiguration = obtainNewConfiguration();
+            checkIfCanceled();
         } catch (AuthorizationException e) {
             return Result.error(e);
+        } catch (IOException e) {
+            return Result.cancel();
         } catch (Exception e) {
             AuthorizationException authorizationException = new AuthorizationException(
-                    TYPE_OAUTH_AUTHORIZATION_ERROR, AuthorizationException.AuthorizationRequestErrors.OTHER.code, e.getMessage(), e.getLocalizedMessage(), null, null);
+                    TYPE_OAUTH_AUTHORIZATION_ERROR, AuthorizationRequestErrors.OTHER.code,
+                    e.getMessage(), e.getLocalizedMessage(), null, null);
             return Result.error(authorizationException);
         } finally {
             resetCurrentState();
@@ -233,10 +244,12 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                     WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
                     ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
                     validateResult(result.getAuthorizationResponse(), authorizedRequest);
-                    response = tokenExchange(
+                    TokenRequest request = tokenExchange(
                             (AuthorizeResponse) result.getAuthorizationResponse(),
                             providerConfiguration,
-                            (AuthorizeRequest) authorizedRequest).executeRequest();
+                            (AuthorizeRequest) authorizedRequest);
+                    mCurrentRequest.set(new WeakReference<>(request));
+                    response = request.executeRequest();
                     mOktaState.save(response);
                 } catch (OktaRepository.EncryptionException e) {
                     return Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
@@ -281,7 +294,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             if (result != null) {
                 return result;
             } else {
-                return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
+                return Result.error(AuthorizationRequestErrors.OTHER);
             }
         } catch (OktaRepository.EncryptionException e) {
             return Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
