@@ -97,12 +97,9 @@ class SessionClientImpl implements SessionClient {
         });
     }
 
-    public Tokens getTokens() {
-        try {
-            return mSyncSessionClient.getTokens();
-        } catch (AuthorizationException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public Tokens getTokens() throws AuthorizationException {
+        return mSyncSessionClient.getTokens();
     }
 
     @Override

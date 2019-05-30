@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.Cipher;
+
 public class EncryptionManagerStub implements EncryptionManager {
 
     public static final String STUPID_SALT = "stupidSalt";
@@ -69,12 +71,22 @@ public class EncryptionManagerStub implements EncryptionManager {
     }
 
     @Override
-    public void clearCipher() {
+    public void setCipher(Cipher cipher) {
 
     }
 
     @Override
-    public boolean isAuthenticateUser() {
+    public Cipher getCipher() {
+        return null;
+    }
+
+    @Override
+    public void removeKeys() {
+
+    }
+
+    @Override
+    public boolean isUserAuthenticatedOnDevice() {
         return true;
     }
 }
