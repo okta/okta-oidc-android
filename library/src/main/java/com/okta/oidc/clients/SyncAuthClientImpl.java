@@ -75,20 +75,22 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             checkIfCanceled();
 
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
-            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, providerConfiguration, payload);
+            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken,
+                    providerConfiguration, payload);
             mCurrentRequest.set(new WeakReference<>(request));
-           
+
             //Save the nativeAuth request in a AuthRequest because it is needed to verify results.
             AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
             mOktaState.save(authRequest);
             AuthorizeResponse authResponse = request.executeRequest();
             checkIfCanceled();
 
-            validateResult(authResponse);
+            validateResult(authResponse, authRequest);
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
-            TokenRequest requestToken = tokenExchange(authResponse);
+            TokenRequest requestToken = tokenExchange(authResponse, providerConfiguration,
+                    authRequest);
             mCurrentRequest.set(new WeakReference<>(requestToken));
-            TokenResponse tokenResponse = tokenExchange(authResponse, providerConfiguration, authRequest).executeRequest();
+            TokenResponse tokenResponse = requestToken.executeRequest();
 
             mOktaState.save(tokenResponse);
             return Result.success();
@@ -98,7 +100,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             return Result.cancel();
         } catch (Exception e) {
             return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
-        finally {
+        } finally {
             resetCurrentState();
         }
     }

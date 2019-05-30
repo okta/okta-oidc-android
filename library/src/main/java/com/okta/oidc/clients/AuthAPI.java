@@ -75,15 +75,17 @@ public class AuthAPI {
 
     protected ProviderConfiguration obtainNewConfiguration() throws AuthorizationException {
         try {
-        ProviderConfiguration config = mOktaState.getProviderConfiguration();
-        if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
-            mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
-            ConfigurationRequest request = configurationRequest();
-            mCurrentRequest.set(new WeakReference<>(request));
-            mOktaState.save(request.executeRequest());
+            ProviderConfiguration config = mOktaState.getProviderConfiguration();
+            if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
+                mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
+                ConfigurationRequest request = configurationRequest();
+                mCurrentRequest.set(new WeakReference<>(request));
+                config = request.executeRequest();
+                mOktaState.save(config);
+            }
             return config;
-        } catch (OktaRepository.EncryptionException ex) {
-            throw AuthorizationException.EncryptionErrors.byEncryptionException(ex);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
     }
 
@@ -111,7 +113,10 @@ public class AuthAPI {
 
     @WorkerThread
     @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-    public TokenRequest tokenExchange(AuthorizeResponse response, ProviderConfiguration configuration, AuthorizeRequest authorizeRequest) throws AuthorizationException {
+    public TokenRequest tokenExchange(AuthorizeResponse response,
+                                      ProviderConfiguration configuration,
+                                      AuthorizeRequest authorizeRequest)
+            throws AuthorizationException {
         return HttpRequestBuilder.newTokenRequest()
                 .providerConfiguration(configuration)
                 .config(mOidcConfig)
