@@ -47,12 +47,4 @@ public interface OktaStorage {
      * @param key the key
      */
     void delete(@NonNull String key);
-
-    /**
-     * Check to see if hardware backed keystore is required for storing data. If true and the device
-     * doesn't have hardware support then no data will be persisted on the device.
-     *
-     * @return true if hardware backed keystore is required.
-     */
-    boolean requireHardwareBackedKeyStore();
 }

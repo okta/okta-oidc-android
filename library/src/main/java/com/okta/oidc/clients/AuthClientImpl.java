@@ -44,11 +44,11 @@ class AuthClientImpl implements AuthClient {
                    Context context,
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
-                   HttpConnectionFactory httpConnectionFactory) {
-        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context,
-                oktaStorage, encryptionManager, httpConnectionFactory);
-        mSessionImpl = new SessionClientFactoryImpl(executor)
-                .createClient(mSyncNativeAuthClient.getSessionClient());
+                   HttpConnectionFactory httpConnectionFactory,
+                   boolean requireHardwareBackedKeyStore,
+                   boolean cacheMode) {
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 
@@ -80,6 +80,11 @@ class AuthClientImpl implements AuthClient {
         mDispatcher.runTask(() -> {
             mSyncNativeAuthClient.cancel();
         });
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        getSessionClient().migrateTo(manager);
     }
 
     @Override

@@ -52,12 +52,12 @@ public class OktaStateTest {
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mOktaStorageMock = new OktaStorageMock(mContext, false);
-        mOktaRepository = new OktaRepository(mOktaStorageMock, mContext, new EncryptionManagerStub());
+        mOktaRepository = new OktaRepository(mOktaStorageMock, mContext, new EncryptionManagerStub(),false, false);
         mOktaState = new OktaState(mOktaRepository);
     }
 
     @Test
-    public void getAuthorizeRequest() throws AuthorizationException {
+    public void getAuthorizeRequest() throws OktaRepository.EncryptionException, AuthorizationException {
         WebRequest authorizedRequest = TestValues.getAuthorizeRequest(TestValues.getConfigWithUrl(CUSTOM_URL), null);
         mOktaState.save(authorizedRequest);
 
@@ -67,7 +67,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getProviderConfiguration() {
+    public void getProviderConfiguration() throws OktaRepository.EncryptionException {
         ProviderConfiguration providerConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mOktaState.save(providerConfiguration);
 
@@ -78,7 +78,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void getTokenResponse() {
+    public void getTokenResponse() throws OktaRepository.EncryptionException {
         TokenResponse tokenResponse = TestValues.getTokenResponse();
         mOktaState.save(tokenResponse);
         TokenResponse expected = mOktaState.getTokenResponse();
@@ -88,7 +88,7 @@ public class OktaStateTest {
     }
 
     @Test
-    public void validateDelete() {
+    public void validateDelete() throws OktaRepository.EncryptionException {
         TokenResponse tokenResponse = TestValues.getTokenResponse();
         ProviderConfiguration providerConfiguration = TestValues.getProviderConfiguration(CUSTOM_URL);
         mOktaState.save(tokenResponse);

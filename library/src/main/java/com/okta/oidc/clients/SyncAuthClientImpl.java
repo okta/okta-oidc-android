@@ -28,6 +28,7 @@ import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.TokenRequest;
+import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -46,19 +47,20 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
                        Context context,
                        OktaStorage oktaStorage,
                        EncryptionManager encryptionManager,
-                       HttpConnectionFactory connectionFactory) {
-        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory);
+                       HttpConnectionFactory connectionFactory,
+                       boolean requireHardwareBackedKeyStore,
+                       boolean cacheMode) {
+        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
         sessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, mOktaState, connectionFactory);
     }
 
     @VisibleForTesting
-    NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
-                                                  AuthenticationPayload payload)
-            throws AuthorizationException {
+    NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken, ProviderConfiguration providerConfiguration,
+                                                  AuthenticationPayload payload) throws AuthorizationException {
         return new AuthorizeRequest.Builder()
                 .config(mOidcConfig)
-                .providerConfiguration(mOktaState.getProviderConfiguration())
+                .providerConfiguration(providerConfiguration)
                 .sessionToken(sessionToken)
                 .authenticationPayload(payload)
                 .createNativeRequest(mConnectionFactory);
@@ -69,32 +71,41 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
                          @Nullable AuthenticationPayload payload) {
         try {
             mCancel.set(false);
-            obtainNewConfiguration();
+            ProviderConfiguration providerConfiguration = obtainNewConfiguration();
             checkIfCanceled();
 
             mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
-            NativeAuthorizeRequest requestNative = nativeAuthorizeRequest(sessionToken, payload);
-            mCurrentRequest.set(new WeakReference<>(requestNative));
+            NativeAuthorizeRequest request = nativeAuthorizeRequest(sessionToken, providerConfiguration, payload);
+            mCurrentRequest.set(new WeakReference<>(request));
+           
             //Save the nativeAuth request in a AuthRequest because it is needed to verify results.
-            AuthorizeRequest authRequest = new AuthorizeRequest(requestNative.getParameters());
+            AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
             mOktaState.save(authRequest);
-            AuthorizeResponse authResponse = requestNative.executeRequest();
+            AuthorizeResponse authResponse = request.executeRequest();
             checkIfCanceled();
 
             validateResult(authResponse);
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
             TokenRequest requestToken = tokenExchange(authResponse);
             mCurrentRequest.set(new WeakReference<>(requestToken));
-            TokenResponse tokenResponse = requestToken.executeRequest();
+            TokenResponse tokenResponse = tokenExchange(authResponse, providerConfiguration, authRequest).executeRequest();
+
             mOktaState.save(tokenResponse);
             return Result.success();
         } catch (AuthorizationException e) {
             return Result.error(e);
         } catch (IOException e) {
             return Result.cancel();
-        } finally {
+        } catch (Exception e) {
+            return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
+        finally {
             resetCurrentState();
         }
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        getSessionClient().migrateTo(manager);
     }
 
     @Override

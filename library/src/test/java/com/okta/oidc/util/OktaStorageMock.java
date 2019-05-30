@@ -31,11 +31,6 @@ public class OktaStorageMock extends SimpleOktaStorage {
         mRequireHardware = hardware;
     }
 
-    @Override
-    public boolean requireHardwareBackedKeyStore() {
-        return mRequireHardware;
-    }
-
     public SharedPreferences getSharedPreferences() {
         return prefs;
     }

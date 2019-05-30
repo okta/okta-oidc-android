@@ -24,6 +24,7 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -61,7 +62,7 @@ import java.util.Map;
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
-public interface SyncSessionClient {
+public interface SyncSessionClient extends BaseSessionClient{
     /**
      * Performs a custom authorized request with the access token automatically added to the
      * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
@@ -184,18 +185,7 @@ public interface SyncSessionClient {
      *
      * @return the tokens
      */
-    Tokens getTokens();
-
-    /**
-     * Checks to see if the user is authenticated. If the client have a access or ID token then
-     * the user is considered authenticated and this call will return true. This does not check the
-     * validity of the access token which could be expired or revoked. For more information about
-     * the tokens see
-     * {@link #introspectToken(String, String) introspectToken}
-     *
-     * @return the boolean
-     */
-    boolean isAuthenticated();
+    Tokens getTokens() throws AuthorizationException;
 
     /**
      * Clears all data. This will remove all tokens from the client.

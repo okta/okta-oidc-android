@@ -59,6 +59,16 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     private EncryptionManager mEncryptionManager;
 
     /**
+     * Require Hardware Backed KeyStore
+     */
+    private boolean mRequireHardwareBackedKeyStore = true;
+
+    /**
+     * Cache Mode
+     */
+    private boolean mCacheMode = true;
+
+    /**
      * Used to prevent lint issues.
      *
      * @return the generic of the client builder
@@ -143,6 +153,28 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     }
 
     /**
+     * Sets if hardware backed keystore is required for storing data. If true and the device
+     * doesn't have hardware support then no data will be persisted on the device.
+     *
+     * @return true if hardware backed keystore is required.
+     */
+    public T setRequireHardwareBackedKeyStore(boolean requireHardwareBackedKeyStore) {
+        mRequireHardwareBackedKeyStore = requireHardwareBackedKeyStore;
+        return toThis();
+    }
+
+    /**
+     * Sets if hardware backed keystore is required for storing data. If true and the device
+     * doesn't have hardware support then no data will be persisted on the device.
+     *
+     * @return true if hardware backed keystore is required.
+     */
+    public T setCacheMode(boolean cacheMode) {
+        mCacheMode = cacheMode;
+        return toThis();
+    }
+
+    /**
      * Create auth client.
      *
      * @return the a AuthClient
@@ -152,6 +184,6 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
 
         return this.mClientFactory.createClient(mOidcConfig,
                 mContext, mStorage, mEncryptionManager,
-                mConnectionFactory);
+                mConnectionFactory, mRequireHardwareBackedKeyStore, mCacheMode);
     }
 }

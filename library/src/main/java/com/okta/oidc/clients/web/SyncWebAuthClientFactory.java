@@ -42,8 +42,10 @@ public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient
                                           Context context,
                                           OktaStorage oktaStorage,
                                           EncryptionManager encryptionManager,
-                                          HttpConnectionFactory connectionFactory) {
-        return new SyncWebAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
-                connectionFactory, mCustomTabColor, mSupportedBrowsers);
+                                          HttpConnectionFactory connectionFactory,
+                                          boolean requireHardwareBackedKeyStore,
+                                          boolean cacheMode) {
+        return new SyncWebAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode,
+                mCustomTabColor, mSupportedBrowsers);
     }
 }

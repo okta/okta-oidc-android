@@ -30,6 +30,7 @@ import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SimpleOktaStorage;
 import com.okta.oidc.util.AuthorizationException;
@@ -116,7 +117,7 @@ public class SyncAuthClientTest {
     public void nativeSignInRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueNativeRequestSuccess(CUSTOM_STATE);
         NativeAuthorizeRequest request =
-                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, null);
+                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig, null);
         AuthorizeResponse response = request.executeRequest();
         assertNotNull(response);
         assertEquals(response.getCode(), EXCHANGE_CODE);
@@ -128,13 +129,13 @@ public class SyncAuthClientTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         NativeAuthorizeRequest request =
-                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, null);
+                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig,null);
         AuthorizeResponse response = request.executeRequest();
         assertNull(response);
     }
 
     @Test
-    public void signInNative() throws AuthorizationException {
+    public void signInNative() throws AuthorizationException, OktaRepository.EncryptionException {
         String nonce = CodeVerifierUtil.generateRandomState();
         String state = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());

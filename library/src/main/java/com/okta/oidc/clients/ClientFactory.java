@@ -36,11 +36,14 @@ public interface ClientFactory<A> {
      * @param oktaStorage       the storage
      * @param encryptionManager the encryption manager
      * @param connectionFactory the connection factory
+     * @param requireHardwareBackedKeyStore allow persist in storage only if hardware backed keystore
      * @return the type of auth client
      */
     A createClient(OIDCConfig oidcConfig,
                    Context context,
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
-                   HttpConnectionFactory connectionFactory);
+                   HttpConnectionFactory connectionFactory,
+                   boolean requireHardwareBackedKeyStore,
+                   boolean cacheMode);
 }

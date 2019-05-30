@@ -29,9 +29,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.util.concurrent.Executor;
 
-/**
- * @hide
- */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
     private Executor mCallbackExecutor;
@@ -52,8 +49,10 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       Context context,
                                       OktaStorage oktaStorage,
                                       EncryptionManager encryptionManager,
-                                      HttpConnectionFactory connectionFactory) {
-        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
-                encryptionManager, connectionFactory, mCustomTabColor, mSupportedBrowser);
+                                      HttpConnectionFactory connectionFactory,
+                                      boolean requireHardwareBackedKeyStore,
+                                      boolean cacheMode) {
+        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode,
+                mCustomTabColor, mSupportedBrowser);
     }
 }

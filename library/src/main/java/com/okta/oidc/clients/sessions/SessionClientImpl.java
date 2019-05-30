@@ -27,6 +27,7 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -97,7 +98,11 @@ class SessionClientImpl implements SessionClient {
     }
 
     public Tokens getTokens() {
-        return mSyncSessionClient.getTokens();
+        try {
+            return mSyncSessionClient.getTokens();
+        } catch (AuthorizationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -130,5 +135,10 @@ class SessionClientImpl implements SessionClient {
         mDispatcher.runTask(() -> {
             mSyncSessionClient.cancel();
         });
+    }
+
+    @Override
+    public void migrateTo(EncryptionManager manager) throws AuthorizationException {
+        mSyncSessionClient.migrateTo(manager);
     }
 }

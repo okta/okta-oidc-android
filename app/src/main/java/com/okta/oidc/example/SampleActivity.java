@@ -54,6 +54,7 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.security.SimpleBaseEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
@@ -66,6 +67,8 @@ import java.util.concurrent.ScheduledExecutorService;
 @SuppressWarnings("FieldCanBeLocal")
 public class SampleActivity extends AppCompatActivity implements SignInDialog.SignInDialogListener {
     private static final String TAG = "SampleActivity";
+    private static final String PREF_SWITCH = "switch";
+    private static final String PREF_NON_WEB = "nonweb";
     /**
      * Authorization client using chrome custom tab as a user agent.
      */
@@ -88,6 +91,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     OIDCConfig mOAuth2Config;
     WebAuthClient mWebOAuth2;
     SessionClient mSessionOAuth2Client;
+    SessionClient mSessionNonWebClient;
 
     private TextView mTvStatus;
     private Button mSignInBrowser;
@@ -106,6 +110,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private Button mCancel;
     private Switch mSwitch;
     private ProgressBar mProgressBar;
+    private boolean mIsSessionSignIn;
     @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
 
@@ -159,7 +164,9 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mStorageOAuth2 = new SimpleOktaStorage(this, "OAUTH2");
         mStorageOidc = new SimpleOktaStorage(this);
         boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
-                .getBoolean("switch", true);
+                .getBoolean(PREF_SWITCH, true);
+        mIsSessionSignIn = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
+                .getBoolean(PREF_NON_WEB, true);
 
         mSwitch.setChecked(checked);
         mSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -378,6 +385,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOAuth2)
                 .withCallbackExecutor(null)
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX)
                 .create();
@@ -389,6 +398,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);
 
@@ -400,8 +411,12 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(new SimpleOktaStorage(this))
+                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(false)
                 .withCallbackExecutor(null)
                 .create();
+
+        mSessionNonWebClient = mAuthClient.getSessionClient();
 
         if (getSessionClient().isAuthenticated()) {
             showAuthenticatedMode();
@@ -429,6 +444,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             mTvStatus.setText("authentication authorized");
                             showAuthenticatedMode();
                             showNetworkProgress(false);
+                            mIsSessionSignIn = false;
+                            mProgressBar.setVisibility(View.GONE);
                         } else if (status == AuthorizationStatus.SIGNED_OUT) {
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
@@ -438,12 +455,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
                     @Override
                     public void onCancel() {
+                        mProgressBar.setVisibility(View.GONE);
                         Log.d(TAG, "CANCELED!");
                         mTvStatus.setText("canceled");
                     }
 
                     @Override
                     public void onError(@Nullable String msg, AuthorizationException error) {
+                        mProgressBar.setVisibility(View.GONE);
                         Log.d("SampleActivity", error.error +
                                 " onActivityResult onError " + msg, error);
                         mTvStatus.setText(msg);
@@ -469,11 +488,17 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         super.onStop();
         showNetworkProgress(false);
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
-                .putBoolean("switch", mSwitch.isChecked()).apply();
+                .putBoolean(PREF_SWITCH, mSwitch.isChecked()).apply();
+        getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                .putBoolean(PREF_NON_WEB, mIsSessionSignIn).apply();
 
     }
 
     private SessionClient getSessionClient() {
+
+        if (mIsSessionSignIn) {
+            return mSessionNonWebClient;
+        }
         return mSwitch.isChecked() ? mSessionClient : mSessionOAuth2Client;
     }
 
@@ -581,6 +606,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                             public void onSuccess(
                                                     @NonNull Result result) {
                                                 mTvStatus.setText("authentication authorized");
+                                                mIsSessionSignIn = true;
                                                 showAuthenticatedMode();
                                                 showNetworkProgress(false);
                                             }

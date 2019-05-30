@@ -20,6 +20,8 @@ import androidx.annotation.Nullable;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.security.EncryptionManager;
+import com.okta.oidc.util.AuthorizationException;
 
 /**
  * The Authentication client for logging in using a sessionToken. The client calls are synchronous.
@@ -47,4 +49,13 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      * will not finish.
      */
     void cancel();
+
+     /**
+     * Use this method to migrate to another Encryption Manager. This method should decrypt data
+     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
+     * by new Encryption Manager
+     * @param manager   new Encryption Manager
+     * @throws AuthorizationException
+     */
+    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

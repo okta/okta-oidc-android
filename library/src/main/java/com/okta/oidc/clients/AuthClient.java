@@ -19,6 +19,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.results.Result;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
@@ -49,4 +50,13 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * will not finish.
      */
     void cancel();
+
+    /**
+     * Use this method to migrate to another Encryption Manager. This method should decrypt data
+     * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
+     * by new Encryption Manager
+     * @param manager   new Encryption Manager
+     * @throws AuthorizationException
+     */
+    void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

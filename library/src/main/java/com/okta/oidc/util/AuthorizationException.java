@@ -22,6 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.okta.oidc.storage.OktaRepository;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -123,6 +125,11 @@ public final class AuthorizationException extends Exception {
      * The error type for OAuth specific errors on the registration endpoint.
      */
     public static final int TYPE_OAUTH_REGISTRATION_ERROR = 4;
+
+    /**
+     * The error type for persistence specific errors.
+     */
+    public static final int TYPE_ENCRYPTION_ERROR = 4;
 
     @VisibleForTesting
     static final String KEY_TYPE = "type";
@@ -465,6 +472,34 @@ public final class AuthorizationException extends Exception {
                 return ex;
             }
             return OTHER;
+        }
+    }
+
+    /**
+     * Error codes related to failed during read/write to storage.
+     */
+    public static final class EncryptionErrors {
+        public static final int OTHER_ERROR = 5000;
+        public static final int DECRYPT_ERROR = 5001;
+        public static final int ENCRYPT_ERROR = 5002;
+        public static final int HARDWARE_BACKED_ERROR = 5003;
+        public static final int INVALID_KEYS_ERROR = 5004;
+
+        public static final AuthorizationException OTHER = new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR, "Internal persistence error", null, null, null);
+
+        public static AuthorizationException byEncryptionException(OktaRepository.EncryptionException exception) {
+            switch (exception.getType()) {
+                case OktaRepository.EncryptionException.DECRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, DECRYPT_ERROR, "Error during decrypt. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.ENCRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ENCRYPT_ERROR, "Error during encrypt. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.HARDWARE_BACKED_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, HARDWARE_BACKED_ERROR, "Hardware Backed KeyStore. "+exception.getLocalizedMessage(), null, null, null);
+                case OktaRepository.EncryptionException.INVALID_KEYS_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, INVALID_KEYS_ERROR, "Keys are invalid. "+exception.getLocalizedMessage(), null, null, null);
+                default:
+                    return EncryptionErrors.OTHER;
+            }
         }
     }
 

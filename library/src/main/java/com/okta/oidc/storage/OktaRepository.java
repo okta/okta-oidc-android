@@ -16,18 +16,17 @@
 package com.okta.oidc.storage;
 
 import android.content.Context;
+import android.os.Build;
+import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.BaseEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
-import com.okta.oidc.storage.security.SimpleEncryptionManager;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,50 +38,89 @@ public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
 
     private final OktaStorage storage;
-    private final EncryptionManager encryptionManager;
+    private EncryptionManager encryptionManager;
+    private boolean requireHardwareBackedKeyStore;
+    private boolean cacheMode;
     final Map<String, String> cacheStorage = new HashMap<>();
 
     private final Object lock = new Object();
 
     public OktaRepository(OktaStorage storage, Context context,
-                          @Nullable EncryptionManager encryptionManager) {
+                          @Nullable EncryptionManager encryptionManager,
+                          boolean requireHardwareBackedKeyStore,
+                          boolean cacheMode) {
         this.storage = storage;
-        if (encryptionManager != null) {
-            this.encryptionManager = encryptionManager;
-        } else {
-            this.encryptionManager = buildSimpleEncryptionManager(context);
-        }
+        this.cacheMode = cacheMode;
+        this.requireHardwareBackedKeyStore = requireHardwareBackedKeyStore;
+        this.encryptionManager = encryptionManager;
     }
 
-    public void save(Persistable persistable) {
+    public void setEncryptionManager(EncryptionManager encryptionManager) {
+        this.encryptionManager = encryptionManager;
+    }
+
+    public void save(Persistable persistable) throws EncryptionException {
         if (persistable == null) {
             return;
         }
         synchronized (lock) {
-            if (encryptionManager.isHardwareBackedKeyStore() ||
-                    !storage.requireHardwareBackedKeyStore()) {
-                storage.save(getHashed(persistable.getKey()),
-                        getEncrypted(persistable.persist()));
+            if(!requireHardwareBackedKeyStore
+                    || (requireHardwareBackedKeyStore && encryptionManager !=null && encryptionManager.isHardwareBackedKeyStore())) {
+                String encryptedData;
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        encryptedData = getEncrypted(persistable.persist());
+                        storage.save(getHashed(persistable.getKey()), encryptedData);
+                    } catch (UserNotAuthenticatedException e) {
+                        String error = "Failed during encrypt data: "+e.getMessage();
+                        throw new EncryptionException(EncryptionException.DECRYPT_ERROR, error, e.getCause());
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
+                } else {
+                    try {
+                        encryptedData = getEncrypted(persistable.persist());
+                        storage.save(getHashed(persistable.getKey()), encryptedData);
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
+                }
+            } else {
+                throw new EncryptionException(EncryptionException.HARDWARE_BACKED_ERROR, "Client require hardware backed keystore, but EncryptionManager doesn't support it.", null);
             }
-            cacheStorage.put(getHashed(persistable.getKey()),
-                    persistable.persist());
+            if (cacheMode) {
+                cacheStorage.put(getHashed(persistable.getKey()),
+                        persistable.persist());
+            }
         }
     }
 
-    public <T extends Persistable> T get(Persistable.Restore<T> persistable) {
+    public <T extends Persistable> T get(Persistable.Restore<T> persistable) throws EncryptionException {
         synchronized (lock) {
             String data;
             String key = getHashed(persistable.getKey());
-            if (cacheStorage.get(key) != null) {
+            if (cacheMode && cacheStorage.get(key) != null) {
                 data = cacheStorage.get(key);
             } else {
                 data = storage.get(key);
-                try {
-                    data = getDecrypted(data);
-                } catch (GeneralSecurityException e) {
-                    storage.delete(key);
-                    data = null;
+
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        data = getDecrypted(data);
+                    } catch (UserNotAuthenticatedException e) {
+                        String error = "Failed during decrypt data: "+e.getMessage();
+                        throw new EncryptionException(EncryptionException.DECRYPT_ERROR, error, e.getCause());
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
+                } else {
+                    try {
+                        data = getDecrypted(data);
+                    } catch (GeneralSecurityException e) {
+                        throw new EncryptionException(EncryptionException.INVALID_KEYS_ERROR, e.getMessage(), e.getCause());
+                    }
                 }
+
             }
             return persistable.restore(data);
         }
@@ -91,8 +129,7 @@ public class OktaRepository {
     public boolean contains(Persistable.Restore persistable) {
         synchronized (lock) {
             String key = getHashed(persistable.getKey());
-            return cacheStorage.get(key) != null
-                    || storage.get(key) != null;
+            return (cacheMode && cacheStorage.get(key) != null) || storage.get(key) != null;
         }
     }
 
@@ -107,45 +144,55 @@ public class OktaRepository {
         }
     }
 
-    private String getEncrypted(String value) {
+    public void delete(String key) {
+        if (key == null) {
+            return;
+        }
+        synchronized (lock) {
+            String hashedKey = getHashed(key);
+            storage.delete(hashedKey);
+            cacheStorage.remove(hashedKey);
+        }
+    }
+
+    private String getEncrypted(String value) throws GeneralSecurityException {
         if (encryptionManager == null) {
             return value;
         }
-        try {
-            return encryptionManager.encrypt(value);
-        } catch (GeneralSecurityException | IOException ex) {
-            Log.d(TAG, "getEncrypted: ", ex);
-            return value;
-        }
+        return encryptionManager.encrypt(value);
     }
 
     private String getDecrypted(String value) throws GeneralSecurityException {
         if (encryptionManager == null) {
             return value;
         }
-        try {
-            return encryptionManager.decrypt(value);
-        } catch (IOException ex) {
-            Log.d(TAG, "getDecrypted: ", ex);
-            return value;
-        }
+        return encryptionManager.decrypt(value);
     }
 
     private String getHashed(String value) {
         try {
             return encryptionManager.getHashed(value);
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException ex) {
+        } catch (Exception ex) {
             Log.d(TAG, "getHashed: ", ex);
             return value;
         }
     }
 
-    private EncryptionManager buildSimpleEncryptionManager(Context context) {
-        try {
-            return new SimpleEncryptionManager(context);
-        } catch (IOException | GeneralSecurityException ex) {
-            Log.d(TAG, "buildSimpleEncryptionManager: ", ex);
-            return null;
+    public static class EncryptionException extends Exception {
+        public final static int ENCRYPT_ERROR = 1;
+        public final static int DECRYPT_ERROR = 2;
+        public final static int HARDWARE_BACKED_ERROR = 3;
+        public final static int INVALID_KEYS_ERROR = 4;
+
+        private int mType;
+
+        EncryptionException(int type, String message, Throwable cause) {
+            super(message, cause);
+            this.mType = type;
+        }
+
+        public int getType() {
+            return mType;
         }
     }
 }

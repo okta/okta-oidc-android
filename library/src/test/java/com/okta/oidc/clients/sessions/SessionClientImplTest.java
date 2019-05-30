@@ -120,8 +120,9 @@ public class SessionClientImplTest {
 
         mSessionClient = okta.getSessionClient();
 
-        OktaState mOktaState = new OktaState(new OktaRepository(mStorage, mContext,
-                new EncryptionManagerStub()));
+        OktaState mOktaState = new OktaState(new OktaRepository(mStorage,mContext,
+                new EncryptionManagerStub(), false,false));
+
         mOktaState.save(mTokenResponse);
         mOktaState.save(mProviderConfig);
     }
