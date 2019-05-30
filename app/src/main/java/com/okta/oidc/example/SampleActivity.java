@@ -16,6 +16,9 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -26,11 +29,17 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat.AuthenticationCallback;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat.CryptoObject;
+import androidx.core.os.CancellationSignal;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -54,11 +63,16 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.SimpleBaseEncryptionManager;
+import com.okta.oidc.storage.security.SmartLockBaseEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+
+import static com.okta.oidc.util.AuthorizationException.EncryptionErrors.BIOMETRIC_AUTHENTICATION;
+import static com.okta.oidc.util.AuthorizationException.EncryptionErrors.KEYGUARD_AUTHENTICATION;
 
 /**
  * Sample to test library functionality. Can be used as a starting reference point.
@@ -69,6 +83,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private static final String TAG = "SampleActivity";
     private static final String PREF_SWITCH = "switch";
     private static final String PREF_NON_WEB = "nonweb";
+    private static final int REQUEST_CODE_CREDENTIALS = 100;
     /**
      * Authorization client using chrome custom tab as a user agent.
      */
@@ -107,6 +122,10 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private Button mIntrospectAccess;
     private Button mIntrospectId;
     private Button mCheckExpired;
+
+    private SmartLockBaseEncryptionManager mBiometricEncryptionManager;
+    private CancellationSignal mCancellationSignal;
+    private FingerprintManagerCompat mFingerprintManager;
 
     private Switch mSwitch;
     private ProgressBar mProgressBar;
@@ -180,14 +199,23 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mCheckExpired.setOnClickListener(v -> {
             SessionClient client = getSessionClient();
-            mTvStatus.setText(client.getTokens().isAccessTokenExpired() ? "token expired" :
-                    "token not expired");
+            try {
+                mTvStatus.setText(client.getTokens().isAccessTokenExpired() ? "token expired" :
+                        "token not expired");
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
         });
 
         mIntrospectRefresh.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             SessionClient client = getSessionClient();
-            String refreshToken = client.getTokens().getRefreshToken();
+            String refreshToken = null;
+            try {
+                refreshToken = client.getTokens().getRefreshToken();
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
             client.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
                     new RequestCallback<IntrospectInfo, AuthorizationException>() {
                         @Override
@@ -208,43 +236,51 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mIntrospectAccess.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             SessionClient client = getSessionClient();
-            client.introspectToken(
-                    client.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
-                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
-                        @Override
-                        public void onSuccess(@NonNull IntrospectInfo result) {
-                            mTvStatus.setText("AccessToken active: " + result.isActive());
-                            mProgressBar.setVisibility(View.GONE);
-                        }
+            try {
+                client.introspectToken(
+                        client.getTokens().getAccessToken(), TokenTypeHint.ACCESS_TOKEN,
+                        new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull IntrospectInfo result) {
+                                mTvStatus.setText("AccessToken active: " + result.isActive());
+                                mProgressBar.setVisibility(View.GONE);
+                            }
 
-                        @Override
-                        public void onError(String error, AuthorizationException exception) {
-                            mTvStatus.setText("AccessToken Introspect error");
-                            mProgressBar.setVisibility(View.GONE);
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                mTvStatus.setText("AccessToken Introspect error");
+                                mProgressBar.setVisibility(View.GONE);
+                            }
                         }
-                    }
-            );
+                );
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
         });
 
         mIntrospectId.setOnClickListener(v -> {
             mProgressBar.setVisibility(View.VISIBLE);
             SessionClient client = getSessionClient();
-            client.introspectToken(
-                    client.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
-                    new RequestCallback<IntrospectInfo, AuthorizationException>() {
-                        @Override
-                        public void onSuccess(@NonNull IntrospectInfo result) {
-                            mTvStatus.setText("IdToken active: " + result.isActive());
-                            mProgressBar.setVisibility(View.GONE);
-                        }
+            try {
+                client.introspectToken(
+                        client.getTokens().getIdToken(), TokenTypeHint.ID_TOKEN,
+                        new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull IntrospectInfo result) {
+                                mTvStatus.setText("IdToken active: " + result.isActive());
+                                mProgressBar.setVisibility(View.GONE);
+                            }
 
-                        @Override
-                        public void onError(String error, AuthorizationException exception) {
-                            mTvStatus.setText("IdToken Introspect error");
-                            mProgressBar.setVisibility(View.GONE);
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                mTvStatus.setText("IdToken Introspect error");
+                                mProgressBar.setVisibility(View.GONE);
+                            }
                         }
-                    }
-            );
+                );
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
         });
 
         mGetProfile.setOnClickListener(v -> getProfile());
@@ -268,54 +304,65 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mRevokeRefresh.setOnClickListener(v -> {
             SessionClient client = getSessionClient();
-            Tokens tokens = client.getTokens();
-            if (tokens != null && tokens.getRefreshToken() != null) {
-                mProgressBar.setVisibility(View.VISIBLE);
-                client.revokeToken(client.getTokens().getRefreshToken(),
-                        new RequestCallback<Boolean, AuthorizationException>() {
-                            @Override
-                            public void onSuccess(@NonNull Boolean result) {
+            Tokens tokens = null;
+            try {
+                tokens = client.getTokens();
+                if (tokens != null && tokens.getRefreshToken() != null) {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    client.revokeToken(client.getTokens().getRefreshToken(),
+                            new RequestCallback<Boolean, AuthorizationException>() {
+                                @Override
+                                public void onSuccess(@NonNull Boolean result) {
 
-                                String status = "Revoke refresh token : " + result;
-                                Log.d(TAG, status);
-                                mTvStatus.setText(status);
-                                mProgressBar.setVisibility(View.GONE);
-                            }
+                                    String status = "Revoke refresh token : " + result;
+                                    Log.d(TAG, status);
+                                    mTvStatus.setText(status);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
 
-                            @Override
-                            public void onError(String error, AuthorizationException exception) {
-                                Log.d(TAG, exception.error +
-                                        " revokeRefreshToken onError " + error, exception);
-                                mTvStatus.setText(error);
-                                mProgressBar.setVisibility(View.GONE);
-                            }
-                        });
+                                @Override
+                                public void onError(String error, AuthorizationException exception) {
+                                    Log.d(TAG, exception.error +
+                                            " revokeRefreshToken onError " + error, exception);
+                                    mTvStatus.setText(error);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+                            });
+                }
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
             }
         });
 
         mRevokeAccess.setOnClickListener(v -> {
             SessionClient client = getSessionClient();
-            Tokens tokens = client.getTokens();
-            if (tokens != null && tokens.getAccessToken() != null) {
-                mProgressBar.setVisibility(View.VISIBLE);
-                client.revokeToken(client.getTokens().getAccessToken(),
-                        new RequestCallback<Boolean, AuthorizationException>() {
-                            @Override
-                            public void onSuccess(@NonNull Boolean result) {
-                                String status = "Revoke Access token : " + result;
-                                Log.d(TAG, status);
-                                mTvStatus.setText(status);
-                                mProgressBar.setVisibility(View.GONE);
-                            }
+            Tokens tokens = null;
+            try {
+                tokens = client.getTokens();
 
-                            @Override
-                            public void onError(String error, AuthorizationException exception) {
-                                Log.d(TAG, exception.error +
-                                        " revokeAccessToken onError " + error, exception);
-                                mTvStatus.setText(error);
-                                mProgressBar.setVisibility(View.GONE);
-                            }
-                        });
+                if (tokens != null && tokens.getAccessToken() != null) {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    client.revokeToken(client.getTokens().getAccessToken(),
+                            new RequestCallback<Boolean, AuthorizationException>() {
+                                @Override
+                                public void onSuccess(@NonNull Boolean result) {
+                                    String status = "Revoke Access token : " + result;
+                                    Log.d(TAG, status);
+                                    mTvStatus.setText(status);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+
+                                @Override
+                                public void onError(String error, AuthorizationException exception) {
+                                    Log.d(TAG, exception.error +
+                                            " revokeAccessToken onError " + error, exception);
+                                    mTvStatus.setText(error);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+                            });
+                }
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
             }
         });
 
@@ -392,12 +439,21 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mSessionOAuth2Client = mWebOAuth2.getSessionClient();
 
+        mFingerprintManager = FingerprintManagerCompat.from(this);
+        EncryptionManager encryptionManager = null;
+        if (mFingerprintManager.isHardwareDetected() &&
+                mFingerprintManager.hasEnrolledFingerprints()) {
+            encryptionManager = mBiometricEncryptionManager =
+                    new SmartLockBaseEncryptionManager(this, Integer.MAX_VALUE);
+        } else {
+            encryptionManager = new SimpleBaseEncryptionManager(this);
+        }
         Okta.WebAuthBuilder builder = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
-                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .withEncryptionManager(encryptionManager)
                 .setRequireHardwareBackedKeyStore(false)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);
@@ -477,8 +533,16 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
+        if (mCancellationSignal != null) {
+            mCancellationSignal.cancel();
+        }
         mProgressBar.setVisibility(View.GONE);
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
                 .putBoolean(PREF_SWITCH, mSwitch.isChecked()).apply();
@@ -546,10 +610,82 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             @Override
             public void onError(String error, AuthorizationException exception) {
                 Log.d(TAG, error, exception.getCause());
-                mTvStatus.setText("Error : " + exception.errorDescription);
+                mTvStatus.setText("Error : " + error);
                 mProgressBar.setVisibility(View.GONE);
+                if (exception.code == BIOMETRIC_AUTHENTICATION) {
+                    //No validation time set so ask for fingerprint every time.
+                    Toast.makeText(SampleActivity.this, "Use fingerprint sensor",
+                            Toast.LENGTH_LONG).show();
+                    mCancellationSignal = new CancellationSignal();
+                    mCancellationSignal.setOnCancelListener(() -> Log.d(TAG, "cancel fingerprint" +
+                            "scanning"));
+                    CryptoObject cryptoObject =
+                            new CryptoObject(mBiometricEncryptionManager.getCipher());
+                    mFingerprintManager.authenticate(cryptoObject, 0, mCancellationSignal,
+                            mFingerprintCallback, null);
+                } else if (exception.code == KEYGUARD_AUTHENTICATION) {
+                    //Validation time set must use Keyguard authentication.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        showConfirmCredentials();
+                    }
+                }
+
             }
         });
+    }
+
+    //This is the callback for fingerprint.
+    AuthenticationCallback mFingerprintCallback = new AuthenticationCallback() {
+        @Override
+        public void onAuthenticationError(int errMsgId, CharSequence errString) {
+            super.onAuthenticationError(errMsgId, errString);
+            runOnUiThread(() -> mTvStatus.setText("Fingerprint error: " + errString));
+
+        }
+
+        @Override
+        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
+            super.onAuthenticationHelp(helpMsgId, helpString);
+            runOnUiThread(() -> mTvStatus.setText("Fingerprint help: " + helpString));
+        }
+
+        @Override
+        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+            super.onAuthenticationSucceeded(result);
+            runOnUiThread(() -> mTvStatus.setText("Fingerprint onAuthenticationSucceeded"));
+            mBiometricEncryptionManager.setCipher(result.getCryptoObject().getCipher());
+        }
+
+        @Override
+        public void onAuthenticationFailed() {
+            super.onAuthenticationFailed();
+            runOnUiThread(() -> mTvStatus.setText("Fingerprint FAILED"));
+        }
+    };
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void showConfirmCredentials() {
+        KeyguardManager keyguardManager =
+                (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(
+                "Confirm credentials", "");
+        if (intent != null) {
+            startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_CREDENTIALS) {
+            // Challenge completed, proceed with using cipher
+            if (resultCode == RESULT_OK) {
+                //clear the cipher since we've authenticated it should recreate.
+                mTvStatus.setText("request credentials success");
+            } else {
+                Toast.makeText(this, "Credential canceled", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override

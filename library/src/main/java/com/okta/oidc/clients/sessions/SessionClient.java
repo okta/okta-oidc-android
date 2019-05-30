@@ -25,7 +25,6 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
-import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -212,8 +211,9 @@ public interface SessionClient extends BaseSessionClient {
      * Gets tokens {@link Tokens}.
      *
      * @return the tokens
+     * @throws AuthorizationException exception when failing to get tokens. Usually from decrypting.
      */
-    Tokens getTokens();
+    Tokens getTokens() throws AuthorizationException;
 
     /**
      * Clears all data. This will remove all tokens from the client.

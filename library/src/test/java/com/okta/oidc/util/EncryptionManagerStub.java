@@ -74,7 +74,7 @@ public class EncryptionManagerStub implements EncryptionManager {
     }
 
     @Override
-    public boolean isAuthenticateUser() {
+    public boolean isUserAuthenticatedOnDevice() {
         return true;
     }
 }

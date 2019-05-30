@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.storage.security;
 
 import android.annotation.TargetApi;
@@ -6,7 +21,6 @@ import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
-import android.security.keystore.StrongBoxUnavailableException;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -30,32 +44,38 @@ import static android.security.keystore.KeyProperties.BLOCK_MODE_ECB;
 class EncryptionManagerAPI23 extends BaseEncryptionManager {
     private static final String TAG = EncryptionManagerAPI23.class.getSimpleName();
     private final boolean mIsAuthenticateUserRequired;
-    private final int mUserAuthenticationValidityDurationSeconds;
+    private final int mValidityDurationSeconds;
 
-    EncryptionManagerAPI23(Context context, String keyStoreName, String keyAlias, boolean isAuthenticateUserRequired, int userAuthenticationValidityDurationSeconds, boolean initCipherOnCreate) {
+    EncryptionManagerAPI23(Context context, String keyStoreName, String keyAlias,
+                           boolean isAuthenticateUserRequired,
+                           int userAuthenticationValidityDurationSeconds,
+                           boolean initCipherOnCreate) {
         super(keyStoreName, keyAlias);
         this.mKeyStoreAlgorithm = KeyProperties.KEY_ALGORITHM_RSA;
         this.mBlockMode = BLOCK_MODE_ECB;
         this.mEncryptionPadding = KeyProperties.ENCRYPTION_PADDING_RSA_OAEP;
-        this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode + "/OAEPWithSHA-256AndMGF1Padding";
+        this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode
+                + "/OAEPWithSHA-256AndMGF1Padding";
         this.mIsAuthenticateUserRequired = isAuthenticateUserRequired;
-        this.mUserAuthenticationValidityDurationSeconds = userAuthenticationValidityDurationSeconds;
+        this.mValidityDurationSeconds = userAuthenticationValidityDurationSeconds;
         prepare(context, initCipherOnCreate);
     }
 
     @Override
-    boolean generateKeyPair(Context context, KeyPairGenerator generator, String keyAlias, int keySize, String encryptionPaddings, String blockMode, boolean isStrongBoxBacked, @Nullable byte[] seed) {
+    boolean generateKeyPair(Context context, KeyPairGenerator generator, String keyAlias,
+                            int keySize, String encryptionPadding, String blockMode,
+                            boolean isStrongBoxBacked, @Nullable byte[] seed) {
         try {
             KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(keyAlias,
                     KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setKeySize(keySize)
                     .setBlockModes(blockMode)
                     .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
-                    .setEncryptionPaddings(encryptionPaddings)
+                    .setEncryptionPaddings(encryptionPadding)
                     .setUserAuthenticationRequired(mIsAuthenticateUserRequired)
-                    .setUserAuthenticationValidityDurationSeconds(mUserAuthenticationValidityDurationSeconds);
+                    .setUserAuthenticationValidityDurationSeconds(mValidityDurationSeconds);
 
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // If fingerprints list changed or will be empty
                 // current keys are invalid.
                 builder.setInvalidatedByBiometricEnrollment(mIsAuthenticateUserRequired);
@@ -105,8 +125,8 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
     }
 
     @Override
-    public boolean isAuthenticateUser() {
-        if (mCipher == null) {
+    public boolean isUserAuthenticatedOnDevice() {
+        if (mDecryptCipher == null) {
             return false;
         }
         try {
@@ -123,7 +143,7 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
                     return false;
                 }
             }
-            mCipher.init(Cipher.DECRYPT_MODE, key);
+            mDecryptCipher.init(Cipher.DECRYPT_MODE, key);
         } catch (Exception e) {
             return false;
         }

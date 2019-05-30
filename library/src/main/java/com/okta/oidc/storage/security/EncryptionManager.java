@@ -15,10 +15,11 @@
 
 package com.okta.oidc.storage.security;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Cipher;
 
 /**
  * Encryption Manager is responsible for encrypting and decrypting all data
@@ -32,7 +33,6 @@ public interface EncryptionManager {
      * @param value value as a string.
      * @return encrypted value.
      * @throws GeneralSecurityException if has problems with algorithms used.
-     * @throws IOException              if failed to open input stream
      */
     String encrypt(String value) throws GeneralSecurityException;
 
@@ -42,7 +42,6 @@ public interface EncryptionManager {
      * @param value encrypted value as a string.
      * @return decrypted value.
      * @throws GeneralSecurityException if has problems with algorithms used.
-     * @throws IOException              if failed to open input stream
      */
     String decrypt(String value) throws GeneralSecurityException;
 
@@ -79,9 +78,26 @@ public interface EncryptionManager {
     void removeKeys();
 
     /**
-     * if user authenticated and cipher is valid to use private key.
+     * If user is authenticated on the device and cipher is valid to use private key.
+     * This is for user authentication for accessing encrypted information on device.
      *
-     * @return true if hardware backed keystore is supported
+     * @return true if authenticated and cipher
      */
-    boolean isAuthenticateUser();
+    boolean isUserAuthenticatedOnDevice();
+
+    /**
+     * Gets cipher for use for biometrics. If the key isn't authenticated this is needed
+     * to add to CryptoObject.
+     *
+     * @return the cipher
+     */
+    Cipher getCipher();
+
+    /**
+     * Sets cipher that was validated by biometrics.
+     *
+     * @param cipher the cipher
+     */
+    void setCipher(Cipher cipher);
+
 }

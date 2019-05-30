@@ -22,7 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.okta.oidc.storage.OktaRepository;
+import com.okta.oidc.storage.OktaRepository.EncryptionException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -480,23 +480,40 @@ public final class AuthorizationException extends Exception {
      */
     public static final class EncryptionErrors {
         public static final int OTHER_ERROR = 5000;
-        public static final int DECRYPT_ERROR = 5001;
-        public static final int ENCRYPT_ERROR = 5002;
-        public static final int HARDWARE_BACKED_ERROR = 5003;
-        public static final int INVALID_KEYS_ERROR = 5004;
+        public static final int KEYGUARD_AUTHENTICATION = 5001;
+        public static final int BIOMETRIC_AUTHENTICATION = 5002;
+        public static final int ENCRYPT_ERROR = 5003;
+        public static final int HARDWARE_BACKED_ERROR = 5004;
+        public static final int INVALID_KEYS_ERROR = 5005;
 
-        public static final AuthorizationException OTHER = new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR, "Internal persistence error", null, null, null);
+        public static final AuthorizationException OTHER =
+                new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR,
+                        "Internal persistence error", null, null, null);
 
-        public static AuthorizationException byEncryptionException(OktaRepository.EncryptionException exception) {
+        public static AuthorizationException byEncryptionException(EncryptionException exception) {
             switch (exception.getType()) {
-                case OktaRepository.EncryptionException.DECRYPT_ERROR:
-                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, DECRYPT_ERROR, "Error during decrypt. "+exception.getLocalizedMessage(), null, null, null);
-                case OktaRepository.EncryptionException.ENCRYPT_ERROR:
-                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ENCRYPT_ERROR, "Error during encrypt. "+exception.getLocalizedMessage(), null, null, null);
-                case OktaRepository.EncryptionException.HARDWARE_BACKED_ERROR:
-                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, HARDWARE_BACKED_ERROR, "Hardware Backed KeyStore. "+exception.getLocalizedMessage(), null, null, null);
-                case OktaRepository.EncryptionException.INVALID_KEYS_ERROR:
-                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, INVALID_KEYS_ERROR, "Keys are invalid. "+exception.getLocalizedMessage(), null, null, null);
+                case EncryptionException.KEYGUARD_AUTHENTICATION:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR,
+                            KEYGUARD_AUTHENTICATION,
+                            "Error during decrypt. " + exception.getLocalizedMessage()
+                            , null, null, null);
+                case EncryptionException.BIOMETRIC_AUTHENTICATION:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR,
+                            BIOMETRIC_AUTHENTICATION,
+                            "Error during decrypt. " + exception.getLocalizedMessage(),
+                            null, null, null);
+                case EncryptionException.ENCRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ENCRYPT_ERROR,
+                            "Error during encrypt. " + exception.getLocalizedMessage(),
+                            null, null, null);
+                case EncryptionException.HARDWARE_BACKED_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, HARDWARE_BACKED_ERROR,
+                            "Hardware Backed KeyStore. " + exception.getLocalizedMessage(),
+                            null, null, null);
+                case EncryptionException.INVALID_KEYS_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, INVALID_KEYS_ERROR,
+                            "Keys are invalid. " + exception.getLocalizedMessage(),
+                            null, null, null);
                 default:
                     return EncryptionErrors.OTHER;
             }
