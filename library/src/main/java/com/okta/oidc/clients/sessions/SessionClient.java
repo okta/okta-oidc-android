@@ -212,8 +212,9 @@ public interface SessionClient extends BaseSessionClient {
      * Gets tokens {@link Tokens}.
      *
      * @return the tokens
+     * @throws AuthorizationException exception when failing to get tokens. Usually from decrypting.
      */
-    Tokens getTokens();
+    Tokens getTokens() throws AuthorizationException;
 
     /**
      * Clears all data. This will remove all tokens from the client.

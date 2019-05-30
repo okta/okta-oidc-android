@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.storage.security;
 
 import android.annotation.TargetApi;
@@ -6,14 +21,12 @@ import android.os.Build;
 import android.security.keystore.StrongBoxUnavailableException;
 import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -22,18 +35,13 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.ProviderException;
 import java.security.PublicKey;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
@@ -60,7 +68,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     protected KeyStore mKeyStore;
     protected Cipher mCipher;
 
-    private long initCipherStartStart = System.currentTimeMillis();
+    private long initCipherStart = System.currentTimeMillis();
 
     public BaseEncryptionManager(String keyStoreName, String keyAlias) {
         this.mKeyStoreName = keyStoreName;
@@ -74,7 +82,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
             if (mKeyStore == null) {
                 throw new RuntimeException("KeyStore is null");
             }
-        } catch (GeneralSecurityException|IOException e) {
+        } catch (GeneralSecurityException | IOException e) {
             throw new RuntimeException("Failed initialize KeyStore", e.getCause());
         }
 
@@ -92,19 +100,21 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
                 }
                 KeyPair keyPair = null;
                 try {
-                    generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE, mEncryptionPadding, mBlockMode, true, null);
+                    generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
+                            mEncryptionPadding, mBlockMode, true, null);
                     keyPair = mKeyPairGenerator.generateKeyPair();
                 } catch (ProviderException exception) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        if(exception instanceof StrongBoxUnavailableException) {
-                            generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE, mEncryptionPadding, mBlockMode, false, null);
+                        if (exception instanceof StrongBoxUnavailableException) {
+                            generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
+                                    mEncryptionPadding, mBlockMode, false, null);
                             keyPair = mKeyPairGenerator.generateKeyPair();
                         }
                     } else {
                         throw new RuntimeException("Failed generate keys.", exception.getCause());
                     }
                 }
-                if(keyPair == null) {
+                if (keyPair == null) {
                     throw new RuntimeException("Failed generate keys.");
                 }
             }
@@ -113,7 +123,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         }
 
         // Init Cipher
-        if(initCipher) {
+        if (initCipher) {
             try {
                 mCipher = createCipher(mTransformationString);
                 if (mCipher == null) {
@@ -134,15 +144,16 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     }
 
     private KeyPairGenerator createKeyPairGenerator() throws GeneralSecurityException {
-        return KeyPairGenerator
-                    .getInstance(mKeyStoreAlgorithm, mKeyStoreName);
+        return KeyPairGenerator.getInstance(mKeyStoreAlgorithm, mKeyStoreName);
     }
 
     protected Cipher createCipher(String transformation) throws GeneralSecurityException {
         return Cipher.getInstance(transformation);
     }
 
-    abstract boolean generateKeyPair(Context context, KeyPairGenerator generator, String keyAlias, int keySize, String encryptionPaddings, String blockMode, boolean isStrongBoxBacked, @Nullable byte[] seed);
+    abstract boolean generateKeyPair(Context context, KeyPairGenerator generator, String keyAlias,
+                                     int keySize, String encryptionPaddings, String blockMode,
+                                     boolean isStrongBoxBacked, @Nullable byte[] seed);
 
     private static String toHex(byte[] data) {
         StringBuilder sb = new StringBuilder();
@@ -159,30 +170,27 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
             try {
                 mKeyStore.deleteEntry(keyAlias);
             } catch (KeyStoreException e) {
-               throw new RuntimeException("KeyStore exception.", e.getCause());
+                throw new RuntimeException("KeyStore exception.", e.getCause());
             }
         }
     }
 
-    private boolean initCipher(String keyAlias, int mode) throws KeyStoreException,
-            NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException,
-            InvalidKeyException, UnrecoverableKeyException {
-            switch (mode) {
-                case Cipher.ENCRYPT_MODE:
-                    initEncodeCipher(keyAlias, mode);
-                    break;
+    private boolean initCipher(String keyAlias, int mode) throws GeneralSecurityException {
+        switch (mode) {
+            case Cipher.ENCRYPT_MODE:
+                initEncodeCipher(keyAlias, mode);
+                break;
 
-                case Cipher.DECRYPT_MODE:
-                    initDecodeCipher(keyAlias, mode);
-                    break;
-                default:
-                    return false; //this cipher is only for encode\decode
-            }
-            return true;
+            case Cipher.DECRYPT_MODE:
+                initDecodeCipher(keyAlias, mode);
+                break;
+            default:
+                return false; //this cipher is only for encode\decode
+        }
+        return true;
     }
 
-    private void initDecodeCipher(String keyAlias, int mode) throws KeyStoreException, NoSuchAlgorithmException,
-            UnrecoverableKeyException, InvalidKeyException {
+    private void initDecodeCipher(String keyAlias, int mode) throws GeneralSecurityException {
         PrivateKey key = (PrivateKey) mKeyStore.getKey(keyAlias, null);
         try {
             mCipher.init(mode, key);
@@ -190,8 +198,8 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (e instanceof UserNotAuthenticatedException) {
                     String errorMessage = "User wasn't authenticated";
-                    if(mCipher != null) {
-                        errorMessage = "User was authenticated "+getCipherLifeTime()/1000+" seconds ago";
+                    if (mCipher != null) {
+                        errorMessage = "User was authenticated " + getCipherLifeTime() / 1000 + " seconds ago";
                     }
                     throw new OktaUserNotAuthenticateException(errorMessage, e);
                 }
@@ -200,24 +208,23 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         }
     }
 
-    private void initEncodeCipher(String keyAlias, int mode) throws KeyStoreException, InvalidKeySpecException,
-            NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
-            PublicKey key = mKeyStore.getCertificate(keyAlias).getPublicKey();
+    private void initEncodeCipher(String keyAlias, int mode) throws GeneralSecurityException {
+        PublicKey key = mKeyStore.getCertificate(keyAlias).getPublicKey();
 
-            // workaround for using public key
-            // from https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
-            PublicKey unrestricted = KeyFactory.getInstance(key.getAlgorithm())
-                    .generatePublic(new X509EncodedKeySpec(key.getEncoded()));
+        // workaround for using public key
+        // from https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
+        PublicKey unrestricted = KeyFactory.getInstance(key.getAlgorithm())
+                .generatePublic(new X509EncodedKeySpec(key.getEncoded()));
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                // from https://code.google.com/p/android/issues/detail?id=197719
-                OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1,
-                        PSource.PSpecified.DEFAULT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // from https://code.google.com/p/android/issues/detail?id=197719
+            OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1,
+                    PSource.PSpecified.DEFAULT);
 
-                mCipher.init(mode, unrestricted, spec);
-            } else {
-                mCipher.init(mode, unrestricted);
-            }
+            mCipher.init(mode, unrestricted, spec);
+        } else {
+            mCipher.init(mode, unrestricted);
+        }
     }
 
     @Override
@@ -287,21 +294,26 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     }
 
     @Override
-    public void clearCipher() {
-        mCipher = null;
+    public void setCipher(Cipher cipher) {
+        mCipher = cipher;
+    }
+
+    @Override
+    public Cipher getCipher() {
+        return mCipher;
     }
 
     private void resetTimer() {
-        initCipherStartStart = System.currentTimeMillis();
+        initCipherStart = System.currentTimeMillis();
     }
 
     private long getCipherLifeTime() {
-        return System.currentTimeMillis() - initCipherStartStart;
+        return System.currentTimeMillis() - initCipherStart;
     }
 
     @TargetApi(23)
     public static class OktaUserNotAuthenticateException extends UserNotAuthenticatedException {
-        public OktaUserNotAuthenticateException(String message, Throwable cause) {
+        OktaUserNotAuthenticateException(String message, Throwable cause) {
             super(message, cause);
         }
     }

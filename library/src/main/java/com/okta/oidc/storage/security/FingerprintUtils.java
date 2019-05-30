@@ -26,7 +26,7 @@ import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
 /**
  * Finger prints utils encapsulates API's for preforming Finger print authentication.
  */
-public final class FingerprintUtils {
+final class FingerprintUtils {
     private FingerprintUtils() {
     }
 
@@ -46,7 +46,7 @@ public final class FingerprintUtils {
      * @param context application context.
      * @return true if device supports fingerprints.
      */
-    public static boolean checkFingerprintCompatibility(@NonNull Context context) {
+    static boolean checkFingerprintCompatibility(@NonNull Context context) {
         return FingerprintManagerCompat.from(context).isHardwareDetected();
     }
 
@@ -57,7 +57,7 @@ public final class FingerprintUtils {
      * @return current state.
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public static SensorState checkSensorState(@NonNull Context context) {
+    static SensorState checkSensorState(@NonNull Context context) {
         if (checkFingerprintCompatibility(context)) {
 
             KeyguardManager keyguardManager = (KeyguardManager) context
@@ -85,7 +85,7 @@ public final class FingerprintUtils {
      * @return true if state the same as expected.
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public static boolean isSensorStateAt(@NonNull SensorState state, @NonNull Context context) {
+    static boolean isSensorStateAt(@NonNull SensorState state, @NonNull Context context) {
         return checkSensorState(context) == state;
     }
 }
