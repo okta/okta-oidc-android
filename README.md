@@ -54,7 +54,7 @@ are needed by the library for browser initiated authorization. App must use Frag
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.oidc.android:okta-oidc-androidx:0.1.0'
+implementation 'com.okta.android:oidc-androidx:0.1.0'
 ```
 
 ### Sample app
