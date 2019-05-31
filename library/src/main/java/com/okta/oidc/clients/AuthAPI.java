@@ -47,9 +47,7 @@ import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
 
 /**
- * @hide
- *
- * This is a helper for authentication. It contains the APIs for getting
+ * @hide This is a helper for authentication. It contains the APIs for getting
  * the provider configuration, validating results, and code exchange.
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -68,7 +66,8 @@ public class AuthAPI {
                       HttpConnectionFactory connectionFactory,
                       boolean requireHardwareBackedKeyStore,
                       boolean cacheMode) {
-        mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager, requireHardwareBackedKeyStore, cacheMode));
+        mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager,
+                requireHardwareBackedKeyStore, cacheMode));
         mOidcConfig = oidcConfig;
         mConnectionFactory = connectionFactory;
     }
@@ -76,7 +75,8 @@ public class AuthAPI {
     protected ProviderConfiguration obtainNewConfiguration() throws AuthorizationException {
         try {
             ProviderConfiguration config = mOktaState.getProviderConfiguration();
-            if (config == null || !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
+            if (config == null ||
+                    !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
                 mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
                 ConfigurationRequest request = configurationRequest();
                 mCurrentRequest.set(new WeakReference<>(request));
@@ -97,7 +97,8 @@ public class AuthAPI {
                 .createRequest();
     }
 
-    protected void validateResult(WebResponse authResponse, WebRequest authorizedRequest) throws AuthorizationException {
+    protected void validateResult(WebResponse authResponse, WebRequest authorizedRequest)
+            throws AuthorizationException {
         if (authorizedRequest == null) {
             throw USER_CANCELED_AUTH_FLOW;
         }

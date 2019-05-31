@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019, Okta, Inc. and/or its affiliates. All rights reserved.
+ * The Okta software accompanied by this notice is provided pursuant to the Apache License,
+ * Version 2.0 (the "License.")
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * See the License for the specific language governing permissions and limitations under the
+ * License.
+ */
+
 package com.okta.oidc.clients.sessions;
 
 import com.okta.oidc.storage.security.EncryptionManager;
@@ -17,8 +32,9 @@ interface BaseSessionClient {
      * Use this method to migrate to another Encryption Manager. This method should decrypt data
      * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
      * by new Encryption Manager
-     * @param manager   new Encryption Manager
-     * @throws AuthorizationException
+     *
+     * @param manager new Encryption Manager
+     * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

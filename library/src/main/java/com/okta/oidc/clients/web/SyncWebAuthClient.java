@@ -44,7 +44,7 @@ import java.util.concurrent.ExecutorService;
  * SyncWebAuthClient client = new Okta.SyncWebAuthBuilder()
  *     .withConfig(config)
  *     .withContext(getApplicationContext())
- *     .withStorage(new SimpleOktaStorage(this))
+ *     .withStorage(new SharedPreferenceStorage(this))
  *     .withTabColor(getColorCompat(R.color.colorPrimary))
  *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
  *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)
@@ -130,8 +130,9 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * Use this method to migrate to another Encryption Manager. This method should decrypt data
      * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
      * by new Encryption Manager
-     * @param manager   new Encryption Manager
-     * @throws AuthorizationException
+     *
+     * @param manager new Encryption Manager
+     * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

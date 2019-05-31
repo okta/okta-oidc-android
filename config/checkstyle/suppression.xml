@@ -13,6 +13,8 @@
     <suppress checks="AbbreviationAsWordInName" files="OIDCConfig\.java" />
     <suppress checks="AbbreviationAsWordInName" files="AuthAPI\.java" />
     <suppress checks="AbbreviationAsWordInName" files="TLSSocketFactory\.java" />
+    <suppress checks="AbbreviationAsWordInName" files="EncryptionManagerAPI18\.java" />
+    <suppress checks="AbbreviationAsWordInName" files="EncryptionManagerAPI23\.java" />
 
     <!-- Suppress javadoc for classes with @RestrictTo(RestrictTo.Scope.LIBRARY)-->
     <suppress checks="Javadoc" files="OktaResultFragment\.java" />

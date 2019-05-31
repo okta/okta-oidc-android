@@ -37,7 +37,7 @@ import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
-import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
@@ -97,7 +97,7 @@ public class SyncSessionClientImplTest {
         String url = mEndPoint.getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
         mGson = new Gson();
-        OktaStorage storage = new SimpleOktaStorage(mContext);
+        OktaStorage storage = new SharedPreferenceStorage(mContext);
 
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
@@ -201,7 +201,7 @@ public class SyncSessionClientImplTest {
 
     @Test
     public void userProfileRequestOAuth2() throws AuthorizationException, OktaRepository.EncryptionException {
-        mExpectedEx.expect(UnsupportedOperationException.class);
+        mExpectedEx.expect(AuthorizationException.class);
         //create sessionclient from oauth2 resource
         OIDCConfig oauth2Config = TestValues
                 .getConfigWithUrl(mEndPoint.getUrl() + "/oauth2/default/");
@@ -210,7 +210,7 @@ public class SyncSessionClientImplTest {
                 .withConfig(oauth2Config)
                 .withHttpConnectionFactory(mConnectionFactory)
                 .withContext(mContext)
-                .withStorage(new SimpleOktaStorage(mContext, "oauth2prefs"))
+                .withStorage(new SharedPreferenceStorage(mContext, "oauth2prefs"))
                 .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 

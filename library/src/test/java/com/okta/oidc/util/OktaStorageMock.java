@@ -17,9 +17,9 @@ package com.okta.oidc.util;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 
-public class OktaStorageMock extends SimpleOktaStorage {
+public class OktaStorageMock extends SharedPreferenceStorage {
     private boolean mRequireHardware;
 
     public OktaStorageMock(Context context, boolean hardware) {

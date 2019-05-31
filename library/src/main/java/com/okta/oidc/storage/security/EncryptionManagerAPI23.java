@@ -40,7 +40,7 @@ import javax.crypto.Cipher;
 
 import static android.security.keystore.KeyProperties.BLOCK_MODE_ECB;
 
-@TargetApi(23)
+@TargetApi(Build.VERSION_CODES.M)
 class EncryptionManagerAPI23 extends BaseEncryptionManager {
     private static final String TAG = EncryptionManagerAPI23.class.getSimpleName();
     private final boolean mIsAuthenticateUserRequired;
@@ -54,7 +54,8 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
         this.mKeyStoreAlgorithm = KeyProperties.KEY_ALGORITHM_RSA;
         this.mBlockMode = BLOCK_MODE_ECB;
         this.mEncryptionPadding = KeyProperties.ENCRYPTION_PADDING_RSA_OAEP;
-        this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode + "/OAEPWithSHA-256AndMGF1Padding";
+        this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode
+                + "/OAEPWithSHA-256AndMGF1Padding";
         this.mIsAuthenticateUserRequired = isAuthenticateUserRequired;
         this.mValidityDurationSeconds = userAuthenticationValidityDurationSeconds;
         prepare(context, initCipherOnCreate);

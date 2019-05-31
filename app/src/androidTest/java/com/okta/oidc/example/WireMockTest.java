@@ -35,7 +35,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.net.HttpConnectionFactory;
-import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.CodeVerifierUtil;
 
 import org.junit.After;
@@ -207,7 +207,7 @@ public class WireMockTest {
         activityRule.getActivity().mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(activityRule.getActivity().mOidcConfig)
                 .withContext(activityRule.getActivity())
-                .withStorage(new SimpleOktaStorage(activityRule.getActivity()))
+                .withStorage(new SharedPreferenceStorage(activityRule.getActivity()))
                 .withHttpConnectionFactory(new MockConnectionFactory())
                 .create();
 

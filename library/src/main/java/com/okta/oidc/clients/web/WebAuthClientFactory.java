@@ -52,7 +52,8 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       HttpConnectionFactory connectionFactory,
                                       boolean requireHardwareBackedKeyStore,
                                       boolean cacheMode) {
-        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode,
+        return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
+                encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode,
                 mCustomTabColor, mSupportedBrowser);
     }
 }

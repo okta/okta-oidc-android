@@ -35,7 +35,7 @@ import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
-import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
@@ -101,7 +101,7 @@ public class SessionClientImplTest {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mEndPoint = new MockEndPoint();
         mGson = new Gson();
-        mStorage = new SimpleOktaStorage(mContext);
+        mStorage = new SharedPreferenceStorage(mContext);
         String url = mEndPoint.getUrl();
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
 

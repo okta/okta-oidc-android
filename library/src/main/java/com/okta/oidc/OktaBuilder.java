@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 /**
@@ -59,12 +60,12 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     private EncryptionManager mEncryptionManager;
 
     /**
-     * Require Hardware Backed KeyStore
+     * Require Hardware Backed KeyStore.
      */
     private boolean mRequireHardwareBackedKeyStore = true;
 
     /**
-     * Cache Mode
+     * Cache Mode.
      */
     private boolean mCacheMode = true;
 
@@ -119,7 +120,7 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
 
     /**
      * Set a storage implementation for the client to use. You can define your own storage
-     * or use the default implementation {@link com.okta.oidc.storage.SimpleOktaStorage}
+     * or use the default implementation {@link SharedPreferenceStorage}
      *
      * @param storage the storage implementation
      * @return current builder

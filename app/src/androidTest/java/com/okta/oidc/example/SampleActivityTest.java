@@ -27,6 +27,7 @@ import androidx.test.uiautomator.UiSelector;
 import androidx.test.uiautomator.Until;
 
 import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.util.AuthorizationException;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -86,10 +87,6 @@ public class SampleActivityTest {
         mDevice = UiDevice.getInstance(getInstrumentation());
         USERNAME = BuildConfig.USERNAME;
         PASSWORD = BuildConfig.PASSWORD;
-        if (Utils.isEmulator()) {
-            activityRule.getActivity().mStorageOidc.requireHardwareKeyStore = false;
-            activityRule.getActivity().mStorageOAuth2.requireHardwareKeyStore = false;
-        }
     }
 
     private UiObject getProgressBar() {
@@ -136,7 +133,11 @@ public class SampleActivityTest {
     //is not persisted.
     private void signInIfNotAlready() {
         onView(withId(R.id.clear_data)).withFailureHandler((error, viewMatcher) -> {
-            test3_signInWithSession();
+            try {
+                test3_signInWithSession();
+            } catch (AuthorizationException e) {
+                //NO-OP
+            }
         }).check(matches(isDisplayed()));
     }
 
@@ -170,7 +171,7 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void test3_signInWithSession() {
+    public void test3_signInWithSession() throws AuthorizationException {
         onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
 
@@ -358,7 +359,7 @@ public class SampleActivityTest {
         }).check(matches(isNotChecked()));
 
         onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
-            test9_signOutOfOkta();
+            //test9_signOutOfOkta();
             onView(withId(R.id.clear_data)).perform(click());
         }).check(matches(isDisplayed()));
 

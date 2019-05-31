@@ -24,7 +24,6 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
-import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -50,7 +49,7 @@ import java.util.Map;
  * SyncWebAuthClient auth = new Okta.SyncWebAuthBuilder()
  *     .withConfig(config)
  *     .withContext(getApplicationContext())
- *     .withStorage(new SimpleOktaStorage(this))
+ *     .withStorage(new SharedPreferenceStorage(this))
  *     .withTabColor(getColorCompat(R.color.colorPrimary))
  *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
  *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)
@@ -62,7 +61,7 @@ import java.util.Map;
  *
  * @see <a href="https://developer.okta.com/docs/api/resources/oidc/">Okta API docs</a>
  */
-public interface SyncSessionClient extends BaseSessionClient{
+public interface SyncSessionClient extends BaseSessionClient {
     /**
      * Performs a custom authorized request with the access token automatically added to the
      * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
@@ -182,8 +181,19 @@ public interface SyncSessionClient extends BaseSessionClient{
 
     /**
      * Gets tokens {@link Tokens}.
+     * Example usage:
+     * {@code
+     * <pre>
+     * try {
+     *     Tokens token = getTokens();
+     * } catch (AuthorizationException ex) {
+     *     //handle exception
+     * }
+     * </pre>
+     * }
      *
      * @return the tokens
+     * @throws AuthorizationException the authorization exception
      */
     Tokens getTokens() throws AuthorizationException;
 

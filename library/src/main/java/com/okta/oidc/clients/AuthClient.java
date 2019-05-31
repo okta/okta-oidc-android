@@ -55,8 +55,9 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * Use this method to migrate to another Encryption Manager. This method should decrypt data
      * using current EncryptionManager and encrypt with new one. All follow data will be encrypted
      * by new Encryption Manager
-     * @param manager   new Encryption Manager
-     * @throws AuthorizationException
+     *
+     * @param manager new Encryption Manager
+     * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
 }

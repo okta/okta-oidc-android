@@ -45,7 +45,7 @@ public class RequestDispatcher extends AbstractExecutorService {
     private ExecutorService mExecutorService;
 
     //executor used to run async requests not related to networking.
-    private static final ExecutorService sTaskExecutor =
+    private static final ExecutorService TASK_EXECUTOR =
             Executors.newFixedThreadPool(MAX_THREADS);
 
     //callback executor provide by app for callbacks
@@ -135,7 +135,7 @@ public class RequestDispatcher extends AbstractExecutorService {
     }
 
     public void runTask(Runnable runnable) {
-        mExecutorServiceTasks.add(sTaskExecutor.submit(runnable));
+        mExecutorServiceTasks.add(TASK_EXECUTOR.submit(runnable));
     }
 
     //Debugging

@@ -32,7 +32,7 @@ import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
-import com.okta.oidc.storage.SimpleOktaStorage;
+import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
@@ -85,7 +85,7 @@ public class SyncAuthClientTest {
 
         String url = mEndPoint.getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
-        mStorage = new SimpleOktaStorage(mContext);
+        mStorage = new SharedPreferenceStorage(mContext);
         mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
         mProviderConfig = TestValues.getProviderConfiguration(url);
 

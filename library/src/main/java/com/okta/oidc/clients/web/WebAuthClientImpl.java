@@ -55,8 +55,11 @@ class WebAuthClientImpl implements WebAuthClient {
                       boolean cacheMode,
                       int customTabColor,
                       String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers).createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
-        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncAuthClient.getSessionClient());
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers)
+                .createClient(oidcConfig, context, oktaStorage, encryptionManager,
+                        httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        mSessionImpl = new SessionClientFactoryImpl(executor)
+                .createClient(mSyncAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 

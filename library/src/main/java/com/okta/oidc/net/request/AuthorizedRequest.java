@@ -28,8 +28,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
-
 /**
  * @hide
  */

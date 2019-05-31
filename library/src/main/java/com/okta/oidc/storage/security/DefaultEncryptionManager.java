@@ -23,12 +23,20 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 
-public class SimpleBaseEncryptionManager implements EncryptionManager {
+/**
+ * A implementation of {@link EncryptionManager}.
+ */
+public class DefaultEncryptionManager implements EncryptionManager {
     private static final String KEY_STORE = "AndroidKeyStore";
     private static final String KEY_ALIAS = "key_for_pin";
     private final EncryptionManager mEncryptionManager;
 
-    public SimpleBaseEncryptionManager(Context context) {
+    /**
+     * Constructor requires a context.
+     *
+     * @param context context
+     */
+    public DefaultEncryptionManager(Context context) {
         mEncryptionManager = EncryptionManagerFactory.createEncryptionManager(context, KEY_STORE,
                 KEY_ALIAS, false, -1, true);
     }

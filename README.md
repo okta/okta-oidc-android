@@ -54,7 +54,7 @@ are needed by the library for browser initiated authorization. App must use Frag
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.oidc.android:okta-oidc-androidx:1.0.0'
+implementation 'com.okta.oidc.android:okta-oidc-androidx:0.1.0'
 ```
 
 ### Sample app
@@ -82,7 +82,7 @@ Then create a `client` like the following:
 WebAuthClient webClient = new Okta.WebAuthBuilder()
                 .withConfig(config)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
+                .withStorage(new SharedPreferenceStorage(this))
                 .create();
 ```
 
@@ -194,7 +194,7 @@ of the web browser you can do by using a `sessionToken`:
 AuthClient authClient = new Okta.AuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
+    .withStorage(new SharedPreferenceStorage(this))
     .create();
 ```
 
@@ -207,7 +207,6 @@ if (!sessionClient.isAuthenticated()) {
         @Override
         public void onSuccess(@NonNull AuthorizationResult result) {
             //client is now authorized.
-            Tokens tokens = sessionClient.getTokens();
         }
 
         @Override
@@ -333,18 +332,22 @@ client.getSessionClient().refreshToken(new RequestCallback<Tokens, Authorization
 Tokens can be revoked with the following request:
 
 ```java
-Tokens token = client.getSessionClient.getTokens();
-client.getSessionClient().revokeToken(token.getRefreshToken(),
-    new RequestCallback<Boolean, AuthorizationException>() {
-        @Override
-        public void onSuccess(@NonNull Boolean result) {
-            //handle result
-        }
-        @Override
-        public void onError(String error, AuthorizationException exception) {
-            //handle request error
-        }
-    });
+try {
+    Tokens token = client.getSessionClient.getTokens();
+    client.getSessionClient().revokeToken(token.getRefreshToken(),
+        new RequestCallback<Boolean, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull Boolean result) {
+                //handle result
+            }
+            @Override
+            public void onError(String error, AuthorizationException exception) {
+                //handle request error
+            }
+        });
+    } catch (AuthorizationException e) {
+        //handle error
+    }
 ```
 
 **Note:** *Access, refresh and ID tokens need to be revoked in separate requests. The request only revokes the specified token*
@@ -415,7 +418,7 @@ The following shows how to create a asynchronous web authentication client.
 WebAuthClient webAuthClient = new Okta.WebAuthBuilder()
         .withConfig(config)
         .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
+        .withStorage(new SharedPreferenceStorage(this))
         .withCallbackExecutor(Executors.newSingleThreadExecutor())
         .withTabColor(Color.BLUE)
         .supportedBrowsers("com.android.chrome", "org.mozilla.firefox")
@@ -430,7 +433,7 @@ The following shows how to create synchronous web authentication client:
 SyncWebAuthClient webSyncAuthClient = new Okta.SyncWebAuthBuilder()
         .withConfig(config)
         .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
+        .withStorage(new SharedPreferenceStorage(this))
         .withTabColor(Color.BLUE)
         .supportedBrowsers("com.android.chrome", "com.google.android.apps.chrome", "com.android.chrome.beta")
         .create();
@@ -445,7 +448,7 @@ The following shows how to create a asynchronous authentication client:
 AuthClient authClient = new Okta.AuthBuilder()
         .withConfig(config)
         .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
+        .withStorage(new SharedPreferenceStorage(this))
         .withCallbackExecutor(Executors.newSingleThreadExecutor())
         .create();
 ```
@@ -458,7 +461,7 @@ The following shows how to create synchronous authentication client:
 SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
         .withConfig(config)
         .withContext(getApplicationContext())
-        .withStorage(new SimpleOktaStorage(this))
+        .withStorage(new SharedPreferenceStorage(this))
         .create();
 ```
 
@@ -477,7 +480,7 @@ String ANDROID_BROWSER = "com.android.browser";
 client = new Okta.WebAuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
+    .withStorage(new SharedPreferenceStorage(this))
     .withTabColor(getColorCompat(R.color.colorPrimary))
     .supportedBrowsers(FIREFOX, SAMSUNG)
     .create();
@@ -512,7 +515,7 @@ private class MyConnectionFactory implements HttpConnectionFactory {
 client = new Okta.WebAuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
+    .withStorage(new SharedPreferenceStorage(this))
     .withTabColor(getColorCompat(R.color.colorPrimary))
     .withHttpConnectionFactory(new MyConnectionFactory())
     .create();
@@ -521,38 +524,16 @@ client = new Okta.WebAuthBuilder()
 ### Storage
 
 The library provides storage using shared preferences. If you wish to use SQL or any other storage mechanism you can implement the storage interface and use it when creating the various `AuthClient`.
-The default storage also requires a hardware-backed keystore for encryption. If the device does not provide hardware-backed keystore the library will not store any data. If you wish to override this behavior you can implement or extend the `OktaStorage` interface:
+The default behavior requires a hardware-backed keystore for encryption. If the device does not provide hardware-backed keystore the library will not store any data. If you wish to override this behavior you can set this option the `Builder`:
 
 ```java
-public class MyStorage implements OktaStorage {
-    @Override
-    public void save(@NonNull String key, @NonNull String value) {
-        //Provide implementation
-    }
-
-    @Nullable
-    @Override
-    public String get(@NonNull String key) {
-        return null; //Provide implementation
-    }
-
-    @Override
-    public void delete(@NonNull String key) {
-        //Provide implementation
-    }
-
-    @Override
-    public boolean requireHardwareBackedKeyStore() {
-        //return true if hardware backed keystore is required
-        //return false if hardware backed keystore is not required
-    }
-}
 
 client = new Okta.WebAuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
     .withStorage(new MyStorage())
     .withTabColor(getColorCompat(R.color.colorPrimary))
+    .setRequireHardwareBackedKeyStore(false)
     .supportedBrowsers(FIREFOX, SAMSUNG)
     .create();
 ```
@@ -588,11 +569,11 @@ you more control as a developer.
 
 In order to use authentication flow without browser you can use our `AuthClient`
 
-```Java
+```java
 AuthClient authClient = new Okta.AuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
+    .withStorage(new SharedPreferenceStorage(this))
     .create();
 ```
 
@@ -622,7 +603,7 @@ In order to use a synchronous authentication flow without a browser you can use 
 SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
     .withConfig(config)
     .withContext(getApplicationContext())
-    .withStorage(new SimpleOktaStorage(this))
+    .withStorage(new SharedPreferenceStorage(this))
     .create();
 ```
 
@@ -652,12 +633,12 @@ OIDCConfig configSecondApp = new OIDCConfig.Builder()
 WebAuthClient webAuthFirstApp = new Okta.WebAuthBuilder()
                 .withConfig(configFirstApp)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this, "FIRSTAPP"))
+                .withStorage(new SharedPreferenceStorage(this, "FIRSTAPP"))
                 .create();
 WebAuthClient webAuthSecondApp = new Okta.WebAuthBuilder()
                 .withConfig(configSecondApp)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this, "SECONDAPP"))
+                .withStorage(new SharedPreferenceStorage(this, "SECONDAPP"))
                 .create();
 
 if (true) { //provide option to login using different clients.
