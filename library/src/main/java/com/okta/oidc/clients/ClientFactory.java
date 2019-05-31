@@ -31,12 +31,12 @@ public interface ClientFactory<A> {
     /**
      * Create client a.
      *
-     * @param oidcConfig        the oidc config
-     * @param context           the context
-     * @param oktaStorage       the storage
-     * @param encryptionManager the encryption manager
-     * @param connectionFactory the connection factory
-     * @param requireHardwareBackedKeyStore allow persist in storage only if hardware backed keystore
+     * @param oidcConfig                    the oidc config
+     * @param context                       the context
+     * @param oktaStorage                   the storage
+     * @param encryptionManager             the encryption manager
+     * @param connectionFactory             the connection factory
+     * @param requireHardwareBackedKeyStore persist in storage only if hardware backed keystore
      * @return the type of auth client
      */
     A createClient(OIDCConfig oidcConfig,

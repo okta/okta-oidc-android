@@ -17,6 +17,7 @@ package com.okta.oidc.storage.security;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -24,12 +25,12 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 
-@TargetApi(23)
+@TargetApi(Build.VERSION_CODES.M)
 class SmartLockBaseEncryptionManager implements EncryptionManager {
     private static final String KEY_STORE = "AndroidKeyStore";
     private static final String KEY_SIMPLE_ALIAS = "smart_simple_key_for_pin";
     private static final String KEY_AUTHORIZE_ALIAS = "smart_authorize_key_for_pin";
-    private final int MIN_VALIDITY_DURATION = 5;
+    private static final int MIN_VALIDITY_DURATION = 5;
     private EncryptionManager mEncryptionManager;
 
     SmartLockBaseEncryptionManager(Context context) {

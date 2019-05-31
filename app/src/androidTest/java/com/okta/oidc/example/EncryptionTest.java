@@ -8,7 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
 import com.okta.oidc.storage.security.EncryptionManager;
-import com.okta.oidc.storage.security.SimpleEncryptionManager;
+import com.okta.oidc.storage.security.DefaultEncryptionManager;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,16 +18,8 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-
-import javax.crypto.NoSuchPaddingException;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
@@ -44,10 +36,8 @@ public class EncryptionTest {
     public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
 
     @Before
-    public void setUp() throws IOException, CertificateException, NoSuchAlgorithmException,
-            InvalidKeyException, UnrecoverableEntryException, InvalidAlgorithmParameterException,
-            NoSuchPaddingException, NoSuchProviderException, KeyStoreException {
-        mEncryptionManager = new SimpleEncryptionManager(activityRule.getActivity());
+    public void setUp() {
+        mEncryptionManager = new DefaultEncryptionManager(activityRule.getActivity());
         Context context = InstrumentationRegistry.getInstrumentation().getContext();
         mConfiguration = Utils.getAsset(context, "configuration.json");
     }
@@ -55,7 +45,7 @@ public class EncryptionTest {
     @Test
     public void checkHardwareKeystore() {
         boolean hardwareBacked = mEncryptionManager.isHardwareBackedKeyStore();
-        if (Utils.isEmulator()) {
+        if (SampleActivity.isEmulator()) {
             assertFalse(hardwareBacked);
         } else {
             assertTrue(hardwareBacked);
@@ -66,11 +56,11 @@ public class EncryptionTest {
     public void encryptData() throws GeneralSecurityException, IOException,
             IllegalArgumentException {
         String encrypted = mEncryptionManager.encrypt(mConfiguration);
-        //check if the encrypted data is base64 encoded.
-        android.util.Base64.decode(encrypted, android.util.Base64.NO_WRAP);
+        String decryptData = mEncryptionManager.decrypt(encrypted);
         assertNotNull(encrypted);
         assertNotNull(mConfiguration);
         assertNotEquals(encrypted, mConfiguration);
+        assertNotEquals(encrypted, decryptData);
     }
 
     @Test

@@ -23,6 +23,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.security.GeneralSecurityException;
@@ -57,6 +58,9 @@ public class OktaRepository {
         this.cacheMode = cacheMode;
         this.requireHardwareBackedKeyStore = requireHardwareBackedKeyStore;
         this.encryptionManager = encryptionManager;
+        if (this.encryptionManager == null) {
+            this.encryptionManager = new DefaultEncryptionManager(context);
+        }
     }
 
     public void setEncryptionManager(EncryptionManager encryptionManager) {
@@ -68,9 +72,8 @@ public class OktaRepository {
             return;
         }
         synchronized (lock) {
-            if (!requireHardwareBackedKeyStore
-                    || (requireHardwareBackedKeyStore && encryptionManager != null &&
-                    encryptionManager.isHardwareBackedKeyStore())) {
+            if (!requireHardwareBackedKeyStore || encryptionManager != null &&
+                    encryptionManager.isHardwareBackedKeyStore()) {
                 String encryptedData;
                 if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     try {
@@ -94,7 +97,7 @@ public class OktaRepository {
                 }
             } else {
                 throw new EncryptionException(HARDWARE_BACKED_ERROR,
-                        "Client require hardware backed keystore, "+
+                        "Client require hardware backed keystore, " +
                                 "but EncryptionManager doesn't support it.", null);
             }
             if (cacheMode) {
@@ -193,10 +196,10 @@ public class OktaRepository {
     }
 
     public static class EncryptionException extends Exception {
-        public final static int ENCRYPT_ERROR = 1;
-        public final static int HARDWARE_BACKED_ERROR = 3;
-        public final static int INVALID_KEYS_ERROR = 4;
-        public final static int KEYGUARD_AUTHENTICATION_ERROR = 5;
+        public static final int ENCRYPT_ERROR = 1;
+        public static final int HARDWARE_BACKED_ERROR = 3;
+        public static final int INVALID_KEYS_ERROR = 4;
+        public static final int KEYGUARD_AUTHENTICATION_ERROR = 5;
 
         private int mType;
 

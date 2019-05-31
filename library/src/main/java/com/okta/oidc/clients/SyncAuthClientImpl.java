@@ -27,8 +27,8 @@ import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
-import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -50,14 +50,17 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
                        HttpConnectionFactory connectionFactory,
                        boolean requireHardwareBackedKeyStore,
                        boolean cacheMode) {
-        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory,
+                requireHardwareBackedKeyStore, cacheMode);
         sessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, mOktaState, connectionFactory);
     }
 
     @VisibleForTesting
-    NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken, ProviderConfiguration providerConfiguration,
-                                                  AuthenticationPayload payload) throws AuthorizationException {
+    NativeAuthorizeRequest nativeAuthorizeRequest(String sessionToken,
+                                                  ProviderConfiguration providerConfiguration,
+                                                  AuthenticationPayload payload)
+            throws AuthorizationException {
         return new AuthorizeRequest.Builder()
                 .config(mOidcConfig)
                 .providerConfiguration(providerConfiguration)

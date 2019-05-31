@@ -25,7 +25,6 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.HttpConnection;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
-import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
@@ -51,7 +50,7 @@ import java.util.Map;
  * WebAuthClient auth = new Okta.WebAuthBuilder()
  *     .withConfig(config)
  *     .withContext(getApplicationContext())
- *     .withStorage(new SimpleOktaStorage(this))
+ *     .withStorage(new SharedPreferenceStorage(this))
  *     .withTabColor(getColorCompat(R.color.colorPrimary))
  *     .withCallbackExecutor(Executors.newSingleThreadExecutor())
  *     .supportedBrowsers(CHROME_PACKAGE_ID, FIREFOX_PACKAGE_ID)

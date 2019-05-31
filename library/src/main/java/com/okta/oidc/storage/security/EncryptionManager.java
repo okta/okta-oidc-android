@@ -15,6 +15,8 @@
 
 package com.okta.oidc.storage.security;
 
+import com.okta.oidc.storage.OktaStorage;
+
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
@@ -22,8 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 
 /**
- * Encryption Manager is responsible for encrypting and decrypting all data
- * that is going to be stored in {@link com.okta.oidc.storage.OktaStorage}.
+ * Encryption Manager is responsible for encrypting and decrypting all data.
+ * The encrypted data will be stored in a implementation of {@link OktaStorage}.
  */
 public interface EncryptionManager {
 
@@ -63,7 +65,7 @@ public interface EncryptionManager {
     boolean isHardwareBackedKeyStore();
 
     /**
-     * recreate cipher using internal settings
+     * recreate cipher using internal settings.
      */
     void recreateCipher();
 
@@ -75,15 +77,15 @@ public interface EncryptionManager {
     void setCipher(Cipher cipher);
 
     /**
-     * Gets cipher for use for biometrics. If the key isn't authenticated this is needed
-     * to add to CryptoObject.
+     * Gets cipher for use for biometrics.
+     * If the key isn't authenticated this is needed to add to CryptoObject.
      *
      * @return the cipher
      */
     Cipher getCipher();
 
     /**
-     * remove current keys
+     * remove current keys.
      */
     void removeKeys();
 

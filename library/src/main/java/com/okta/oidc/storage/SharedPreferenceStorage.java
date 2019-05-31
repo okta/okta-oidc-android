@@ -31,7 +31,7 @@ import static android.content.Context.MODE_PRIVATE;
  * The data will be encrypted by the library before saving.
  */
 @SuppressLint("ApplySharedPref")
-public class SimpleOktaStorage implements OktaStorage {
+public class SharedPreferenceStorage implements OktaStorage {
     @VisibleForTesting
     protected SharedPreferences prefs;
 
@@ -41,7 +41,7 @@ public class SimpleOktaStorage implements OktaStorage {
      *
      * @param context the context
      */
-    public SimpleOktaStorage(Context context) {
+    public SharedPreferenceStorage(Context context) {
         this(context, null);
     }
 
@@ -51,9 +51,9 @@ public class SimpleOktaStorage implements OktaStorage {
      * @param context  the context
      * @param prefName the preferences file name.
      */
-    public SimpleOktaStorage(Context context, String prefName) {
+    public SharedPreferenceStorage(Context context, String prefName) {
         prefs = context.getSharedPreferences(prefName == null ?
-                SimpleOktaStorage.class.getCanonicalName() : prefName, MODE_PRIVATE);
+                SharedPreferenceStorage.class.getCanonicalName() : prefName, MODE_PRIVATE);
     }
 
     @Override

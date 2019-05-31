@@ -47,8 +47,11 @@ class AuthClientImpl implements AuthClient {
                    HttpConnectionFactory httpConnectionFactory,
                    boolean requireHardwareBackedKeyStore,
                    boolean cacheMode) {
-        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context, oktaStorage, encryptionManager, httpConnectionFactory, requireHardwareBackedKeyStore, cacheMode);
-        mSessionImpl = new SessionClientFactoryImpl(executor).createClient(mSyncNativeAuthClient.getSessionClient());
+        mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context,
+                oktaStorage, encryptionManager, httpConnectionFactory,
+                requireHardwareBackedKeyStore, cacheMode);
+        mSessionImpl = new SessionClientFactoryImpl(executor)
+                .createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
     }
 

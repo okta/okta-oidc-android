@@ -22,6 +22,7 @@ import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.web.WebRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.storage.OktaRepository;
+import com.okta.oidc.storage.OktaRepository.EncryptionException;
 import com.okta.oidc.storage.Persistable;
 import com.okta.oidc.storage.security.EncryptionManager;
 
@@ -41,7 +42,7 @@ public class OktaState {
         this.currentState = IDLE;
     }
 
-    public TokenResponse getTokenResponse() throws OktaRepository.EncryptionException {
+    public TokenResponse getTokenResponse() throws EncryptionException {
         return mOktaRepo.get(TokenResponse.RESTORE);
     }
 
@@ -49,11 +50,11 @@ public class OktaState {
         return mOktaRepo.contains(TokenResponse.RESTORE);
     }
 
-    public ProviderConfiguration getProviderConfiguration() throws OktaRepository.EncryptionException {
+    public ProviderConfiguration getProviderConfiguration() throws EncryptionException {
         return mOktaRepo.get(ProviderConfiguration.RESTORE);
     }
 
-    public WebRequest getAuthorizeRequest() throws OktaRepository.EncryptionException {
+    public WebRequest getAuthorizeRequest() throws EncryptionException {
         return mOktaRepo.get(WebRequest.RESTORE);
     }
 
@@ -65,7 +66,7 @@ public class OktaState {
         return this.currentState;
     }
 
-    public void save(Persistable persistable) throws OktaRepository.EncryptionException {
+    public void save(Persistable persistable) throws EncryptionException {
         mOktaRepo.save(persistable);
     }
 

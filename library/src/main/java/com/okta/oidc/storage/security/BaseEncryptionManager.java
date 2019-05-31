@@ -45,11 +45,10 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
-@TargetApi(8)
-public abstract class BaseEncryptionManager implements EncryptionManager {
+abstract class BaseEncryptionManager implements EncryptionManager {
     private static final String TAG = BaseEncryptionManager.class.getSimpleName();
     private static final String DEFAULT_CHARSET = "UTF-8";
-
+    private static final int MS_TO_SECOND = 1000;
     protected final String mKeyStoreName;
     protected final String mKeyAlias;
 
@@ -61,7 +60,6 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     private static final int RSA_KEY_SIZE = 2048;
     // RSA doesn't support encryption of lot amount of data.
     // Use formula to calculate the max size of chunk: (KEY_SIZE/8) - 11
-    //TODO: need to understand why formula need extra multiple 0.5
     private static final int CHUNK_SIZE = (int) (((RSA_KEY_SIZE / 8) - 11) * 0.5);
     private static final String CHUNK_SEPARATOR = ",";
 
@@ -70,7 +68,7 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
 
     private long initCipherStart = System.currentTimeMillis();
 
-    public BaseEncryptionManager(String keyStoreName, String keyAlias) {
+    BaseEncryptionManager(String keyStoreName, String keyAlias) {
         this.mKeyStoreName = keyStoreName;
         this.mKeyAlias = keyAlias;
     }
@@ -89,10 +87,10 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         // Check if exist instead generate new private and public keys
         try {
             if (!mKeyStore.containsAlias(mKeyAlias)) {
-                KeyPairGenerator mKeyPairGenerator;
+                KeyPairGenerator keyPairGenerator;
                 try {
-                    mKeyPairGenerator = createKeyPairGenerator();
-                    if (mKeyPairGenerator == null) {
+                    keyPairGenerator = createKeyPairGenerator();
+                    if (keyPairGenerator == null) {
                         throw new RuntimeException("KeyPairGenerator is null");
                     }
                 } catch (GeneralSecurityException e) {
@@ -100,15 +98,15 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
                 }
                 KeyPair keyPair = null;
                 try {
-                    generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
+                    generateKeyPair(context, keyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
                             mEncryptionPadding, mBlockMode, true, null);
-                    keyPair = mKeyPairGenerator.generateKeyPair();
+                    keyPair = keyPairGenerator.generateKeyPair();
                 } catch (ProviderException exception) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         if (exception instanceof StrongBoxUnavailableException) {
-                            generateKeyPair(context, mKeyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
+                            generateKeyPair(context, keyPairGenerator, mKeyAlias, RSA_KEY_SIZE,
                                     mEncryptionPadding, mBlockMode, false, null);
-                            keyPair = mKeyPairGenerator.generateKeyPair();
+                            keyPair = keyPairGenerator.generateKeyPair();
                         }
                     } else {
                         throw new RuntimeException("Failed generate keys.", exception.getCause());
@@ -199,7 +197,8 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
                 if (e instanceof UserNotAuthenticatedException) {
                     String errorMessage = "User wasn't authenticated";
                     if (mCipher != null) {
-                        errorMessage = "User was authenticated " + getCipherLifeTime() / 1000 + " seconds ago";
+                        errorMessage = "User was authenticated " +
+                                getCipherLifeTimeSeconds() + " seconds ago";
                     }
                     throw new OktaUserNotAuthenticateException(errorMessage, e);
                 }
@@ -218,8 +217,8 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // from https://code.google.com/p/android/issues/detail?id=197719
-            OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1,
-                    PSource.PSpecified.DEFAULT);
+            OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1",
+                    MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
 
             mCipher.init(mode, unrestricted, spec);
         } else {
@@ -269,7 +268,8 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     }
 
     @Override
-    public String getHashed(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public String getHashed(String value) throws NoSuchAlgorithmException,
+            UnsupportedEncodingException {
         final MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] result = digest.digest(value.getBytes(DEFAULT_CHARSET));
         return toHex(result);
@@ -307,11 +307,11 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
         initCipherStart = System.currentTimeMillis();
     }
 
-    private long getCipherLifeTime() {
-        return System.currentTimeMillis() - initCipherStart;
+    private long getCipherLifeTimeSeconds() {
+        return (System.currentTimeMillis() - initCipherStart) / MS_TO_SECOND;
     }
 
-    @TargetApi(23)
+    @TargetApi(Build.VERSION_CODES.M)
     public static class OktaUserNotAuthenticateException extends UserNotAuthenticatedException {
         OktaUserNotAuthenticateException(String message, Throwable cause) {
             super(message, cause);

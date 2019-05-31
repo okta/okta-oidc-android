@@ -46,6 +46,7 @@ public class AuthClientFactoryImpl implements ClientFactory<AuthClient> {
                                    HttpConnectionFactory connectionFactory,
                                    boolean requireHardwareBackedKeyStore,
                                    boolean cacheMode) {
-        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        return new AuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
+                encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
     }
 }

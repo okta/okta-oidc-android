@@ -22,6 +22,9 @@ import com.okta.oidc.net.HttpConnectionFactory;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
+/**
+ * Client factory to build a synchronous authentication client.
+ */
 public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
     @Override
     public SyncAuthClientImpl createClient(OIDCConfig oidcConfig,
@@ -31,6 +34,7 @@ public class SyncAuthClientFactory implements ClientFactory<SyncAuthClient> {
                                            HttpConnectionFactory connectionFactory,
                                            boolean requireHardwareBackedKeyStore,
                                            boolean cacheMode) {
-        return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory, requireHardwareBackedKeyStore, cacheMode);
+        return new SyncAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
+                connectionFactory, requireHardwareBackedKeyStore, cacheMode);
     }
 }

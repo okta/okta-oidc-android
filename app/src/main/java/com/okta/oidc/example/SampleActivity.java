@@ -53,8 +53,8 @@ import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.results.Result;
-import com.okta.oidc.storage.SimpleOktaStorage;
-import com.okta.oidc.storage.security.SimpleBaseEncryptionManager;
+import com.okta.oidc.storage.SharedPreferenceStorage;
+import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executors;
@@ -126,9 +126,9 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
      * The payload to send for authorization.
      */
     @VisibleForTesting
-    SimpleOktaStorage mStorageOidc;
+    SharedPreferenceStorage mStorageOidc;
     @VisibleForTesting
-    SimpleOktaStorage mStorageOAuth2;
+    SharedPreferenceStorage mStorageOAuth2;
 
     /**
      * The Authentication API client.
@@ -161,8 +161,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mIntrospectId = findViewById(R.id.introspect_id);
         mSwitch = findViewById(R.id.switch1);
 
-        mStorageOAuth2 = new SimpleOktaStorage(this, "OAUTH2");
-        mStorageOidc = new SimpleOktaStorage(this);
+        mStorageOAuth2 = new SharedPreferenceStorage(this, "OAUTH2");
+        mStorageOidc = new SharedPreferenceStorage(this);
         boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .getBoolean(PREF_SWITCH, true);
         mIsSessionSignIn = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
@@ -192,7 +192,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mIntrospectRefresh.setOnClickListener(v -> {
             showNetworkProgress(true);
             SessionClient client = getSessionClient();
-            String refreshToken = null;
+            String refreshToken;
             try {
                 refreshToken = client.getTokens().getRefreshToken();
                 client.introspectToken(refreshToken, TokenTypeHint.REFRESH_TOKEN,
@@ -302,7 +302,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 }
 
                                 @Override
-                                public void onError(String error, AuthorizationException exception) {
+                                public void onError(String error,
+                                                    AuthorizationException exception) {
                                     Log.d(TAG, exception.error +
                                             " revokeRefreshToken onError " + error, exception);
                                     mTvStatus.setText(error);
@@ -332,7 +333,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 }
 
                                 @Override
-                                public void onError(String error, AuthorizationException exception) {
+                                public void onError(String error,
+                                                    AuthorizationException exception) {
                                     Log.d(TAG, exception.error +
                                             " revokeAccessToken onError " + error, exception);
                                     mTvStatus.setText(error);
@@ -405,13 +407,14 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .discoveryUri("https://samples-test.oktapreview.com/oauth2/default")
                 .create();
 
+        boolean isEmulator = isEmulator();
         mWebOAuth2 = new Okta.WebAuthBuilder()
                 .withConfig(mOAuth2Config)
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOAuth2)
                 .withCallbackExecutor(null)
-                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
-                .setRequireHardwareBackedKeyStore(false)
+                .withEncryptionManager(new DefaultEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(!isEmulator)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX)
                 .create();
@@ -423,8 +426,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
-                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
-                .setRequireHardwareBackedKeyStore(false)
+                .withEncryptionManager(new DefaultEncryptionManager(this))
+                .setRequireHardwareBackedKeyStore(!isEmulator)
                 .withTabColor(0)
                 .supportedBrowsers(FIRE_FOX);
 
@@ -435,8 +438,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mAuthClient = new Okta.AuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
-                .withStorage(new SimpleOktaStorage(this))
-                .withEncryptionManager(new SimpleBaseEncryptionManager(this))
+                .withStorage(new SharedPreferenceStorage(this))
+                .withEncryptionManager(new DefaultEncryptionManager(this))
                 .setRequireHardwareBackedKeyStore(false)
                 .withCallbackExecutor(null)
                 .create();
@@ -654,4 +657,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
     }
 
+    /**
+     * Check if the device is a emulator.
+     *
+     * @return true if it is emulator
+     */
+    public static boolean isEmulator() {
+        return Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Google")
+                || Build.PRODUCT.contains("sdk_gphone")
+                || Build.DEVICE.contains("generic");
+    }
 }

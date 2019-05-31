@@ -31,7 +31,7 @@ import java.util.Calendar;
 
 import javax.security.auth.x500.X500Principal;
 
-@TargetApi(18)
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 class EncryptionManagerAPI18 extends BaseEncryptionManager {
     private static final String TAG = EncryptionManagerAPI18.class.getSimpleName();
     private static final int RSA_CALENDAR_MAX_YEARS = 100;
