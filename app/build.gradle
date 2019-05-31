@@ -15,14 +15,15 @@ android {
                 "appAuthRedirectScheme": "com.oktapreview.samples-test"
         ]
         multiDexEnabled true
-
-        Properties properties = new Properties()
-        properties.load(project.rootProject.file('local.properties').newDataInputStream())
-        def username = properties.getProperty('test.username')
-        def password = properties.getProperty('test.password')
-        if (username != null && password != null) {
-            buildConfigField "String", "USERNAME", username
-            buildConfigField "String", "PASSWORD", password
+        if (project.rootProject.file('local.properties').exists()) {
+            Properties properties = new Properties()
+            properties.load(project.rootProject.file('local.properties').newDataInputStream())
+            def username = properties.getProperty('test.username')
+            def password = properties.getProperty('test.password')
+            if (username != null && password != null) {
+                buildConfigField "String", "USERNAME", username
+                buildConfigField "String", "PASSWORD", password
+            }
         }
 
     }

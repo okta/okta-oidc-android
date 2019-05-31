@@ -43,4 +43,12 @@
         <cpe>cpe:/a:fasterxml:jackson-databind:2.9.8</cpe>
 	<cve>CVE-2019-12086</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Suppress okhttp. Only use in testImplementation.
+   ]]></notes>
+        <cpe>cpe:/a:squareup:okhttp3:3.11.0</cpe>
+	<cve>CVE-2018-20200</cve>
+    </suppress>
+
 </suppressions>

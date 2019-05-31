@@ -82,4 +82,6 @@ dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
 }
 
-apply from: 'publish.gradle'
+if (project.rootProject.file('local.properties').exists()) {
+    apply from: 'publish.gradle'
+}
