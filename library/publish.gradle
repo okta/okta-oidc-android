@@ -1,7 +1,7 @@
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: "com.github.dcendents.android-maven"
+apply plugin: 'maven-publish'
 
-group = "com.okta.android"
 version = "${rootProject.versionName}"
 
 //produces non androidx aar
@@ -11,12 +11,47 @@ task createAndroidAar(type: Exec, dependsOn: "bundleReleaseAar") {
             '-o', "$buildDir/outputs/aar/oidc-android-release.aar"
 }
 
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+task javadoc(type: Javadoc) {
+    failOnError = false
+    title = null
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+afterEvaluate {
+    javadoc.classpath += files(android.libraryVariants.collect { variant ->
+        variant.javaCompileProvider.get().classpath.files
+    })
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
 publishing {
     publications {
         Release(MavenPublication) {
             artifact("$buildDir/outputs/aar/oidc-android-release.aar")
-            groupId "${group}"
+            groupId "com.okta.android"
             artifactId "oidc-android"
+            artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }
             version "${rootProject.versionName}"
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
@@ -30,8 +65,14 @@ publishing {
         }
         ReleaseX(MavenPublication) {
             artifact("$buildDir/outputs/aar/oidc-androidx-release.aar")
-            groupId "${group}"
+            groupId "com.okta.android"
             artifactId "${android.defaultConfig.project.archivesBaseName}"
+            artifact sourcesJar {
+                classifier "sources"
+            }
+            artifact javadocJar {
+                classifier "javadoc"
+            }
             version "${rootProject.versionName}"
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
@@ -44,6 +85,11 @@ publishing {
             }
         }
     }
+}
+
+def isDryRun() {
+    def value = project.getProperties().get("dryRun")
+    return value != null ? value : "true"
 }
 
 Properties properties = new Properties()
@@ -65,7 +111,7 @@ bintray {
         websiteUrl = "https://github.com/okta/okta-oidc-android"
         vcsUrl = "https://github.com/okta/okta-oidc-android.git"
         issueTrackerUrl = "https://github.com/okta/okta-oidc-android/issues"
-        dryRun = false
+        dryRun = isDryRun()
         version {
             name = "${rootProject.versionName}"
             desc = "Okta OpenID Connect & OAuth 2.0"

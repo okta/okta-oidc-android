@@ -1,9 +1,10 @@
 apply plugin: "com.android.library"
 apply from: "${rootDir}/gradle/android-common.gradle"
+if (project.rootProject.file('local.properties').exists()) {
+    apply from: 'publish.gradle'
+}
 apply from: "${rootDir}/gradle/style.gradle"
-apply plugin: 'com.jfrog.bintray'
-apply plugin: "com.github.dcendents.android-maven"
-apply plugin: 'maven-publish'
+
 
 android {
 
@@ -80,8 +81,4 @@ dependencies {
 
 dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
-}
-
-if (project.rootProject.file('local.properties').exists()) {
-    apply from: 'publish.gradle'
 }

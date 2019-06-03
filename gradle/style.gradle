@@ -6,11 +6,11 @@ checkstyle {
     toolVersion = "${rootProject.checkstyleVersion}"
 }
 
-configurations{
+configurations {
     xslt
 }
 
-dependencies{
+dependencies {
     xslt "net.sf.saxon:saxon:${rootProject.saxonVersion}"
 }
 
@@ -32,7 +32,7 @@ task failOnCheckstyleWarning {
         if (warningsFile.exists() && warningsFile.text.contains("<error ")) {
             throw new GradleException(
                     "There were checkstyle warnings. For more details check: " \
-                     + file(checkstyleWarningsFile))
+                       + file(checkstyleWarningsFile))
         }
     }
 }
