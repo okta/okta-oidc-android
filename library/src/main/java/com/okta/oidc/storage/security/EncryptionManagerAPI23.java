@@ -25,6 +25,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
@@ -43,7 +44,7 @@ import static android.security.keystore.KeyProperties.BLOCK_MODE_ECB;
 @TargetApi(Build.VERSION_CODES.M)
 class EncryptionManagerAPI23 extends BaseEncryptionManager {
     private static final String TAG = EncryptionManagerAPI23.class.getSimpleName();
-    private final boolean mIsAuthenticateUserRequired;
+
     private final int mValidityDurationSeconds;
 
     EncryptionManagerAPI23(Context context, String keyStoreName, String keyAlias,
@@ -78,7 +79,10 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // If fingerprints list changed or will be empty
                 // current keys are invalid.
-                builder.setInvalidatedByBiometricEnrollment(mIsAuthenticateUserRequired);
+                // This option doesn't work, because we set
+                // UserAuthenticationValidityDurationSeconds parameter and this option works only
+                // if this parameter set to not positive
+                // builder.setInvalidatedByBiometricEnrollment(mIsAuthenticateUserRequired);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 // In Android P was introduced new way to persist keystore - StrongBox
@@ -131,20 +135,38 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
         }
         try {
             PrivateKey key = (PrivateKey) mKeyStore.getKey(mKeyAlias, null);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                try {
-                    KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(), mKeyStoreName);
-                    KeyInfo keyInfo = factory.getKeySpec(key, KeyInfo.class);
-                    if (!keyInfo.isUserAuthenticationRequired()) {
-                        return true;
-                    }
-                } catch (NoSuchProviderException | InvalidKeySpecException error) {
-                    Log.w(TAG, "Error during Read private key info: ", error);
-                    return false;
+            try {
+                KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(), mKeyStoreName);
+                KeyInfo keyInfo = factory.getKeySpec(key, KeyInfo.class);
+                if (!keyInfo.isUserAuthenticationRequired()) {
+                    return true;
                 }
+            } catch (NoSuchProviderException | InvalidKeySpecException error) {
+                Log.w(TAG, "Error during Read private key info: ", error);
+                return false;
             }
             mCipher.init(Cipher.DECRYPT_MODE, key);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean isValidKeys() {
+        try {
+            Cipher cipher = createCipher(mTransformationString);
+            PrivateKey key = (PrivateKey) mKeyStore.getKey(mKeyAlias, null);
+            try {
+                KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(), mKeyStoreName);
+                KeyInfo keyInfo = factory.getKeySpec(key, KeyInfo.class);
+            } catch (NoSuchProviderException | InvalidKeySpecException error) {
+                Log.w(TAG, "Error during Read private key info: ", error);
+                return false;
+            }
+            cipher.init(Cipher.DECRYPT_MODE, key);
+        } catch (GeneralSecurityException e) {
             return false;
         }
 

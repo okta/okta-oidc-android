@@ -23,13 +23,14 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.security.GeneralSecurityException;
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.okta.oidc.storage.OktaRepository.EncryptionException.DECRYPT_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.ENCRYPT_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.HARDWARE_BACKED_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.INVALID_KEYS_ERROR;
@@ -58,9 +59,6 @@ public class OktaRepository {
         this.cacheMode = cacheMode;
         this.requireHardwareBackedKeyStore = requireHardwareBackedKeyStore;
         this.encryptionManager = encryptionManager;
-        if (this.encryptionManager == null) {
-            this.encryptionManager = new DefaultEncryptionManager(context);
-        }
     }
 
     public void setEncryptionManager(EncryptionManager encryptionManager) {
@@ -84,6 +82,9 @@ public class OktaRepository {
                         throw new EncryptionException(ENCRYPT_ERROR, error, e.getCause());
                     } catch (GeneralSecurityException e) {
                         throw new EncryptionException(INVALID_KEYS_ERROR, e.getMessage(),
+                                e.getCause());
+                    } catch (InvalidParameterException e) {
+                        throw new EncryptionException(ENCRYPT_ERROR, e.getMessage(),
                                 e.getCause());
                     }
                 } else {
@@ -127,6 +128,9 @@ public class OktaRepository {
                                 e.getCause());
                     } catch (GeneralSecurityException e) {
                         throw new EncryptionException(INVALID_KEYS_ERROR, e.getMessage(),
+                                e.getCause());
+                    } catch (InvalidParameterException e) {
+                        throw new EncryptionException(DECRYPT_ERROR, e.getMessage(),
                                 e.getCause());
                     }
                 } else {
@@ -200,6 +204,7 @@ public class OktaRepository {
         public static final int HARDWARE_BACKED_ERROR = 3;
         public static final int INVALID_KEYS_ERROR = 4;
         public static final int KEYGUARD_AUTHENTICATION_ERROR = 5;
+        public static final int DECRYPT_ERROR = 6;
 
         private int mType;
 

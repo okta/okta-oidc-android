@@ -484,6 +484,7 @@ public final class AuthorizationException extends Exception {
         public static final int HARDWARE_BACKED_ERROR = 5002;
         public static final int INVALID_KEYS_ERROR = 5003;
         public static final int KEYGUARD_AUTHENTICATION_ERROR = 5004;
+        public static final int DECRYPT_ERROR = 5005;
 
         public static final AuthorizationException OTHER =
                 new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR,
@@ -499,6 +500,10 @@ public final class AuthorizationException extends Exception {
                 case EncryptionException.ENCRYPT_ERROR:
                     return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ENCRYPT_ERROR,
                             "Error during encrypt. " + exception.getLocalizedMessage(),
+                            null, null, null);
+                case EncryptionException.DECRYPT_ERROR:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, DECRYPT_ERROR,
+                            "Error during decrypt. " + exception.getLocalizedMessage(),
                             null, null, null);
                 case EncryptionException.HARDWARE_BACKED_ERROR:
                     return new AuthorizationException(TYPE_ENCRYPTION_ERROR, HARDWARE_BACKED_ERROR,

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -42,6 +43,7 @@ import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
@@ -51,6 +53,7 @@ abstract class BaseEncryptionManager implements EncryptionManager {
     private static final int MS_TO_SECOND = 1000;
     protected final String mKeyStoreName;
     protected final String mKeyAlias;
+    protected boolean mIsAuthenticateUserRequired;
 
     protected String mKeyStoreAlgorithm;
     protected String mBlockMode;
@@ -188,6 +191,15 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         return true;
     }
 
+    private String getUserNotAuthenticatedMessage(Cipher cipher) {
+        String errorMessage = "User isn't authenticated";
+        if (cipher != null) {
+            errorMessage = "User was authenticated " +
+                    getCipherLifeTimeSeconds() + " seconds ago";
+        }
+        return errorMessage;
+    }
+
     private void initDecodeCipher(String keyAlias, int mode) throws GeneralSecurityException {
         PrivateKey key = (PrivateKey) mKeyStore.getKey(keyAlias, null);
         try {
@@ -195,12 +207,8 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         } catch (InvalidKeyException e) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (e instanceof UserNotAuthenticatedException) {
-                    String errorMessage = "User wasn't authenticated";
-                    if (mCipher != null) {
-                        errorMessage = "User was authenticated " +
-                                getCipherLifeTimeSeconds() + " seconds ago";
-                    }
-                    throw new OktaUserNotAuthenticateException(errorMessage, e);
+                    throw new OktaUserNotAuthenticateException(
+                            getUserNotAuthenticatedMessage(mCipher), e);
                 }
             }
             throw e;
@@ -229,6 +237,10 @@ abstract class BaseEncryptionManager implements EncryptionManager {
     @Override
     public String encrypt(String inputString) throws GeneralSecurityException {
         if (inputString != null && inputString.length() > 0) {
+            if (mCipher == null) {
+                throw new InvalidParameterException(
+                        "Cipher is null. Please initialize proper cipher");
+            }
             if (initCipher(mKeyAlias, Cipher.ENCRYPT_MODE)) {
                 StringBuilder encryptedBuilder = new StringBuilder();
                 int chunkStart = 0;
@@ -253,18 +265,35 @@ abstract class BaseEncryptionManager implements EncryptionManager {
 
     @Override
     public String decrypt(String encryptedString) throws GeneralSecurityException {
-        if (encryptedString != null && encryptedString.length() > 0) {
-            if (initCipher(mKeyAlias, Cipher.DECRYPT_MODE)) {
-                StringBuilder decryptedBuilder = new StringBuilder();
-                String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
-                for (String chunk : chunks) {
-                    byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
-                    decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
+        try {
+            if (encryptedString != null && encryptedString.length() > 0) {
+                if (mCipher == null) {
+                    throw new InvalidParameterException(
+                            "Cipher is null. Please initialize proper cipher");
                 }
-                return decryptedBuilder.toString();
+                if (initCipher(mKeyAlias, Cipher.DECRYPT_MODE)) {
+                    StringBuilder decryptedBuilder = new StringBuilder();
+                    String[] chunks = encryptedString.split(CHUNK_SEPARATOR);
+                    for (String chunk : chunks) {
+                        byte[] bytes = Base64.decode(chunk, Base64.NO_WRAP);
+                        decryptedBuilder.append(new String(mCipher.doFinal(bytes)));
+                    }
+                    return decryptedBuilder.toString();
+                }
             }
+            return encryptedString;
+        } catch (IllegalBlockSizeException e) {
+            // We generate keys using UserAuthenticationValidityDurationSeconds parameter.
+            // We decrypt data by chunk. This exception could be if this validity duration ended
+            // during decryption. In this reason we check cause exception and provide valid
+            // exception to user space
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && e.getCause() instanceof UserNotAuthenticatedException) {
+                throw new OktaUserNotAuthenticateException(
+                        getUserNotAuthenticatedMessage(mCipher), e);
+            }
+            throw e;
         }
-        return encryptedString;
     }
 
     @Override

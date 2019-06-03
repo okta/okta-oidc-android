@@ -24,8 +24,10 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.util.Calendar;
 
@@ -38,13 +40,14 @@ class EncryptionManagerAPI18 extends BaseEncryptionManager {
     private static final int RSA_CALENDAR_HOURS_OFFSET = -26;
 
     EncryptionManagerAPI18(Context context, String keyStoreName, String keyAlias,
-                           boolean initCipherOnCreate) {
+                           boolean initCipherOnCreate, boolean isAuthenticateUserRequired) {
         super(keyStoreName, keyAlias);
         this.mKeyStoreAlgorithm = "RSA";
         this.mBlockMode = "ECB";
         this.mEncryptionPadding = "PKCS1Padding";
         this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode + "/"
                 + mEncryptionPadding;
+        this.mIsAuthenticateUserRequired = isAuthenticateUserRequired;
 
         prepare(context, initCipherOnCreate);
     }
@@ -70,7 +73,6 @@ class EncryptionManagerAPI18 extends BaseEncryptionManager {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 builder.setKeySize(keySize);
             }
-
             if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
                 generator.initialize(builder.build(), random);
@@ -93,5 +95,15 @@ class EncryptionManagerAPI18 extends BaseEncryptionManager {
     @Override
     public boolean isUserAuthenticatedOnDevice() {
         return true;
+    }
+
+    @Override
+    public boolean isValidKeys() {
+        try {
+            PrivateKey key = (PrivateKey) mKeyStore.getKey(mKeyAlias, null);
+            return key != null;
+        } catch (GeneralSecurityException e) {
+            return false;
+        }
     }
 }
