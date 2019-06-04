@@ -58,6 +58,7 @@ import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(RobolectricTestRunner.class)
@@ -129,7 +130,7 @@ public class SyncAuthClientTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         NativeAuthorizeRequest request =
-                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig,null);
+                mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig, null);
         AuthorizeResponse response = request.executeRequest();
         assertNull(response);
     }
@@ -180,6 +181,8 @@ public class SyncAuthClientTest {
 
         assertNull(mockCallback.getResult());
         assertNotNull(mockCallback.getException());
-        assertEquals(mockCallback.getException().errorDescription, "Canceled");
+        String errorMessage = mockCallback.getException().getMessage();
+        //The exception can be canceled or stream is closed.
+        assertTrue("Canceled".equals(errorMessage) || "stream is closed".equals(errorMessage));
     }
 }

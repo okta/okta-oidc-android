@@ -54,6 +54,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -129,8 +130,12 @@ public class SessionClientImplTest {
 
     @After
     public void tearDown() throws Exception {
-        mEndPoint.shutDown();
-        mExecutor.shutdown();
+        try {
+            mEndPoint.shutDown();
+            mExecutor.shutdown();
+        } catch (IOException io) {
+            //NO-OP
+        }
     }
 
     @Test
@@ -287,7 +292,7 @@ public class SessionClientImplTest {
 
     @Test
     public void authorizedRequestCancel() throws InterruptedException, JSONException {
-        mEndPoint.enqueueUserInfoSuccess(2);
+        mEndPoint.enqueueUserInfoSuccess(5);
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);

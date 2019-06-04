@@ -14,18 +14,4 @@ android {
     }
 }
 
-// produces just the classes JAR
-task jar(type: Copy, dependsOn:"bundleRelease") {
-    from("${buildDir}/intermediates/bundles/release/")
-    into("${buildDir}/libs/")
-    include("classes.jar")
-    rename("classes.jar", "okta-oidc-android-${rootProject.versionName}.jar")
-}
-
-// produces a JAR containing sources
-task sourcesJar(type: Jar, dependsOn:"generateReleaseSources") {
-    from android.sourceSets.main.java.srcDirs
-    classifier = "sources"
-}
-
 apply from: "${rootDir}/gradle/okta-common.gradle"
