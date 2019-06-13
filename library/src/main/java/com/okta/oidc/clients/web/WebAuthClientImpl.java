@@ -17,11 +17,11 @@ package com.okta.oidc.clients.web;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Process;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -41,7 +41,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 class WebAuthClientImpl implements WebAuthClient {
-    private WeakReference<FragmentActivity> mActivity;
+    private WeakReference<Activity> mActivity;
     private RequestDispatcher mDispatcher;
     private ResultCallback<AuthorizationStatus, AuthorizationException> mResultCb;
     private SyncWebAuthClient mSyncAuthClient;
@@ -65,7 +65,7 @@ class WebAuthClientImpl implements WebAuthClient {
         mDispatcher = new RequestDispatcher(executor);
     }
 
-    private void registerActivityLifeCycle(@NonNull final FragmentActivity activity) {
+    private void registerActivityLifeCycle(@NonNull final Activity activity) {
         mActivity = new WeakReference<>(activity);
         mActivity.get().getApplication()
                 .registerActivityLifecycleCallbacks(new EmptyActivityLifeCycle() {
@@ -86,7 +86,7 @@ class WebAuthClientImpl implements WebAuthClient {
 
     @Override
     public void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>
-                                         resultCallback, FragmentActivity activity) {
+                                         resultCallback, Activity activity) {
         mResultCb = resultCallback;
         registerActivityLifeCycle(activity);
         mSyncAuthClient.registerCallbackIfInterrupt(activity, (result, type) -> {
@@ -108,7 +108,7 @@ class WebAuthClientImpl implements WebAuthClient {
     public void unregisterCallback() {
         mResultCb = null;
         if (mActivity.get() != null) {
-            mSyncAuthClient.unregisterCallback(mActivity.get());
+            mSyncAuthClient.unregisterCallback();
         }
     }
 
@@ -127,7 +127,7 @@ class WebAuthClientImpl implements WebAuthClient {
 
     @Override
     @AnyThread
-    public void signIn(@NonNull final FragmentActivity activity, AuthenticationPayload payload) {
+    public void signIn(@NonNull final Activity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
         cancelFuture();
         mFutureTask = mDispatcher.submit(() -> {
@@ -171,7 +171,7 @@ class WebAuthClientImpl implements WebAuthClient {
 
     @Override
     @AnyThread
-    public void signOutOfOkta(@NonNull final FragmentActivity activity) {
+    public void signOutOfOkta(@NonNull final Activity activity) {
         registerActivityLifeCycle(activity);
         cancelFuture();
         mFutureTask = mDispatcher.submit(() -> {
@@ -215,6 +215,11 @@ class WebAuthClientImpl implements WebAuthClient {
     @Override
     public void migrateTo(EncryptionManager manager) throws AuthorizationException {
         getSessionClient().migrateTo(manager);
+    }
+
+    @Override
+    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
+        mSyncAuthClient.handleActivityResult(requestCode, resultCode, data);
     }
 
     @Override

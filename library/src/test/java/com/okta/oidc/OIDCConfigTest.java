@@ -31,6 +31,8 @@ import static com.okta.oidc.util.TestValues.CUSTOM_URL;
 import static com.okta.oidc.util.TestValues.END_SESSION_URI;
 import static com.okta.oidc.util.TestValues.REDIRECT_URI;
 import static com.okta.oidc.util.TestValues.SCOPES;
+import static com.okta.oidc.util.TestValues.WELL_KNOWN_OAUTH;
+import static com.okta.oidc.util.TestValues.WELL_KNOWN_OIDC;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -79,6 +81,24 @@ public class OIDCConfigTest {
         assertNotNull(uri);
         assertEquals(uri, Uri.parse(CUSTOM_URL +
                 ProviderConfiguration.OPENID_CONFIGURATION_RESOURCE));
+        assertFalse(mConfig.isOAuth2Configuration());
+    }
+
+    @Test
+    public void getDiscoveryUriWellKnownOidc() {
+        OIDCConfig config = TestValues.getConfigWithUrl(CUSTOM_OAUTH2_URL + WELL_KNOWN_OIDC);
+        Uri uri = config.getDiscoveryUri();
+        assertNotNull(uri);
+        assertEquals(uri, Uri.parse(CUSTOM_OAUTH2_URL + WELL_KNOWN_OIDC));
+        assertFalse(mConfig.isOAuth2Configuration());
+    }
+
+    @Test
+    public void getDiscoveryUriWellKnownOauth() {
+        OIDCConfig config = TestValues.getConfigWithUrl(CUSTOM_OAUTH2_URL + WELL_KNOWN_OAUTH);
+        Uri uri = config.getDiscoveryUri();
+        assertNotNull(uri);
+        assertEquals(uri, Uri.parse(CUSTOM_OAUTH2_URL + WELL_KNOWN_OAUTH));
         assertFalse(mConfig.isOAuth2Configuration());
     }
 

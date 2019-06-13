@@ -186,10 +186,13 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
         // By default we enable encryption for all our clients. To change this behaviour, create
         // you own Builder.
         if (mEncryptionManager == null) {
-            this.mEncryptionManager = new DefaultEncryptionManager(mContext);
+            mEncryptionManager = new DefaultEncryptionManager(mContext);
         }
         if (mClient == null) {
             mClient = new HttpClientImpl();
+        }
+        if (mStorage == null) {
+            mStorage = new SharedPreferenceStorage(mContext);
         }
         return this.mClientFactory.createClient(mOidcConfig,
                 mContext, mStorage, mEncryptionManager,

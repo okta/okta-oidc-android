@@ -15,9 +15,11 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
+import android.content.Intent;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.clients.BaseAuth;
@@ -70,7 +72,7 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @return the result
      * @throws InterruptedException the interrupted exception
      */
-    Result signIn(@NonNull FragmentActivity activity,
+    Result signIn(@NonNull Activity activity,
                   @Nullable AuthenticationPayload payload)
             throws InterruptedException;
 
@@ -81,13 +83,16 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @return the result
      * @throws InterruptedException the interrupted exception
      */
-    Result signOutOfOkta(@NonNull FragmentActivity activity)
+    Result signOutOfOkta(@NonNull Activity activity)
             throws InterruptedException;
 
     /**
      * Register a callback for sign in and sign out result status. The callback is triggered when
-     * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
-     * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
+     * {@link #signIn(Activity, AuthenticationPayload) signIn} or
+     * {@link #signOutOfOkta(Activity)} signOutOfOkta} is completed but the Activity was interrupted
+     * due to it being destroyed during the switch to the web browser.
+     * This will set the callback to check if the auth client have a result that can be returned
+     * immediately.
      * Example usage:
      * {@code
      * <pre>
@@ -109,16 +114,14 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param resultListener returns the result of sign in or sign out attempts.
      * @param activity       the activity which will receive the results.
      */
-    void registerCallbackIfInterrupt(FragmentActivity activity,
+    void registerCallbackIfInterrupt(Activity activity,
                                      SyncWebAuthClientImpl.ResultListener resultListener,
                                      ExecutorService executorService);
 
     /**
      * Unregister callback.
-     *
-     * @param activity the activity
      */
-    void unregisterCallback(FragmentActivity activity);
+    void unregisterCallback();
 
     /**
      * Attempt to cancel the current api request. Does not guarantee that the current call
@@ -135,4 +138,15 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
+
+    /**
+     * Use this method to handle the onActivityResult. If using regular activity and chrome custom
+     * tabs passes data back to the main activity. This must be called to parse the results of
+     * the login.
+     *
+     * @param requestCode request code of login or logout.
+     * @param resultCode  result either OK or CANCEL
+     * @param data        the redirected data from chrome custom tab.
+     */
+    void handleActivityResult(int requestCode, int resultCode, Intent data);
 }

@@ -15,6 +15,7 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -30,9 +31,11 @@ import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.AuthenticationResultHandler;
+import com.okta.oidc.AuthenticationResultHandler.AuthResultListener;
+import com.okta.oidc.AuthenticationResultHandler.StateResult;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaRedirectActivity;
-import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.clients.AuthAPI;
 import com.okta.oidc.clients.State;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
@@ -50,7 +53,6 @@ import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
-import com.okta.oidc.util.AuthorizationException.AuthorizationRequestErrors;
 import com.okta.oidc.util.AuthorizationException.EncryptionErrors;
 import com.okta.oidc.util.CodeVerifierUtil;
 
@@ -61,9 +63,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.okta.oidc.AuthenticationResultHandler.ResultType;
+import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_IN;
+import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_OUT;
+import static com.okta.oidc.OktaResultFragment.addLoginFragment;
+import static com.okta.oidc.OktaResultFragment.addLogoutFragment;
+import static com.okta.oidc.OktaResultFragment.createAuthIntent;
 import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.RegistrationRequestErrors.INVALID_REDIRECT_URI;
-import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_AUTHORIZATION_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_REGISTRATION_ERROR;
 
 class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
@@ -72,6 +79,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private String[] mSupportedBrowsers;
     private int mCustomTabColor;
     private SyncSessionClient mSessionClient;
+    private AuthenticationResultHandler mHandler;
 
     SyncWebAuthClientImpl(OIDCConfig oidcConfig,
                           Context context,
@@ -89,9 +97,10 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         mHttpClient = httpClient;
         mSessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, mOktaState, mHttpClient);
+        mHandler = AuthenticationResultHandler.handler();
     }
 
-    private boolean isRedirectUrisRegistered(@NonNull Uri uri, FragmentActivity activity) {
+    private boolean isRedirectUrisRegistered(@NonNull Uri uri, Activity activity) {
         PackageManager pm = activity.getPackageManager();
         List<ResolveInfo> resolveInfos = null;
         if (pm != null) {
@@ -120,43 +129,43 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         return found;
     }
 
-    public void registerCallbackIfInterrupt(FragmentActivity activity,
-                                            ResultListener resultListener,
+    @Override
+    public void registerCallbackIfInterrupt(Activity activity, ResultListener resultListener,
                                             ExecutorService executorService) {
-        if (OktaResultFragment.hasRequestInProgress(activity)) {
-            OktaResultFragment.getFragment(activity).setAuthenticationListener((result, type)
-                    -> {
-                if (!executorService.isShutdown()) {
-                    executorService.execute(() -> {
-                        switch (type) {
-                            case SIGN_IN:
-                                Result authorizationResult =
-                                        processSignInResult(result);
-                                resetCurrentState();
-                                if (resultListener != null) {
-                                    resultListener.postResult(authorizationResult, type);
-                                }
-                                break;
-                            case SIGN_OUT:
-                                Result signOutResult = processSignOutResult(result);
-                                resetCurrentState();
-                                if (resultListener != null) {
-                                    resultListener.postResult(signOutResult, type);
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    });
-                }
-            });
-        }
+        AuthResultListener authResultListener = (result, type) -> {
+            if (!executorService.isShutdown()) {
+                executorService.execute(() -> {
+                    switch (type) {
+                        case SIGN_IN:
+                            Result authorizationResult = processSignInResult(result);
+                            resetCurrentState();
+                            if (resultListener != null) {
+                                resultListener.postResult(authorizationResult, type);
+                            }
+                            break;
+                        case SIGN_OUT:
+                            Result signOutResult = processSignOutResult(result);
+                            resetCurrentState();
+                            if (resultListener != null) {
+                                resultListener.postResult(signOutResult, type);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            }
+        };
+        mHandler.setAuthenticationListener(authResultListener);
     }
 
-    public void unregisterCallback(FragmentActivity activity) {
-        if (OktaResultFragment.hasRequestInProgress(activity)) {
-            OktaResultFragment.getFragment(activity).setAuthenticationListener(null);
-        }
+    @Override
+    public void handleActivityResult(int requestCode, int resultCode, Intent data) {
+        mHandler.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void unregisterCallback() {
+        mHandler.setAuthenticationListener(null);
     }
 
     @Override
@@ -164,78 +173,72 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         return mOktaState.getCurrentState() != IDLE;
     }
 
+    private StateResult startSignIn(Activity activity, WebRequest request)
+            throws InterruptedException {
+        AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+
+        if (activity instanceof FragmentActivity) {
+            addLoginFragment(request, mCustomTabColor, (FragmentActivity) activity,
+                    mSupportedBrowsers);
+        } else {
+            Intent intent = createAuthIntent(activity, request.toUri(), mCustomTabColor,
+                    mSupportedBrowsers);
+            activity.startActivityForResult(intent, REQUEST_CODE_SIGN_IN);
+        }
+        mHandler.setAuthenticationListener((result, type) -> {
+            resultWrapper.set(result);
+            latch.countDown();
+        });
+        latch.await();
+        return resultWrapper.get();
+    }
+
     @Override
     @WorkerThread
-    public Result signIn(@NonNull final FragmentActivity activity,
-                         @Nullable AuthenticationPayload payload)
-            throws InterruptedException {
-
+    public Result signIn(@NonNull final Activity activity,
+                         @Nullable AuthenticationPayload payload) {
         mCancel.set(false);
-        ProviderConfiguration providerConfiguration;
+
         try {
-            providerConfiguration = obtainNewConfiguration();
+            if (!isRedirectUrisRegistered(mOidcConfig.getRedirectUri(), activity)) {
+                String errorDescription = "No uri registered to handle redirect " +
+                        "or multiple applications registered";
+                Log.e(TAG, errorDescription);
+                throw new AuthorizationException(
+                        TYPE_OAUTH_REGISTRATION_ERROR, INVALID_REDIRECT_URI.code,
+                        INVALID_REDIRECT_URI.error, errorDescription, null, null);
+            }
+
+            ProviderConfiguration configuration = obtainNewConfiguration();
             checkIfCanceled();
+            WebRequest request = new AuthorizeRequest.Builder()
+                    .config(mOidcConfig)
+                    .providerConfiguration(configuration)
+                    .authenticationPayload(payload)
+                    .create();
+            mOktaState.save(request);
+            mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
+
+            StateResult authResult = startSignIn(activity, request);
+            return processSignInResult(authResult);
         } catch (AuthorizationException e) {
             return Result.error(e);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             return Result.cancel();
-        } catch (Exception e) {
-            AuthorizationException authorizationException = new AuthorizationException(
-                    TYPE_OAUTH_AUTHORIZATION_ERROR, AuthorizationRequestErrors.OTHER.code,
-                    e.getMessage(), e.getLocalizedMessage(), null, null);
-            return Result.error(authorizationException);
+        } catch (OktaRepository.EncryptionException e) {
+            return Result.error(EncryptionErrors.byEncryptionException(e));
         } finally {
             resetCurrentState();
         }
-
-        WebRequest request;
-        try {
-            request = new AuthorizeRequest.Builder()
-                    .config(mOidcConfig)
-                    .providerConfiguration(providerConfiguration)
-                    .authenticationPayload(payload)
-                    .create();
-        } catch (AuthorizationException e) {
-            return Result.error(e);
-        }
-
-        try {
-            mOktaState.save(request);
-        } catch (OktaRepository.EncryptionException e) {
-            return Result.error(EncryptionErrors.byEncryptionException(e));
-        }
-        if (!isRedirectUrisRegistered(mOidcConfig.getRedirectUri(), activity)) {
-            String errorDescription = "No uri registered to handle redirect " +
-                    "or multiple applications registered";
-            Log.e(TAG, errorDescription);
-            //FIXME move error to listener
-            resetCurrentState();
-            AuthorizationException authorizationException = new AuthorizationException(
-                    TYPE_OAUTH_REGISTRATION_ERROR, INVALID_REDIRECT_URI.code,
-                    INVALID_REDIRECT_URI.error, errorDescription, null, null);
-            return Result.error(authorizationException);
-        }
-        mOktaState.setCurrentState(State.SIGN_IN_REQUEST);
-        AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();
-        CountDownLatch latch = new CountDownLatch(1);
-
-        OktaResultFragment.addLoginFragment(request, mCustomTabColor,
-                activity, (result, type) -> {
-                    resultWrapper.set(result);
-                    latch.countDown();
-                }, mSupportedBrowsers);
-        latch.await();
-        OktaResultFragment.StateResult authResult = resultWrapper.get();
-        Result result = processSignInResult(authResult);
-        resetCurrentState();
-        if (result == null) {
-            throw new IllegalStateException("sign in performed in illegal states");
-        }
-
-        return result;
     }
 
-    private Result processSignInResult(OktaResultFragment.StateResult result) {
+    @NonNull
+    private Result processSignInResult(StateResult result) {
+        if (result == null) {
+            return Result.error(new AuthorizationException("Result is empty",
+                    new NullPointerException()));
+        }
         switch (result.getStatus()) {
             case CANCELED:
                 return Result.cancel();
@@ -261,53 +264,66 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 } catch (AuthorizationException e) {
                     return Result.error(e);
                 }
-
                 return Result.success();
             default:
-                return null;
+                return Result.error(new AuthorizationException("StateResult with invalid status: "
+                        + result.getStatus().name(), new IllegalStateException()));
         }
+    }
+
+    private StateResult startSignOut(Activity activity, WebRequest request)
+            throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
+        if (activity instanceof FragmentActivity) {
+            addLogoutFragment(request, mCustomTabColor, (FragmentActivity) activity,
+                    mSupportedBrowsers);
+        } else {
+            Intent intent = createAuthIntent(activity, request.toUri(),
+                    mCustomTabColor, mSupportedBrowsers);
+            activity.startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
+        }
+        mHandler.setAuthenticationListener((result, type) -> {
+            resultWrapper.set(result);
+            latch.countDown();
+        });
+
+        latch.await();
+        return resultWrapper.get();
     }
 
     @Override
     @AnyThread
-    public Result signOutOfOkta(@NonNull final FragmentActivity activity)
-            throws InterruptedException {
+    public Result signOutOfOkta(@NonNull final Activity activity) {
         try {
             mOktaState.setCurrentState(State.SIGN_OUT_REQUEST);
-            CountDownLatch latch = new CountDownLatch(1);
-            AtomicReference<OktaResultFragment.StateResult> resultWrapper = new AtomicReference<>();
             WebRequest request;
-            try {
-                request = new LogoutRequest.Builder()
-                        .provideConfiguration(mOktaState.getProviderConfiguration())
-                        .config(mOidcConfig)
-                        .tokenResponse(mOktaState.getTokenResponse())
-                        .state(CodeVerifierUtil.generateRandomState())
-                        .create();
-            } catch (AuthorizationException e) {
-                return Result.error(e);
-            }
+            request = new LogoutRequest.Builder()
+                    .provideConfiguration(mOktaState.getProviderConfiguration())
+                    .config(mOidcConfig)
+                    .tokenResponse(mOktaState.getTokenResponse())
+                    .state(CodeVerifierUtil.generateRandomState())
+                    .create();
             mOktaState.save(request);
-            OktaResultFragment.addLogoutFragment(request, mCustomTabColor,
-                    activity, (result, type) -> {
-                        resultWrapper.set(result);
-                        latch.countDown();
-                    }, mSupportedBrowsers);
-            latch.await();
-            OktaResultFragment.StateResult logoutResult = resultWrapper.get();
-            Result result = processSignOutResult(logoutResult);
-            resetCurrentState();
-            if (result != null) {
-                return result;
-            } else {
-                return Result.error(AuthorizationRequestErrors.OTHER);
-            }
+            StateResult logoutResult = startSignOut(activity, request);
+            return processSignOutResult(logoutResult);
+        } catch (InterruptedException e) {
+            return Result.cancel();
         } catch (OktaRepository.EncryptionException e) {
             return Result.error(EncryptionErrors.byEncryptionException(e));
+        } catch (AuthorizationException e) {
+            return Result.error(e);
+        } finally {
+            resetCurrentState();
         }
     }
 
-    private Result processSignOutResult(OktaResultFragment.StateResult result) {
+    @NonNull
+    private Result processSignOutResult(StateResult result) {
+        if (result == null) {
+            return Result.error(new AuthorizationException("Result is empty",
+                    new NullPointerException()));
+        }
         switch (result.getStatus()) {
             case CANCELED:
                 return Result.error(INVALID_REDIRECT_URI);
@@ -316,12 +332,13 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             case LOGGED_OUT:
                 return Result.success();
             default:
-                return null;
+                return Result.error(new AuthorizationException("StateResult with invalid status: "
+                        + result.getStatus().name(), new IllegalStateException()));
         }
     }
 
     public interface ResultListener {
-        void postResult(Result result, OktaResultFragment.ResultType resultType);
+        void postResult(Result result, ResultType resultType);
     }
 
     @Override

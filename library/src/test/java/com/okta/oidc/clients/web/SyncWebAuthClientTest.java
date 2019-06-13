@@ -16,13 +16,16 @@
 package com.okta.oidc.clients.web;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
+import com.okta.oidc.AuthenticationResultHandler;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
+import com.okta.oidc.OktaResultFragment;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ConfigurationRequest;
@@ -37,8 +40,8 @@ import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
-import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.HttpClientFactory;
+import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -52,11 +55,17 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 
 import okhttp3.mockwebserver.RecordedRequest;
 
+import static android.app.Activity.RESULT_OK;
+import static com.okta.oidc.AuthenticationResultHandler.StateResult;
+import static com.okta.oidc.AuthenticationResultHandler.handler;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
+import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
+import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -206,5 +215,25 @@ public class SyncWebAuthClientTest {
         assertThat(recordedRequest.getPath(), equalTo("/token"));
         assertNotNull(tokenResponse);
         assertEquals(tokenResponse.getIdToken(), jws);
+    }
+
+    @Test
+    public void handleActivityResult() throws InterruptedException {
+        Intent intent = new Intent();
+        intent.setData(Uri.parse("com.okta.test:/callback?code=" + CUSTOM_CODE + "&state=" + CUSTOM_STATE));
+        CountDownLatch latch = new CountDownLatch(1);
+        final StateResult[] stateResult = new StateResult[1];
+        handler().setAuthenticationListener((result, type) -> {
+            stateResult[0] = result;
+            latch.countDown();
+        });
+        handler().onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_IN, RESULT_OK, intent);
+        latch.await();
+        assertNotNull(stateResult[0]);
+        AuthorizeResponse response = (AuthorizeResponse) stateResult[0].getAuthorizationResponse();
+        assertNotNull(response);
+        assertEquals(stateResult[0].getStatus(), AuthenticationResultHandler.Status.AUTHORIZED);
+        assertEquals(response.getState(), CUSTOM_STATE);
+        assertEquals(response.getCode(), CUSTOM_CODE);
     }
 }

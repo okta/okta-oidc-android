@@ -47,7 +47,8 @@ You can learn more on the [Okta + Android](https://developer.okta.com/code/andro
 ### Requirements
 
 Okta OIDC SDK supports Android API 19 and above. [Chrome custom tab](https://developer.chrome.com/multidevice/android/customtabs) enabled browsers
-are needed by the library for browser initiated authorization. App must use FragmentActivity or any extensions of it to work with the library. An Okta developer account is needed to run the sample.
+are needed by the library for browser initiated authorization. An Okta developer account is needed to run the sample.
+It is recommended that your app extends `FragmentActivity` or any extensions of it. If you are extending `Activity` you have to override [onActivityResult](#onActivityResult-override).
 
 ### Installation
 
@@ -175,8 +176,8 @@ client.signIn(this, payload);
 
 ### onActivityResult override
 
-ATTENTION! This library uses a nested fragment and the `onActivityResult` method to receive data from the browser.
-In the case that you override the 'onActivityResult' method you must invoke 'super.onActivityResult()' method.
+The library uses a nested fragment to abstract the redirect callback. It uses `onActivityResult` to receive data from the browser. If your app overrides `onActivityResult` you must call 
+`super.onActivityResult()` to propagate unhandled `requestCode` to the library's fragment.
 
 ```java
     @Override
@@ -184,6 +185,48 @@ In the case that you override the 'onActivityResult' method you must invoke 'sup
         super.onActivityResult(requestCode, resultCode, data);
     }
 ```
+
+If your app extends `Activity` instead of `FragmentActivity` or `AppCompatActivity` you must override `onActivityResult` and pass the result to `WebAuthClient`.
+
+```java
+public class PlainActivity extends Activity {
+    private WebAuthClient client;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        OIDCConfig config = new OIDCConfig.Builder()
+                        .withJsonFile(this, R.raw.okta_oidc_config)
+                        .create();
+
+        client = new Okta.WebAuthBuilder()
+                        .withConfig(mOidcConfig)
+                        .withContext(this)                      
+                        .create();
+
+        ResultCallback<AuthorizationStatus, AuthorizationException> callback = 
+            new ResultCallback<AuthorizationStatus, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull AuthorizationStatus status) {
+                            }
+                            
+                            @Override
+                            public void onCancel() {
+                            }
+       
+                            @Override
+                            public void onError(@Nullable String msg, AuthorizationException error) {
+                            }
+                        };
+        client.registerCallback(callback, this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //must pass the results back to the WebAuthClient.
+        client.handleActivityResult(requestCode, resultCode, data);
+    }
+}
+``` 
+
 
 ## Sign in with your own UI
 
@@ -345,9 +388,9 @@ try {
                 //handle request error
             }
         });
-    } catch (AuthorizationException e) {
-        //handle error
-    }
+} catch (AuthorizationException e) {
+    //handle error
+}
 ```
 
 **Note:** *Access, refresh and ID tokens need to be revoked in separate requests. The request only revokes the specified token*
@@ -357,19 +400,23 @@ try {
 Tokens can be checked for more detailed information by using the introspect endpoint:
 
 ```java
-client.getSessionClient().introspectToken(client.getTokens().getRefreshToken(),
-    TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectInfo, AuthorizationException>() {
-        @Override
-        public void onSuccess(@NonNull IntrospectInfo result) {
-            //handle introspect response.
-        }
+try {
+    client.getSessionClient().introspectToken(client.getTokens().getRefreshToken(),
+        TokenTypeHint.REFRESH_TOKEN, new RequestCallback<IntrospectInfo, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull IntrospectInfo result) {
+                //handle introspect response.
+            }
 
-        @Override
-        public void onError(String error, AuthorizationException exception) {
-            //handle request error
+            @Override
+            public void onError(String error, AuthorizationException exception) {
+                //handle request error
+            }
         }
-    }
-);
+    );
+} catch (AuthorizationException e) {
+    //handle error
+}
 ```
 
 A list of the response properties can be found [here](https://developer.okta.com/docs/api/resources/oidc/#response-properties-3)
@@ -493,23 +540,12 @@ If none are found it will default to Chrome.
 
 ### Customize HTTP requests
 
-You can customize how HTTP connections are made by implementing the `HttpConnectionFactory` interface. For example if you want to customize the SSL socket factory:
+You can customize how HTTP connections are made by implementing the `OktaHttpClient` interface:
 
 ```java
-private class MyConnectionFactory implements HttpConnectionFactory {
-    @Override
-    public HttpURLConnection build(@NonNull URL url) throws Exception {
-        SSLContext sc = SSLContext.getInstance("SSL");
-        sc.init(null, trustManager, new SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-            @Override
-            public boolean verify(String arg0, SSLSession arg1) {
-                return true;
-            }
-        });
-        return (HttpURLConnection) url.openConnection();
-    }
+private class MyHttpClient implements OktaHttpClient {
+    //Implement interface
+    //...
 }
 
 client = new Okta.WebAuthBuilder()
@@ -517,9 +553,11 @@ client = new Okta.WebAuthBuilder()
     .withContext(getApplicationContext())
     .withStorage(new SharedPreferenceStorage(this))
     .withTabColor(getColorCompat(R.color.colorPrimary))
-    .withHttpConnectionFactory(new MyConnectionFactory())
+    .withOktaHttpClient(new MyHttpClient())
     .create();
 ```
+
+For an example on using [OkHttp](https://github.com/okta/okta-oidc-android/blob/master/app/src/main/java/com/okta/oidc/example/OkHttp.java).
 
 ### Storage
 
