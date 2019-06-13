@@ -86,4 +86,9 @@ public class DefaultEncryptionManager implements EncryptionManager {
     public void removeKeys() {
         mEncryptionManager.removeKeys();
     }
+
+    @Override
+    public boolean isValidKeys() {
+        return mEncryptionManager.isValidKeys();
+    }
 }

@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.clients.State.IDLE;
+import static com.okta.oidc.storage.OktaRepository.EncryptionException.INVALID_KEYS_ERROR;
 
 class SyncSessionClientImpl implements SyncSessionClient {
     private OIDCConfig mOidcConfig;
@@ -214,7 +215,26 @@ class SyncSessionClientImpl implements SyncSessionClient {
 
     @Override
     public boolean isAuthenticated() {
-        return mOktaState.hasTokenResponse();
+        boolean hasTokenResponse = mOktaState.hasTokenResponse();
+        if (!hasTokenResponse) {
+            return false;
+        }
+        try {
+            TokenResponse tokenResponse = mOktaState.getTokenResponse();
+            return tokenResponse != null;
+        } catch (OktaRepository.EncryptionException e) {
+            // Here we check if we can decrypt saved token.
+            // For Android API 18-22, there is some problem to determinate if private keys are valid
+            // If user set Screen Lock in Android Settings, all created before keys removed,
+            // and new one will create, when we initialize EncryptionManager.
+            // So we haven't way to check if we can decrypt persisted data.
+            // For Android API 23+, possible another EncryptionException error, so it's mean that
+            // keys are valid but require additional authentication by user.
+            if (e.getType() == INVALID_KEYS_ERROR) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

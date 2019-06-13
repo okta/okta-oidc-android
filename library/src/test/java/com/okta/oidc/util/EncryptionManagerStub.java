@@ -89,4 +89,9 @@ public class EncryptionManagerStub implements EncryptionManager {
     public boolean isUserAuthenticatedOnDevice() {
         return true;
     }
+
+    @Override
+    public boolean isValidKeys() {
+        return true;
+    }
 }

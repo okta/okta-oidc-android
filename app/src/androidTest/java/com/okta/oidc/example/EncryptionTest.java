@@ -1,6 +1,7 @@
 package com.okta.oidc.example;
 
 import android.content.Context;
+import android.os.Build;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -46,7 +47,12 @@ public class EncryptionTest {
     public void checkHardwareKeystore() {
         boolean hardwareBacked = mEncryptionManager.isHardwareBackedKeyStore();
         if (SampleActivity.isEmulator()) {
-            assertFalse(hardwareBacked);
+            // Starting from API 26, isHardwareBackedKeyStore on emulator return true
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                assertFalse(hardwareBacked);
+            } else {
+                assertTrue(hardwareBacked);
+            }
         } else {
             assertTrue(hardwareBacked);
         }

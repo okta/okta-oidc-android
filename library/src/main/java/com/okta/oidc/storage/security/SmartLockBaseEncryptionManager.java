@@ -25,27 +25,51 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.Cipher;
 
+/**
+ * A implementation of {@link EncryptionManager} with authorization using keys by OS.
+ */
 @TargetApi(Build.VERSION_CODES.M)
-class SmartLockBaseEncryptionManager implements EncryptionManager {
+public class SmartLockBaseEncryptionManager implements EncryptionManager {
     private static final String KEY_STORE = "AndroidKeyStore";
     private static final String KEY_SIMPLE_ALIAS = "smart_simple_key_for_pin";
     private static final String KEY_AUTHORIZE_ALIAS = "smart_authorize_key_for_pin";
-    private static final int MIN_VALIDITY_DURATION = 5;
+    private static final int MIN_VALIDITY_DURATION = 10;
     private EncryptionManager mEncryptionManager;
 
-    SmartLockBaseEncryptionManager(Context context) {
+    /**
+     * Constructor requires a context. It create encryption manager which require authorization
+     * only once
+     *
+     * @param context context
+     */
+    public SmartLockBaseEncryptionManager(Context context) {
         this(context, Integer.MAX_VALUE);
     }
 
-    SmartLockBaseEncryptionManager(Context context, int userAuthenticationValidityDurationSeconds) {
-        mEncryptionManager = EncryptionManagerFactory
-                .createEncryptionManager(context,
-                        KEY_STORE,
-                        KEY_AUTHORIZE_ALIAS,
-                        true,
-                        (userAuthenticationValidityDurationSeconds > MIN_VALIDITY_DURATION)
-                                ? userAuthenticationValidityDurationSeconds : MIN_VALIDITY_DURATION,
-                        false);
+    /**
+     * Constructor requires a context and validity duration time for keys in seconds.
+     * If user authorized to use keys by OS, these keys are available without authorization
+     * for "validity duration time" value. If this time expired, user need to authorize again.
+     * The minimum value is 10. It's not possible to set value < 10.
+     *
+     * @param context context
+     * @param userAuthenticationValidityDurationSeconds validity duration time in seconds
+     */
+    public SmartLockBaseEncryptionManager(Context context,
+                                          int userAuthenticationValidityDurationSeconds) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mEncryptionManager = EncryptionManagerFactory
+                    .createEncryptionManager(context,
+                            KEY_STORE,
+                            KEY_AUTHORIZE_ALIAS,
+                            true,
+                            (userAuthenticationValidityDurationSeconds > MIN_VALIDITY_DURATION)
+                                    ? userAuthenticationValidityDurationSeconds
+                                    : MIN_VALIDITY_DURATION,
+                            false);
+        } else {
+            throw new IllegalStateException("This class supports API23+");
+        }
     }
 
     @Override
@@ -92,5 +116,10 @@ class SmartLockBaseEncryptionManager implements EncryptionManager {
     @Override
     public void removeKeys() {
         mEncryptionManager.removeKeys();
+    }
+
+    @Override
+    public boolean isValidKeys() {
+        return mEncryptionManager.isValidKeys();
     }
 }
