@@ -71,6 +71,7 @@ class AuthClientImpl implements AuthClient {
                     if (cb != null) {
                         cb.onSuccess(result);
                     }
+
                 });
             } else {
                 mDispatcher.submitResults(() -> {

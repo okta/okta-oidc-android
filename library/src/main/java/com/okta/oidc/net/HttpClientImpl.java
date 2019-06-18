@@ -37,8 +37,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
 public class HttpClientImpl implements OktaHttpClient {
-    @VisibleForTesting
-    public HttpURLConnection mUrlConnection;
+    private HttpURLConnection mUrlConnection;
 
     /*
      * TLS v1.1, v1.2 in Android supports starting from API 16.
@@ -154,5 +153,10 @@ public class HttpClientImpl implements OktaHttpClient {
             return mUrlConnection.getResponseMessage();
         }
         return null;
+    }
+
+    @VisibleForTesting
+    public HttpURLConnection getUrlConnection() {
+        return mUrlConnection;
     }
 }

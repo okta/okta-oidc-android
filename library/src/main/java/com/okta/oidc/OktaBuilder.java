@@ -183,6 +183,9 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
      */
     @SuppressWarnings("WeakerAccess")
     protected A createAuthClient() {
+        if (mClient == null) {
+            mClient = new HttpClientImpl();
+        }
         // By default we enable encryption for all our clients. To change this behaviour, create
         // you own Builder.
         if (mEncryptionManager == null) {

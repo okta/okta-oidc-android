@@ -88,7 +88,7 @@ public class HttpClientImplTest {
     @Test
     public void cleanUp() {
         mHttpClient.cleanUp();
-        assertNull(mHttpClient.mUrlConnection);
+        assertNull(mHttpClient.getUrlConnection());
     }
 
     @Test

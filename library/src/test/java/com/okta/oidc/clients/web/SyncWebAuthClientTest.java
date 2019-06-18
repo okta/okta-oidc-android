@@ -42,6 +42,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
