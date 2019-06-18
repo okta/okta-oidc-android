@@ -26,23 +26,23 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 
 /**
- * A implementation of {@link EncryptionManager} with authorization using keys by OS.
+ * A implementation of {@link EncryptionManager} which requires user authentication when
+ * using keys by OS. The private keys are locked in the key store.
  */
 @TargetApi(Build.VERSION_CODES.M)
-public class SmartLockBaseEncryptionManager implements EncryptionManager {
+public class GuardedEncryptionManager implements EncryptionManager {
     private static final String KEY_STORE = "AndroidKeyStore";
-    private static final String KEY_SIMPLE_ALIAS = "smart_simple_key_for_pin";
     private static final String KEY_AUTHORIZE_ALIAS = "smart_authorize_key_for_pin";
     private static final int MIN_VALIDITY_DURATION = 10;
     private EncryptionManager mEncryptionManager;
 
     /**
-     * Constructor requires a context. It create encryption manager which require authorization
-     * only once
+     * Constructor requires a context. It create encryption manager which requires device
+     * authorization only once.
      *
      * @param context context
      */
-    public SmartLockBaseEncryptionManager(Context context) {
+    public GuardedEncryptionManager(Context context) {
         this(context, Integer.MAX_VALUE);
     }
 
@@ -52,11 +52,11 @@ public class SmartLockBaseEncryptionManager implements EncryptionManager {
      * for "validity duration time" value. If this time expired, user need to authorize again.
      * The minimum value is 10. It's not possible to set value < 10.
      *
-     * @param context context
+     * @param context                                   context
      * @param userAuthenticationValidityDurationSeconds validity duration time in seconds
      */
-    public SmartLockBaseEncryptionManager(Context context,
-                                          int userAuthenticationValidityDurationSeconds) {
+    public GuardedEncryptionManager(Context context,
+                                    int userAuthenticationValidityDurationSeconds) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mEncryptionManager = EncryptionManagerFactory
                     .createEncryptionManager(context,
