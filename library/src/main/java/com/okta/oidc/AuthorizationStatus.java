@@ -15,12 +15,12 @@
 
 package com.okta.oidc;
 
-import androidx.fragment.app.FragmentActivity;
+import android.app.Activity;
 
 /**
  * The Authorization status returned from a web auth requests.
- * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(FragmentActivity, AuthenticationPayload)}
- * {@link com.okta.oidc.clients.web.WebAuthClient#signOutOfOkta(FragmentActivity)}
+ * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(Activity, AuthenticationPayload)}
+ * {@link com.okta.oidc.clients.web.WebAuthClient#signOutOfOkta(Activity)}
  */
 public enum AuthorizationStatus {
     /**

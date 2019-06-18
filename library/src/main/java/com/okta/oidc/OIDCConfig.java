@@ -73,7 +73,8 @@ public class OIDCConfig {
 
     private OIDCConfig(AccountInfo account) {
         mAccount = account;
-        mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2);
+        mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2)
+                && !mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE);
     }
 
     /**
@@ -112,8 +113,13 @@ public class OIDCConfig {
      * @return The Uri where the discovery document can be found
      */
     public Uri getDiscoveryUri() {
-        return Uri.parse(mAccount.mDiscoveryUri + (mIsOAuth2Configuration ?
-                OAUTH2_CONFIGURATION_RESOURCE : OPENID_CONFIGURATION_RESOURCE));
+        if (mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE)
+                || mAccount.mDiscoveryUri.contains(OAUTH2_CONFIGURATION_RESOURCE)) {
+            return Uri.parse(mAccount.mDiscoveryUri);
+        } else {
+            return Uri.parse(mAccount.mDiscoveryUri + (mIsOAuth2Configuration ?
+                    OAUTH2_CONFIGURATION_RESOURCE : OPENID_CONFIGURATION_RESOURCE));
+        }
     }
 
     /**

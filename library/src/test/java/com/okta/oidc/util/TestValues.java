@@ -48,6 +48,9 @@ import io.jsonwebtoken.security.Keys;
 public class TestValues {
     public static final String CUSTOM_URL = "https://com.okta.test/";
     public static final String CUSTOM_OAUTH2_URL = "https://com.okta.test/oauth2/default/";
+    public static final String WELL_KNOWN_OAUTH = ".well-known/oauth-authorization-server";
+    public static final String WELL_KNOWN_OIDC = ".well-known/openid-configuration";
+
     public static final String CUSTOM_STATE = "CUSTOM_STATE";
     public static final String CUSTOM_NONCE = "CUSTOM_NONCE";
     public static final String CUSTOM_CODE = "CUSTOM_CODE";

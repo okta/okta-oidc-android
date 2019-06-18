@@ -16,6 +16,13 @@ package com.okta.oidc.example;
 
 import android.content.Context;
 
+import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.UiDevice;
+import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObjectNotFoundException;
+import androidx.test.uiautomator.UiSelector;
+import androidx.test.uiautomator.Until;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyPair;
@@ -33,6 +40,57 @@ import io.jsonwebtoken.security.Keys;
 
 final class Utils {
     private static final int BUFFER_SIZE = 1024;
+    //apk package names
+    @SuppressWarnings("unused")
+    public static final String FIRE_FOX = "org.mozilla.firefox";
+    public static final String CHROME_STABLE = "com.android.chrome";
+    public static final String SAMPLE_APP = "com.okta.oidc.example";
+
+    //timeout for app transition from browser to app.
+    public static final int TRANSITION_TIMEOUT = 2000;
+    public static final int NETWORK_TIMEOUT = 5000;
+
+    //web page resource ids
+    public static final String ID_USERNAME = "okta-signin-username";
+    public static final String ID_PASSWORD = "okta-signin-password";
+    public static final String ID_SUBMIT = "okta-signin-submit";
+    public static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
+    public static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
+    public static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+
+    public static String PASSWORD = BuildConfig.PASSWORD;
+    public static String USERNAME = BuildConfig.USERNAME;
+
+    public static void acceptChromePrivacyOption(UiDevice device) throws UiObjectNotFoundException {
+        UiSelector selector = new UiSelector();
+        UiObject accept = device.findObject(selector.resourceId(ID_ACCEPT));
+        accept.waitForExists(TRANSITION_TIMEOUT);
+        if (accept.exists()) {
+            accept.click();
+        }
+
+        UiObject noThanks = device.findObject(selector.resourceId(ID_NO_THANKS));
+        noThanks.waitForExists(TRANSITION_TIMEOUT);
+        if (noThanks.exists()) {
+            noThanks.click();
+        }
+    }
+
+    public static void customTabInteraction(UiDevice device, boolean enterUserName) throws UiObjectNotFoundException {
+        device.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        acceptChromePrivacyOption(device);
+        UiSelector selector = new UiSelector();
+        if (enterUserName) {
+            UiObject username = device.findObject(selector.resourceId(ID_USERNAME));
+            username.setText(USERNAME);
+        }
+        UiObject password = device.findObject(selector.resourceId(ID_PASSWORD));
+        password.setText(PASSWORD);
+        UiObject signIn = device.findObject(selector.resourceId(ID_SUBMIT));
+        signIn.click();
+        device.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+
+    }
 
     static String getAsset(Context context, String filename) {
         try {

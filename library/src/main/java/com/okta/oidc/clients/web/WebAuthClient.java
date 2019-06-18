@@ -15,8 +15,10 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
+import android.content.Intent;
+
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -68,27 +70,27 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * Sign in using implicit flow.
      *
      * <p>The result will be returned in the
-     * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
+     * {@link #registerCallback(ResultCallback, Activity)} callback
      *
      * @param activity the activity
      * @param payload  the {@link AuthenticationPayload payload}
      */
-    void signIn(@NonNull FragmentActivity activity, AuthenticationPayload payload);
+    void signIn(@NonNull Activity activity, AuthenticationPayload payload);
 
     /**
      * Sign out from okta. This will clear the browser session
      *
      * <p>The result will be returned in the
-     * {@link #registerCallback(ResultCallback, FragmentActivity)} callback
+     * {@link #registerCallback(ResultCallback, Activity)} callback
      *
      * @param activity the activity
      */
-    void signOutOfOkta(@NonNull FragmentActivity activity);
+    void signOutOfOkta(@NonNull Activity activity);
 
     /**
      * Register a callback for sign in and sign out result status. The callback is triggered when
-     * {@link #signIn(FragmentActivity, AuthenticationPayload) signIn} or
-     * {@link #signOutOfOkta(FragmentActivity)} signOutOfOkta} is completed.
+     * {@link #signIn(Activity, AuthenticationPayload) signIn} or
+     * {@link #signOutOfOkta(Activity)} signOutOfOkta} is completed.
      * Example usage:
      * {@code
      * <pre>
@@ -121,7 +123,7 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * @param activity       the activity which will receive the results.
      */
     void registerCallback(ResultCallback<AuthorizationStatus, AuthorizationException>
-                                  resultCallback, FragmentActivity activity);
+                                  resultCallback, Activity activity);
 
     /**
      * Unregister the callback.
@@ -143,4 +145,15 @@ public interface WebAuthClient extends BaseAuth<SessionClient> {
      * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
+
+    /**
+     * Use this method to handle the onActivityResult. If using regular activity and chrome custom
+     * tabs passes data back to the main activity. This must be called to parse the results of
+     * the login.
+     *
+     * @param requestCode request code of login or logout.
+     * @param resultCode  result either OK or CANCEL
+     * @param data        the redirected data from chrome custom tab.
+     */
+    void handleActivityResult(int requestCode, int resultCode, Intent data);
 }

@@ -14,8 +14,6 @@
  */
 package com.okta.oidc.example;
 
-import android.os.Build;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -38,11 +36,8 @@ import org.junit.runners.MethodSorters;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
@@ -51,31 +46,27 @@ import static com.okta.oidc.example.Utils.ID_CLOSE_BROWSER;
 import static com.okta.oidc.example.Utils.NETWORK_TIMEOUT;
 import static com.okta.oidc.example.Utils.SAMPLE_APP;
 import static com.okta.oidc.example.Utils.TRANSITION_TIMEOUT;
+import static com.okta.oidc.example.Utils.USERNAME;
 import static com.okta.oidc.example.Utils.customTabInteraction;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4.class)
 @LargeTest
-public class SampleActivityTest {
+public class PlainActivityTest {
+
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
     private static final String ID_GET_PROFILE = "com.okta.oidc.example:id/get_profile";
 
-    private static String PASSWORD;
-    private static String USERNAME;
-
     private UiDevice mDevice;
     @Rule
-    public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
+    public ActivityTestRule<PlainActivity> activityRule = new ActivityTestRule<>(PlainActivity.class);
 
     @Before
     public void setUp() {
         mDevice = UiDevice.getInstance(getInstrumentation());
-        USERNAME = BuildConfig.USERNAME;
-        PASSWORD = BuildConfig.PASSWORD;
     }
 
     private UiObject getProgressBar() {
@@ -100,11 +91,6 @@ public class SampleActivityTest {
 
     @Test
     public void test1_signInNoSession() throws UiObjectNotFoundException {
-        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
-            onView(withId(R.id.switch1)).perform(click());
-        }).check(matches(isChecked()));
-
         onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
             onView(withId(R.id.clear_data)).perform(click());
@@ -270,37 +256,6 @@ public class SampleActivityTest {
     }
 
     @Test
-    public void testC_nativeLogIn() {
-        assumeTrue(
-                "Can only run on API Level 24 or later because AuthenticationAPI " +
-                        "requires Java 8",
-                Build.VERSION.SDK_INT >= 24
-        );
-        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
-            onView(withId(R.id.clear_data)).perform(click());
-        }).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_in_native)).perform(click());
-
-        onView(withId(R.id.username)).check(matches(isDisplayed()));
-        onView(withId(R.id.username)).perform(click(), replaceText(BuildConfig.USERNAME));
-
-        onView(withId(R.id.password)).check(matches(isDisplayed()));
-        onView(withId(R.id.password)).perform(click(), replaceText(BuildConfig.PASSWORD));
-
-        onView(withId(R.id.submit)).check(matches(isDisplayed()));
-        onView(withId(R.id.submit)).perform(click());
-
-        //wait for network
-        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
-        //check if get profile is visible
-        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
-        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
-        onView(withId(R.id.status))
-                .check(matches(withText(containsString("authentication authorized"))));
-    }
-
-    @Test
     public void testD_checkIfTokenExpired() {
         signInIfNotAlready();
         onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
@@ -308,28 +263,4 @@ public class SampleActivityTest {
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("token not expired"))));
     }
-
-    @Test
-    public void testE_OAuth2ResourceConfig() throws UiObjectNotFoundException {
-        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
-            onView(withId(R.id.switch1)).perform(click());
-        }).check(matches(isNotChecked()));
-
-        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
-            //test9_signOutOfOkta();
-            onView(withId(R.id.clear_data)).perform(click());
-        }).check(matches(isDisplayed()));
-
-        onView(withId(R.id.sign_in)).perform(click());
-        //check if get profile is visible
-        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
-        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
-        onView(withId(R.id.get_profile)).perform(click());
-        onView(withId(R.id.status))
-                .check(matches(withText(
-                        containsString("Invalid operation"))));
-    }
-
-
 }

@@ -119,7 +119,9 @@ public class AuthorizeRequest extends WebRequest {
                     .buildUpon();
             queryParams.remove(AUTHORIZE_ENDPOINT);
             for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
+                if (!entry.getKey().equals(CODE_VERIFIER)) {
+                    uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
+                }
             }
             return uriBuilder.build();
         }
