@@ -15,18 +15,18 @@
 
 package com.okta.oidc.example;
 
-import androidx.annotation.NonNull;
-
 import com.okta.oidc.net.OktaHttpClient;
 
 /**
  * Simple connection factory.
  */
 public class MyConnectionFactory {
+
     /**
      * The constant USE_OK_HTTP.
      */
     public static final int USE_OK_HTTP = 1;
+
     /**
      * The constant USE_SYNC_OK_HTTP.
      */
@@ -39,7 +39,6 @@ public class MyConnectionFactory {
      *
      * @return the okta http client
      */
-    @NonNull
     public OktaHttpClient build() {
         switch (clientType) {
             case USE_OK_HTTP:
@@ -47,7 +46,7 @@ public class MyConnectionFactory {
             case USE_SYNC_OK_HTTP:
                 return new SyncOkHttp();
             default:
-                return new OkHttp();
+                return null;//sdk will use default implementation if null is provided.
         }
     }
 

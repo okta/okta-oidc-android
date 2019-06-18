@@ -35,7 +35,6 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.storage.SharedPreferenceStorage;
-import com.okta.oidc.util.CodeVerifierUtil;
 
 import org.junit.After;
 import org.junit.Before;
@@ -111,12 +110,10 @@ public class WireMockTest {
 
     private Context mMockContext;
 
-    private String mState;
-    private String mNonce;
-
     private final String FAKE_CODE = "NPcg5pmx7oZbXSfbnhmE";
+    private final String FAKE_STATE = "dNj95w5rW_ZWtAefdIrTug";
+    private final String FAKE_NONCE = "UHdBvbK4x6GPRhos8gPXPg";
 
-    private String mRedirect;
     private UiDevice mDevice;
     @Rule
     public ActivityTestRule<SampleActivity> activityRule = new ActivityTestRule<>(SampleActivity.class);
@@ -137,13 +134,11 @@ public class WireMockTest {
                 .httpsPort(HTTPS_PORT));
         mWireMockServer.start();
 
-        mState = CodeVerifierUtil.generateRandomState();
-        mNonce = CodeVerifierUtil.generateRandomState();
         mMockPayload = new AuthenticationPayload.Builder()
-                .setState(mState)
-                .addParameter("nonce", mNonce)
+                .setState(FAKE_STATE)
+                .addParameter("nonce", FAKE_NONCE)
                 .build();
-        mRedirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s", FAKE_CODE, mState);
+
         //samples sdk test
         activityRule.getActivity().mOidcConfig = new OIDCConfig.Builder()
                 .clientId("0oajqehiy6p81NVzA0h7")
@@ -158,7 +153,11 @@ public class WireMockTest {
                 .withContext(activityRule.getActivity())
                 .withStorage(new SharedPreferenceStorage(activityRule.getActivity()))
                 .withOktaHttpClient(new MockOktaHttpClient())
+                .setRequireHardwareBackedKeyStore(false)
                 .create();
+
+        activityRule.getActivity().mSessionClient =
+                activityRule.getActivity().mWebAuth.getSessionClient();
 
         activityRule.getActivity().setupCallback();
     }
@@ -188,18 +187,52 @@ public class WireMockTest {
     }
 
     @Test
+    public void test0_signInNoSessionCancel() throws UiObjectNotFoundException {
+        activityRule.getActivity().mPayload = mMockPayload;
+        mockConfigurationRequest(aResponse()
+                .withStatus(HTTP_OK)
+                .withBody(getAsset(mMockContext, "configuration.json")));
+
+        String redirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s",
+                FAKE_CODE, FAKE_STATE);
+        mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
+                .withHeader("Location", redirect));
+
+        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
+            onView(withId(R.id.switch1)).perform(click());
+        }).check(matches(isChecked()));
+
+        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).perform(click());
+        
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+
+        UiSelector selector = new UiSelector();
+        UiObject closeBrowser = mDevice.findObject(selector.resourceId(ID_CLOSE_BROWSER));
+        closeBrowser.click();
+
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        onView(withId(R.id.status)).check(matches(withText(containsString("canceled"))));
+    }
+
+    @Test
     public void test1_signInNoSession() throws UiObjectNotFoundException, InterruptedException {
         activityRule.getActivity().mPayload = mMockPayload;
         mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)
                 .withBody(getAsset(mMockContext, "configuration.json")));
 
-        mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
-                .withHeader("Location", mRedirect));
+        String response = getAsset(mMockContext, "response.html");
+        mockWebAuthorizeRequest(aResponse().withStatus(HTTP_OK)
+                .withBody(response));
 
         String tokenResponse = getAsset(mMockContext, "token_response.json");
 
-        String jwt = Utils.getJwt(ISSUER, mNonce, getTomorrow(), getNow(),
+        String jwt = Utils.getJwt(ISSUER, FAKE_NONCE, getTomorrow(), getNow(),
                 activityRule.getActivity().mOidcConfig.getClientId());
 
         String token = String.format(tokenResponse, jwt);
@@ -242,7 +275,6 @@ public class WireMockTest {
 
     @Test
     public void test2_getProfile_with_network_throttling_success() throws UiObjectNotFoundException, InterruptedException {
-
         String profileResponse = getAsset(mMockContext, "profile.json");
 
         mockProfileRequest(aResponse().withStatus(HTTP_OK)
@@ -250,6 +282,8 @@ public class WireMockTest {
                 .withBody(profileResponse));
 
         onView(withId(R.id.get_profile)).perform(click());
+
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
 
         onView(withId(R.id.status)).check(matches(isDisplayed()));
         onView(withId(R.id.status)).check(matches(withText(containsString("Developer Experience"))));
@@ -264,9 +298,9 @@ public class WireMockTest {
         );
 
         onView(withId(R.id.get_profile)).perform(click());
-
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
         onView(withId(R.id.status)).check(matches(isDisplayed()));
-        onView(withId(R.id.status)).check(matches(withText(containsString("Network error"))));
+        onView(withId(R.id.status)).check(matches(withText(containsString("Unauthorized"))));
     }
 
     @Test
@@ -281,9 +315,9 @@ public class WireMockTest {
         );
 
         onView(withId(R.id.get_profile)).perform(click());
-
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
         onView(withId(R.id.status)).check(matches(isDisplayed()));
-        onView(withId(R.id.status)).check(matches(withText(containsString("Network error"))));
+        onView(withId(R.id.status)).check(matches(withText(containsString("Forbidden"))));
     }
 
 
@@ -300,7 +334,7 @@ public class WireMockTest {
         );
 
         onView(withId(R.id.revoke_access)).perform(click());
-
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
         onView(withId(R.id.status)).check(matches(isDisplayed()));
         onView(withId(R.id.status)).check(matches(withText(containsString("false"))));
     }
@@ -318,7 +352,7 @@ public class WireMockTest {
         );
 
         onView(withId(R.id.revoke_access)).perform(click());
-
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
         onView(withId(R.id.status)).check(matches(isDisplayed()));
         onView(withId(R.id.status)).check(matches(withText(containsString("false"))));
     }
