@@ -24,6 +24,7 @@ import com.okta.oidc.net.HttpClientImpl;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SharedPreferenceStorage;
+import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 /**
@@ -184,6 +185,11 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     protected A createAuthClient() {
         if (mClient == null) {
             mClient = new HttpClientImpl();
+        }
+        // By default we enable encryption for all our clients. To change this behaviour, create
+        // you own Builder.
+        if (mEncryptionManager == null) {
+            this.mEncryptionManager = new DefaultEncryptionManager(mContext);
         }
         return this.mClientFactory.createClient(mOidcConfig,
                 mContext, mStorage, mEncryptionManager,

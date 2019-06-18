@@ -97,4 +97,11 @@ public interface EncryptionManager {
      * @return true if authenticated and cipher
      */
     boolean isUserAuthenticatedOnDevice();
+
+    /**
+     * Check if keystore has keys and their are valid.
+     *
+     * @return true if keys are valid
+     */
+    boolean isValidKeys();
 }

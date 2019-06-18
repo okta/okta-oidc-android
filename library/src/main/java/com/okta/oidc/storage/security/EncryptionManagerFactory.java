@@ -29,7 +29,8 @@ class EncryptionManagerFactory {
                     isAuthenticateUserRequired, userAuthenticationValidityDurationSeconds,
                     initCipherOnCreate);
         } else {
-            return new EncryptionManagerAPI18(context, keyStoreName, keyAlias, initCipherOnCreate);
+            return new EncryptionManagerAPI18(context, keyStoreName, keyAlias, initCipherOnCreate,
+                    isAuthenticateUserRequired);
         }
     }
 }
