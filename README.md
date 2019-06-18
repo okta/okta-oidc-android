@@ -55,7 +55,7 @@ It is recommended that your app extends `FragmentActivity` or any extensions of 
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:0.1.0'
+implementation 'com.okta.android:oidc-androidx:1.0.0'
 ```
 
 ### Sample app
@@ -593,6 +593,16 @@ client = new Okta.WebAuthBuilder()
     .supportedBrowsers(FIREFOX, SAMSUNG)
     .create();
 ```
+
+The SDK provides two implementations of `EncryptionManager`
+
+## DefaultEncryptionManager
+
+Private keys are stored in KeyStore. Does not require device authentication to use the keys. Compatible with API19 and up.
+
+## GuardedEncryptionManager
+
+Private keys are stored in KeyStore. Requires device authentication to use the keys. Compatible with API23 and up.
 
 ### Hardware-backed keystore
 
