@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -42,11 +43,10 @@ public class RequestDispatcher extends AbstractExecutorService {
     private static final int MAX_THREADS = 3;
     private boolean mShutdown = false;
     //executor used to run async network requests. only single thread
-    private ExecutorService mExecutorService;
+    private ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
     //executor used to run async requests not related to networking.
-    private static final ExecutorService TASK_EXECUTOR =
-            Executors.newFixedThreadPool(MAX_THREADS);
+    private ExecutorService mTaskExecutor = Executors.newFixedThreadPool(MAX_THREADS);
 
     //callback executor provide by app for callbacks
     private Executor mCallbackExecutor;
@@ -54,17 +54,9 @@ public class RequestDispatcher extends AbstractExecutorService {
     //main handler for callbacks on main thread.
     private Handler mHandler;
 
-    private Set<Future> mExecutorServiceTasks;
-
-    private synchronized ExecutorService getExecutorService() {
-        if (mExecutorService == null) {
-            mExecutorService = Executors.newSingleThreadExecutor();
-        }
-        return mExecutorService;
-    }
+    private Set<Future> mExecutorServiceTasks = new HashSet<>();
 
     public RequestDispatcher(Executor callbackExecutor) {
-        mExecutorServiceTasks = new HashSet<>();
         if (callbackExecutor == null) {
             mHandler = new Handler(Looper.getMainLooper());
         } else {
@@ -79,10 +71,17 @@ public class RequestDispatcher extends AbstractExecutorService {
         }
         if (mCallbackExecutor instanceof ExecutorService) {
             ((ExecutorService) mCallbackExecutor).shutdown();
+            mCallbackExecutor = null;
         }
         if (mExecutorService != null) {
             mExecutorService.shutdown();
+            mExecutorService = null;
         }
+        if (mTaskExecutor != null) {
+            mTaskExecutor.shutdown();
+            mTaskExecutor = null;
+        }
+
         mShutdown = true;
     }
 
@@ -91,10 +90,13 @@ public class RequestDispatcher extends AbstractExecutorService {
             mHandler.removeCallbacksAndMessages(null);
         }
 
-        Iterator<Future> executorIterator = mExecutorServiceTasks.iterator();
-        while (executorIterator.hasNext()) {
-            executorIterator.next().cancel(true);
-            executorIterator.remove();
+        if (mExecutorServiceTasks != null) {
+            Iterator<Future> executorIterator = mExecutorServiceTasks.iterator();
+            while (executorIterator.hasNext()) {
+                executorIterator.next().cancel(true);
+                executorIterator.remove();
+            }
+            mExecutorServiceTasks = null;
         }
     }
 
@@ -130,15 +132,22 @@ public class RequestDispatcher extends AbstractExecutorService {
     }
 
     @Override
+    public Future<?> submit(Runnable task) {
+        Future<?> future = super.submit(task);
+        mExecutorServiceTasks.add(future);
+        return future;
+    }
+
+    @Override
     public void execute(Runnable command) {
-        mExecutorServiceTasks.add(getExecutorService().submit(command));
+        mTaskExecutor.execute(command);
     }
 
     public void runTask(Runnable runnable) {
-        mExecutorServiceTasks.add(TASK_EXECUTOR.submit(runnable));
+        mExecutorServiceTasks.add(mTaskExecutor.submit(runnable));
     }
 
-    //Debugging
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
     public static String createStackElementTagFor(Thread thread) {
         StackTraceElement[] elements = thread.getStackTrace();
         StringBuilder trace = new StringBuilder();

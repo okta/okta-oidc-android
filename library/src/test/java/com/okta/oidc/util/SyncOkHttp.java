@@ -13,27 +13,27 @@
  * License.
  */
 
-package com.okta.oidc.net;
+package com.okta.oidc.util;
+
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import com.okta.oidc.net.ConnectionParameters;
 
-/**
- * For building customized {@link java.net.HttpURLConnection} instances for interacting directly
- * with Okta OIDC endpoints. For in-app connections only. Not in use for chrome custom tab.
- */
-public interface HttpConnectionFactory {
+import java.io.InputStream;
 
-    /**
-     * Creates a connection to the specified URL.
-     *
-     * @param url the url
-     * @return the http url connection
-     * @throws IOException if an error occurs while attempting to establish the connection.
-     */
-    @NonNull
-    HttpURLConnection build(@NonNull URL url) throws IOException;
+import okhttp3.Request;
+
+public class SyncOkHttp extends OkHttp {
+    @Override
+    public InputStream connect(@NonNull Uri uri, @NonNull ConnectionParameters param) throws Exception {
+        Request request = buildRequest(uri, param);
+        mCall = sOkHttpClient.newCall(request);
+        mResponse = mCall.execute();
+        if (mResponse != null && mResponse.body() != null) {
+            return mResponse.body().byteStream();
+        }
+        return null;
+    }
 }

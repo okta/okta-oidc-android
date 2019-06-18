@@ -43,8 +43,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.okta.oidc.net.HttpConnection.USER_AGENT_HEADER;
-import static com.okta.oidc.net.HttpConnection.X_OKTA_USER_AGENT;
+import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
+import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
 
 /**
  * This activity starts the authorization with PKCE flow.

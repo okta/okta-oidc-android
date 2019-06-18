@@ -16,11 +16,11 @@ package com.okta.oidc.net.request;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.After;
@@ -29,23 +29,40 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class ConfigurationRequestTest {
     private ConfigurationRequest mRequest;
     private ConfigurationRequest mRequestOAuth2;
     private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public ConfigurationRequestTest(int clientType) {
+        mClientType = clientType;
+    }
+
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -57,7 +74,9 @@ public class ConfigurationRequestTest {
         mRequest = HttpRequestBuilder.newConfigurationRequest()
                 .config(config)
                 .createRequest();
-
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
         OIDCConfig configOAuth2 = TestValues.getConfigWithUrl(url + "/oauth2/default/");
         mRequestOAuth2 = HttpRequestBuilder.newConfigurationRequest()
                 .config(configOAuth2)
@@ -72,56 +91,9 @@ public class ConfigurationRequestTest {
     }
 
     @Test
-    public void dispatchRequestSuccess() throws InterruptedException {
-        mEndPoint.enqueueConfigurationSuccess();
-        CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<ProviderConfiguration, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-
-        ProviderConfiguration other = new Gson().
-                fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
-        ProviderConfiguration configuration = cb.getResult();
-        configuration.validate(false);
-        assertNotNull(configuration);
-        assertEquals(configuration.persist(), other.persist());
-
-        //oauth2 config
-        mEndPoint.enqueueOAuth2ConfigurationSuccess();
-        CountDownLatch oauth2Latch = new CountDownLatch(1);
-        MockRequestCallback<ProviderConfiguration, AuthorizationException> oauth2Cb
-                = new MockRequestCallback<>(oauth2Latch);
-        mRequestOAuth2.dispatchRequest(dispatcher, oauth2Cb);
-        oauth2Latch.await();
-
-        ProviderConfiguration oauth2Config = new Gson().
-                fromJson(JsonStrings.PROVIDER_CONFIG_OAUTH2, ProviderConfiguration.class);
-        ProviderConfiguration oauth2ConfigResult = oauth2Cb.getResult();
-        oauth2ConfigResult.validate(true);
-        assertNotNull(oauth2ConfigResult);
-        assertEquals(oauth2ConfigResult.persist(), oauth2Config.persist());
-    }
-
-    @Test
-    public void dispatchRequestFailure() throws InterruptedException, AuthorizationException {
-        mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Invalid status code 404 Client Error");
-        mEndPoint.enqueueConfigurationFailure();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<ProviderConfiguration, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        throw cb.getException();
-    }
-
-    @Test
     public void executeRequestSuccess() throws AuthorizationException {
         mEndPoint.enqueueConfigurationSuccess();
-        ProviderConfiguration configuration = mRequest.executeRequest();
+        ProviderConfiguration configuration = mRequest.executeRequest(mHttpClient);
         ProviderConfiguration other = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG, ProviderConfiguration.class);
         assertNotNull(configuration);
@@ -130,13 +102,12 @@ public class ConfigurationRequestTest {
 
         //oauth2
         mEndPoint.enqueueOAuth2ConfigurationSuccess();
-        ProviderConfiguration oauth2Result = mRequestOAuth2.executeRequest();
+        ProviderConfiguration oauth2Result = mRequestOAuth2.executeRequest(mHttpClient);
         ProviderConfiguration oauth2Config = new Gson().
                 fromJson(JsonStrings.PROVIDER_CONFIG_OAUTH2, ProviderConfiguration.class);
         assertNotNull(oauth2Result);
         oauth2Config.validate(true);
         assertEquals(oauth2Result.persist(), oauth2Config.persist());
-
     }
 
     @Test
@@ -144,6 +115,6 @@ public class ConfigurationRequestTest {
         mExpectedEx.expect(AuthorizationException.class);
         mExpectedEx.expectMessage("Invalid status code 404 Client Error");
         mEndPoint.enqueueConfigurationFailure();
-        mRequest.executeRequest();
+        mRequest.executeRequest(mHttpClient);
     }
 }

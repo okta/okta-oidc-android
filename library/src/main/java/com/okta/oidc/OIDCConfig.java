@@ -167,7 +167,7 @@ public class OIDCConfig {
     }
 
     /**
-     * The OIDCAccount Builder.
+     * The OIDCConfig Builder.
      */
     public static class Builder {
         private AccountInfo mAccountInfo;

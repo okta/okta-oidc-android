@@ -23,7 +23,7 @@ import androidx.annotation.WorkerThread;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
@@ -54,7 +54,8 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
 public class AuthAPI {
     protected OktaState mOktaState;
     protected OIDCConfig mOidcConfig;
-    HttpConnectionFactory mConnectionFactory;
+    protected OktaHttpClient mHttpClient;
+
     protected AtomicBoolean mCancel = new AtomicBoolean();
     protected AtomicReference<WeakReference<BaseRequest>> mCurrentRequest =
             new AtomicReference<>(new WeakReference<>(null));
@@ -63,13 +64,11 @@ public class AuthAPI {
                       Context context,
                       OktaStorage oktaStorage,
                       EncryptionManager encryptionManager,
-                      HttpConnectionFactory connectionFactory,
                       boolean requireHardwareBackedKeyStore,
                       boolean cacheMode) {
         mOktaState = new OktaState(new OktaRepository(oktaStorage, context, encryptionManager,
                 requireHardwareBackedKeyStore, cacheMode));
         mOidcConfig = oidcConfig;
-        mConnectionFactory = connectionFactory;
     }
 
     protected ProviderConfiguration obtainNewConfiguration() throws AuthorizationException {
@@ -80,7 +79,7 @@ public class AuthAPI {
                 mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
                 ConfigurationRequest request = configurationRequest();
                 mCurrentRequest.set(new WeakReference<>(request));
-                config = request.executeRequest();
+                config = request.executeRequest(mHttpClient);
                 mOktaState.save(config);
             }
             return config;
@@ -92,7 +91,6 @@ public class AuthAPI {
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public ConfigurationRequest configurationRequest() throws AuthorizationException {
         return HttpRequestBuilder.newConfigurationRequest()
-                .connectionFactory(mConnectionFactory)
                 .config(mOidcConfig)
                 .createRequest();
     }
@@ -138,6 +136,7 @@ public class AuthAPI {
 
     public void cancel() {
         mCancel.set(true);
+        mHttpClient.cancel();
         if (mCurrentRequest.get().get() != null) {
             mCurrentRequest.get().get().cancelRequest();
         }

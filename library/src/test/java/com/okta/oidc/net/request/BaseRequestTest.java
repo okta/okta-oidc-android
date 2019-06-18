@@ -16,80 +16,93 @@ package com.okta.oidc.net.request;
 
 import android.net.Uri;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.HttpClientFactory;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.okta.oidc.util.HttpClientFactory.USE_DEFAULT_HTTP;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class BaseRequestTest {
     private BaseRequest<String, AuthorizationException> mRequest;
-    private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
+    private OktaHttpClient mHttpClient;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
+
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public BaseRequestTest(int clientType) {
+        mClientType = clientType;
+    }
 
     @Before
     public void setUp() throws Exception {
         mEndPoint = new MockEndPoint();
-        mCallbackExecutor = Executors.newSingleThreadExecutor();
         mRequest = new BaseRequest<String, AuthorizationException>() {
             @Override
-            public void dispatchRequest(RequestDispatcher dispatcher, RequestCallback callback) {
-                //NO-OP
-            }
-
-            @Override
-            public String executeRequest() throws AuthorizationException {
+            public String executeRequest(OktaHttpClient client) throws AuthorizationException {
                 return null;
             }
         };
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
     }
 
     @Test
-    public void openConnection() throws IOException {
+    public void openConnection() throws Exception {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         mRequest.mUri = Uri.parse(mEndPoint.getUrl());
-        mRequest.mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.GET)
+        mRequest.mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.GET)
                 .create();
-        HttpResponse response = mRequest.openConnection();
+        HttpResponse response = mRequest.openConnection(mHttpClient);
         assertEquals(response.getStatusCode(), HTTP_OK);
     }
 
     @Test
-    public void cancelRequest() throws IOException, InterruptedException {
+    public void cancelRequest() throws Exception {
         mExpectedEx.expect(IOException.class);
         mExpectedEx.expectMessage("Canceled");
         mEndPoint.enqueueReturnSuccessEmptyBody(1);
         mRequest.mUri = Uri.parse(mEndPoint.getUrl());
-        mRequest.mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.GET)
+        mRequest.mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.GET)
                 .create();
-        AtomicReference<IOException> exception = new AtomicReference<>();
+        AtomicReference<Exception> exception = new AtomicReference<>();
         Thread t = new Thread(() -> {
             try {
-                mRequest.openConnection();
-            } catch (IOException e) {
+                mRequest.openConnection(mHttpClient);
+            } catch (Exception e) {
                 exception.set(e);
             }
         });
@@ -103,15 +116,20 @@ public class BaseRequestTest {
     }
 
     @Test
-    public void close() throws IOException {
+    public void close() throws Exception {
         mExpectedEx.expect(IOException.class);
-        mExpectedEx.expectMessage("stream is closed");
+        if (mClientType == USE_DEFAULT_HTTP) {
+            mExpectedEx.expectMessage("stream is closed");
+        } else {
+            mExpectedEx.expectMessage("closed");
+        }
+
         mEndPoint.enqueueConfigurationSuccess();
         mRequest.mUri = Uri.parse(mEndPoint.getUrl());
-        mRequest.mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.GET)
+        mRequest.mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.GET)
                 .create();
-        HttpResponse response = mRequest.openConnection();
+        HttpResponse response = mRequest.openConnection(mHttpClient);
         mRequest.close();
         response.getContent().read();
     }

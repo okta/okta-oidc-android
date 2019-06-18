@@ -25,7 +25,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -47,13 +47,14 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
                        Context context,
                        OktaStorage oktaStorage,
                        EncryptionManager encryptionManager,
-                       HttpConnectionFactory connectionFactory,
+                       OktaHttpClient httpClient,
                        boolean requireHardwareBackedKeyStore,
                        boolean cacheMode) {
-        super(oidcConfig, context, oktaStorage, encryptionManager, connectionFactory,
+        super(oidcConfig, context, oktaStorage, encryptionManager,
                 requireHardwareBackedKeyStore, cacheMode);
+        mHttpClient = httpClient;
         sessionClient = new SyncSessionClientFactoryImpl()
-                .createClient(oidcConfig, mOktaState, connectionFactory);
+                .createClient(oidcConfig, mOktaState, httpClient);
     }
 
     @VisibleForTesting
@@ -66,12 +67,12 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
                 .providerConfiguration(providerConfiguration)
                 .sessionToken(sessionToken)
                 .authenticationPayload(payload)
-                .createNativeRequest(mConnectionFactory);
+                .createNativeRequest();
     }
 
     @WorkerThread
-    public Result signIn(String sessionToken,
-                         @Nullable AuthenticationPayload payload) {
+    @Override
+    public Result signIn(String sessionToken, @Nullable AuthenticationPayload payload) {
         try {
             mCancel.set(false);
             ProviderConfiguration providerConfiguration = obtainNewConfiguration();
@@ -85,7 +86,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             //Save the nativeAuth request in a AuthRequest because it is needed to verify results.
             AuthorizeRequest authRequest = new AuthorizeRequest(request.getParameters());
             mOktaState.save(authRequest);
-            AuthorizeResponse authResponse = request.executeRequest();
+            AuthorizeResponse authResponse = request.executeRequest(mHttpClient);
             checkIfCanceled();
 
             validateResult(authResponse, authRequest);
@@ -93,7 +94,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             TokenRequest requestToken = tokenExchange(authResponse, providerConfiguration,
                     authRequest);
             mCurrentRequest.set(new WeakReference<>(requestToken));
-            TokenResponse tokenResponse = requestToken.executeRequest();
+            TokenResponse tokenResponse = requestToken.executeRequest(mHttpClient);
 
             mOktaState.save(tokenResponse);
             return Result.success();

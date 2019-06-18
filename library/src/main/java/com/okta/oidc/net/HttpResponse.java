@@ -15,6 +15,7 @@
 
 package com.okta.oidc.net;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import org.json.JSONException;
@@ -40,7 +41,7 @@ public final class HttpResponse {
     private final int mStatusCode;
     private final Map<String, List<String>> mHeaders;
     private final int mLength;
-    private final HttpURLConnection mConnection;
+    private final OktaHttpClient mHttpClient;
     private InputStream mInputStream;
 
     /**
@@ -50,7 +51,7 @@ public final class HttpResponse {
      * @param headers    response headers
      */
     public HttpResponse(int statusCode, Map<String, List<String>> headers) {
-        this(statusCode, headers, -1, null);
+        this(statusCode, headers, -1, null, null);
     }
 
     /**
@@ -59,15 +60,16 @@ public final class HttpResponse {
      * @param statusCode HTTP status code of the response
      * @param headers    response headers
      * @param length     the length of the response.
-     * @param connection an {@link HttpURLConnection} httpUrlconnection.
+     * @param client     an {@link OktaHttpClient} the OktaHttpClient
      */
     public HttpResponse(
             int statusCode, Map<String, List<String>> headers,
-            int length, HttpURLConnection connection) {
+            int length, InputStream inputStream, OktaHttpClient client) {
         mStatusCode = statusCode;
         mHeaders = headers;
         mLength = length;
-        mConnection = connection;
+        mHttpClient = client;
+        mInputStream = inputStream;
     }
 
     public int getStatusCode() {
@@ -79,25 +81,21 @@ public final class HttpResponse {
     }
 
     public String getHeaderField(String field) {
-        return mConnection.getHeaderField(field);
+        return mHttpClient.getHeader(field);
     }
 
     public int getContentLength() {
         return mLength;
     }
 
+    @Nullable
     public InputStream getContent() {
-        try {
-            mInputStream = mConnection.getInputStream();
-        } catch (IOException e) {
-            mInputStream = mConnection.getErrorStream();
-        }
         return mInputStream;
     }
 
     public void disconnect() {
-        if (mConnection != null) {
-            mConnection.disconnect();
+        if (mHttpClient != null) {
+            mHttpClient.cleanUp();
         }
         if (mInputStream != null) {
             try {
@@ -112,7 +110,7 @@ public final class HttpResponse {
         if (mStatusCode < HttpURLConnection.HTTP_OK ||
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
             throw new IOException("Invalid status code " + mStatusCode +
-                    " " + mConnection.getResponseMessage());
+                    " " + mHttpClient.getResponseMessage());
         }
         InputStream is = getContent();
         if (is == null) {

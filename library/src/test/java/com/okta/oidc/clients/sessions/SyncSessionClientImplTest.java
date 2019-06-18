@@ -25,8 +25,8 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.ConnectionParameters;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.IntrospectRequest;
@@ -42,6 +42,7 @@ import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -52,9 +53,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 
 import okhttp3.mockwebserver.RecordedRequest;
@@ -72,22 +75,35 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class SyncSessionClientImplTest {
 
     private Context mContext;
     private OIDCConfig mConfig;
-    private HttpConnectionFactory mConnectionFactory;
+    private HttpClientFactory mClientFactory;
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
     private SyncSessionClientImpl mSyncSessionClientImpl;
     private MockEndPoint mEndPoint;
     private Gson mGson;
     private OktaState mOktaState;
-
+    private OktaHttpClient mHttpClient;
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public SyncSessionClientImplTest(int clientType) {
+        mClientType = clientType;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -102,9 +118,13 @@ public class SyncSessionClientImplTest {
         mProviderConfig = TestValues.getProviderConfiguration(url);
         mTokenResponse = TokenResponse.RESTORE.restore(TOKEN_RESPONSE);
 
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
+
         SyncWebAuthClient mSyncWebAuth = new Okta.SyncWebAuthBuilder()
                 .withConfig(mConfig)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withContext(mContext)
                 .withStorage(storage)
                 .withEncryptionManager(new EncryptionManagerStub())
@@ -163,7 +183,7 @@ public class SyncSessionClientImplTest {
         String nonce = CodeVerifierUtil.generateRandomState();
         String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
-        TokenResponse response = request.executeRequest();
+        TokenResponse response = request.executeRequest(mHttpClient);
         assertNotNull(response);
 
         TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
@@ -179,7 +199,7 @@ public class SyncSessionClientImplTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
         RefreshTokenRequest request = mSyncSessionClientImpl.refreshTokenRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
-        TokenResponse response = request.executeRequest();
+        TokenResponse response = request.executeRequest(mHttpClient);
         assertNull(response);
     }
 
@@ -189,10 +209,10 @@ public class SyncSessionClientImplTest {
         mOktaState.save(mTokenResponse);
         mEndPoint.enqueueUserInfoSuccess();
         AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest();
+        JSONObject result = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
-        assertThat(recordedRequest.getHeader("Accept"), is(HttpConnection.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNotNull(result);
         assertEquals("John Doe", result.getString("name"));
@@ -208,7 +228,7 @@ public class SyncSessionClientImplTest {
 
         SyncWebAuthClient syncWebAuthClient = new Okta.SyncWebAuthBuilder()
                 .withConfig(oauth2Config)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withContext(mContext)
                 .withStorage(new SharedPreferenceStorage(mContext, "oauth2prefs"))
                 .withEncryptionManager(new EncryptionManagerStub())
@@ -218,7 +238,7 @@ public class SyncSessionClientImplTest {
                 .getSessionClient();
 
         AuthorizedRequest request = sessionClient.userProfileRequest(mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse());
-        request.executeRequest();
+        request.executeRequest(mHttpClient);
     }
 
     @Test
@@ -227,7 +247,7 @@ public class SyncSessionClientImplTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest();
+        JSONObject result = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNull(result);
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
@@ -237,7 +257,7 @@ public class SyncSessionClientImplTest {
     public void revokeTokenRequest() throws AuthorizationException, InterruptedException, OktaRepository.EncryptionException {
         mEndPoint.enqueueReturnSuccessEmptyBody();
         RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest("access_token", mOktaState.getProviderConfiguration());
-        boolean status = request.executeRequest();
+        boolean status = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(),
                 equalTo("/revoke?client_id=CLIENT_ID&token=access_token"));
@@ -248,8 +268,8 @@ public class SyncSessionClientImplTest {
     public void revokeTokenRequestFailure() throws AuthorizationException, InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
-        RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest("access_token",mOktaState.getProviderConfiguration());
-        boolean status = request.executeRequest();
+        RevokeTokenRequest request = mSyncSessionClientImpl.revokeTokenRequest("access_token", mOktaState.getProviderConfiguration());
+        boolean status = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertFalse(status);
         assertThat(recordedRequest.getPath(),
@@ -261,7 +281,7 @@ public class SyncSessionClientImplTest {
         mEndPoint.enqueueIntrospectSuccess();
         IntrospectRequest request =
                 mSyncSessionClientImpl.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, mOktaState.getProviderConfiguration());
-        IntrospectInfo response = request.executeRequest();
+        IntrospectInfo response = request.executeRequest(mHttpClient);
         assertTrue(response.isActive());
     }
 
@@ -271,7 +291,7 @@ public class SyncSessionClientImplTest {
         mEndPoint.enqueueReturnInvalidClient();
         IntrospectRequest request
                 = mSyncSessionClientImpl.introspectTokenRequest(ACCESS_TOKEN, TokenTypeHint.ACCESS_TOKEN, mOktaState.getProviderConfiguration());
-        IntrospectInfo response = request.executeRequest();
+        IntrospectInfo response = request.executeRequest(mHttpClient);
         assertNull(response);
     }
 
@@ -285,12 +305,12 @@ public class SyncSessionClientImplTest {
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
         AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
-                null, HttpConnection.RequestMethod.GET, mOktaState.getProviderConfiguration(),mOktaState.getTokenResponse());
-        JSONObject result = request.executeRequest();
+                null, ConnectionParameters.RequestMethod.GET, mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse());
+        JSONObject result = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("state"), is(CUSTOM_STATE));
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
-        assertThat(recordedRequest.getHeader("Accept"), is(HttpConnection.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNotNull(result);
         assertEquals("John Doe", result.getString("name"));
@@ -307,12 +327,12 @@ public class SyncSessionClientImplTest {
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
         AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
-                null, HttpConnection.RequestMethod.GET, mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest();
+                null, ConnectionParameters.RequestMethod.GET, mOktaState.getProviderConfiguration(), mTokenResponse);
+        JSONObject result = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("state"), is(CUSTOM_STATE));
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
-        assertThat(recordedRequest.getHeader("Accept"), is(HttpConnection.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNull(result);
     }

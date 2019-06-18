@@ -17,10 +17,9 @@ package com.okta.oidc.net.request;
 
 import androidx.annotation.RestrictTo;
 
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
@@ -36,47 +35,38 @@ public class AuthorizedRequest extends BaseRequest<JSONObject, AuthorizationExce
 
     AuthorizedRequest(HttpRequestBuilder.Authorized b) {
         super();
-        mRequestType = Type.AUTHORIZED;
+        mRequestType = b.mRequestType;
         mUri = b.mUri;
-        HttpConnection.Builder builder = new HttpConnection.Builder();
+        ConnectionParameters.ParameterBuilder builder = new ConnectionParameters.ParameterBuilder();
         if (b.mPostParameters != null) {
             builder.setPostParameters(b.mPostParameters);
         }
         if (b.mProperties != null) {
             builder.setRequestProperties(b.mProperties);
         }
-        mConnection = builder
+        mConnParams = builder
                 .setRequestMethod(b.mRequestMethod)
                 .setRequestProperty("Authorization", "Bearer " + b.mTokenResponse.getAccessToken())
-                .setRequestProperty("Accept", HttpConnection.JSON_CONTENT_TYPE)
-                .create(b.mConn);
+                .setRequestProperty("Accept", ConnectionParameters.JSON_CONTENT_TYPE)
+                .setRequestType(mRequestType)
+                .create();
     }
 
     @Override
-    public void dispatchRequest(RequestDispatcher dispatcher,
-                                RequestCallback<JSONObject, AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            try {
-                JSONObject json = executeRequest();
-                dispatcher.submitResults(() -> callback.onSuccess(json));
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
-    }
-
-    @Override
-    public JSONObject executeRequest() throws AuthorizationException {
+    public JSONObject executeRequest(OktaHttpClient client) throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
-            response = openConnection();
+            response = openConnection(client);
             return response.asJson();
         } catch (IOException io) {
             exception = new AuthorizationException(io.getMessage(), io);
         } catch (JSONException je) {
             exception = AuthorizationException.fromTemplate(AuthorizationException
                     .GeneralErrors.JSON_DESERIALIZATION_ERROR, je);
+        } catch (Exception e) {
+            exception = AuthorizationException.fromTemplate(AuthorizationException
+                    .GeneralErrors.NETWORK_ERROR, e);
         } finally {
             if (response != null) {
                 response.disconnect();

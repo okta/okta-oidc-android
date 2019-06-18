@@ -24,8 +24,7 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
@@ -38,6 +37,7 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -45,9 +45,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,8 +62,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class SyncAuthClientTest {
 
@@ -69,7 +70,8 @@ public class SyncAuthClientTest {
     private Context mContext;
     private OIDCConfig mConfig;
     private OktaStorage mStorage;
-    private HttpConnectionFactory mConnectionFactory;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
     private SyncAuthClientImpl mSyncNativeAuth;
     private AuthClient mAuthClient;
     private ProviderConfiguration mProviderConfig;
@@ -79,6 +81,20 @@ public class SyncAuthClientTest {
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public SyncAuthClientTest(int clientType) {
+        mClientType = clientType;
+    }
+
     @Before
     public void setUp() throws Exception {
         mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -87,12 +103,14 @@ public class SyncAuthClientTest {
         String url = mEndPoint.getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
         mStorage = new SharedPreferenceStorage(mContext);
-        mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
         mProviderConfig = TestValues.getProviderConfiguration(url);
 
         SyncAuthClient okta = new Okta.SyncAuthBuilder()
                 .withConfig(mConfig)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .withEncryptionManager(new EncryptionManagerStub())
@@ -103,7 +121,7 @@ public class SyncAuthClientTest {
         mCallbackExecutor = Executors.newSingleThreadExecutor();
         mAuthClient = new Okta.AuthBuilder()
                 .withConfig(mConfig)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .withCallbackExecutor(mCallbackExecutor)
@@ -119,7 +137,7 @@ public class SyncAuthClientTest {
         mEndPoint.enqueueNativeRequestSuccess(CUSTOM_STATE);
         NativeAuthorizeRequest request =
                 mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig, null);
-        AuthorizeResponse response = request.executeRequest();
+        AuthorizeResponse response = request.executeRequest(mHttpClient);
         assertNotNull(response);
         assertEquals(response.getCode(), EXCHANGE_CODE);
         assertEquals(response.getState(), CUSTOM_STATE);
@@ -131,7 +149,7 @@ public class SyncAuthClientTest {
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         NativeAuthorizeRequest request =
                 mSyncNativeAuth.nativeAuthorizeRequest(SESSION_TOKEN, mProviderConfig, null);
-        AuthorizeResponse response = request.executeRequest();
+        AuthorizeResponse response = request.executeRequest(mHttpClient);
         assertNull(response);
     }
 
@@ -167,7 +185,7 @@ public class SyncAuthClientTest {
                 .setState(state)
                 .build();
 
-        mEndPoint.enqueueNativeRequestSuccess(state, 3);
+        mEndPoint.enqueueNativeRequestSuccess(state, 5);
         mEndPoint.enqueueTokenSuccess(jws);
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -182,7 +200,14 @@ public class SyncAuthClientTest {
         assertNull(mockCallback.getResult());
         assertNotNull(mockCallback.getException());
         String errorMessage = mockCallback.getException().getMessage();
-        //The exception can be canceled or stream is closed.
-        assertTrue("Canceled".equals(errorMessage) || "stream is closed".equals(errorMessage));
+        //The errorMessage can be null if its a Interrupt. The errorMessage can be of
+        //Socket closed or canceled or stream is closed or network error.
+        if (errorMessage == null) {
+            assertTrue(mockCallback.getException().getCause() instanceof InterruptedException);
+        } else {
+            assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
+                    || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
+                    || "interrupted".equals(errorMessage));
+        }
     }
 }

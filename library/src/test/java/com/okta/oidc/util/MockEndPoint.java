@@ -40,8 +40,8 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 
-import static com.okta.oidc.net.HttpConnection.CONTENT_TYPE;
-import static com.okta.oidc.net.HttpConnection.JSON_CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.JSON_CONTENT_TYPE;
 import static com.okta.oidc.util.JsonStrings.CONFIGURATION_NOT_FOUND;
 import static com.okta.oidc.util.JsonStrings.FORBIDDEN;
 import static com.okta.oidc.util.JsonStrings.INTROSPECT_RESPONSE;

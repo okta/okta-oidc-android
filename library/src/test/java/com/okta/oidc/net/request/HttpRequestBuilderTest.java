@@ -18,7 +18,8 @@ import android.net.Uri;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
+import com.okta.oidc.net.params.RequestType;
 import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
@@ -94,7 +95,7 @@ public class HttpRequestBuilderTest {
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.CONFIGURATION.toString()));
+        assertTrue(request.toString().contains(RequestType.CONFIGURATION.toString()));
     }
 
     @Test
@@ -126,7 +127,7 @@ public class HttpRequestBuilderTest {
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.TOKEN_EXCHANGE.toString()));
+        assertTrue(request.toString().contains(RequestType.TOKEN_EXCHANGE.toString()));
     }
 
     @Test
@@ -136,7 +137,7 @@ public class HttpRequestBuilderTest {
         mExpectedEx.expectMessage("Not logged in or invalid uri");
         HttpRequestBuilder.newAuthorizedRequest()
                 .providerConfiguration(configuration)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
+                .httpRequestMethod(ConnectionParameters.RequestMethod.GET)
                 .config(mConfig)
                 .createRequest();
     }
@@ -146,12 +147,12 @@ public class HttpRequestBuilderTest {
         AuthorizedRequest request = HttpRequestBuilder.newAuthorizedRequest()
                 .providerConfiguration(mConfiguration)
                 .tokenResponse(mTokenResponse)
-                .httpRequestMethod(HttpConnection.RequestMethod.GET)
+                .httpRequestMethod(ConnectionParameters.RequestMethod.GET)
                 .uri(Uri.parse(CUSTOM_URL))
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.AUTHORIZED.toString()));
+        assertTrue(request.toString().contains(RequestType.AUTHORIZED.toString()));
     }
 
     @Test
@@ -172,7 +173,7 @@ public class HttpRequestBuilderTest {
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.AUTHORIZED.toString()));
+        assertTrue(request.toString().contains(RequestType.PROFILE.toString()));
     }
 
     @Test
@@ -194,7 +195,7 @@ public class HttpRequestBuilderTest {
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.REVOKE_TOKEN.toString()));
+        assertTrue(request.toString().contains(RequestType.REVOKE_TOKEN.toString()));
     }
 
     @Test
@@ -205,14 +206,7 @@ public class HttpRequestBuilderTest {
                 .config(mConfig)
                 .createRequest();
         assertNotNull(request);
-        assertTrue(request.toString().contains(HttpRequest.Type.INTROSPECT.toString()));
-    }
-
-    @Test
-    public void connectionFactory() {
-        HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
-                .connectionFactory(new HttpConnection.DefaultConnectionFactory());
-        assertNotNull(builder.mConn);
+        assertTrue(request.toString().contains(RequestType.INTROSPECT.toString()));
     }
 
     @Test
@@ -261,7 +255,7 @@ public class HttpRequestBuilderTest {
     @Test
     public void httpRequestMethod() {
         HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
-                .httpRequestMethod(HttpConnection.RequestMethod.GET);
+                .httpRequestMethod(ConnectionParameters.RequestMethod.GET);
         assertNotNull(builder.mRequestMethod);
     }
 }

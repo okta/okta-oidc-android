@@ -16,13 +16,13 @@ package com.okta.oidc.net.request;
 
 
 import com.okta.oidc.OIDCConfig;
-import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.params.GrantTypes;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.MockRequestCallback;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.After;
@@ -31,12 +31,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Arrays;
+import java.util.Collection;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_NONCE;
@@ -46,17 +45,31 @@ import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class TokenRequestTest {
 
     private TokenRequest mRequest;
     private OIDCConfig mConfig;
-    private ExecutorService mCallbackExecutor;
     private MockEndPoint mEndPoint;
     private ProviderConfiguration mProviderConfig;
+    private OktaHttpClient mHttpClient;
+    private HttpClientFactory mClientFactory;
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public TokenRequestTest(int clientType) {
+        mClientType = clientType;
+    }
+
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
 
@@ -69,43 +82,14 @@ public class TokenRequestTest {
         mRequest = TestValues.getTokenRequest(mConfig,
                 getAuthorizeRequest(mConfig, CodeVerifierUtil.generateRandomCodeVerifier()),
                 getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mProviderConfig);
-        mCallbackExecutor = Executors.newSingleThreadExecutor();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
     }
 
     @After
     public void tearDown() throws Exception {
-        mCallbackExecutor.shutdown();
         mEndPoint.shutDown();
-    }
-
-    @Test
-    public void dispatchRequestSuccess() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
-        mEndPoint.enqueueTokenSuccess(jws);
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<TokenResponse, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        TokenResponse response = cb.getResult();
-        assertNotNull(response);
-        assertEquals(response.getIdToken(), jws);
-        assertTrue(response.getExpiresAt() > 0);
-    }
-
-    @Test
-    public void dispatchRequestFailure() throws AuthorizationException, InterruptedException {
-        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
-        mEndPoint.enqueueReturnInvalidClient();
-        final CountDownLatch latch = new CountDownLatch(1);
-        MockRequestCallback<TokenResponse, AuthorizationException> cb
-                = new MockRequestCallback<>(latch);
-        RequestDispatcher dispatcher = new RequestDispatcher(mCallbackExecutor);
-        mRequest.dispatchRequest(dispatcher, cb);
-        latch.await();
-        assertNull(cb.getResult());
-        assertNotNull(cb.getException());
     }
 
     @Test
@@ -127,7 +111,7 @@ public class TokenRequestTest {
     public void executeRequestSuccess() throws AuthorizationException {
         String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
         mEndPoint.enqueueTokenSuccess(jws);
-        TokenResponse response = mRequest.executeRequest();
+        TokenResponse response = mRequest.executeRequest(mHttpClient);
         assertNotNull(response);
         assertEquals(response.getIdToken(), jws);
     }
@@ -136,7 +120,7 @@ public class TokenRequestTest {
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnInvalidClient();
-        TokenResponse response = mRequest.executeRequest();
+        TokenResponse response = mRequest.executeRequest(mHttpClient);
         assertNull(response);
     }
 }

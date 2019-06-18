@@ -26,30 +26,33 @@ import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 class AuthClientImpl implements AuthClient {
     private RequestDispatcher mDispatcher;
     private SyncAuthClient mSyncNativeAuthClient;
     private SessionClient mSessionImpl;
+    private volatile Future<?> mFutureTask;
 
     AuthClientImpl(Executor executor,
                    OIDCConfig oidcConfig,
                    Context context,
                    OktaStorage oktaStorage,
                    EncryptionManager encryptionManager,
-                   HttpConnectionFactory httpConnectionFactory,
+                   OktaHttpClient httpClient,
                    boolean requireHardwareBackedKeyStore,
                    boolean cacheMode) {
         mSyncNativeAuthClient = new SyncAuthClientFactory().createClient(oidcConfig, context,
-                oktaStorage, encryptionManager, httpConnectionFactory,
+                oktaStorage, encryptionManager, httpClient,
                 requireHardwareBackedKeyStore, cacheMode);
+
         mSessionImpl = new SessionClientFactoryImpl(executor)
                 .createClient(mSyncNativeAuthClient.getSessionClient());
         mDispatcher = new RequestDispatcher(executor);
@@ -59,7 +62,8 @@ class AuthClientImpl implements AuthClient {
     @AnyThread
     public void signIn(String sessionToken, AuthenticationPayload payload,
                        final RequestCallback<Result, AuthorizationException> cb) {
-        mDispatcher.execute(() -> {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             Result result = mSyncNativeAuthClient.signIn(sessionToken, payload);
             if (result.isSuccess()) {
@@ -67,6 +71,7 @@ class AuthClientImpl implements AuthClient {
                     if (cb != null) {
                         cb.onSuccess(result);
                     }
+
                 });
             } else {
                 mDispatcher.submitResults(() -> {
@@ -82,6 +87,7 @@ class AuthClientImpl implements AuthClient {
     public void cancel() {
         mDispatcher.runTask(() -> {
             mSyncNativeAuthClient.cancel();
+            cancelFuture();
         });
     }
 
@@ -93,5 +99,11 @@ class AuthClientImpl implements AuthClient {
     @Override
     public SessionClient getSessionClient() {
         return mSessionImpl;
+    }
+
+    private void cancelFuture() {
+        if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
+            mFutureTask.cancel(true);
+        }
     }
 }

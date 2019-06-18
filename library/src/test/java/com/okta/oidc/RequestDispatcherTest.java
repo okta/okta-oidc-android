@@ -82,7 +82,7 @@ public class RequestDispatcherTest {
         long current_tid = Thread.currentThread().getId();
         final long[] dispatcher_tid = new long[1];
         final long[] callback_tid = new long[1];
-        mDispatcher.execute(() -> {
+        mDispatcher.submit(() -> {
             dispatcher_tid[0] = Thread.currentThread().getId();
         });
         mDispatcher.submitResults(() -> {

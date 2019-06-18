@@ -15,16 +15,13 @@
 
 package com.okta.oidc.net.request;
 
-import android.os.Process;
-
 import androidx.annotation.RestrictTo;
 import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
-import com.okta.oidc.RequestCallback;
-import com.okta.oidc.RequestDispatcher;
-import com.okta.oidc.net.HttpConnection;
+import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.HttpResponse;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONException;
@@ -42,41 +39,26 @@ public final class ConfigurationRequest extends
 
     ConfigurationRequest(HttpRequestBuilder.Configuration b) {
         super();
-        mRequestType = Type.CONFIGURATION;
+        mRequestType = b.mRequestType;
         mIsOAuth2 = b.mConfig.isOAuth2Configuration();
         mUri = b.mConfig.getDiscoveryUri().buildUpon()
                 .appendQueryParameter("client_id", b.mConfig.getClientId()).build();
-        mConnection = new HttpConnection.Builder()
-                .setRequestMethod(HttpConnection.RequestMethod.GET)
-                .create(b.mConn);
-    }
 
-    @Override
-    public void dispatchRequest(final RequestDispatcher dispatcher,
-                                final RequestCallback<ProviderConfiguration,
-                                        AuthorizationException> callback) {
-        dispatcher.submit(() -> {
-            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            try {
-                ProviderConfiguration config = executeRequest();
-                if (config != null) {
-                    dispatcher.submitResults(() -> callback.onSuccess(config));
-                } else {
-                    throw AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT;
-                }
-            } catch (AuthorizationException ae) {
-                dispatcher.submitResults(() -> callback.onError(ae.error, ae));
-            }
-        });
+        mConnParams = new ConnectionParameters.ParameterBuilder()
+                .setRequestMethod(ConnectionParameters.RequestMethod.GET)
+                .setRequestType(mRequestType)
+                .create();
     }
 
     @WorkerThread
     @Override
-    public ProviderConfiguration executeRequest() throws AuthorizationException {
+    public ProviderConfiguration executeRequest(OktaHttpClient client)
+            throws AuthorizationException {
         AuthorizationException exception = null;
         HttpResponse response = null;
         try {
-            response = openConnection();
+            response = openConnection(client);
+
             JSONObject json = response.asJson();
             ProviderConfiguration configuration = new Gson()
                     .fromJson(json.toString(), ProviderConfiguration.class);
@@ -92,6 +74,8 @@ public final class ConfigurationRequest extends
             exception = AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.INVALID_DISCOVERY_DOCUMENT,
                     ex);
+        } catch (Exception e) {
+            exception = new AuthorizationException(e.getMessage(), e);
         } finally {
             if (response != null) {
                 response.disconnect();

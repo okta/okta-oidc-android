@@ -24,8 +24,7 @@ import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
-import com.okta.oidc.net.HttpConnection;
-import com.okta.oidc.net.HttpConnectionFactory;
+import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -39,6 +38,7 @@ import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -47,8 +47,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 import okhttp3.mockwebserver.RecordedRequest;
 
@@ -61,12 +64,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
+@RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
 public class SyncWebAuthClientTest {
 
     private Context mContext;
-    private HttpConnectionFactory mConnectionFactory;
+    private HttpClientFactory mClientFactory;
     private OIDCConfig mConfig;
     private OktaStorage mStorage;
     private SyncWebAuthClientImpl mSyncWebAuth;
@@ -75,9 +78,23 @@ public class SyncWebAuthClientTest {
     private OktaState mOktaState;
     private ProviderConfiguration mProviderConfig;
     private TokenResponse mTokenResponse;
+    private OktaHttpClient mHttpClient;
 
     @Rule
     public ExpectedException mExpectedEx = ExpectedException.none();
+    private final int mClientType;
+
+    @ParameterizedRobolectricTestRunner.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                {HttpClientFactory.USE_DEFAULT_HTTP},
+                {HttpClientFactory.USE_OK_HTTP},
+                {HttpClientFactory.USE_SYNC_OK_HTTP}});
+    }
+
+    public SyncWebAuthClientTest(int clientType) {
+        mClientType = clientType;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -86,7 +103,9 @@ public class SyncWebAuthClientTest {
 
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
-        mConnectionFactory = new HttpConnection.DefaultConnectionFactory();
+        mClientFactory = new HttpClientFactory();
+        mClientFactory.setClientType(mClientType);
+        mHttpClient = mClientFactory.build();
         mConfig = TestValues.getConfigWithUrl(url);
         mStorage = new SharedPreferenceStorage(mContext);
         mGson = new Gson();
@@ -96,14 +115,14 @@ public class SyncWebAuthClientTest {
 
         SyncWebAuthClient okta = new Okta.SyncWebAuthBuilder()
                 .withConfig(mConfig)
-                .withHttpConnectionFactory(mConnectionFactory)
+                .withOktaHttpClient(mHttpClient)
                 .withContext(mContext)
                 .withStorage(mStorage)
                 .withEncryptionManager(new EncryptionManagerStub())
                 .create();
 
 
-        mSyncWebAuth = (SyncWebAuthClientImpl)okta;
+        mSyncWebAuth = (SyncWebAuthClientImpl) okta;
 
         mOktaState = mSyncWebAuth.getOktaState();
         mOktaState.save(mProviderConfig);
@@ -113,7 +132,7 @@ public class SyncWebAuthClientTest {
     public void configurationRequest() throws AuthorizationException, InterruptedException {
         mEndPoint.enqueueConfigurationSuccess();
         ConfigurationRequest request = mSyncWebAuth.configurationRequest();
-        ProviderConfiguration configuration = request.executeRequest();
+        ProviderConfiguration configuration = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(),
                 equalTo("//.well-known/openid-configuration?client_id=CLIENT_ID"));
@@ -127,7 +146,7 @@ public class SyncWebAuthClientTest {
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueConfigurationFailure();
         ConfigurationRequest request = mSyncWebAuth.configurationRequest();
-        ProviderConfiguration configuration = request.executeRequest();
+        ProviderConfiguration configuration = request.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(),
                 equalTo("//.well-known/openid-configuration?client_id=CLIENT_ID"));
@@ -135,7 +154,7 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void tokenExchangeFailure() throws InterruptedException, JSONException,  AuthorizationException, OktaRepository.EncryptionException {
+    public void tokenExchangeFailure() throws InterruptedException, JSONException, AuthorizationException, OktaRepository.EncryptionException {
         mExpectedEx.expect(AuthorizationException.class);
         String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
         String nonce = CodeVerifierUtil.generateRandomState();
@@ -154,7 +173,7 @@ public class SyncWebAuthClientTest {
 
         mEndPoint.enqueueReturnInvalidClient();
         TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response, mOktaState.getProviderConfiguration(), (AuthorizeRequest) mOktaState.getAuthorizeRequest());
-        TokenResponse tokenResponse = tokenRequest.executeRequest();
+        TokenResponse tokenResponse = tokenRequest.executeRequest(mHttpClient);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(), equalTo("/token"));
         assertNull(tokenResponse);
@@ -181,7 +200,7 @@ public class SyncWebAuthClientTest {
 
         mEndPoint.enqueueTokenSuccess(jws);
         TokenRequest tokenRequest = mSyncWebAuth.tokenExchange(response, mOktaState.getProviderConfiguration(), (AuthorizeRequest) mOktaState.getAuthorizeRequest());
-        TokenResponse tokenResponse = tokenRequest.executeRequest();
+        TokenResponse tokenResponse = tokenRequest.executeRequest(mHttpClient);
 
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getPath(), equalTo("/token"));
