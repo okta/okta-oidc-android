@@ -34,6 +34,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.okta.authn.sdk.AuthenticationException;
 import com.okta.authn.sdk.AuthenticationStateHandlerAdapter;
 import com.okta.authn.sdk.client.AuthenticationClient;
@@ -116,6 +117,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
     private LinearLayout mRevokeContainer;
 
+    private TextInputEditText mEditText;
+
     /**
      * The payload to send for authorization.
      */
@@ -160,6 +163,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
         mSwitch = findViewById(R.id.switch1);
+
+        mEditText = findViewById(R.id.login_hint);
 
         mStorageOAuth2 = new SharedPreferenceStorage(this, "OAUTH2");
         mStorageOidc = new SharedPreferenceStorage(this);
@@ -362,6 +367,12 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mSignInBrowser.setOnClickListener(v -> {
             showNetworkProgress(true);
             WebAuthClient client = getWebAuthClient();
+            String loginHint = mEditText.getEditableText().toString();
+            if (!TextUtils.isEmpty(loginHint)) {
+                mPayload = new AuthenticationPayload.Builder()
+                        .setLoginHint(loginHint)
+                        .build();
+            }
             client.signIn(this, mPayload);
         });
 
