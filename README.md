@@ -55,7 +55,7 @@ It is recommended that your app extends `FragmentActivity` or any extensions of 
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:0.1.0'
+implementation 'com.okta.android:oidc-androidx:1.0.0'
 ```
 
 ### Sample app
@@ -246,9 +246,9 @@ After building the `AuthClient` you should call `signIn` method where you need t
 ```java
 SessionClient sessionClient = authClient.getSessionClient();
 if (!sessionClient.isAuthenticated()) {
-    authClient.signIn("{sessionToken}", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+    authClient.signIn("{sessionToken}", null, new RequestCallback<Result, AuthorizationException>() {
         @Override
-        public void onSuccess(@NonNull AuthorizationResult result) {
+        public void onSuccess(@NonNull Result result) {
             //client is now authorized.
         }
 
@@ -339,7 +339,7 @@ HashMap<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
 client.getSessionClient().authorizedRequest(uri, properties,
-                postParameters, HttpConnection.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
+                postParameters, ConnectionParameters.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull JSONObject result) {
         //handle JSONObject result.
@@ -594,6 +594,16 @@ client = new Okta.WebAuthBuilder()
     .create();
 ```
 
+The SDK provides two implementations of `EncryptionManager`
+
+## DefaultEncryptionManager
+
+Private keys are stored in KeyStore. Does not require device authentication to use the keys. Compatible with API19 and up.
+
+## GuardedEncryptionManager
+
+Private keys are stored in KeyStore. Requires device authentication to use the keys. Compatible with API23 and up.
+
 ### Hardware-backed keystore
 
 The default `EncryptionManager` provides a check to see if the device supports hardware-backed keystore. If you implement your own `EncryptionManager` you'll have to implement this check. You can return `true` to tell the default storage that the device have a hardware-backed keystore. The [storage](#Storage) and [encrytion](#Encryption) mechanisms work together to ensure that data is stored securely.
@@ -618,9 +628,9 @@ AuthClient authClient = new Okta.AuthBuilder()
 After building `AuthClient` you should call `signIn` method where you need provide `sessionToken` and `RequestCallback`
 
 ```java
-authClient.signIn("{sessionToken}", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+authClient.signIn("{sessionToken}", null, new RequestCallback<Result, AuthorizationException>() {
     @Override
-    public void onSuccess(@NonNull AuthorizationResult result) {
+    public void onSuccess(@NonNull Result result) {
 
     }
 
