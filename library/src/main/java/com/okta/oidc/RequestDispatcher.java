@@ -90,13 +90,13 @@ public class RequestDispatcher extends AbstractExecutorService {
             mHandler.removeCallbacksAndMessages(null);
         }
 
-        if (mExecutorServiceTasks != null) {
+        if (mExecutorServiceTasks != null && !mExecutorServiceTasks.isEmpty()) {
             Iterator<Future> executorIterator = mExecutorServiceTasks.iterator();
             while (executorIterator.hasNext()) {
                 executorIterator.next().cancel(true);
                 executorIterator.remove();
             }
-            mExecutorServiceTasks = null;
+            mExecutorServiceTasks.clear();
         }
     }
 

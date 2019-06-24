@@ -246,9 +246,9 @@ After building the `AuthClient` you should call `signIn` method where you need t
 ```java
 SessionClient sessionClient = authClient.getSessionClient();
 if (!sessionClient.isAuthenticated()) {
-    authClient.signIn("{sessionToken}", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+    authClient.signIn("{sessionToken}", null, new RequestCallback<Result, AuthorizationException>() {
         @Override
-        public void onSuccess(@NonNull AuthorizationResult result) {
+        public void onSuccess(@NonNull Result result) {
             //client is now authorized.
         }
 
@@ -339,7 +339,7 @@ HashMap<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
 client.getSessionClient().authorizedRequest(uri, properties,
-                postParameters, HttpConnection.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
+                postParameters, ConnectionParameters.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
     @Override
     public void onSuccess(@NonNull JSONObject result) {
         //handle JSONObject result.
@@ -628,9 +628,9 @@ AuthClient authClient = new Okta.AuthBuilder()
 After building `AuthClient` you should call `signIn` method where you need provide `sessionToken` and `RequestCallback`
 
 ```java
-authClient.signIn("{sessionToken}", null, new RequestCallback<AuthorizationResult, AuthorizationException>() {
+authClient.signIn("{sessionToken}", null, new RequestCallback<Result, AuthorizationException>() {
     @Override
-    public void onSuccess(@NonNull AuthorizationResult result) {
+    public void onSuccess(@NonNull Result result) {
 
     }
 
