@@ -1,16 +1,10 @@
 apply plugin: 'com.jfrog.bintray'
 apply plugin: "com.github.dcendents.android-maven"
 apply plugin: 'maven-publish'
+apply plugin: 'distribution'
 
 group = "com.okta.android"
 version = "${rootProject.versionName}"
-
-//produces non androidx aar
-task createAndroidAar(type: Exec, dependsOn: "bundleReleaseAar") {
-    def jetifier = System.getenv("ANDROID_HOME") + "/jetifier-standalone/bin/jetifier-standalone"
-    commandLine jetifier, '-r', '-i', "$buildDir/outputs/aar/oidc-androidx-release.aar",
-            '-o', "$buildDir/outputs/aar/oidc-android-release.aar"
-}
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
@@ -24,10 +18,43 @@ task javadoc(type: Javadoc) {
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
-javadoc.failOnError = false
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
+}
+
+task jetifierZip(type: Zip) {
+    from("${buildDir}/outputs/aar/oidc-androidx-release.aar")
+    from("${buildDir}/publications/Release/pom-default.xml")
+    rename("pom-default.xml", "pom-default.pom")
+    rename("oidc-androidx-release.aar", "oidc-android-release.aar")
+}
+
+//produces non androidx aar
+task createAndroidAar(dependsOn: ['generatePomFileForReleasePublication', 'sourcesJar', 'javadocJar', 'bundleReleaseAar', 'jetifierZip']) {
+    doLast {
+        exec {
+            def jetifier = System.getenv("ANDROID_HOME") + "/jetifier-standalone/bin/jetifier-standalone"
+            commandLine jetifier,
+                    '-c', "$buildDir/../../ci-build/default.generated.config",
+                    '-r',
+                    '-i', "$buildDir/distributions/oidc-androidx-${rootProject.versionName}.zip",
+                    '-o', "$buildDir/distributions/oidc-android-${rootProject.versionName}.zip"
+        }
+        copy {
+            from zipTree("${buildDir}/distributions/oidc-android-${rootProject.versionName}.zip")
+            into "${buildDir}/tmp/${project.name}-extracted"
+        }
+        copy {
+            from "${buildDir}/tmp/${project.name}-extracted/oidc-android-release.aar"
+            into "${buildDir}/outputs/aar/"
+        }
+        copy {
+            from "${buildDir}/tmp/${project.name}-extracted/pom-default.pom"
+            into "${buildDir}/publications/Release/"
+            rename("pom-default.pom", "pom-default.xml")
+        }
+    }
 }
 
 afterEvaluate {
@@ -95,8 +122,7 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    publications = ['Release']
+    publications = ['Release', 'ReleaseX']
     override = false
     pkg {
         repo = "com.okta.android"
