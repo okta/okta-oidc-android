@@ -17,6 +17,7 @@ package com.okta.oidc.util;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = 27)
 public final class AsciiStringListUtilTest {
 
     private static final List<String> SCOPES = Arrays.asList("email", "profile", "openid");
