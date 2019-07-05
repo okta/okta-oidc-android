@@ -17,6 +17,7 @@ package com.okta.oidc.util;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = 27)
 public class PreconditionsTest {
     private static final String TEST_MSG = "test";
 
