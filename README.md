@@ -118,6 +118,20 @@ webClient.registerCallback(new ResultCallback<AuthorizationStatus, Authorization
 
 The `client` can now be used to authenticate users and authorizing access.
 
+**Note**: `.well-known/openid-configuration` or `.well-known/oauth-authorization-server` will be appended to your `discoveryUri` if it is missing.
+
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}` then `.well-known/oauth-authorization-server` is added.
+- `discoveryUri` is: `https://{yourOktaDomain}` then `.well-known/openid-configuration` is added.
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/default` then `.well-known/oauth-authorization-server` is added.
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/openid-configuration` nothing is added.
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server` nothing is added.
+
+For more information about the metadata returned by the different server configurations:
+
+[OpenID Connect (.well-known/openid-configuration)](https://developer.okta.com/docs/reference/api/oidc/#well-known-openid-configuration)
+
+[OAuth 2.0 (.well-known/oauth-authorization-server)](https://developer.okta.com/docs/reference/api/oidc/#well-known-oauth-authorization-server)
+
 ### Using JSON configuration file
 
 You can also create a `config` by poviding a JSON file.
