@@ -17,6 +17,7 @@ package com.okta.oidc.util;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.security.SecureRandom;
 
@@ -24,6 +25,7 @@ import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = 27)
 public class CodeVerifierUtilTest {
 
     @Test
