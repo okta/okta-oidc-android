@@ -15,6 +15,8 @@
 
 package com.okta.oidc;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -60,8 +62,12 @@ public class AuthenticationPayload {
          * @see "The OAuth 2.0 Authorization Framework (RFC 6749), Section 5.3.5
          * <https://tools.ietf.org/html/rfc6749#section-5.3.5>"
          */
-        public Builder setState(@NonNull String state) {
-            mAdditionalParameters.put(STATE, state);
+        public Builder setState(@Nullable String state) {
+            if (!TextUtils.isEmpty(state)) {
+                mAdditionalParameters.put(STATE, state);
+            } else {
+                mAdditionalParameters.remove(STATE);
+            }
             return this;
         }
 
@@ -73,8 +79,12 @@ public class AuthenticationPayload {
          * @see "OpenID Connect Core 1.0, Section 3.1.2.1
          * <https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1>"
          */
-        public Builder setLoginHint(String loginHint) {
-            mAdditionalParameters.put(LOGIN_HINT, loginHint);
+        public Builder setLoginHint(@Nullable String loginHint) {
+            if (!TextUtils.isEmpty(loginHint)) {
+                mAdditionalParameters.put(LOGIN_HINT, loginHint);
+            } else {
+                mAdditionalParameters.remove(LOGIN_HINT);
+            }
             return this;
         }
 

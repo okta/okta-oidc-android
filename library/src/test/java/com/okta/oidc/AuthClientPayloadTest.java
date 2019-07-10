@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -58,6 +59,38 @@ public class AuthClientPayloadTest {
         String state = mAuthenticationPayload.getState();
         assertNotNull(state);
         assertEquals(state, CUSTOM_STATE);
+    }
+
+    @Test
+    public void setNullState() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setState(null)
+                .build();
+        assertNull(payload.getState());
+    }
+
+    @Test
+    public void setNullHint() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setLoginHint(null)
+                .build();
+        assertNull(payload.getLoginHint());
+    }
+
+    @Test
+    public void setEmptyState() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setState("")
+                .build();
+        assertNull(payload.getState());
+    }
+
+    @Test
+    public void setEmptyHint() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setLoginHint("")
+                .build();
+        assertNull(payload.getLoginHint());
     }
 
     @Test
