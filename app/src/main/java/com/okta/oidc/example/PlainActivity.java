@@ -301,11 +301,11 @@ public class PlainActivity extends Activity {
 
         //Example of config
         mOidcConfig = new OIDCConfig.Builder()
-                .clientId("0oajqehiy6p81NVzA0h7")
+                .clientId("0oawr562s2bXhhtT4356")
                 .redirectUri("com.oktapreview.samples-test:/callback")
                 .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
                 .scopes("openid", "profile", "offline_access")
-                .discoveryUri("https://samples-test.oktapreview.com")
+                .discoveryUri("https://dev-312765.okta.com")
                 .create();
 
         //use custom connection factory
