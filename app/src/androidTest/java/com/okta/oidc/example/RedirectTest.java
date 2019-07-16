@@ -221,7 +221,7 @@ public class RedirectTest {
     }
 
     @Test
-    public void redirectToApp() throws UiObjectNotFoundException {
+    public void redirectToApp302Response() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = mMockPayload;
         mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)
@@ -232,10 +232,28 @@ public class RedirectTest {
         mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
                 .withHeader("Location", redirect));
 
-        onView(withId(R.id.switch1)).withFailureHandler((error, viewMatcher) -> {
-            onView(withId(R.id.switch1)).check(matches(isDisplayed()));
-            onView(withId(R.id.switch1)).perform(click());
-        }).check(matches(isChecked()));
+        onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_in)).perform(click());
+
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        onView(withId(R.id.status)).check(matches(withText(containsString("Authorization error"))));
+    }
+
+    @Test
+    public void redirectToApp200Response() throws UiObjectNotFoundException {
+        activityRule.getActivity().mPayload = mMockPayload;
+        mockConfigurationRequest(aResponse()
+                .withStatus(HTTP_OK)
+                .withBody(getAsset(mMockContext, "configuration.json")));
+
+        String response = getAsset(mMockContext, "response.html");
+        mockWebAuthorizeRequest(aResponse().withStatus(HTTP_OK)
+                .withBody(response));
 
         onView(withId(R.id.sign_in_native)).withFailureHandler((error, viewMatcher) -> {
             onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
