@@ -42,6 +42,8 @@
         <cpe>cpe:/a:fasterxml:jackson:2.9.8</cpe>
         <cpe>cpe:/a:fasterxml:jackson-databind:2.9.8</cpe>
 	<cve>CVE-2019-12086</cve>
+	<cve>CVE-2019-12384</cve>
+	<cve>CVE-2019-12814</cve>
     </suppress>
     <suppress>
         <notes><![CDATA[

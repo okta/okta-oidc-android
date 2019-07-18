@@ -203,7 +203,6 @@ public class OktaAuthenticationActivity extends Activity {
             intentBuilder.setToolbarColor(mCustomTabColor);
         }
         CustomTabsIntent tabsIntent = intentBuilder.build();
-        tabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
         tabsIntent.intent.setPackage(packageName);
         tabsIntent.intent.setData(mAuthUri);
         Bundle headers = new Bundle();
