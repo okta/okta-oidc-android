@@ -14,6 +14,8 @@
  */
 package com.okta.oidc.example;
 
+import android.view.KeyEvent;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -38,6 +40,7 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isNotChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
@@ -59,7 +62,7 @@ public class PlainActivityTest {
     //app resource ids
     private static final String ID_PROGRESS_BAR = "com.okta.oidc.example:id/progress_horizontal";
     private static final String ID_GET_PROFILE = "com.okta.oidc.example:id/get_profile";
-
+    private static final String SETTINGS_APP = "com.android.settings";
     private UiDevice mDevice;
     @Rule
     public ActivityTestRule<PlainActivity> activityRule = new ActivityTestRule<>(PlainActivity.class);
@@ -256,7 +259,56 @@ public class PlainActivityTest {
     }
 
     @Test
-    public void testD_checkIfTokenExpired() {
+    public void testC_enableBiometric() {
+        onView(withId(R.id.sign_in)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+
+        onView(withId(R.id.sign_in)).perform(click());
+
+        //wait for transition to chrome
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        //wait for transition back to app
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        //wait for token exchange
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        //check if get profile is visible
+        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
+        onView(withId(R.id.status))
+                .check(matches(withText(containsString("authentication authorized"))));
+        onView(withId(R.id.biometric)).perform(click());
+        //make sure we exit the app before useBiometric test.
+        activityRule.getActivity().onKeyDown(KeyEvent.KEYCODE_BACK,
+                new KeyEvent(0, 0, KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_BACK, 0));
+    }
+
+    @Test
+    public void testD_useBiometricThenDisable() throws UiObjectNotFoundException {
+        if (activityRule.getActivity().isKeyguardSecure()) {
+            mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+            UiSelector selector = new UiSelector();
+            UiObject passwordText = mDevice.findObject(selector.focused(true));
+            passwordText.setText(BuildConfig.PINCODE);
+            mDevice.pressEnter();
+            mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+
+            onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
+            //disable biometrics.
+            onView(withId(R.id.biometric)).perform(click());
+            onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+            onView(withId(R.id.biometric)).check(matches(isNotChecked()));
+        }
+    }
+
+    @Test
+    public void testE_verifyBiometricDisabled() {
+        onView(withId(R.id.sign_in)).check(matches(isDisplayed()));
+        onView(withId(R.id.biometric)).check(matches(isNotChecked()));
+    }
+
+    public void testF_checkIfTokenExpired() {
         signInIfNotAlready();
         onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
         onView(withId(R.id.check_expired)).perform(click());

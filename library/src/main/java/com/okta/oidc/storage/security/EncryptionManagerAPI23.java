@@ -158,6 +158,9 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
         try {
             Cipher cipher = createCipher(mTransformationString);
             PrivateKey key = (PrivateKey) mKeyStore.getKey(mKeyAlias, null);
+            if (key == null) {
+                return false;
+            }
             try {
                 KeyFactory factory = KeyFactory.getInstance(key.getAlgorithm(), mKeyStoreName);
                 KeyInfo keyInfo = factory.getKeySpec(key, KeyInfo.class);

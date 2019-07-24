@@ -15,6 +15,8 @@
 
 package com.okta.oidc.storage.security;
 
+import android.content.Context;
+
 import com.okta.oidc.storage.OktaStorage;
 
 import java.io.UnsupportedEncodingException;
@@ -88,6 +90,11 @@ public interface EncryptionManager {
      * remove current keys.
      */
     void removeKeys();
+
+    /**
+     * recreate keys.
+     */
+    void recreateKeys(Context context);
 
     /**
      * if user authenticated and cipher is valid to use private key.

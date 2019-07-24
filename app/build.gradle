@@ -20,9 +20,11 @@ android {
             properties.load(project.rootProject.file('local.properties').newDataInputStream())
             def username = properties.getProperty('test.username')
             def password = properties.getProperty('test.password')
+            def pincode = properties.getProperty('test.pincode')
             if (username != null && password != null) {
                 buildConfigField "String", "USERNAME", username
                 buildConfigField "String", "PASSWORD", password
+                buildConfigField "String", "PINCODE", pincode
             }
         }
 

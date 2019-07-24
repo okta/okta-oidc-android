@@ -5,4 +5,5 @@
     <string name="account_id_description">The Username is optional. If specified, it is transmitted as a login_hint parameter in the authorization request.</string>
     <string name="auth_options">Authorization options:</string>
     <string name="oidc">OIDC</string>
+    <string name="use_biometrics">Use biometrics</string>
 </resources>
