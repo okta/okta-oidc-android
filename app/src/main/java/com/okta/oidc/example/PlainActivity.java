@@ -461,6 +461,8 @@ public class PlainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+        getSharedPreferences(PlainActivity.class.getName(), MODE_PRIVATE).edit()
+                .putBoolean(PREF_FINGERPRINT, mBiometric.isChecked()).apply();
         showNetworkProgress(false);
     }
 
