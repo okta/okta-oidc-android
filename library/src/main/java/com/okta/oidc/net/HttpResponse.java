@@ -22,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,6 +44,7 @@ public final class HttpResponse {
     private final int mLength;
     private final OktaHttpClient mHttpClient;
     private InputStream mInputStream;
+    private static final int BUFFER_SIZE = 1024;
 
     /**
      * HttpResponse for empty response body.
@@ -89,7 +91,12 @@ public final class HttpResponse {
     }
 
     @Nullable
-    public InputStream getContent() {
+    public InputStream getContent() throws IOException {
+        if (mStatusCode < HttpURLConnection.HTTP_OK ||
+                mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
+            throw new IOException("Invalid status code " + mStatusCode +
+                    " " + mHttpClient.getResponseMessage());
+        }
         return mInputStream;
     }
 
@@ -107,11 +114,6 @@ public final class HttpResponse {
     }
 
     public JSONObject asJson() throws IOException, JSONException {
-        if (mStatusCode < HttpURLConnection.HTTP_OK ||
-                mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-            throw new IOException("Invalid status code " + mStatusCode +
-                    " " + mHttpClient.getResponseMessage());
-        }
         InputStream is = getContent();
         if (is == null) {
             throw new IOException("Input stream must not be null");
@@ -124,5 +126,19 @@ public final class HttpResponse {
             line = reader.readLine();
         }
         return new JSONObject(writer.toString());
+    }
+
+    public byte[] getByteArray() throws IOException {
+        InputStream is = getContent();
+        if (is == null) {
+            throw new IOException("Input stream must not be null");
+        }
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int len;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        while ((len = is.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, len);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 }

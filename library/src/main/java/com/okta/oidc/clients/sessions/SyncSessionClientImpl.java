@@ -40,14 +40,19 @@ import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.okta.oidc.clients.State.IDLE;
+import static com.okta.oidc.net.ConnectionParameters.DEFAULT_ENCODING;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.INVALID_KEYS_ERROR;
+import static com.okta.oidc.util.AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR;
 
 class SyncSessionClientImpl implements SyncSessionClient {
     private OIDCConfig mOidcConfig;
@@ -66,6 +71,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
     AuthorizedRequest createAuthorizedRequest(@NonNull Uri uri,
                                               @Nullable Map<String, String> properties,
                                               @Nullable Map<String, String> postParameters,
+                                              @Nullable byte[] requestBody,
                                               @NonNull ConnectionParameters.RequestMethod method,
                                               ProviderConfiguration providerConfiguration,
                                               TokenResponse tokenResponse)
@@ -77,6 +83,7 @@ class SyncSessionClientImpl implements SyncSessionClient {
                 .tokenResponse(tokenResponse)
                 .uri(uri)
                 .properties(properties)
+                .requestBody(requestBody)
                 .postParameters(postParameters)
                 .createRequest();
     }
@@ -90,8 +97,31 @@ class SyncSessionClientImpl implements SyncSessionClient {
             ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
             TokenResponse tokenResponse = mOktaState.getTokenResponse();
             AuthorizedRequest request = createAuthorizedRequest(uri, properties, postParameters,
-                    method, providerConfiguration, tokenResponse);
+                    null, method, providerConfiguration, tokenResponse);
             mCurrentRequest.set(new WeakReference<>(request));
+            ByteBuffer buffer = request.executeRequest(mHttpClient);
+            String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+            return new JSONObject(json);
+        } catch (OktaRepository.EncryptionException e) {
+            throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
+        } catch (JSONException e) {
+            throw AuthorizationException.fromTemplate(JSON_DESERIALIZATION_ERROR, e);
+        }
+    }
+
+    public ByteBuffer authorizedRequest(@NonNull Uri uri,
+                                        @Nullable Map<String, String> properties,
+                                        @Nullable Map<String, String> postParameters,
+                                        @Nullable byte[] requestBody,
+                                        @NonNull ConnectionParameters.RequestMethod method)
+            throws AuthorizationException {
+        try {
+            ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
+            TokenResponse tokenResponse = mOktaState.getTokenResponse();
+            AuthorizedRequest request = createAuthorizedRequest(uri, properties, null,
+                    requestBody, method, providerConfiguration, tokenResponse);
+            mCurrentRequest.set(new WeakReference<>(request));
+
             return request.executeRequest(mHttpClient);
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
@@ -119,11 +149,15 @@ class SyncSessionClientImpl implements SyncSessionClient {
             ProviderConfiguration providerConfiguration = mOktaState.getProviderConfiguration();
             TokenResponse tokenResponse = mOktaState.getTokenResponse();
             AuthorizedRequest request = userProfileRequest(providerConfiguration, tokenResponse);
-            JSONObject userInfo = request.executeRequest(mHttpClient);
+            ByteBuffer buffer = request.executeRequest(mHttpClient);
+            String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+            JSONObject userInfo = new JSONObject(json);
             mCurrentRequest.set(new WeakReference<>(request));
             return new UserInfo(userInfo);
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
+        } catch (JSONException e) {
+            throw AuthorizationException.fromTemplate(JSON_DESERIALIZATION_ERROR, e);
         }
     }
 

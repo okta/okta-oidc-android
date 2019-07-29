@@ -41,6 +41,7 @@ import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
+import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
@@ -56,18 +57,26 @@ import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
 import okhttp3.mockwebserver.RecordedRequest;
+import okio.BufferedSource;
 
+import static com.okta.oidc.net.ConnectionParameters.CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.DEFAULT_ENCODING;
+import static com.okta.oidc.net.ConnectionParameters.JSON_CONTENT_TYPE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -209,7 +218,9 @@ public class SyncSessionClientImplTest {
         mOktaState.save(mTokenResponse);
         mEndPoint.enqueueUserInfoSuccess();
         AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest(mHttpClient);
+        ByteBuffer buffer = request.executeRequest(mHttpClient);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject result = new JSONObject(json);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
         assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
@@ -242,12 +253,14 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void userProfileRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
+    public void userProfileRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException, JSONException {
         mOktaState.save(mTokenResponse);
         mExpectedEx.expect(AuthorizationException.class);
         mEndPoint.enqueueReturnUnauthorizedRevoked();
         AuthorizedRequest request = mSyncSessionClientImpl.userProfileRequest(mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest(mHttpClient);
+        ByteBuffer buffer = request.executeRequest(mHttpClient);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject result = new JSONObject(json);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertNull(result);
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
@@ -304,9 +317,11 @@ public class SyncSessionClientImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
-                null, ConnectionParameters.RequestMethod.GET, mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse());
-        JSONObject result = request.executeRequest(mHttpClient);
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties, null,
+                null, ConnectionParameters.RequestMethod.POST, mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse());
+        ByteBuffer buffer = request.executeRequest(mHttpClient);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject result = new JSONObject(json);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("state"), is(CUSTOM_STATE));
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
@@ -318,7 +333,7 @@ public class SyncSessionClientImplTest {
     }
 
     @Test
-    public void authorizedRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException {
+    public void authorizedRequestFailure() throws InterruptedException, AuthorizationException, OktaRepository.EncryptionException, JSONException {
         //use userinfo for generic authorized request
         mOktaState.save(mTokenResponse);
         mExpectedEx.expect(AuthorizationException.class);
@@ -326,14 +341,48 @@ public class SyncSessionClientImplTest {
         Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
         HashMap<String, String> properties = new HashMap<>();
         properties.put("state", CUSTOM_STATE);
-        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties,
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties, null,
                 null, ConnectionParameters.RequestMethod.GET, mOktaState.getProviderConfiguration(), mTokenResponse);
-        JSONObject result = request.executeRequest(mHttpClient);
+        ByteBuffer buffer = request.executeRequest(mHttpClient);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject result = new JSONObject(json);
         RecordedRequest recordedRequest = mEndPoint.takeRequest();
         assertThat(recordedRequest.getHeader("state"), is(CUSTOM_STATE));
         assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
         assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
-        assertNull(result);
+    }
+
+    @Test
+    public void authorizedRequestPostJsonBody() throws InterruptedException, AuthorizationException,
+            JSONException, OktaRepository.EncryptionException, UnsupportedEncodingException {
+        mOktaState.save(mTokenResponse);
+        //use userinfo for generic authorized request
+        mEndPoint.enqueueUserInfoSuccess();
+        Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("Accept", ConnectionParameters.JSON_CONTENT_TYPE);
+        properties.put(CONTENT_TYPE, JSON_CONTENT_TYPE);
+
+        byte[] samplePostBody = JsonStrings.PROVIDER_CONFIG.getBytes(DEFAULT_ENCODING);
+        AuthorizedRequest request = mSyncSessionClientImpl.createAuthorizedRequest(uri, properties, null,
+                samplePostBody,
+                ConnectionParameters.RequestMethod.POST, mOktaState.getProviderConfiguration(), mOktaState.getTokenResponse());
+        ByteBuffer buffer = request.executeRequest(mHttpClient);
+        assertNotNull(buffer);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject result = new JSONObject(json);
+
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+        final byte[] recordedPostBody = recordedRequest.getBody().buffer().readByteArray();
+        assertArrayEquals(samplePostBody, recordedPostBody);
+
+        assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getMethod(), is(ConnectionParameters.RequestMethod.POST.name()));
+
+        assertNotNull(result);
+        assertEquals("John Doe", result.getString("name"));
+        assertEquals("Jimmy", result.getString("nickname"));
     }
 }

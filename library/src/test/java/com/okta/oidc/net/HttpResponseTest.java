@@ -104,6 +104,7 @@ public class HttpResponseTest {
 
     @Test
     public void textErrorResponse() throws Exception {
+        mExpectedEx.expect(IOException.class);
         mServer.enqueue(new MockResponse().setResponseCode(HTTP_FORBIDDEN)
                 .addHeader(CONTENT_TYPE, "text/plain")
                 .addHeader(WWW_AUTHENTICATE, FORBIDDEN)
@@ -172,6 +173,7 @@ public class HttpResponseTest {
 
     @Test
     public void jsonErrorResponse() throws Exception {
+        mExpectedEx.expect(IOException.class);
         mServer.enqueue(new MockResponse().setResponseCode(HTTP_NOT_FOUND)
                 .addHeader(CONTENT_TYPE, JSON_CONTENT_TYPE)
                 .setBody(CONFIGURATION_NOT_FOUND));

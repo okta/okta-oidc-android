@@ -38,6 +38,7 @@ import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
+import com.okta.oidc.util.JsonStrings;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.HttpClientFactory;
@@ -55,6 +56,9 @@ import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,6 +68,9 @@ import java.util.concurrent.Executors;
 
 import okhttp3.mockwebserver.RecordedRequest;
 
+import static com.okta.oidc.net.ConnectionParameters.CONTENT_TYPE;
+import static com.okta.oidc.net.ConnectionParameters.DEFAULT_ENCODING;
+import static com.okta.oidc.net.ConnectionParameters.JSON_CONTENT_TYPE;
 import static com.okta.oidc.util.AuthorizationException.TYPE_GENERAL_ERROR;
 import static com.okta.oidc.util.AuthorizationException.TYPE_OAUTH_TOKEN_ERROR;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
@@ -72,6 +79,7 @@ import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -333,5 +341,37 @@ public class SessionClientImplTest {
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
                     || "interrupted".equals(errorMessage));
         }
+    }
+
+    @Test
+    public void authorizedRequestPostJsonBody() throws InterruptedException, JSONException, UnsupportedEncodingException {
+        mEndPoint.enqueueUserInfoSuccess();
+        Uri uri = Uri.parse(mProviderConfig.userinfo_endpoint);
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("Accept", ConnectionParameters.JSON_CONTENT_TYPE);
+        properties.put(CONTENT_TYPE, JSON_CONTENT_TYPE);
+
+        byte[] samplePostBody = JsonStrings.PROVIDER_CONFIG.getBytes(DEFAULT_ENCODING);
+        final CountDownLatch latch = new CountDownLatch(1);
+        MockRequestCallback<ByteBuffer, AuthorizationException>
+                cb = new MockRequestCallback<>(latch);
+        mSessionClient.authorizedRequest(uri, properties, null, samplePostBody,
+                ConnectionParameters.RequestMethod.POST, cb);
+        latch.await();
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+        final byte[] recordedPostBody = recordedRequest.getBody().buffer().readByteArray();
+        assertArrayEquals(samplePostBody, recordedPostBody);
+        assertThat(recordedRequest.getHeader("Authorization"), is("Bearer " + ACCESS_TOKEN));
+        assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
+        assertThat(recordedRequest.getMethod(), is(ConnectionParameters.RequestMethod.POST.name()));
+        assertNotNull(cb.getResult());
+
+        ByteBuffer result = cb.getResult();
+        String json = Charset.forName(DEFAULT_ENCODING).decode(result).toString();
+        JSONObject jsonObject = new JSONObject(json);
+
+        assertNull(cb.getException());
+        assertEquals("John Doe", jsonObject.getString("name"));
+        assertEquals("Jimmy", jsonObject.getString("nickname"));
     }
 }

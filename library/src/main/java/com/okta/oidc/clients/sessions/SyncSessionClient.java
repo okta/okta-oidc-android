@@ -28,6 +28,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -89,6 +90,38 @@ public interface SyncSessionClient extends BaseSessionClient {
      */
     JSONObject authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                                  @Nullable Map<String, String> postParameters,
+                                 @NonNull ConnectionParameters.RequestMethod method)
+            throws AuthorizationException;
+
+    /**
+     * Performs a custom authorized request with the access token automatically added to the
+     * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
+     * Example usage:
+     * {@code
+     * <pre>
+     * try {
+     *     ByteBuffer result =
+     *         client.authorizedRequest(uri, properties, null, requestBody,
+     *                                  ConnectionParameters.RequestMethod.POST);
+     *     //handle results
+     * } catch (AuthorizationException ex) {
+     *     //handle exception
+     * }
+     *
+     * </pre>
+     * }
+     *
+     * @param uri            the uri to protected resource
+     * @param properties     the query request properties
+     * @param postParameters the post parameters
+     * @param requestBody    the post request body
+     * @param method         the http method {@link ConnectionParameters.RequestMethod}
+     * @return the ByteBuffer result
+     * @throws AuthorizationException the authorization exception
+     */
+    ByteBuffer authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
+                                 @Nullable Map<String, String> postParameters,
+                                 @Nullable byte[] requestBody,
                                  @NonNull ConnectionParameters.RequestMethod method)
             throws AuthorizationException;
 

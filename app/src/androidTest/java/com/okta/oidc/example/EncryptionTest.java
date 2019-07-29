@@ -48,7 +48,9 @@ public class EncryptionTest {
         boolean hardwareBacked = mEncryptionManager.isHardwareBackedKeyStore();
         if (SampleActivity.isEmulator()) {
             // Starting from API 26, isHardwareBackedKeyStore on emulator return true
-            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // API 28 isHardwareBackedKeyStore on emulator was changed back to return false.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                    || Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
                 assertFalse(hardwareBacked);
             } else {
                 assertTrue(hardwareBacked);

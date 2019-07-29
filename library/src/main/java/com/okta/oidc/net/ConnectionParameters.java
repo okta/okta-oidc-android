@@ -19,7 +19,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
-import androidx.annotation.VisibleForTesting;
 
 import com.okta.oidc.BuildConfig;
 import com.okta.oidc.net.params.RequestType;
@@ -44,12 +43,11 @@ public class ConnectionParameters {
     /**
      * The constant CONTENT_TYPE.
      */
-    @VisibleForTesting
     public static final String CONTENT_TYPE = "Content-Type";
     /**
      * The constant DEFAULT_CONTENT_TYPE.
      */
-    private static final String DEFAULT_CONTENT_TYPE =
+    public static final String DEFAULT_CONTENT_TYPE =
             String.format("application/x-www-form-urlencoded; charset=%s", DEFAULT_ENCODING);
     /**
      * The constant JSON_CONTENT_TYPE.
@@ -92,6 +90,7 @@ public class ConnectionParameters {
     private int mConnectionTimeoutMs;
     private int mReadTimeOutMs;
     private RequestType mRequestType;
+    private byte[] mRequestBody;
 
     /**
      * Instantiates a new Connection parameters.
@@ -105,6 +104,7 @@ public class ConnectionParameters {
         mConnectionTimeoutMs = builder.mConnectionTimeoutMs;
         mPostParameters = builder.mPostParameters;
         mRequestType = builder.mRequestType;
+        mRequestBody = builder.mRequestBody;
     }
 
     private byte[] encodePostParameters() {
@@ -132,7 +132,6 @@ public class ConnectionParameters {
             throw new RuntimeException("Encoding not supported: " + DEFAULT_ENCODING, uee);
         }
     }
-
 
     /**
      * Request method request method.
@@ -191,6 +190,15 @@ public class ConnectionParameters {
     }
 
     /**
+     * Get the post request body.
+     *
+     * @return the request body
+     */
+    public byte[] getBody() {
+        return mRequestBody;
+    }
+
+    /**
      * Get the request type.
      *
      * @return the request type {@link RequestType}
@@ -210,6 +218,7 @@ public class ConnectionParameters {
         private int mConnectionTimeoutMs = -1;
         private int mReadTimeOutMs = -1;
         private RequestType mRequestType;
+        private byte[] mRequestBody;
 
         /**
          * Instantiates a new Parameter builder.
@@ -322,7 +331,6 @@ public class ConnectionParameters {
             return this;
         }
 
-
         /**
          * Sets request type.
          *
@@ -334,5 +342,15 @@ public class ConnectionParameters {
             return this;
         }
 
+        /**
+         * Sets the request body.
+         *
+         * @param requestBody the request body
+         * @return the builder
+         */
+        public ParameterBuilder setRequestBody(@NonNull byte[] requestBody) {
+            mRequestBody = requestBody;
+            return this;
+        }
     }
 }

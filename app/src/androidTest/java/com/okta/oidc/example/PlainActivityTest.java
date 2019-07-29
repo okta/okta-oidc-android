@@ -314,5 +314,6 @@ public class PlainActivityTest {
         onView(withId(R.id.check_expired)).perform(click());
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("token not expired"))));
+        test9_signOutOfOkta(); //clear the browser to reset state.
     }
 }

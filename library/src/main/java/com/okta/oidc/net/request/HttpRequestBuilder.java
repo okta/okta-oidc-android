@@ -130,6 +130,7 @@ public class HttpRequestBuilder {
         TokenResponse mTokenResponse;
         Map<String, String> mPostParameters;
         Map<String, String> mProperties;
+        byte[] mRequestBody;
         ConnectionParameters.RequestMethod mRequestMethod;
 
         private Authorized() {
@@ -169,6 +170,11 @@ public class HttpRequestBuilder {
 
         public Authorized httpRequestMethod(ConnectionParameters.RequestMethod requestMethod) {
             mRequestMethod = requestMethod;
+            return this;
+        }
+
+        public Authorized requestBody(byte[] requestBody) {
+            mRequestBody = requestBody;
             return this;
         }
 

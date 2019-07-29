@@ -29,6 +29,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -97,6 +98,41 @@ public interface SessionClient extends BaseSessionClient {
                            @Nullable Map<String, String> postParameters,
                            @NonNull ConnectionParameters.RequestMethod method,
                            RequestCallback<JSONObject, AuthorizationException> cb);
+
+    /**
+     * Performs a custom authorized request with the access token automatically added to the
+     * "Authorization" header with the standard OAuth 2.0 prefix of "Bearer".
+     * Example usage:
+     * {@code
+     * <pre>
+     * client.authorizedRequest(uri, properties, null,
+     *                 requestBody, ConnectionParameters.RequestMethod.POST,
+     *                 new RequestCallback<ByteBuffer, AuthorizationException>() {
+     *     @Override
+     *     public void onSuccess(@NonNull ByteBuffer result) {
+     *         //handle ByteBuffer result.
+     *     }
+     *
+     *     @Override
+     *     public void onError(String error, AuthorizationException exception) {
+     *         //handle failed request
+     *     }
+     * });
+     * </pre>
+     * }
+     *
+     * @param uri            the uri to protected resource
+     * @param properties     the query request properties
+     * @param postParameters the post parameters
+     * @param requestBody    the post request body
+     * @param method         the http method {@link ConnectionParameters.RequestMethod}
+     * @param cb             the RequestCallback to be executed when request is finished.
+     */
+    void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
+                           @Nullable Map<String, String> postParameters,
+                           @Nullable byte[] requestBody,
+                           @NonNull ConnectionParameters.RequestMethod method,
+                           RequestCallback<ByteBuffer, AuthorizationException> cb);
 
     /**
      * Get user profile returns any claims for the currently logged-in user.

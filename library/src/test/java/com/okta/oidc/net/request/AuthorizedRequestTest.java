@@ -39,9 +39,12 @@ import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static com.okta.oidc.net.ConnectionParameters.DEFAULT_ENCODING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -98,9 +101,12 @@ public class AuthorizedRequestTest {
     @Test
     public void executeRequestSuccess() throws AuthorizationException, JSONException {
         mEndPoint.enqueueUserInfoSuccess();
-        JSONObject json = mRequest.executeRequest(mHttpClient);
-        assertNotNull(json);
-        assertEquals(json.getString("nickname"), "Jimmy");
+        ByteBuffer buffer = mRequest.executeRequest(mHttpClient);
+        assertNotNull(buffer);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject jsonObject = new JSONObject(json);
+        assertNotNull(jsonObject);
+        assertEquals(jsonObject.getString("nickname"), "Jimmy");
     }
 
     @Test
@@ -114,9 +120,12 @@ public class AuthorizedRequestTest {
     @Test
     public void executeRequestSuccessWithOkHttp() throws AuthorizationException, JSONException {
         mEndPoint.enqueueUserInfoSuccess();
-        JSONObject json = mRequest.executeRequest(new OkHttp());
-        assertNotNull(json);
-        assertEquals(json.getString("nickname"), "Jimmy");
+        ByteBuffer buffer = mRequest.executeRequest(new OkHttp());
+        assertNotNull(buffer);
+        String json = Charset.forName(DEFAULT_ENCODING).decode(buffer).toString();
+        JSONObject jsonObject = new JSONObject(json);
+        assertNotNull(jsonObject);
+        assertEquals(jsonObject.getString("nickname"), "Jimmy");
     }
 
     @Test

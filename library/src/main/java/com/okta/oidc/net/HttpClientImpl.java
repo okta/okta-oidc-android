@@ -26,6 +26,7 @@ import com.okta.oidc.net.request.TLSSocketFactory;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -84,6 +85,11 @@ public class HttpClientImpl implements OktaHttpClient {
                 DataOutputStream out = new DataOutputStream(conn.getOutputStream());
                 out.write(params.getEncodedPostParameters());
                 out.close();
+            } else if (params.getBody() != null) {
+                byte[] outputBytes = params.getBody();
+                OutputStream os = conn.getOutputStream();
+                os.write(outputBytes);
+                os.close();
             }
         }
         return conn;

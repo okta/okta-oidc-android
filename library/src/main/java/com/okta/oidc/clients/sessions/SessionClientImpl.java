@@ -32,6 +32,7 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -120,6 +121,25 @@ class SessionClientImpl implements SessionClient {
                 JSONObject result = mSyncSessionClient
                         .authorizedRequest(uri, properties, postParameters, method);
                 mDispatcher.submitResults(() -> cb.onSuccess(result));
+            } catch (AuthorizationException ae) {
+                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            }
+        });
+    }
+
+    @Override
+    public void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
+                                  @Nullable Map<String, String> postParameters,
+                                  @Nullable byte[] requestBody,
+                                  @NonNull ConnectionParameters.RequestMethod method,
+                                  final RequestCallback<ByteBuffer, AuthorizationException> cb) {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            try {
+                ByteBuffer byteBuffer = mSyncSessionClient
+                        .authorizedRequest(uri, properties, postParameters, requestBody, method);
+                mDispatcher.submitResults(() -> cb.onSuccess(byteBuffer));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
             }

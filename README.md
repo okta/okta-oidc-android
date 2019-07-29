@@ -344,10 +344,12 @@ In `onSuccess` the userinfo returned is a `UserInfo` with the [response properti
 
 In addition to the built in endpoints, you can use the client interface to perform your own authorized requests, whatever they might be. You can call `authorizedRequest` requests and have the access token automatically added to the `Authorization` header with the standard OAuth 2.0 prefix of `Bearer`.
 
+Example form post:
+
 ```java
 final Uri uri;
 HashMap<String, String> properties = new HashMap<>();
-properties.put("queryparam", "queryparam");
+properties.put("Accept", "application/json");
 HashMap<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
@@ -356,6 +358,31 @@ client.getSessionClient().authorizedRequest(uri, properties,
     @Override
     public void onSuccess(@NonNull JSONObject result) {
         //handle JSONObject result.
+    }
+
+    @Override
+    public void onError(String error, AuthorizationException exception) {
+        //handle failed request
+    }
+});
+```
+
+Sending and retrieving JSON:
+
+```java
+final Uri uri;
+String jsonData = ...
+HashMap<String, String> properties = new HashMap<>();
+properties.put("Accept", "application/json");
+properties.put("Content-Type", "application/json; charset=utf-8");
+byte[] postData = jsonData.getBytes("UTF-8");
+
+client.getSessionClient().authorizedRequest(uri, properties,
+                null, postData, ConnectionParameters.RequestMethod.POST, new RequestCallback<ByteBuffer, AuthorizationException>() {
+    @Override
+    public void onSuccess(@NonNull ByteBuffer buffer) {
+        String json = Charset.forName("UTF-8").decode(buffer).toString();
+        //handle json string.
     }
 
     @Override

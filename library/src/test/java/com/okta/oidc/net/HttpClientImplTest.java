@@ -38,6 +38,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -95,7 +96,7 @@ public class HttpClientImplTest {
     public void cancel() throws AuthorizationException {
         mEndPoint.enqueueUserInfoSuccess(5);
         final CountDownLatch latch = new CountDownLatch(1);
-        final JSONObject[] result = new JSONObject[1];
+        final ByteBuffer[] result = new ByteBuffer[1];
         final AuthorizationException[] exception = new AuthorizationException[1];
         Thread t = new Thread(() -> {
             try {
