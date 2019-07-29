@@ -97,7 +97,6 @@ public class OktaAuthenticationActivity extends Activity {
      */
     @VisibleForTesting
     protected int mCustomTabColor;
-    private boolean mBound = false;
     private boolean mResultSent = false;
 
     @Override
@@ -238,7 +237,6 @@ public class OktaAuthenticationActivity extends Activity {
             @Override
             public void onServiceDisconnected(ComponentName componentName) {
                 mAuthStarted = false;
-                mBound = false;
             }
 
             @Override
@@ -253,7 +251,7 @@ public class OktaAuthenticationActivity extends Activity {
                 startActivity(createBrowserIntent(browserPackage, session));
             }
         };
-        mBound = CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
+        CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
     }
 
     private void sendResult(int rc, Intent intent) {
@@ -266,7 +264,7 @@ public class OktaAuthenticationActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (mConnection != null && mBound) {
+        if (mConnection != null) {
             unbindService(mConnection);
             mConnection = null;
         }
