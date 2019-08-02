@@ -30,6 +30,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -100,6 +101,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
+    private Button mRemoveToken;
 
     private Button mRefreshToken;
     private Button mRevokeRefresh;
@@ -140,6 +142,12 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private SignInDialog mSignInDialog;
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
+    //correspond to values in string.xml remove_array
+    private static final int ACCESS_TOKEN = 0;
+    private static final int REFRESH_TOKEN = 1;
+    private static final int ID_TOKEN = 2;
+    private static final int ALL_TOKENS = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
@@ -165,6 +173,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mSwitch = findViewById(R.id.switch1);
 
         mEditText = findViewById(R.id.login_hint);
+        mRemoveToken = findViewById(R.id.remove_token);
 
         mStorageOAuth2 = new SharedPreferenceStorage(this, "OAUTH2");
         mStorageOidc = new SharedPreferenceStorage(this);
@@ -471,7 +480,41 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             getSessionClient().cancel(); //cancel session requests
             showNetworkProgress(false);
         });
+
+        mRemoveToken.setOnClickListener(v -> {
+            AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("Remove")
+                    .setSingleChoiceItems(getResources().getStringArray(R.array.remove_array), -1,
+                            (dialog, which) -> {
+                                selectedRemoveItem(which);
+                                dialog.dismiss();
+                            })
+                    .create();
+            alertDialog.show();
+
+        });
         setupCallback();
+    }
+
+    private void selectedRemoveItem(int selected) {
+        String[] items = getResources().getStringArray(R.array.remove_array);
+        switch (selected) {
+            case ACCESS_TOKEN:
+                getSessionClient().removeAccessToken();
+                break;
+            case REFRESH_TOKEN:
+                getSessionClient().removeRefreshToken();
+                break;
+            case ID_TOKEN:
+                getSessionClient().removeIdToken();
+                break;
+            case ALL_TOKENS:
+                getSessionClient().removeAllTokens();
+                break;
+            default:
+                break;
+        }
+        mTvStatus.setText("Removed: " + items[selected]);
     }
 
     /**
@@ -565,6 +608,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     }
 
     private void showAuthenticatedMode() {
+        mRemoveToken.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
@@ -586,6 +630,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mRefreshToken.setVisibility(View.GONE);
         mClearData.setVisibility(View.GONE);
         mRevokeContainer.setVisibility(View.GONE);
+        mRemoveToken.setVisibility(View.GONE);
         mTvStatus.setText("");
     }
 

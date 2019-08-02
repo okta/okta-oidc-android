@@ -16,6 +16,7 @@
 package com.okta.oidc.clients.sessions;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +26,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.OktaHttpClient;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.request.AuthorizedRequest;
 import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
@@ -50,6 +52,7 @@ import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.INVALID_KEYS_ERROR;
 
 class SyncSessionClientImpl implements SyncSessionClient {
+    private static final String TAG = "SessionClient";
     private OIDCConfig mOidcConfig;
     private OktaState mOktaState;
     OktaHttpClient mHttpClient;
@@ -266,6 +269,41 @@ class SyncSessionClientImpl implements SyncSessionClient {
         } catch (OktaRepository.EncryptionException e) {
             throw AuthorizationException.EncryptionErrors.byEncryptionException(e);
         }
+    }
+
+    @Override
+    public void removeAllTokens() {
+        mOktaState.delete(TokenResponse.RESTORE.getKey());
+    }
+
+    @Override
+    public boolean removeAccessToken() {
+        return removeToken(TokenTypeHint.ACCESS_TOKEN);
+    }
+
+    @Override
+    public boolean removeRefreshToken() {
+        return removeToken(TokenTypeHint.REFRESH_TOKEN);
+    }
+
+    @Override
+    public boolean removeIdToken() {
+        return removeToken(TokenTypeHint.ID_TOKEN);
+    }
+
+    private boolean removeToken(String hint) {
+        boolean success = false;
+        try {
+            TokenResponse response = mOktaState.getTokenResponse();
+            if (response != null) {
+                response.removeToken(hint);
+                mOktaState.save(response);
+                success = true;
+            }
+        } catch (OktaRepository.EncryptionException e) {
+            Log.w(TAG, "", e);
+        }
+        return success;
     }
 
     OktaState getOktaState() {

@@ -37,4 +37,30 @@ interface BaseSessionClient {
      * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
+
+    /**
+     * Remove all tokens from storage.
+     */
+    void removeAllTokens();
+
+    /**
+     * Remove access token from storage.
+     *
+     * @return true if successfully removed. false otherwise.
+     */
+    boolean removeAccessToken();
+
+    /**
+     * Remove refresh token from storage.
+     *
+     * @return true if successfully removed. false otherwise.
+     */
+    boolean removeRefreshToken();
+
+    /**
+     * Remove ID token from storage.
+     *
+     * @return true if successfully removed. false otherwise.
+     */
+    boolean removeIdToken();
 }

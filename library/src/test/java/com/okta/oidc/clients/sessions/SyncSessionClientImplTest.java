@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
+import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.web.SyncWebAuthClient;
 import com.okta.oidc.net.ConnectionParameters;
 import com.okta.oidc.net.OktaHttpClient;
@@ -335,5 +336,65 @@ public class SyncSessionClientImplTest {
         assertThat(recordedRequest.getHeader("Accept"), is(ConnectionParameters.JSON_CONTENT_TYPE));
         assertThat(recordedRequest.getPath(), equalTo("/userinfo"));
         assertNull(result);
+    }
+
+    @Test
+    public void removeAllTokens() throws OktaRepository.EncryptionException, AuthorizationException {
+        mOktaState.save(mTokenResponse);
+        Tokens tokens = mSyncSessionClientImpl.getTokens();
+
+        assertNotNull(tokens);
+
+        mSyncSessionClientImpl.removeAllTokens();
+        tokens = mSyncSessionClientImpl.getTokens();
+        assertNull(tokens);
+    }
+
+    @Test
+    public void removeAccessToken() throws OktaRepository.EncryptionException, AuthorizationException {
+        mOktaState.save(mTokenResponse);
+        Tokens tokens = mSyncSessionClientImpl.getTokens();
+
+        assertNotNull(tokens);
+        assertNotNull(tokens.getAccessToken());
+
+        mSyncSessionClientImpl.removeAccessToken();
+        tokens = mSyncSessionClientImpl.getTokens();
+        assertNotNull(tokens);
+        assertNull(tokens.getAccessToken());
+        assertNotNull(tokens.getRefreshToken());
+        assertNotNull(tokens.getIdToken());
+    }
+
+    @Test
+    public void removeRefreshToken() throws OktaRepository.EncryptionException, AuthorizationException {
+        mOktaState.save(mTokenResponse);
+        Tokens tokens = mSyncSessionClientImpl.getTokens();
+
+        assertNotNull(tokens);
+        assertNotNull(tokens.getRefreshToken());
+
+        mSyncSessionClientImpl.removeRefreshToken();
+        tokens = mSyncSessionClientImpl.getTokens();
+        assertNotNull(tokens);
+        assertNull(tokens.getRefreshToken());
+        assertNotNull(tokens.getAccessToken());
+        assertNotNull(tokens.getIdToken());
+    }
+
+    @Test
+    public void removeIdToken() throws OktaRepository.EncryptionException, AuthorizationException {
+        mOktaState.save(mTokenResponse);
+        Tokens tokens = mSyncSessionClientImpl.getTokens();
+
+        assertNotNull(tokens);
+        assertNotNull(tokens.getIdToken());
+
+        mSyncSessionClientImpl.removeIdToken();
+        tokens = mSyncSessionClientImpl.getTokens();
+        assertNotNull(tokens);
+        assertNull(tokens.getIdToken());
+        assertNotNull(tokens.getAccessToken());
+        assertNotNull(tokens.getRefreshToken());
     }
 }

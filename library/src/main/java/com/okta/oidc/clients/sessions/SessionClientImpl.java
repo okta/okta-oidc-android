@@ -147,6 +147,26 @@ class SessionClientImpl implements SessionClient {
         mSyncSessionClient.migrateTo(manager);
     }
 
+    @Override
+    public void removeAllTokens() {
+        mSyncSessionClient.removeAllTokens();
+    }
+
+    @Override
+    public boolean removeAccessToken() {
+        return mSyncSessionClient.removeAccessToken();
+    }
+
+    @Override
+    public boolean removeRefreshToken() {
+        return mSyncSessionClient.removeRefreshToken();
+    }
+
+    @Override
+    public boolean removeIdToken() {
+        return mSyncSessionClient.removeIdToken();
+    }
+
     private void cancelFuture() {
         if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
             mFutureTask.cancel(true);

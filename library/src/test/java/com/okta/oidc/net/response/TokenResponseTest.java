@@ -15,6 +15,7 @@
 package com.okta.oidc.net.response;
 
 import com.google.gson.Gson;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.util.AsciiStringListUtil;
 
 import org.junit.Before;
@@ -34,6 +35,8 @@ import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static com.okta.oidc.util.TestValues.TYPE_BEARER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -88,4 +91,14 @@ public class TokenResponseTest {
         assertEquals(tokenResponse.persist(), json);
     }
 
+    @Test
+    public void removeToken() {
+        mToken.removeToken(TokenTypeHint.ACCESS_TOKEN);
+        mToken.removeToken(TokenTypeHint.ID_TOKEN);
+        mToken.removeToken(TokenTypeHint.REFRESH_TOKEN);
+        assertNull(mToken.getAccessToken());
+        assertEquals(mToken.getExpiresAt(), -1);
+        assertNull(mToken.getIdToken());
+        assertNull(mToken.getRefreshToken());
+    }
 }

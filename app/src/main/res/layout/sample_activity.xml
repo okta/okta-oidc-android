@@ -112,6 +112,14 @@
                     android:visibility="gone"
                     tools:ignore="HardcodedText" />
 
+                <Button
+                    android:id="@+id/remove_token"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Remove tokens"
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
+
                 <TextView
                     android:id="@+id/status"
                     android:layout_width="match_parent"

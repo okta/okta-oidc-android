@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import com.google.gson.Gson;
+import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.storage.Persistable;
 
 /**
@@ -37,7 +38,7 @@ public class TokenResponse implements Persistable {
     private String id_token;
     private long expiresAt = -1;
 
-    @NonNull
+    @Nullable
     public String getAccessToken() {
         return access_token;
     }
@@ -57,12 +58,25 @@ public class TokenResponse implements Persistable {
         return scope;
     }
 
+    @Nullable
     public String getRefreshToken() {
         return refresh_token;
     }
 
+    @Nullable
     public String getIdToken() {
         return id_token;
+    }
+
+    public void removeToken(String tokenTypeHint) {
+        if (TokenTypeHint.ACCESS_TOKEN.equals(tokenTypeHint)) {
+            access_token = null;
+            expiresAt = -1;
+        } else if (TokenTypeHint.ID_TOKEN.equals(tokenTypeHint)) {
+            id_token = null;
+        } else if (TokenTypeHint.REFRESH_TOKEN.equals(tokenTypeHint)) {
+            refresh_token = null;
+        }
     }
 
     public TokenResponse() {

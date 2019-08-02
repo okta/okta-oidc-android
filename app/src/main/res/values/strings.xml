@@ -6,4 +6,11 @@
     <string name="auth_options">Authorization options:</string>
     <string name="oidc">OIDC</string>
     <string name="use_biometrics">Use biometrics</string>
+
+    <string-array name="remove_array">
+        <item>Access token</item>
+        <item>Refresh token</item>
+        <item>ID token</item>
+        <item>All tokens</item>
+    </string-array>
 </resources>
