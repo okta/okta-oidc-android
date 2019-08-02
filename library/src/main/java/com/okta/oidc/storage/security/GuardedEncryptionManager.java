@@ -119,6 +119,11 @@ public class GuardedEncryptionManager implements EncryptionManager {
     }
 
     @Override
+    public void recreateKeys(Context context) {
+        mEncryptionManager.recreateKeys(context);
+    }
+
+    @Override
     public boolean isValidKeys() {
         return mEncryptionManager.isValidKeys();
     }

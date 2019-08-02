@@ -1,5 +1,7 @@
 package com.okta.oidc.util;
 
+import android.content.Context;
+
 import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.io.UnsupportedEncodingException;
@@ -82,6 +84,11 @@ public class EncryptionManagerStub implements EncryptionManager {
 
     @Override
     public void removeKeys() {
+
+    }
+
+    @Override
+    public void recreateKeys(Context context) {
 
     }
 

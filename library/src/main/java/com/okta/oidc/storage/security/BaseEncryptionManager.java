@@ -87,6 +87,24 @@ abstract class BaseEncryptionManager implements EncryptionManager {
             throw new RuntimeException("Failed initialize KeyStore", e.getCause());
         }
 
+        generateKeys(context);
+
+        // Init Cipher
+        if (initCipher) {
+            try {
+                mCipher = createCipher(mTransformationString);
+                if (mCipher == null) {
+                    throw new RuntimeException("Cipher is null");
+                }
+            } catch (GeneralSecurityException e) {
+                throw new RuntimeException("Failed initialize Cipher", e.getCause());
+            }
+        }
+
+        return true;
+    }
+
+    private void generateKeys(Context context) {
         // Check if exist instead generate new private and public keys
         try {
             if (!mKeyStore.containsAlias(mKeyAlias)) {
@@ -122,20 +140,6 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         } catch (KeyStoreException e) {
             throw new RuntimeException("Keystore exception.", e.getCause());
         }
-
-        // Init Cipher
-        if (initCipher) {
-            try {
-                mCipher = createCipher(mTransformationString);
-                if (mCipher == null) {
-                    throw new RuntimeException("Cipher is null");
-                }
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException("Failed initialize Cipher", e.getCause());
-            }
-        }
-
-        return true;
     }
 
     private KeyStore createKeyStore() throws GeneralSecurityException, IOException {
@@ -320,6 +324,11 @@ abstract class BaseEncryptionManager implements EncryptionManager {
     @Override
     public void removeKeys() {
         deleteInvalidKey(mKeyAlias);
+    }
+
+    @Override
+    public void recreateKeys(Context context) {
+        prepare(context, false);
     }
 
     @Override

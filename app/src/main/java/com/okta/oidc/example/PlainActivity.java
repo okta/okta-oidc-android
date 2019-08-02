@@ -17,12 +17,15 @@ package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -44,6 +47,8 @@ import com.okta.oidc.net.params.TokenTypeHint;
 import com.okta.oidc.net.response.IntrospectInfo;
 import com.okta.oidc.net.response.UserInfo;
 import com.okta.oidc.storage.security.DefaultEncryptionManager;
+import com.okta.oidc.storage.security.EncryptionManager;
+import com.okta.oidc.storage.security.GuardedEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
@@ -68,6 +73,7 @@ public class PlainActivity extends Activity {
     @VisibleForTesting
     OIDCConfig mOidcConfig;
 
+    private static final String PREF_FINGERPRINT = "fingerprint";
     private TextView mTvStatus;
     private Button mSignOut;
     private Button mGetProfile;
@@ -81,12 +87,17 @@ public class PlainActivity extends Activity {
     private Button mIntrospectId;
     private Button mCheckExpired;
     private Button mCancel;
+    private CheckBox mBiometric;
+
     private ProgressBar mProgressBar;
     @SuppressWarnings("unused")
     private static final String FIRE_FOX = "org.mozilla.firefox";
 
     private LinearLayout mRevokeContainer;
-
+    private EncryptionManager mCurrentEncryptionManager;
+    private DefaultEncryptionManager mDefaultEncryptionManager;
+    private GuardedEncryptionManager mKeyguardEncryptionManager;
+    private static final int REQUEST_CODE_CREDENTIALS = 1000;
     /**
      * The payload to send for authorization.
      */
@@ -95,7 +106,6 @@ public class PlainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.plain_activity);
@@ -114,10 +124,55 @@ public class PlainActivity extends Activity {
         mIntrospectRefresh = findViewById(R.id.introspect_refresh);
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
+        mBiometric = findViewById(R.id.biometric);
 
         mSignInBrowser.setOnClickListener(v -> {
             showNetworkProgress(true);
             mWebAuth.signIn(this, mPayload);
+        });
+
+        boolean checked = getSharedPreferences(PlainActivity.class.getName(), MODE_PRIVATE)
+                .getBoolean(PREF_FINGERPRINT, false);
+        mKeyguardEncryptionManager = new GuardedEncryptionManager(this, Integer.MAX_VALUE);
+        mDefaultEncryptionManager = new DefaultEncryptionManager(this);
+        mCurrentEncryptionManager = checked ? mKeyguardEncryptionManager :
+                mDefaultEncryptionManager;
+
+        mBiometric.setChecked(checked);
+        mBiometric.setOnCheckedChangeListener((button, isChecked) -> {
+            if (!isKeyguardSecure()) {
+                button.setChecked(false);
+                mTvStatus.setText("Keyguard not secure. Set a PIN or enroll a fingerprint.");
+                return;
+            }
+            if (isChecked) {
+                try {
+                    if (!mKeyguardEncryptionManager.isValidKeys()) {
+                        mKeyguardEncryptionManager.recreateKeys(this);
+                    }
+                    mKeyguardEncryptionManager.recreateCipher();
+                    mSessionClient.migrateTo(mKeyguardEncryptionManager);
+                    mCurrentEncryptionManager = mKeyguardEncryptionManager;
+                } catch (AuthorizationException e) {
+                    mTvStatus.setText("Error in data migration check logs for error");
+                    Log.d(TAG, "Error migrateTo", e);
+                }
+            } else {
+                mCurrentEncryptionManager.removeKeys();
+                mSessionClient.clear();
+                mCurrentEncryptionManager = mDefaultEncryptionManager;
+
+                try {
+                    //set the encryption manager back to default.
+                    mSessionClient.migrateTo(mCurrentEncryptionManager);
+                } catch (AuthorizationException e) {
+                    //NO-OP
+                }
+                showSignedOutMode();
+            }
+            getSharedPreferences(PlainActivity.class.getName(), MODE_PRIVATE).edit()
+                    .putBoolean(PREF_FINGERPRINT, isChecked).apply();
+
         });
 
         mCheckExpired.setOnClickListener(v -> {
@@ -202,7 +257,9 @@ public class PlainActivity extends Activity {
             }
         });
 
-        mGetProfile.setOnClickListener(v -> getProfile());
+        mGetProfile.setOnClickListener(v -> {
+            getProfile();
+        });
         mRefreshToken.setOnClickListener(v -> {
             showNetworkProgress(true);
             mSessionClient.refreshToken(new RequestCallback<Tokens, AuthorizationException>() {
@@ -229,7 +286,6 @@ public class PlainActivity extends Activity {
                             new RequestCallback<Boolean, AuthorizationException>() {
                                 @Override
                                 public void onSuccess(@NonNull Boolean result) {
-
                                     String status = "Revoke refresh token : " + result;
                                     Log.d(TAG, status);
                                     mTvStatus.setText(status);
@@ -314,17 +370,16 @@ public class PlainActivity extends Activity {
 
         boolean isEmulator = isEmulator();
 
-        Okta.WebAuthBuilder builder = new Okta.WebAuthBuilder()
+        mWebAuth = new Okta.WebAuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
                 .withCallbackExecutor(null)
-                .withEncryptionManager(new DefaultEncryptionManager(this))
+                .withEncryptionManager(mCurrentEncryptionManager)
                 .setRequireHardwareBackedKeyStore(!isEmulator)
                 .withTabColor(0)
                 .withOktaHttpClient(factory.build())
-                .supportedBrowsers(FIRE_FOX);
-
-        mWebAuth = builder.create();
+                .supportedBrowsers(FIRE_FOX)
+                .create();
 
         mSessionClient = mWebAuth.getSessionClient();
 
@@ -342,7 +397,14 @@ public class PlainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        mWebAuth.handleActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_CREDENTIALS && resultCode == RESULT_OK) {
+            if (mCurrentEncryptionManager.getCipher() == null) {
+                mCurrentEncryptionManager.recreateCipher();
+            }
+            mTvStatus.setText("Device authenticated");
+        } else {
+            mWebAuth.handleActivityResult(requestCode, resultCode, data);
+        }
     }
 
     /**
@@ -391,13 +453,15 @@ public class PlainActivity extends Activity {
         if (mWebAuth.isInProgress()) {
             showNetworkProgress(true);
         }
+        if (mBiometric.isChecked() && !mCurrentEncryptionManager.isUserAuthenticatedOnDevice()) {
+            showKeyguard();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         showNetworkProgress(false);
-
     }
 
 
@@ -448,6 +512,29 @@ public class PlainActivity extends Activity {
         });
     }
 
+    /**
+     * Check if device have enabled keyguard.
+     *
+     * @return the boolean
+     */
+    @VisibleForTesting
+    public boolean isKeyguardSecure() {
+        KeyguardManager keyguardManager =
+                (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        return keyguardManager.isKeyguardSecure();
+    }
+
+    private void showKeyguard() {
+        KeyguardManager keyguardManager =
+                (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        Intent intent = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            intent = keyguardManager.createConfirmDeviceCredentialIntent("Confirm credentials", "");
+        }
+        if (intent != null) {
+            startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
+        }
+    }
 
     /**
      * Check if the device is a emulator.
