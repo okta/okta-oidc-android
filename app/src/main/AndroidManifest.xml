@@ -40,7 +40,7 @@
         </activity>
         <activity
             android:name=".PlainActivity"
-            android:label="@string/app_name_short"
+            android:label="@string/app_name_plain"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
