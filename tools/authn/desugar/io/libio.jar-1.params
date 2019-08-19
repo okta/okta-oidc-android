@@ -1,0 +1,13 @@
+--classpath
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/asm/third_party/asm/asm-7.0-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/asm-commons/third_party/asm/asm-commons-7.0-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/asm-tree/third_party/asm/asm-tree-7.0-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/auto_value_value/third_party/auto/auto-value-1.6.3rc1-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/auto_value_value/third_party/auto/auto-value-annotations-1.6.3rc1-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/tomcat_annotations_api/third_party/tomcat_annotations_api/tomcat-annotations-api-8.0.5-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/guava/third_party/guava/guava-25.1-jre-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/error_prone_annotations/third_party/error_prone/error_prone_annotations-2.2.0-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/error_prone_annotations/third_party/error_prone/error_prone_type_annotations-2.3.2-SNAPSHOT-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/jcip_annotations/third_party/jcip_annotations/jcip-annotations-1.0-1-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/jsr305/third_party/jsr305/jsr-305-ijar.jar
+--reduce_classpath

@@ -1,0 +1,13 @@
+--classpath
+bazel-out/darwin-fastbuild/bin/src/main/protobuf/libdesugar_deps_proto-speed-hjar.jar
+bazel-out/darwin-fastbuild/bin/src/tools/android/java/com/google/devtools/build/android/desugar/libdeps_collector_api-hjar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/guava/third_party/guava/guava-25.1-jre-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/error_prone_annotations/third_party/error_prone/error_prone_annotations-2.2.0-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/error_prone_annotations/third_party/error_prone/error_prone_type_annotations-2.3.2-SNAPSHOT-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/jcip_annotations/third_party/jcip_annotations/jcip-annotations-1.0-1-ijar.jar
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/jsr305/third_party/jsr305/jsr-305-ijar.jar
+bazel-out/darwin-fastbuild/bin/external/com_google_protobuf/_ijar/protobuf_java/external/com_google_protobuf/libprotobuf_java-ijar.jar
+--reduce_classpath
+--deps_artifacts
+bazel-out/darwin-fastbuild/bin/src/main/protobuf/libdesugar_deps_proto-speed-hjar.jdeps
+bazel-out/darwin-fastbuild/bin/src/tools/android/java/com/google/devtools/build/android/desugar/libdeps_collector_api-hjar.jdeps

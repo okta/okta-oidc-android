@@ -1,0 +1,3 @@
+--classpath
+bazel-out/darwin-fastbuild/bin/third_party/_ijar/jsr305/third_party/jsr305/jsr-305-ijar.jar
+--reduce_classpath
