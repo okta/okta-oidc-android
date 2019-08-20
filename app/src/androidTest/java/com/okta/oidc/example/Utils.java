@@ -38,6 +38,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
+import static com.okta.oidc.example.BuildConfig.PASSWORD_MFA;
+import static com.okta.oidc.example.BuildConfig.USERNAME_MFA;
+
 final class Utils {
     private static final int BUFFER_SIZE = 1024;
     //apk package names
@@ -49,6 +52,10 @@ final class Utils {
     //timeout for app transition from browser to app.
     public static final int TRANSITION_TIMEOUT = 2000;
     public static final int NETWORK_TIMEOUT = 5000;
+    public static final int NOTIFICATION_TIMEOUT = 5000;
+    public static final int WAIT_FOR_POLL_TIMEOUT = 5000;
+    public static final int RECENTS_TIMEOUT = 1500;
+    public static final int EXCHANGE_TIMEOUT = 7000;
 
     //web page resource ids
     public static final String ID_USERNAME = "okta-signin-username";
@@ -57,6 +64,10 @@ final class Utils {
     public static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
     public static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
     public static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+
+    public static final String TEXT_SEND_PUSH = "Send Push";
+    public static final String TEXT_APPROVE = "Approve";
+    public static final String TEXT_DENY = "Deny";
 
     public static String PASSWORD = BuildConfig.PASSWORD;
     public static String USERNAME = BuildConfig.USERNAME;
@@ -76,20 +87,35 @@ final class Utils {
         }
     }
 
-    public static void customTabInteraction(UiDevice device, boolean enterUserName) throws UiObjectNotFoundException {
+    public static void customTabInteraction(UiDevice device, boolean enterUserName)
+            throws UiObjectNotFoundException {
         device.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        customTabInteraction(device, enterUserName, USERNAME, PASSWORD);
+        device.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+    }
+
+    public static void customTabInteractionWithMfa(UiDevice device, boolean enterUserName)
+            throws UiObjectNotFoundException {
+        device.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        UiObject sendPush = device.findObject(new UiSelector().text(TEXT_SEND_PUSH));
+        sendPush.waitForExists(TRANSITION_TIMEOUT);
+        if (!sendPush.exists()) { //user already logged in.
+            customTabInteraction(device, enterUserName, USERNAME_MFA, PASSWORD_MFA);
+        }
+    }
+
+    private static void customTabInteraction(UiDevice device, boolean enterUserName, String name,
+                                             String password) throws UiObjectNotFoundException {
         acceptChromePrivacyOption(device);
         UiSelector selector = new UiSelector();
         if (enterUserName) {
             UiObject username = device.findObject(selector.resourceId(ID_USERNAME));
-            username.setText(USERNAME);
+            username.setText(name);
         }
-        UiObject password = device.findObject(selector.resourceId(ID_PASSWORD));
-        password.setText(PASSWORD);
+        UiObject uiPassword = device.findObject(selector.resourceId(ID_PASSWORD));
+        uiPassword.setText(password);
         UiObject signIn = device.findObject(selector.resourceId(ID_SUBMIT));
         signIn.click();
-        device.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
-
     }
 
     static String getAsset(Context context, String filename) {
