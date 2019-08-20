@@ -190,7 +190,7 @@ client.signIn(this, payload);
 
 ### onActivityResult override
 
-The library uses a nested fragment to abstract the redirect callback. It uses `onActivityResult` to receive data from the browser. If your app overrides `onActivityResult` you must call 
+The library uses a nested fragment to abstract the redirect callback. It uses `onActivityResult` to receive data from the browser. If your app overrides `onActivityResult` you must call
 `super.onActivityResult()` to propagate unhandled `requestCode` to the library's fragment.
 
 ```java
@@ -213,19 +213,19 @@ public class PlainActivity extends Activity {
 
         client = new Okta.WebAuthBuilder()
                         .withConfig(mOidcConfig)
-                        .withContext(this)                      
+                        .withContext(this)
                         .create();
 
-        ResultCallback<AuthorizationStatus, AuthorizationException> callback = 
+        ResultCallback<AuthorizationStatus, AuthorizationException> callback =
             new ResultCallback<AuthorizationStatus, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull AuthorizationStatus status) {
                             }
-                            
+
                             @Override
                             public void onCancel() {
                             }
-       
+
                             @Override
                             public void onError(@Nullable String msg, AuthorizationException error) {
                             }
@@ -239,8 +239,7 @@ public class PlainActivity extends Activity {
         client.handleActivityResult(requestCode, resultCode, data);
     }
 }
-``` 
-
+```
 
 ## Sign in with your own UI
 
@@ -275,7 +274,7 @@ if (!sessionClient.isAuthenticated()) {
 
 ```
 
-**Note**: To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn/#application-types). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a `sessionToken`. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/custom-sign-in).
+**Note**: To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn/#application-types). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a `sessionToken`. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/custom-sign-in). The Authentication SDK is only available for API 24 and above. If using API < 24, we recommend using chrome custom tabs but if you must implement a native UI then we've provided a set of [authn-android](https://github.com/okta/okta-oidc-android/tree/authn_android) libraries built using bazel's desugar tool.
 
 ## Sign out
 
