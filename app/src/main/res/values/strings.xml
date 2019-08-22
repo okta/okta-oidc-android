@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Okta OIDC Sample</string>
     <string name="app_name_short">Okta OIDC</string>
+    <string name="app_name_plain">Okta OIDC Plain</string>
     <string name="login_hint_value">Username (e.g. test@example.com)</string>
     <string name="account_id_description">The Username is optional. If specified, it is transmitted as a login_hint parameter in the authorization request.</string>
     <string name="auth_options">Authorization options:</string>
