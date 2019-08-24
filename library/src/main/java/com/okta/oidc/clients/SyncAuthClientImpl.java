@@ -125,4 +125,24 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     public SyncSessionClient getSessionClient() {
         return this.sessionClient;
     }
+
+    @Override
+    public int signOut() {
+        return signOut(ALL);
+    }
+
+    @Override
+    public int signOut(int flags) {
+        try {
+            mSignOutStatus = SUCCESS;
+            mSignOutFlags = flags;
+            revokeTokens(getSessionClient());
+            removeTokens(getSessionClient());
+            return mSignOutStatus;
+        } catch (IOException e) {
+            return FAILED_ALL;
+        } finally {
+            resetCurrentState();
+        }
+    }
 }

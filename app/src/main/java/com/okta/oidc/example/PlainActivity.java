@@ -53,6 +53,12 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.GuardedEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
+import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_DATA;
+import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_SESSION;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_REFRESH_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.SUCCESS;
+
 /**
  * For testing call back path for regular activity.
  */
@@ -79,6 +85,7 @@ public class PlainActivity extends Activity {
 
     private static final String PREF_FINGERPRINT = "fingerprint";
     private TextView mTvStatus;
+    private Button mSignOutOfOkta;
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
@@ -118,6 +125,7 @@ public class PlainActivity extends Activity {
         mSignInBrowser = findViewById(R.id.sign_in);
         mSocialLogin = findViewById(R.id.sign_in_social);
         mCheckExpired = findViewById(R.id.check_expired);
+        mSignOutOfOkta = findViewById(R.id.sign_out_of_okta);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
@@ -352,13 +360,44 @@ public class PlainActivity extends Activity {
             }
         });
 
-        mSignOut.setOnClickListener(v -> {
-            showNetworkProgress(true);
-
+        mSignOutOfOkta.setOnClickListener(v -> {
             mWebAuth.signOutOfOkta(this);
         });
-        mClearData.setOnClickListener(v -> {
 
+        mSignOut.setOnClickListener(v -> {
+            showNetworkProgress(true);
+            mWebAuth.signOut(this, new RequestCallback<Integer, AuthorizationException>() {
+                @Override
+                public void onSuccess(@NonNull Integer result) {
+                    showNetworkProgress(false);
+                    mTvStatus.setText("");
+                    if (result == SUCCESS) {
+                        mTvStatus.setText("Signed out all");
+                        showSignedOutMode();
+                    }
+                    if ((result & FAILED_CLEAR_SESSION) == FAILED_CLEAR_SESSION) {
+                        mTvStatus.append("FAILED_CLEAR_SESSION\n");
+                    }
+                    if ((result & FAILED_REVOKE_ACCESS_TOKEN) == FAILED_REVOKE_ACCESS_TOKEN) {
+                        mTvStatus.append("FAILED_REVOKE_ACCESS_TOKEN\n");
+                    }
+                    if ((result & FAILED_REVOKE_REFRESH_TOKEN) == FAILED_REVOKE_REFRESH_TOKEN) {
+                        mTvStatus.append("FAILED_REVOKE_REFRESH_TOKEN\n");
+                    }
+                    if ((result & FAILED_CLEAR_DATA) == FAILED_CLEAR_DATA) {
+                        mTvStatus.append("FAILED_CLEAR_DATA\n");
+                    }
+                }
+
+                @Override
+                public void onError(@Nullable String msg,
+                                    @Nullable AuthorizationException exception) {
+                    //NO-OP
+                }
+            });
+        });
+
+        mClearData.setOnClickListener(v -> {
             mSessionClient.clear();
             mTvStatus.setText("clear data");
             showSignedOutMode();
@@ -446,6 +485,9 @@ public class PlainActivity extends Activity {
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
                             showNetworkProgress(false);
+                            if (!mWebAuth.getSessionClient().isAuthenticated()) {
+                                showSignedOutMode();
+                            }
                         }
                     }
 
@@ -496,6 +538,7 @@ public class PlainActivity extends Activity {
 
     private void showAuthenticatedMode() {
         mGetProfile.setVisibility(View.VISIBLE);
+        mSignOutOfOkta.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
         mRefreshToken.setVisibility(View.VISIBLE);
@@ -508,6 +551,7 @@ public class PlainActivity extends Activity {
         mSignInBrowser.setVisibility(View.VISIBLE);
         mSocialLogin.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
+        mSignOutOfOkta.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
         mClearData.setVisibility(View.GONE);

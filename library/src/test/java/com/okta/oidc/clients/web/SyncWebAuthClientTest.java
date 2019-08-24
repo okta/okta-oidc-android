@@ -15,6 +15,7 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -32,6 +33,7 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
@@ -45,9 +47,12 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.MockEndPoint;
+import com.okta.oidc.util.HttpClientFactory;
+import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,6 +83,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -248,7 +254,7 @@ public class SyncWebAuthClientTest {
         mSyncWebAuth.getSessionClient().clear();
         Result result = mSyncWebAuth.signOutOfOkta(Robolectric.setupActivity(FragmentActivity.class));
         assertNotNull(result.getError());
-        assertTrue(result.getError().getCause() instanceof NullPointerException);
+        Assert.assertTrue(result.getError().getCause() instanceof NullPointerException);
     }
 
     @Test
@@ -256,7 +262,7 @@ public class SyncWebAuthClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse(String.format(TestValues.EMAIL_AUTHENTICATED, mEndPoint.getUrl())));
 
-        assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Assert.assertTrue(mSyncWebAuth.isVerificationFlow(response));
         Result result = mSyncWebAuth.processEmailVerification(response);
         assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_AUTHENTICATED, result.getStatus());
         assertNull(result.getLoginHint());
@@ -267,7 +273,7 @@ public class SyncWebAuthClientTest {
         AuthorizeResponse response = AuthorizeResponse.
                 fromUri(Uri.parse(String.format(TestValues.EMAIL_UNAUTHENTICATED, mEndPoint.getUrl())));
 
-        assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Assert.assertTrue(mSyncWebAuth.isVerificationFlow(response));
         Result result = mSyncWebAuth.processEmailVerification(response);
         assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED, result.getStatus());
         assertEquals(TestValues.LOGIN_HINT, result.getLoginHint());

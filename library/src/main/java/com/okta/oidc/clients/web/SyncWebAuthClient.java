@@ -149,4 +149,45 @@ public interface SyncWebAuthClient extends BaseAuth<SyncSessionClient> {
      * @param data        the redirected data from chrome custom tab.
      */
     void handleActivityResult(int requestCode, int resultCode, Intent data);
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following operations in order:
+     * 1. Revokes the access_token. If this fails step 3 will not be attempted.
+     * 2. Revokes the refresh_token. If this fails step 3 will not be attempted.
+     * 3. Removes all persistence data. Only if steps 1 & 2 succeeds.
+     * 4. Clears browser session only if this is a {@link com.okta.oidc.clients.web.WebAuthClient}
+     * instance. Will always be attempted regardless of the other operations.
+     *
+     * @param activity the activity
+     * @return the bitwise status.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     * @see #FAILED_CLEAR_SESSION
+     */
+    int signOut(@NonNull Activity activity);
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following depending on the flags parameter:
+     * {@link #REVOKE_ACCESS_TOKEN} Perform revoke access_token operation.
+     * {@link #REVOKE_REFRESH_TOKEN} Perform revoke the refresh_token operation.
+     * {@link #REMOVE_TOKENS} Removes all persistent data. Attempted only if revoke tokens succeeds
+     * or no flag is set to revoke tokens.
+     * {@link #SIGN_OUT_SESSION} Clears browser session if this is a
+     * {@link com.okta.oidc.clients.web.WebAuthClient} instance.
+     * {@link #ALL} All of the above flags. Same as calling {@link #signOut}
+     *
+     * @param activity the activity
+     * @param flags    the flag for the operations to perform.
+     * @return the bitwise status.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     * @see #FAILED_CLEAR_SESSION
+     */
+    int signOut(@NonNull Activity activity, int flags);
 }

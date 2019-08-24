@@ -24,6 +24,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
+import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.sessions.SessionClientFactoryImpl;
 import com.okta.oidc.net.OktaHttpClient;
@@ -99,6 +100,23 @@ class AuthClientImpl implements AuthClient {
     @Override
     public SessionClient getSessionClient() {
         return mSessionImpl;
+    }
+
+    @Override
+    public void signOut(ResultCallback<Integer, AuthorizationException> callback) {
+        signOut(ALL, callback);
+    }
+
+    @Override
+    public void signOut(int flags, ResultCallback<Integer, AuthorizationException> callback) {
+        mFutureTask = mDispatcher.submit(() -> {
+            final int status = mSyncNativeAuthClient.signOut(flags);
+            mDispatcher.submitResults(() -> {
+                if (callback != null) {
+                    callback.onSuccess(status);
+                }
+            });
+        });
     }
 
     private void cancelFuture() {

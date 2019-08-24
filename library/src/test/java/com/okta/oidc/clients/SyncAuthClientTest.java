@@ -27,6 +27,7 @@ import com.okta.oidc.Tokens;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaRepository;
@@ -38,6 +39,7 @@ import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.HttpClientFactory;
+import com.okta.oidc.util.MockResultCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -54,12 +56,22 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import okhttp3.mockwebserver.RecordedRequest;
+
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_REFRESH_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.REMOVE_TOKENS;
+import static com.okta.oidc.clients.BaseAuth.REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.SUCCESS;
+import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
 import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
@@ -130,6 +142,7 @@ public class SyncAuthClientTest {
 
         mOktaState = mSyncNativeAuth.getOktaState();
         mOktaState.save(mProviderConfig);
+        mOktaState.save(TokenResponse.RESTORE.restore(TOKEN_RESPONSE));
     }
 
     @Test
@@ -209,5 +222,84 @@ public class SyncAuthClientTest {
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
                     || "interrupted".equals(errorMessage));
         }
+    }
+
+    @Test
+    public void signOut() throws InterruptedException {
+        mEndPoint.enqueueReturnSuccessEmptyBody();
+        mEndPoint.enqueueReturnSuccessEmptyBody();
+        int status = mSyncNativeAuth.signOut();
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=ACCESS_TOKEN"));
+
+        recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=REFRESH_TOKEN"));
+
+        assertEquals(status, SUCCESS);
+    }
+
+    @Test
+    public void signOutWithCallback() throws InterruptedException {
+        mEndPoint.enqueueReturnSuccessEmptyBody();
+        mEndPoint.enqueueReturnSuccessEmptyBody();
+
+        MockResultCallback<Integer, AuthorizationException> mockCallback
+                = new MockResultCallback<>();
+
+        mAuthClient.signOut(mockCallback);
+        Thread.sleep(200); //wait for request to be created
+
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=ACCESS_TOKEN"));
+
+        recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=REFRESH_TOKEN"));
+        int status = mockCallback.getResult();
+        assertEquals(status, SUCCESS);
+    }
+
+    @Test
+    public void signOutFailures() throws InterruptedException {
+        mEndPoint.enqueueReturnInvalidClient();
+        mEndPoint.enqueueReturnInvalidClient();
+
+        int status = mSyncNativeAuth.signOut();
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=ACCESS_TOKEN"));
+
+        recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=REFRESH_TOKEN"));
+
+        assertEquals((status & FAILED_REVOKE_ACCESS_TOKEN), FAILED_REVOKE_ACCESS_TOKEN);
+        assertEquals((status & FAILED_REVOKE_REFRESH_TOKEN), FAILED_REVOKE_REFRESH_TOKEN);
+    }
+
+    @Test
+    public void signOutRevokeAccessOnly() throws InterruptedException {
+        mEndPoint.enqueueReturnSuccessEmptyBody();
+
+        int status = mSyncNativeAuth.signOut(REVOKE_ACCESS_TOKEN | REMOVE_TOKENS);
+        int flags = mSyncNativeAuth.getSignOutFlags();
+        assertEquals(flags, REVOKE_ACCESS_TOKEN | REMOVE_TOKENS);
+
+        RecordedRequest recordedRequest = mEndPoint.takeRequest();
+
+        assertThat(recordedRequest.getPath(),
+                equalTo("/revoke?client_id=CLIENT_ID&token=ACCESS_TOKEN"));
+
+        assertEquals((status & FAILED_REVOKE_ACCESS_TOKEN), SUCCESS);
+        assertEquals(status, mSyncNativeAuth.getSignOutStatus());
     }
 }

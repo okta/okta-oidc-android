@@ -59,6 +59,7 @@ import static com.okta.oidc.example.Utils.USERNAME;
 import static com.okta.oidc.example.Utils.acceptChromePrivacyOption;
 import static com.okta.oidc.example.Utils.customTabInteraction;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -133,7 +134,7 @@ public class PlainActivityTest {
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         assertNotNull(activityRule.getActivity().mSessionClient.getTokens());
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out_of_okta)).check(matches(isDisplayed()));
     }
 
     @Test
@@ -215,8 +216,8 @@ public class PlainActivityTest {
     @Test
     public void test9_signOutOfOkta() {
         signInIfNotAlready();
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_out)).perform(click());
+        onView(withId(R.id.sign_out_of_okta)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out_of_okta)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
@@ -243,7 +244,7 @@ public class PlainActivityTest {
     @Test
     public void testB_signInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
-                .setLoginHint("devex@okta.com")
+                .setLoginHint(BuildConfig.USERNAME)
                 .addParameter("max_age", "5000")
                 .build();
 
@@ -322,6 +323,17 @@ public class PlainActivityTest {
         onView(withId(R.id.check_expired)).perform(click());
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("token not expired"))));
+    }
+
+    @Test
+    public void testG_signOut() {
+        signInIfNotAlready();
+        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out)).perform(click());
+
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        onView(withId(R.id.sign_in));
     }
 
     @Test
