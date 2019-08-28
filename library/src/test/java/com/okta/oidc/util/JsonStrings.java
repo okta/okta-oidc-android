@@ -17,7 +17,9 @@ package com.okta.oidc.util;
 public interface JsonStrings {
     String FIRE_FOX = "org.mozilla.firefox";
     String CHROME = "com.android.chrome";
-
+    String VALID_ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiJ9.eyJ2ZXIiOjEsImlzcyI6Imh0dHA6Ly9yYWluLm9rdGExLmNvbToxODAyIiwiaWF0IjoxNDQ5NjI0MDI2LCJleHAiOjE0NDk2Mjc2MjYsImp0aSI6IlVmU0lURzZCVVNfdHA3N21BTjJxIiwic2NvcGVzIjpbIm9wZW5pZCIsImVtYWlsIl0sImNsaWVudF9pZCI6InVBYXVub2ZXa2FESnh1a0NGZUJ4IiwidXNlcl9pZCI6IjAwdWlkNEJ4WHc2STZUVjRtMGczIn0.HaBu5oQxdVCIvea88HPgr2O5evqZlCT4UXH4UKhJnZ5px-ArNRqwhxXWhHJisslswjPpMkx1IgrudQIjzGYbtLF\n" +
+            "jrrg2ueiU5-YfmKuJuD6O2yPWGTsV7X6i7ABT6P-t8PRz_RNbk-U1GXWIEkNnEWbPqYDAm_Ofh7iW0Y8WDA5ez1jbtMvd-oXMvJLctRiACrTMLJQ2e5HkbUFxgXQ_rFPNHJbNSUBDLqdi2rg_ND64DLRlXRY7hupNsvWGo0gF4WEUk8IZeaLjKw8UoIs-E\n" +
+            "TEwJlAMcvkhoVVOsN5dPAaEKvbyvPC1hUGXb4uuThlwdD3ECJrtwgKqLqcWonNtiw";
     String VALID_ID_TOKEN = "eyJraWQiOiJYYjY1b1g0Um5KUXNLUGhiMHg3amVKdkt0MHpkQnM1ZkI2Q0stOEJzdkl" +
             "nIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIwMHVpejBodGJhSkhjVXRmVzBoNyIsIm5hbWUiOiJKb2huIER" +
             "vZSIsInZlciI6MSwiaXNzIjoiaHR0cHM6Ly9kZXYtNDg2MTc3Lm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZG" +

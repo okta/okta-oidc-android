@@ -388,7 +388,7 @@ public class OktaIdToken {
      * If audience is a single element then this adapter converts the single element audience
      * to a list of one element.
      */
-    private static final class ArrayTypeAdapter extends TypeAdapter<List<Object>> {
+    static final class ArrayTypeAdapter extends TypeAdapter<List<Object>> {
         /**
          * The M delegate.
          */
