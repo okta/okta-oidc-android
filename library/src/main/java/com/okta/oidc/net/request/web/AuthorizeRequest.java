@@ -52,8 +52,8 @@ public class AuthorizeRequest extends WebRequest {
     private static final String CODE_CHALLENGE = "code_challenge";
     private static final String CODE_CHALLENGE_METHOD = "code_challenge_method";
     private static final String DISPLAY = "display";
-    private static final String IDP_SCOPE = "idp_scope";
-    private static final String IDP = "idp";
+    public static final String IDP_SCOPE = "idp_scope";
+    public static final String IDP = "idp";
     public static final String LOGIN_HINT = "login_hint";
     private static final String MAX_AGE = "max_age";
     private static final String NONCE = "nonce";
