@@ -13,14 +13,22 @@
 display_usage() {
   echo
   echo "Usage: $0"
-  echo
-  echo " -h,    --help      Instructions"
-  echo " -n,    --name      Set username for test account"
-  echo " -p,    --pw        Set password for test account"
-  echo " -c,    --capture   Optional - Enable screen record when running tests"
-  echo " -s,    --sdk       Optional - android sdk home"
-  echo " -r,    --repo      Optional - directory containing the repository"
-  echo " -o,    --path      Path to where repository is located"
+  echo " -h,    --help              Instructions"
+  echo " -n,    --name              Set username that does not require MFA"
+  echo " -p,    --pw                Set password that does not require MFA"
+  echo " -mfn,  --mfa_user          Set username that require MFA"
+  echo " -mfp,  --mfa_pw            Set password that require MFA"
+  echo " -cid,  --client_id         Set clientID"
+  echo " -uri,  --redirect_uri      Set redirect URI"
+  echo " -end,  --end_session_uri   Set end session URI"
+  echo " -dsc,  --discovery_uri     Set discovery URI"
+  echo " -sc    --scopes            Set the scopes"
+  echo " -sch   --scheme            Set the scheme in AndroidManifest"
+  echo " -pin   --pincode           Set the pin code used for device access"
+  echo " -c,    --capture           Optional - Enable screen record when running tests"
+  echo " -s,    --sdk               Optional - android sdk home"
+  echo " -r,    --repo              Optional - directory containing the repository"
+  echo " -o,    --path              Path to where repository is located"
 }
 
 while [ "$1" != "" ]; do
@@ -30,6 +38,33 @@ while [ "$1" != "" ]; do
         -h | --help)
             display_usage
             exit
+            ;;
+        -dsc | --discovery_uri)
+            discovery_uri=$VALUE
+            ;;
+        -pin | --pincode)
+            pincode=$VALUE
+            ;;
+        -sch | --scheme)
+            scheme=$VALUE
+            ;;
+        -sc | --scopes)
+            scopes=$VALUE
+            ;;
+        -end | --end_session_uri)
+            end_session_uri=$VALUE
+            ;;
+        -uri | --redirect_uri)
+            redirect_uri=$VALUE
+            ;;
+        -cid | --client_id)
+            client_id=$VALUE
+            ;;
+        -mfp | --mfa_pw)
+            mfa_pw=$VALUE
+            ;;
+        -mfn | --mfa_user)
+            mfa_username=$VALUE
             ;;
         -n | --name)
             username=$VALUE
@@ -58,8 +93,8 @@ while [ "$1" != "" ]; do
     shift
 done
 
-if [ -z "$username" ] || [ -z "$password" ] ; then
-    echo "missing arguments: password or username is empty"
+if [ -z "$discovery_uri" ] || [ -z "$mfa_username" ] || [ -z "$end_session_uri" ] || [ -z "$redirect_uri" ] || [ -z "$client_id" ] || [ -z "$mfa_pw" ] || [ -z "$scheme" ] || [ -z "$scopes" ] || [ -z "$username" ] || [ -z "$password" ] || [ -z "$pincode" ] ; then
+    echo "Missing arguments: run espresso-tests.sh --help for more information"
     exit
 fi
 
@@ -128,11 +163,28 @@ function create_localproperties() {
     if [[ -f ${localprop} ]] ; then
         rm ${localprop}
     fi
+
+    #Read scopes
+    IFS=, read -a arr <<<"${scopes}"
+    printf -v _scopes ',"%s"' "${arr[@]}"
+    _scopes="${_scopes:1}"
+    echo "SCOPES = $_scopes"
+
+    echo "test.scopes=$_scopes" >> ${localprop}
     echo "test.username=\"$username\"" >> ${localprop}
     echo "test.password=\"$password\"" >> ${localprop}
+    echo "test.pincode=\"$pincode\"" >> ${localprop}
+    echo "test.scheme=$scheme" >> ${localprop}
+    echo "test.endSessionUri=\"$end_session_uri\"" >> ${localprop}
+    echo "test.discoveryUri=\"$discovery_uri\"" >> ${localprop}
+    echo "test.redirectUri=\"$redirect_uri\"" >> ${localprop}
+    echo "test.clientId=\"$client_id\"" >> ${localprop}
+    echo "mfa.username=\"$mfa_username\"" >> ${localprop}
+    echo "mfa.password=\"$mfa_pw\"" >> ${localprop}
     echo "ndk.dir=$ANDROID_HOME/ndk-bundle" >> ${localprop}
     echo "sdk.dir=$ANDROID_HOME" >> ${localprop}
 }
+
 if ! create_localproperties; then
     echo "================================================"
     echo "Failed to create local.properties file"

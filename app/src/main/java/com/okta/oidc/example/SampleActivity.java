@@ -390,7 +390,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             mAuthenticationClient = AuthenticationClients.builder()
-                    .setOrgUrl("https://samples-test.oktapreview.com")
+                    .setOrgUrl(BuildConfig.DISCOVERY_URI)
                     .build();
         } else {
             mSignInNative.setVisibility(View.GONE);
@@ -403,19 +403,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         //Example of config
         mOidcConfig = new OIDCConfig.Builder()
-                .clientId("0oajqehiy6p81NVzA0h7")
-                .redirectUri("com.oktapreview.samples-test:/callback")
-                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
-                .scopes("openid", "profile", "offline_access")
-                .discoveryUri("https://samples-test.oktapreview.com")
+                .clientId(BuildConfig.CLIENT_ID)
+                .redirectUri(BuildConfig.REDIRECT_URI)
+                .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
+                .scopes(BuildConfig.SCOPES)
+                .discoveryUri(BuildConfig.DISCOVERY_URI)
                 .create();
 
         mOAuth2Config = new OIDCConfig.Builder()
-                .clientId("0oajqehiy6p81NVzA0h7")
-                .redirectUri("com.oktapreview.samples-test:/callback")
-                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
-                .scopes("openid", "profile", "offline_access")
-                .discoveryUri("https://samples-test.oktapreview.com/oauth2/default")
+                .clientId(BuildConfig.CLIENT_ID)
+                .redirectUri(BuildConfig.REDIRECT_URI)
+                .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
+                .scopes(BuildConfig.SCOPES)
+                .discoveryUri(BuildConfig.DISCOVERY_URI + "/oauth2/default")
                 .create();
 
         //use custom connection factory

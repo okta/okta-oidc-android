@@ -15,10 +15,12 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import androidx.fragment.app.FragmentActivity;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
@@ -34,6 +36,7 @@ import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SharedPreferenceStorage;
@@ -52,6 +55,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
+import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
@@ -68,6 +72,7 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -236,5 +241,13 @@ public class SyncWebAuthClientTest {
         assertEquals(stateResult[0].getStatus(), AuthenticationResultHandler.Status.AUTHORIZED);
         assertEquals(response.getState(), CUSTOM_STATE);
         assertEquals(response.getCode(), CUSTOM_CODE);
+    }
+
+    @Test
+    public void SignOutWithNoData() {
+        mSyncWebAuth.getSessionClient().clear();
+        Result result = mSyncWebAuth.signOutOfOkta(Robolectric.setupActivity(FragmentActivity.class));
+        assertNotNull(result.getError());
+        assertTrue(result.getError().getCause() instanceof NullPointerException);
     }
 }

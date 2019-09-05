@@ -88,6 +88,7 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
                 // In Android P was introduced new way to persist keystore - StrongBox
                 // If device doesn't support StrongBox, it will use TEE implementation if present.
                 builder.setIsStrongBoxBacked(isStrongBoxBacked);
+                mIsStrongBoxBacked = isStrongBoxBacked;
             }
 
             if (seed != null && seed.length > 0) {

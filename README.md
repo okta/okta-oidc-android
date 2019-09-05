@@ -46,16 +46,16 @@ You can learn more on the [Okta + Android](https://developer.okta.com/code/andro
 
 ### Requirements
 
-Okta OIDC SDK supports Android API 19 and above. [Chrome custom tab](https://developer.chrome.com/multidevice/android/customtabs) enabled browsers
+Okta OIDC SDK supports Android API 19 and above. [Chrome custom tab][chrome-custom-tabs] enabled browsers
 are needed by the library for browser initiated authorization. An Okta developer account is needed to run the sample.
-It is recommended that your app extends `FragmentActivity` or any extensions of it. If you are extending `Activity` you have to override [onActivityResult](#onActivityResult-override).
+It is recommended that your app extends [FragmentActivity][fragment-activity] or any extensions of it. If you are extending [Activity][activity], you have to override [onActivityResult](#onActivityResult-override).
 
 ### Installation
 
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:1.0.2'
+implementation 'com.okta.android:oidc-androidx:1.0.3'
 ```
 
 ### Sample app
@@ -134,7 +134,7 @@ For more information about the metadata returned by the different server configu
 
 ### Using JSON configuration file
 
-You can also create a `config` by poviding a JSON file.
+You can also create a `config` by providing a JSON file.
 Create a file called `okta_oidc_config.json` in your application's `res/raw/` directory with the following contents:
 
 ```json
@@ -159,16 +159,16 @@ OIDCConfig config = new OIDCConfig.Builder()
     .create();
 ```
 
-**Note**: To receive a **refresh_token**, you must include the `offline_access` scope.
+**Note**: To receive a [refresh_token](https://developer.okta.com/docs/guides/refresh-tokens/overview/), you must include the `offline_access` scope.
 
 ## Sign in with a browser
 
 The authorization flow consists of four stages.
 
 1. Service discovery - This uses the discovery uri to get a list of endpoints.
-2. Authorizing the user with crome custom tabs to obtain an authorization code.
-3. Exchanging the authorizaton code for a access token, ID token, and refresh token.
-4. Using the tokens to interact with a resource server for access to user data.
+2. Authorizing the user with [chrome custom tabs][chrome-custom-tabs] to obtain an authorization code.
+3. Exchanging the authorizaton code for a access token, ID token, and/or refresh token.
+4. Using the tokens to interact with a resource server to access user data.
 
 This is all done in the background by the SDK. For example to sign in you can call:
 
@@ -190,7 +190,7 @@ client.signIn(this, payload);
 
 ### onActivityResult override
 
-The library uses a nested fragment to abstract the redirect callback. It uses `onActivityResult` to receive data from the browser. If your app overrides `onActivityResult` you must call 
+The library uses a nested fragment to abstract the redirect callback. It uses [onActivityResult][on-activity-result] to receive data from the browser. If your app overrides [onActivityResult][on-activity-result] you must call
 `super.onActivityResult()` to propagate unhandled `requestCode` to the library's fragment.
 
 ```java
@@ -200,7 +200,7 @@ The library uses a nested fragment to abstract the redirect callback. It uses `o
     }
 ```
 
-If your app extends `Activity` instead of `FragmentActivity` or `AppCompatActivity` you must override `onActivityResult` and pass the result to `WebAuthClient`.
+If your app extends [Activity][activity] instead of [FragmentActivity][fragment-activity] or [AppCompatActivity](https://developer.android.com/reference/android/support/v7/app/AppCompatActivity) you must override [onActivityResult][on-activity-result] and pass the result to `WebAuthClient`.
 
 ```java
 public class PlainActivity extends Activity {
@@ -213,19 +213,19 @@ public class PlainActivity extends Activity {
 
         client = new Okta.WebAuthBuilder()
                         .withConfig(mOidcConfig)
-                        .withContext(this)                      
+                        .withContext(this)
                         .create();
 
-        ResultCallback<AuthorizationStatus, AuthorizationException> callback = 
+        ResultCallback<AuthorizationStatus, AuthorizationException> callback =
             new ResultCallback<AuthorizationStatus, AuthorizationException>() {
                             @Override
                             public void onSuccess(@NonNull AuthorizationStatus status) {
                             }
-                            
+
                             @Override
                             public void onCancel() {
                             }
-       
+
                             @Override
                             public void onError(@Nullable String msg, AuthorizationException error) {
                             }
@@ -239,13 +239,12 @@ public class PlainActivity extends Activity {
         client.handleActivityResult(requestCode, resultCode, data);
     }
 }
-``` 
-
+```
 
 ## Sign in with your own UI
 
 If you would like to use your own in-app user interface instead
-of the web browser you can do by using a `sessionToken`:
+of the web browser, you can do so by using a [sessionToken][session-token]:
 
 ```java
 AuthClient authClient = new Okta.AuthBuilder()
@@ -255,7 +254,7 @@ AuthClient authClient = new Okta.AuthBuilder()
     .create();
 ```
 
-After building the `AuthClient` you should call `signIn` method where you need to provide a `sessionToken` and `RequestCallback`
+After building the `AuthClient` you should call `signIn` method where you need to provide a [sessionToken][session-token] and `RequestCallback`
 
 ```java
 SessionClient sessionClient = authClient.getSessionClient();
@@ -275,7 +274,7 @@ if (!sessionClient.isAuthenticated()) {
 
 ```
 
-**Note**: To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn/#application-types). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a `sessionToken`. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/custom-sign-in).
+**Note**: To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn/#application-types). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a [sessionToken][session-token]. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/custom-sign-in). The Authentication SDK is only available for API 24 and above. If using API < 24, we recommend using [chrome custom tabs][[chrome-custom-tabs]] but if you must implement a native UI then we've provided a set of [authn-android](https://github.com/okta/okta-oidc-android/tree/authn_android) libraries built using bazel's desugar tool.
 
 ## Sign out
 
@@ -301,7 +300,7 @@ Until the tokens are removed or revoked, the user can still access data from the
 
 ### Revoke tokens (optional)
 
-Tokens are still active (unless expired) even if you have cleared the browser session. An optional step is to revoke the tokens to make them in-active. Please see [Revoke the tokens](#Revoking-a-Token).
+Tokens are still active (unless expired) even if you have cleared the browser session. An optional step is to revoke the tokens to make them inactive. Please see [Revoke the tokens](#Revoking-a-Token).
 
 ### Clear tokens from device
 
@@ -347,9 +346,9 @@ In addition to the built in endpoints, you can use the client interface to perfo
 
 ```java
 final Uri uri;
-HashMap<String, String> properties = new HashMap<>();
+Map<String, String> properties = new HashMap<>();
 properties.put("queryparam", "queryparam");
-HashMap<String, String> postParameters = new HashMap<>();
+Map<String, String> postParameters = new HashMap<>();
 postParameters.put("postparam", "postparam");
 
 client.getSessionClient().authorizedRequest(uri, properties,
@@ -472,7 +471,7 @@ The library provides asynchronous and synchronous variant of each client type. T
 
 ### WebAuthClient
 
-`WebAuthClient` redirects to a chrome custom tabs enabled browser for authenticaiton.
+`WebAuthClient` redirects to a [chrome custom tabs][chrome-custom-tabs] enabled browser for authenticaiton.
 The following shows how to create a asynchronous web authentication client.
 
 ```java
@@ -502,7 +501,7 @@ SyncWebAuthClient webSyncAuthClient = new Okta.SyncWebAuthBuilder()
 
 ### AuthClient
 
-`AuthClient` will require a `sessionToken`. See [Sign in with your own UI](#Sign-in-with-your-own-UI) for more information on how to obtain a `sessionToken`.
+`AuthClient` will require a [sessionToken][session-token]. See [Sign in with your own UI](#Sign-in-with-your-own-UI) for more information on how to obtain a [sessionToken][session-token].
 The following shows how to create a asynchronous authentication client:
 
 ```java
@@ -639,7 +638,7 @@ AuthClient authClient = new Okta.AuthBuilder()
     .create();
 ```
 
-After building `AuthClient` you should call `signIn` method where you need provide `sessionToken` and `RequestCallback`
+After building `AuthClient` you should call `signIn` method where you need provide [sessionToken][session-token] and `RequestCallback`
 
 ```java
 authClient.signIn("{sessionToken}", null, new RequestCallback<Result, AuthorizationException>() {
@@ -669,7 +668,7 @@ SyncAuthClient syncAuthClient = new Okta.SyncAuthBuilder()
     .create();
 ```
 
-After building `SyncAuthClient` you should call `signIn` method where you need provide `sessionToken`
+After building `SyncAuthClient` you should call `signIn` method where you need provide [sessionToken][session-token]
 NOTE: that is a synchronous call so please check that it is not performed on Ui Thread.
 
 ```java
@@ -709,3 +708,9 @@ if (true) { //provide option to login using different clients.
     webAuthSecondApp.registerCallback(...);
 }
 ```
+
+[activity]: https://developer.android.com/reference/android/app/Activity.html
+[fragment-activity]: https://developer.android.com/reference/android/support/v4/app/FragmentActivity
+[on-activity-result]: https://developer.android.com/reference/android/app/Activity.html#onActivityResult(int,%20int,%20android.content.Intent)
+[session-token]: https://developer.okta.com/docs/reference/api/sessions/#session-token
+[chrome-custom-tabs]: https://developer.chrome.com/multidevice/android/customtabs
