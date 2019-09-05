@@ -313,6 +313,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             return Result.error(EncryptionErrors.byEncryptionException(e));
         } catch (AuthorizationException e) {
             return Result.error(e);
+        } catch (NullPointerException e) {
+            return Result.error(new AuthorizationException(e.getMessage(), e));
         } finally {
             resetCurrentState();
         }
