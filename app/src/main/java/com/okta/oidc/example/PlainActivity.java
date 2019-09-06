@@ -83,6 +83,7 @@ public class PlainActivity extends Activity {
     private Button mGetProfile;
     private Button mClearData;
     private Button mSignInBrowser;
+    private Button mSocialLogin;
     private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
@@ -115,6 +116,7 @@ public class PlainActivity extends Activity {
         setContentView(R.layout.plain_activity);
         mCancel = findViewById(R.id.cancel);
         mSignInBrowser = findViewById(R.id.sign_in);
+        mSocialLogin = findViewById(R.id.sign_in_social);
         mCheckExpired = findViewById(R.id.check_expired);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
@@ -132,6 +134,15 @@ public class PlainActivity extends Activity {
 
         mSignInBrowser.setOnClickListener(v -> {
             showNetworkProgress(true);
+            mWebAuth.signIn(this, null);
+        });
+
+        mSocialLogin.setOnClickListener(v -> {
+            showNetworkProgress(true);
+            mPayload = new AuthenticationPayload.Builder()
+                    .setIdp(BuildConfig.IDP)
+                    .setIdpScope(BuildConfig.IDP_SCOPE)
+                    .build();
             mWebAuth.signIn(this, mPayload);
         });
 
@@ -353,11 +364,6 @@ public class PlainActivity extends Activity {
             showSignedOutMode();
         });
 
-        mSignInBrowser.setOnClickListener(v -> {
-            showNetworkProgress(true);
-            mWebAuth.signIn(this, mPayload);
-        });
-
         //Example of config
         mOidcConfig = new OIDCConfig.Builder()
                 .clientId(BuildConfig.CLIENT_ID)
@@ -495,10 +501,12 @@ public class PlainActivity extends Activity {
         mRefreshToken.setVisibility(View.VISIBLE);
         mRevokeContainer.setVisibility(View.VISIBLE);
         mSignInBrowser.setVisibility(View.GONE);
+        mSocialLogin.setVisibility(View.GONE);
     }
 
     private void showSignedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
+        mSocialLogin.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);

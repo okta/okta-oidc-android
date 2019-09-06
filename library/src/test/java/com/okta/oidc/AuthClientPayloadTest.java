@@ -25,6 +25,8 @@ import org.robolectric.util.Pair;
 
 import java.util.Map;
 
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP;
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP_SCOPE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static junit.framework.TestCase.assertNull;
@@ -121,5 +123,21 @@ public class AuthClientPayloadTest {
         assertEquals(authenticationPayload.getState(), payload.getState());
         assertArrayEquals(authenticationPayload.getAdditionalParameters().keySet().toArray(), payload.getAdditionalParameters().keySet().toArray());
         assertArrayEquals(authenticationPayload.getAdditionalParameters().values().toArray(), payload.getAdditionalParameters().values().toArray());
+    }
+
+    @Test
+    public void setIdp() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setIdp("MyIDP")
+                .build();
+        assertEquals("MyIDP", payload.getAdditionalParameters().get(IDP));
+    }
+
+    @Test
+    public void setIdpScope() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setIdpScope("email", "openid", "profile")
+                .build();
+        assertEquals("email openid profile", payload.getAdditionalParameters().get(IDP_SCOPE));
     }
 }

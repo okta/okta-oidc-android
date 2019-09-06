@@ -27,6 +27,10 @@ android {
         buildConfigField "String", "END_SESSION_URI", travis ? '""' : properties.getProperty('test.endSessionUri', '""')
         buildConfigField "String[]", "SCOPES", travis ? "{}" : ("{" + properties.getProperty('test.scopes', '""') + "}")
         buildConfigField "String", "DISCOVERY_URI", travis ? '""' : properties.getProperty('test.discoveryUri', '""')
+        buildConfigField "String[]", "IDP_SCOPE", travis ? "{}" : ("{" + properties.getProperty('test.idp_scope', '""') + "}")
+        buildConfigField "String", "IDP", travis ? '""' : properties.getProperty('test.idp', '""')
+        buildConfigField "String", "IDP_USERNAME", travis ? '""' : properties.getProperty('test.idp_username', '""')
+        buildConfigField "String", "IDP_PASSWORD", travis ? '""' : properties.getProperty('test.idp_password', '""')
 
         // Make sure this is consistent with the redirect URI used in
         // res/raw/okta_oidc_config
