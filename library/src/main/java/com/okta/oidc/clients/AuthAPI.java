@@ -16,6 +16,7 @@
 package com.okta.oidc.clients;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
@@ -93,6 +94,16 @@ public class AuthAPI {
         return HttpRequestBuilder.newConfigurationRequest()
                 .config(mOidcConfig)
                 .createRequest();
+    }
+
+    protected boolean isVerificationFlow(AuthorizeResponse response)
+            throws AuthorizationException {
+        if (!TextUtils.isEmpty(response.getError())) {
+            throw new AuthorizationException(response.getErrorDescription(), null);
+        }
+        String typeHint = response.getTypeHint();
+        return !TextUtils.isEmpty(typeHint) &&
+                typeHint.equals(AuthorizeResponse.ACTIVATION);
     }
 
     protected void validateResult(WebResponse authResponse, WebRequest authorizedRequest)

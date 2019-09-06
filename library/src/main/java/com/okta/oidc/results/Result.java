@@ -15,6 +15,7 @@
 
 package com.okta.oidc.results;
 
+import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.util.AuthorizationException;
 
 /**
@@ -24,16 +25,23 @@ public class Result {
 
     private final AuthorizationException error;
     private boolean isCancel;
+    private AuthorizationStatus status;
+    private String loginHint;
 
     /**
      * Instantiates a new Result.
      *
      * @param error    the error
      * @param isCancel the is cancel
+     * @param status   the authorization status.
+     * @param hint     login hint only set if status is unauthenticated.
      */
-    Result(AuthorizationException error, boolean isCancel) {
+    Result(AuthorizationException error, boolean isCancel, AuthorizationStatus status,
+            String hint) {
         this.error = error;
         this.isCancel = isCancel;
+        this.status = status;
+        this.loginHint = hint;
     }
 
     /**
@@ -42,7 +50,28 @@ public class Result {
      * @return the result
      */
     public static Result success() {
-        return new Result(null, false);
+        return new Result(null, false, AuthorizationStatus.AUTHORIZED, null);
+    }
+
+    /**
+     * Authenticated email verification.
+     *
+     * @return the result
+     */
+    public static Result authenticated() {
+        return new Result(null, false,
+                AuthorizationStatus.EMAIL_VERIFICATION_AUTHENTICATED, null);
+    }
+
+    /**
+     * Unauthenticated email verification.
+     *
+     * @param hint the login hint.
+     * @return the result
+     */
+    public static Result unauthenticated(String hint) {
+        return new Result(null, false,
+                AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED, hint);
     }
 
     /**
@@ -51,7 +80,8 @@ public class Result {
      * @return the result
      */
     public static Result cancel() {
-        return new Result(new AuthorizationException("Canceled", null), true);
+        return new Result(new AuthorizationException("Canceled", null), true,
+                AuthorizationStatus.CANCELED, null);
     }
 
     /**
@@ -61,7 +91,7 @@ public class Result {
      * @return the result
      */
     public static Result error(AuthorizationException error) {
-        return new Result(error, false);
+        return new Result(error, false, AuthorizationStatus.ERROR, null);
     }
 
     /**
@@ -89,5 +119,23 @@ public class Result {
      */
     public AuthorizationException getError() {
         return error;
+    }
+
+    /**
+     * Get status.
+     *
+     * @return the AuthorizationStatus
+     */
+    public AuthorizationStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Get login hint.
+     *
+     * @return login hint.
+     */
+    public String getLoginHint() {
+        return loginHint;
     }
 }

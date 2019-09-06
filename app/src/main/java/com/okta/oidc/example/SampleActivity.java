@@ -61,6 +61,9 @@ import com.okta.oidc.util.AuthorizationException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static com.okta.oidc.AuthorizationStatus.EMAIL_VERIFICATION_AUTHENTICATED;
+import static com.okta.oidc.AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED;
+
 /**
  * Sample to test library functionality. Can be used as a starting reference point.
  */
@@ -494,6 +497,10 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
                             showNetworkProgress(false);
+                        } else if (status == EMAIL_VERIFICATION_AUTHENTICATED
+                                || status == EMAIL_VERIFICATION_UNAUTHENTICATED) {
+                            //Result is email verification. sign in again.
+                            getWebAuthClient().signIn(SampleActivity.this, mPayload);
                         }
                     }
 

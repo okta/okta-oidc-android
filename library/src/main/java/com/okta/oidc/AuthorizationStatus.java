@@ -31,5 +31,31 @@ public enum AuthorizationStatus {
     /**
      * Signed out authorization status. Browser session is cleared.
      */
-    SIGNED_OUT
+    SIGNED_OUT,
+
+    /**
+     * Operation was canceled.
+     */
+    CANCELED,
+
+    /**
+     * Operation resulted in an exception.
+     */
+    ERROR,
+
+    /**
+     * Email verified and user is authenticated with a valid browser session. Client should handle
+     * this status by calling
+     * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(Activity, AuthenticationPayload)}
+     * again.
+     */
+    EMAIL_VERIFICATION_AUTHENTICATED,
+
+    /**
+     * Email verified but user is not authenticated. User is required to enter credentials.
+     * Client should handle this status by calling
+     * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(Activity, AuthenticationPayload)}
+     * again.
+     */
+    EMAIL_VERIFICATION_UNAUTHENTICATED
 }

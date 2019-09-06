@@ -22,6 +22,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.AnyThread;
@@ -234,6 +235,32 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     }
 
     @NonNull
+    private Result processEmailVerification(AuthorizeResponse authResponse) {
+        Result result;
+        try {
+            ProviderConfiguration config = mOktaState.getProviderConfiguration();
+            if (config == null) {
+                result = Result.error(new AuthorizationException("No provider configuration found",
+                        null));
+            } else if (!config.issuer.equals(authResponse.getIssuer())) {
+                result = Result.error(new AuthorizationException(
+                        String.format("Email verification issuer mismatch expected %s, received %s",
+                                config.issuer, authResponse.getIssuer()), null));
+            } else if (!TextUtils.isEmpty(authResponse.getSessionHint())) {
+                result = authResponse.getSessionHint().equals(AuthorizeResponse.AUTHENTICATED) ?
+                        Result.authenticated() :
+                        Result.unauthenticated(authResponse.getLoginHint());
+            } else {
+                result = Result.error(new
+                        AuthorizationException("Email verification unknown error", null));
+            }
+        } catch (OktaRepository.EncryptionException e) {
+            result = Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
+        }
+        return result;
+    }
+
+    @NonNull
     private Result processSignInResult(StateResult result) {
         if (result == null) {
             return Result.error(new AuthorizationException("Result is empty",
@@ -251,7 +278,13 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                     WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
                     ProviderConfiguration providerConfiguration =
                             mOktaState.getProviderConfiguration();
+                    AuthorizeResponse authResponse =
+                            (AuthorizeResponse) result.getAuthorizationResponse();
+                    if (isVerificationFlow((authResponse))) {
+                        return processEmailVerification(authResponse);
+                    }
                     validateResult(result.getAuthorizationResponse(), authorizedRequest);
+
                     TokenRequest request = tokenExchange(
                             (AuthorizeResponse) result.getAuthorizationResponse(),
                             providerConfiguration,
