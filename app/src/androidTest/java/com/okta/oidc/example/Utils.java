@@ -64,6 +64,10 @@ final class Utils {
     public static final String ID_NO_THANKS = "com.android.chrome:id/negative_button";
     public static final String ID_ACCEPT = "com.android.chrome:id/terms_accept";
     public static final String ID_CLOSE_BROWSER = "com.android.chrome:id/close_button";
+    public static final String ID_GOOGLE_USERNAME = "identifierId";
+    public static final String ID_GOOGLE_FORGOT_PW = "forgotPassword";
+    public static final String ID_GOOGLE_ID_NEXT = "identifierNext";
+    public static final String ID_GOOGLE_PW_NEXT = "passwordNext";
 
     public static final String TEXT_SEND_PUSH = "Send Push";
     public static final String TEXT_APPROVE = "Approve";

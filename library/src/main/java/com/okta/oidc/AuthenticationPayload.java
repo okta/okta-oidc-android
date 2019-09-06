@@ -23,6 +23,8 @@ import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP;
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP_SCOPE;
 import static com.okta.oidc.net.request.web.AuthorizeRequest.LOGIN_HINT;
 import static com.okta.oidc.net.request.web.AuthorizeRequest.STATE;
 
@@ -67,6 +69,49 @@ public class AuthenticationPayload {
                 mAdditionalParameters.put(STATE, state);
             } else {
                 mAdditionalParameters.remove(STATE);
+            }
+            return this;
+        }
+
+        /**
+         * Identity provider (default is Okta, unless you are using Social Login or enterprise SAML)
+         * If using a social login provider use this to set the client id of the app.
+         *
+         * @param idp This is the client id of the app social login provider.
+         * @return current Builder
+         * @see "Social Login
+         * <https://developer.okta.com/docs/concepts/social-login/#features>"
+         */
+        public Builder setIdp(@Nullable String idp) {
+            if (!TextUtils.isEmpty(idp)) {
+                mAdditionalParameters.put(IDP, idp);
+            } else {
+                mAdditionalParameters.remove(IDP);
+            }
+            return this;
+        }
+
+        /**
+         * Identity provider scope.
+         * If using a social login provider use this to set the scope claim of the social login
+         * provider.
+         *
+         * @param idpScope social login provider scope.
+         * @return current Builder
+         * @see "Social Login
+         * <https://developer.okta.com/docs/concepts/social-login/#features>"
+         */
+        public Builder setIdpScope(@Nullable String... idpScope) {
+            if (idpScope != null && idpScope.length > 0) {
+                StringBuilder scopes = new StringBuilder();
+                for (String scope : idpScope) {
+                    scopes.append(scope);
+                    scopes.append(" ");
+                }
+                scopes.deleteCharAt(scopes.lastIndexOf(" "));
+                mAdditionalParameters.put(IDP_SCOPE, scopes.toString());
+            } else {
+                mAdditionalParameters.remove(IDP_SCOPE);
             }
             return this;
         }
