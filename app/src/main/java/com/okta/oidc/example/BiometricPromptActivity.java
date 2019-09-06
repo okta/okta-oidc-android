@@ -15,6 +15,7 @@
 
 package com.okta.oidc.example;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -37,27 +38,28 @@ import java.util.concurrent.Executors;
  */
 public class BiometricPromptActivity extends FragmentActivity {
     private BiometricPrompt mPrompt;
+    public static final String ERROR_MESSAGE = "error_message";
     private AuthenticationCallback mCallback = new AuthenticationCallback() {
         @Override
         public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-            super.onAuthenticationError(errorCode, errString);
             if (errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
                 mPrompt.cancelAuthentication();
+                BiometricPromptActivity.this.setResult(RESULT_CANCELED);
+            } else {
+                BiometricPromptActivity.this.setResult(errorCode,
+                        new Intent().putExtra(ERROR_MESSAGE, errString));
             }
-            BiometricPromptActivity.this.setResult(RESULT_CANCELED);
             finish();
         }
 
         @Override
         public void onAuthenticationSucceeded(@NonNull AuthenticationResult result) {
-            super.onAuthenticationSucceeded(result);
             BiometricPromptActivity.this.setResult(RESULT_OK);
             finish();
         }
 
         @Override
         public void onAuthenticationFailed() {
-            super.onAuthenticationFailed();
             BiometricPromptActivity.this.setResult(RESULT_CANCELED);
             finish();
         }
@@ -72,7 +74,8 @@ public class BiometricPromptActivity extends FragmentActivity {
 
         PromptInfo info = new PromptInfo.Builder()
                 .setTitle("Confirm credentials")
-                .setNegativeButtonText("Cancel")
+                .setDeviceCredentialAllowed(true)
+                .setConfirmationRequired(true)
                 .build();
         mPrompt.authenticate(info);
     }

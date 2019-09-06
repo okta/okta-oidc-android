@@ -34,6 +34,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.biometric.BiometricPrompt;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -73,6 +74,8 @@ public class PlainActivity extends Activity {
      */
     @VisibleForTesting
     OIDCConfig mOidcConfig;
+
+    private BiometricPrompt mPrompt;
 
     private static final String PREF_FINGERPRINT = "fingerprint";
     private TextView mTvStatus;
@@ -405,6 +408,11 @@ public class PlainActivity extends Activity {
                 mTvStatus.setText("Device authenticated");
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "Device not authenticated exiting.",
+                        Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Error code: " + resultCode + " " +
+                                data.getStringExtra(BiometricPromptActivity.ERROR_MESSAGE),
                         Toast.LENGTH_SHORT).show();
                 finish();
             }
