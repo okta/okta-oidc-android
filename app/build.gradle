@@ -5,7 +5,7 @@ apply from: "${rootDir}/gradle/style.gradle"
 android {
     defaultConfig {
         minSdkVersion 19
-        compileSdkVersion 28
+        compileSdkVersion 29
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -55,6 +55,7 @@ dependencies {
     implementation "androidx.appcompat:appcompat:1.0.2"
 
     implementation "com.google.android.material:material:${rootProject.appcompatVersion}"
+    implementation "androidx.biometric:biometric:1.0.0-beta01"
     implementation 'com.okta.authn.sdk:okta-authn-sdk-api:0.3.0'
     implementation 'com.okta.authn.sdk:okta-authn-sdk-impl:0.3.0'
     implementation 'com.okta.sdk:okta-sdk-okhttp:1.4.1'

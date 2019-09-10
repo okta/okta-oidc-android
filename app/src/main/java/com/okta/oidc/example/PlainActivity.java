@@ -29,10 +29,12 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.biometric.BiometricPrompt;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -72,6 +74,8 @@ public class PlainActivity extends Activity {
      */
     @VisibleForTesting
     OIDCConfig mOidcConfig;
+
+    private BiometricPrompt mPrompt;
 
     private static final String PREF_FINGERPRINT = "fingerprint";
     private TextView mTvStatus;
@@ -183,7 +187,6 @@ public class PlainActivity extends Activity {
             }
             getSharedPreferences(PlainActivity.class.getName(), MODE_PRIVATE).edit()
                     .putBoolean(PREF_FINGERPRINT, isChecked).apply();
-
         });
 
         mCheckExpired.setOnClickListener(v -> {
@@ -403,11 +406,22 @@ public class PlainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CREDENTIALS && resultCode == RESULT_OK) {
-            if (mCurrentEncryptionManager.getCipher() == null) {
-                mCurrentEncryptionManager.recreateCipher();
+        if (requestCode == REQUEST_CODE_CREDENTIALS) {
+            if (resultCode == RESULT_OK) {
+                if (mCurrentEncryptionManager.getCipher() == null) {
+                    mCurrentEncryptionManager.recreateCipher();
+                }
+                mTvStatus.setText("Device authenticated");
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Device not authenticated exiting.",
+                        Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Error code: " + resultCode + " " +
+                                data.getStringExtra(BiometricPromptActivity.ERROR_MESSAGE),
+                        Toast.LENGTH_SHORT).show();
+                finish();
             }
-            mTvStatus.setText("Device authenticated");
         } else {
             mWebAuth.handleActivityResult(requestCode, resultCode, data);
         }
@@ -469,7 +483,6 @@ public class PlainActivity extends Activity {
         super.onStop();
         showNetworkProgress(false);
     }
-
 
     @Override
     protected void onDestroy() {
@@ -533,15 +546,9 @@ public class PlainActivity extends Activity {
     }
 
     private void showKeyguard() {
-        KeyguardManager keyguardManager =
-                (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-        Intent intent = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            intent = keyguardManager.createConfirmDeviceCredentialIntent("Confirm credentials", "");
-        }
-        if (intent != null) {
-            startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
-        }
+        //Delegate to a FragmentActivity.
+        Intent intent = new Intent(this, BiometricPromptActivity.class);
+        startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
     }
 
     /**
