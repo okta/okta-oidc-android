@@ -10,6 +10,7 @@
   - [Requirements](#Requirements)
   - [Installation](#Installation)
   - [Sample app](#Sample-app)
+- [Add a URI Scheme](#Add-a-URI-Scheme)  
 - [Configuration](#Configuration)
   - [Using JSON configuration file](#Using-JSON-configuration-file)
 - [Sign in with a browser](#Sign-in-with-a-browser)
@@ -63,6 +64,18 @@ implementation 'com.okta.android:oidc-androidx:1.0.3'
 A sample is contained within this repository. For more information on how to
 build, test and configure the sample, see the sample [README](https://github.com/okta/okta-oidc-android/blob/master/app/README.md).
 
+## Add a URI Scheme
+
+Similar to the sample app, you must add a redirect scheme to receive sign in results from the web browser. To do this, you must define a gradle manifest placeholder in your app's build.gradle:
+
+```gradle
+android.defaultConfig.manifestPlaceholders = [
+    "appAuthRedirectScheme": "com.okta.oidc.example"
+]
+```
+
+**Note** The SDK doesn't allow multiple apps to use the same scheme. If it detects more than one application sharing the same scheme it will throw an exception.
+
 ## Configuration
 
 First the authentication client must have a config to interact with Okta's OIDC provider. Create a `OIDCConfig` like the following example:
@@ -99,8 +112,6 @@ webClient.registerCallback(new ResultCallback<AuthorizationStatus, Authorization
             Tokens tokens = sessionClient.getTokens();
         } else if (status == AuthorizationStatus.SIGNED_OUT) {
             //this only clears the browser session.
-        } else if (status == AuthorizationStatus.IN_PROGRESS) {
-            //authorization is in progress.
         }
     }
 
@@ -116,7 +127,7 @@ webClient.registerCallback(new ResultCallback<AuthorizationStatus, Authorization
 }, this);
 ```
 
-The `client` can now be used to authenticate users and authorizing access.
+The `client` can now be used to authenticate users and authorize access.
 
 **Note**: `.well-known/openid-configuration` or `.well-known/oauth-authorization-server` will be appended to your `discoveryUri` if it is missing.
 
