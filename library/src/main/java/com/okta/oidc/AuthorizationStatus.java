@@ -44,18 +44,23 @@ public enum AuthorizationStatus {
     ERROR,
 
     /**
-     * Email verified and user is authenticated with a valid browser session. Client should handle
-     * this status by calling
+     * Email verified and user is authenticated with a valid browser session but the user is not
+     * authorized so it won't have any valid tokens. To complete the code exchange, client's
+     * should call
      * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(Activity, AuthenticationPayload)}
-     * again.
+     * again. Since the user already have a valid browser session(AUTHENTICATED),
+     * they are not required to enter any credentials.
      */
     EMAIL_VERIFICATION_AUTHENTICATED,
 
     /**
-     * Email verified but user is not authenticated. User is required to enter credentials.
-     * Client should handle this status by calling
+     * Email verified but user is not authenticated. To complete the code exchange, client's
+     * should call
      * {@link com.okta.oidc.clients.web.WebAuthClient#signIn(Activity, AuthenticationPayload)}
-     * again.
+     * again. Since the user is not authenticated they are required to enter credentials.
+     * It is good practice to set the login hint in the payload so users don't have to enter it
+     * again. This is done automatically if using
+     * {@link com.okta.oidc.clients.web.WebAuthClient}
      */
     EMAIL_VERIFICATION_UNAUTHENTICATED
 }

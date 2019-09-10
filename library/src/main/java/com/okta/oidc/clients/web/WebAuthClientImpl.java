@@ -37,7 +37,6 @@ import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
 import java.lang.ref.WeakReference;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -136,13 +135,10 @@ class WebAuthClientImpl implements WebAuthClient {
         if (payload == null && mLoginHint != null) {
             payload = new AuthenticationPayload.Builder().setLoginHint(mLoginHint).build();
         } else if (mLoginHint != null) {
-            Map<String, String> params = payload.getAdditionalParameters();
-            AuthenticationPayload.Builder builder = new AuthenticationPayload.Builder();
-            for (Map.Entry<String, String> param : params.entrySet()) {
-                builder.addParameter(param.getKey(), param.getValue());
-            }
-            builder.setLoginHint(mLoginHint);
-            payload = builder.build();
+            payload = new AuthenticationPayload.Builder()
+                    .copyPayload(payload)
+                    .setLoginHint(mLoginHint)
+                    .build();
         }
         final AuthenticationPayload finalPayload = payload;
         mFutureTask = mDispatcher.submit(() -> {
