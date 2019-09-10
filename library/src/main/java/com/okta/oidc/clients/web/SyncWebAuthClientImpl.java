@@ -28,6 +28,7 @@ import android.util.Log;
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
 
@@ -235,7 +236,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     }
 
     @NonNull
-    private Result processEmailVerification(AuthorizeResponse authResponse) {
+    @VisibleForTesting
+    public Result processEmailVerification(AuthorizeResponse authResponse) {
         Result result;
         try {
             ProviderConfiguration config = mOktaState.getProviderConfiguration();

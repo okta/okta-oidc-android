@@ -96,7 +96,8 @@ public class AuthAPI {
                 .createRequest();
     }
 
-    protected boolean isVerificationFlow(AuthorizeResponse response)
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    public boolean isVerificationFlow(AuthorizeResponse response)
             throws AuthorizationException {
         if (!TextUtils.isEmpty(response.getError())) {
             throw new AuthorizationException(response.getErrorDescription(), null);
