@@ -15,7 +15,6 @@
 
 package com.okta.oidc.clients.web;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -25,6 +24,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationResultHandler;
+import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaResultFragment;
@@ -45,7 +45,6 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -75,6 +74,7 @@ import static com.okta.oidc.util.TestValues.SCOPES;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -244,10 +244,40 @@ public class SyncWebAuthClientTest {
     }
 
     @Test
-    public void SignOutWithNoData() {
+    public void signOutWithNoData() {
         mSyncWebAuth.getSessionClient().clear();
         Result result = mSyncWebAuth.signOutOfOkta(Robolectric.setupActivity(FragmentActivity.class));
         assertNotNull(result.getError());
         assertTrue(result.getError().getCause() instanceof NullPointerException);
+    }
+
+    @Test
+    public void signInEmailAuthenticated() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_AUTHENTICATED, mEndPoint.getUrl())));
+
+        assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Result result = mSyncWebAuth.processEmailVerification(response);
+        assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_AUTHENTICATED, result.getStatus());
+        assertNull(result.getLoginHint());
+    }
+
+    @Test
+    public void signInEmailUnauthenticated() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_UNAUTHENTICATED, mEndPoint.getUrl())));
+
+        assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Result result = mSyncWebAuth.processEmailVerification(response);
+        assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED, result.getStatus());
+        assertEquals(TestValues.LOGIN_HINT, result.getLoginHint());
+    }
+
+    @Test
+    public void invalidTyeHint() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_INVALID_TYPE, mEndPoint.getUrl())));
+
+        assertFalse(mSyncWebAuth.isVerificationFlow(response));
     }
 }

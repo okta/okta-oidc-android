@@ -39,6 +39,17 @@ public class AuthorizeResponse extends WebResponse {
     private String state;
     private String token_type;
 
+    //Okta specific email verification
+    private String iss;
+    private String type_hint;
+    private String session_hint;
+    private String login_hint;
+    //value for type_hint
+    public static final String ACTIVATION = "ACTIVATION";
+    //value for session_hint
+    public static final String AUTHENTICATED = "AUTHENTICATED";
+    public static final String UNAUTHENTICATED = "UNAUTHENTICATED";
+
     private AuthorizeResponse() {
         request_type = "authorize";
     }
@@ -53,6 +64,10 @@ public class AuthorizeResponse extends WebResponse {
         response.scope = uri.getQueryParameter("scope");
         response.state = uri.getQueryParameter("state");
         response.token_type = uri.getQueryParameter("token_type");
+        response.iss = uri.getQueryParameter("iss");
+        response.type_hint = uri.getQueryParameter("type_hint");
+        response.session_hint = uri.getQueryParameter("session_hint");
+        response.login_hint = uri.getQueryParameter("login_hint");
         return response;
     }
 
@@ -73,6 +88,22 @@ public class AuthorizeResponse extends WebResponse {
         return error_description;
     }
 
+    public String getIssuer() {
+        return iss;
+    }
+
+    public String getTypeHint() {
+        return type_hint;
+    }
+
+    public String getSessionHint() {
+        return session_hint;
+    }
+
+    public String getLoginHint() {
+        return login_hint;
+    }
+
     @NonNull
     @Override
     public String getKey() {
@@ -83,5 +114,4 @@ public class AuthorizeResponse extends WebResponse {
     public String persist() {
         return new Gson().toJson(this);
     }
-
 }

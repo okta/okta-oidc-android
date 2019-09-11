@@ -149,6 +149,23 @@ public class AuthenticationPayload {
         }
 
         /**
+         * Helper method to copy a existing payload to this builder. Existing
+         * entries will be replaced.
+         *
+         * @param payload Authentication payload to copy
+         * @return current Builder
+         */
+        public Builder copyPayload(@Nullable AuthenticationPayload payload) {
+            if (payload != null) {
+                Map<String, String> params = payload.getAdditionalParameters();
+                for (Map.Entry<String, String> param : params.entrySet()) {
+                    mAdditionalParameters.put(param.getKey(), param.getValue());
+                }
+            }
+            return this;
+        }
+
+        /**
          * Constructs a new instance of {@link AuthenticationPayload}.
          *
          * @return constructed authentication payload
