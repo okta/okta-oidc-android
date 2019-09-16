@@ -17,6 +17,7 @@ package com.okta.oidc.clients;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.RequestCallback;
+import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.security.EncryptionManager;
@@ -60,4 +61,39 @@ public interface AuthClient extends BaseAuth<SessionClient> {
      * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following operations in order:
+     * 1. Revokes the access_token. If this fails step 3 will not be attempted.
+     * 2. Revokes the refresh_token. If this fails step 3 will not be attempted.
+     * 3. Removes all persistence data. Only if steps 1 & 2 succeeds.
+     *
+     * @param resultCallback the callback containing the bitwise status. AuthorizationException may
+     *                       be null.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     */
+    void signOut(ResultCallback<Integer, AuthorizationException> resultCallback);
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following depending on the flags parameter:
+     * {@link #REVOKE_ACCESS_TOKEN} Perform revoke access_token operation.
+     * {@link #REVOKE_REFRESH_TOKEN} Perform revoke the refresh_token operation.
+     * {@link #REMOVE_TOKENS} Removes all persistent data. Attempted only if revoke tokens succeeds
+     * or no flag is set to revoke tokens.
+     * {@link #ALL} All of the above flags. Same as calling {@link #signOut}
+     *
+     * @param flags          the flag for the operations to perform.
+     * @param resultCallback the callback containing the bitwise status. AuthorizationException may
+     *                       be null.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     */
+    void signOut(int flags, ResultCallback<Integer, AuthorizationException> resultCallback);
 }

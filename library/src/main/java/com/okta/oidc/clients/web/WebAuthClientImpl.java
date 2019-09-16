@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
@@ -222,6 +223,25 @@ class WebAuthClientImpl implements WebAuthClient {
     @Override
     public SessionClient getSessionClient() {
         return mSessionImpl;
+    }
+
+    @Override
+    public void signOut(@NonNull final Activity activity,
+                        RequestCallback<Integer, AuthorizationException> callback) {
+        signOut(activity, ALL, callback);
+    }
+
+    @Override
+    public void signOut(@NonNull final Activity activity, int flags,
+                        RequestCallback<Integer, AuthorizationException> callback) {
+        mFutureTask = mDispatcher.submit(() -> {
+            final int status = mSyncAuthClient.signOut(activity, flags);
+            mDispatcher.submitResults(() -> {
+                if (callback != null) {
+                    callback.onSuccess(status);
+                }
+            });
+        });
     }
 
     private void cancelFuture() {

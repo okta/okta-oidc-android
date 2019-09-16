@@ -59,4 +59,37 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      * @throws AuthorizationException exception if migration fails.
      */
     void migrateTo(EncryptionManager manager) throws AuthorizationException;
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following operations in order:
+     * 1. Revokes the access_token. If this fails step 3 will not be attempted.
+     * 2. Revokes the refresh_token. If this fails step 3 will not be attempted.
+     * 3. Removes all persistence data. Only if steps 1 & 2 succeeds.
+     *
+     * @return the bitwise status.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     */
+    int signOut();
+
+    /**
+     * Convenience method to completely sign out of application.
+     * Performs the following depending on the flags parameter:
+     * {@link #REVOKE_ACCESS_TOKEN} Perform revoke access_token operation.
+     * {@link #REVOKE_REFRESH_TOKEN} Perform revoke the refresh_token operation.
+     * {@link #REMOVE_TOKENS} Removes all persistent data. Attempted only if revoke tokens succeeds
+     * or no flag is set to revoke tokens.
+     * {@link #ALL} All of the above flags. Same as calling {@link #signOut}
+     *
+     * @param flags the flag for the operations to perform.
+     * @return the bitwise status.
+     * @see #SUCCESS
+     * @see #FAILED_REVOKE_ACCESS_TOKEN
+     * @see #FAILED_REVOKE_REFRESH_TOKEN
+     * @see #FAILED_CLEAR_DATA
+     */
+    int signOut(int flags);
 }

@@ -56,10 +56,18 @@
                     tools:ignore="HardcodedText" />
 
                 <Button
+                    android:id="@+id/sign_out_of_okta"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sign out of Okta"
+                    android:visibility="gone"
+                    tools:ignore="HardcodedText" />
+
+                <Button
                     android:id="@+id/sign_out"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sign out from Okta"
+                    android:text="Sign out"
                     android:visibility="gone"
                     tools:ignore="HardcodedText" />
 

@@ -28,6 +28,7 @@ import android.util.Log;
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
@@ -65,6 +66,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static androidx.annotation.RestrictTo.Scope.TESTS;
 import static com.okta.oidc.AuthenticationResultHandler.ResultType;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_IN;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_OUT;
@@ -367,6 +369,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             case ERROR:
                 return Result.error(result.getException());
             case LOGGED_OUT:
+                removeTokens(getSessionClient());
                 return Result.success();
             default:
                 return Result.error(new AuthorizationException("StateResult with invalid status: "
@@ -386,5 +389,40 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     public SyncSessionClient getSessionClient() {
         return this.mSessionClient;
+    }
+
+    @Override
+    public int signOut(@NonNull final Activity activity) {
+        return signOut(activity, ALL);
+    }
+
+    @Override
+    public int signOut(@NonNull final Activity activity, int flags) {
+        try {
+            mSignOutStatus = SUCCESS;
+            mSignOutFlags = flags;
+            revokeTokens(getSessionClient());
+            if ((flags & SIGN_OUT_SESSION) == SIGN_OUT_SESSION) {
+                Result result = signOutOfOkta(activity);
+                if (!result.isSuccess()) {
+                    Log.w(TAG, "Failed to clear session", result.getError());
+                    mSignOutStatus |= FAILED_CLEAR_SESSION;
+                }
+            }
+            return mSignOutStatus;
+        } catch (IOException e) {
+            Log.w(TAG, "Canceled", e);
+            return FAILED_ALL;
+        }
+    }
+
+    @RestrictTo(TESTS)
+    public int getFlags() {
+        return mSignOutFlags;
+    }
+
+    @RestrictTo(TESTS)
+    public int getSignOutStatus() {
+        return mSignOutStatus;
     }
 }
