@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.InvalidParameterException;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -208,7 +209,7 @@ abstract class BaseEncryptionManager implements EncryptionManager {
     private void initDecodeCipher(String keyAlias, int mode) throws GeneralSecurityException {
         PrivateKey key = (PrivateKey) mKeyStore.getKey(keyAlias, null);
         try {
-            mCipher.init(mode, key);
+            initCipherKey(mode, key);
         } catch (InvalidKeyException e) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (e instanceof UserNotAuthenticatedException) {
@@ -227,7 +228,10 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         // from https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
         PublicKey unrestricted = KeyFactory.getInstance(key.getAlgorithm())
                 .generatePublic(new X509EncodedKeySpec(key.getEncoded()));
+        initCipherKey(mode, unrestricted);
+    }
 
+    private void initCipherKey(int mode, Key key) throws GeneralSecurityException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !mIsStrongBoxBacked) {
             // from https://code.google.com/p/android/issues/detail?id=197719
             // This workaround of using the OAEP spec is not compatible when strong box is used.
@@ -235,9 +239,9 @@ abstract class BaseEncryptionManager implements EncryptionManager {
             OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1",
                     MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
 
-            mCipher.init(mode, unrestricted, spec);
+            mCipher.init(mode, key, spec);
         } else {
-            mCipher.init(mode, unrestricted);
+            mCipher.init(mode, key);
         }
     }
 
