@@ -30,9 +30,12 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.IllegalBlockSizeException;
+
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.DECRYPT_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.ENCRYPT_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.HARDWARE_BACKED_ERROR;
+import static com.okta.oidc.storage.OktaRepository.EncryptionException.ILLEGAL_BLOCK_SIZE;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.INVALID_KEYS_ERROR;
 import static com.okta.oidc.storage.OktaRepository.EncryptionException.KEYGUARD_AUTHENTICATION_ERROR;
 
@@ -80,6 +83,12 @@ public class OktaRepository {
                     } catch (UserNotAuthenticatedException e) {
                         String error = "Failed during encrypt data: " + e.getMessage();
                         throw new EncryptionException(ENCRYPT_ERROR, error, e.getCause());
+                    } catch (IllegalBlockSizeException e) {
+                        String error = "Unable to encrypt " + persistable.getKey() + " the " +
+                                "cipher algorithm may not be supported on this device" +
+                                e.getMessage();
+                        throw new EncryptionException(ILLEGAL_BLOCK_SIZE, error,
+                                e.getCause());
                     } catch (GeneralSecurityException e) {
                         throw new EncryptionException(INVALID_KEYS_ERROR, e.getMessage(),
                                 e.getCause());
@@ -125,6 +134,12 @@ public class OktaRepository {
                         String error = "User not authenticated and try to decrypt data: " +
                                 e.getMessage();
                         throw new EncryptionException(KEYGUARD_AUTHENTICATION_ERROR, error,
+                                e.getCause());
+                    } catch (IllegalBlockSizeException e) {
+                        String error = "Unable to decrypt " + persistable.getKey() + " the key " +
+                                "used may be invalidated. Please clear data and try again. " +
+                                e.getMessage();
+                        throw new EncryptionException(ILLEGAL_BLOCK_SIZE, error,
                                 e.getCause());
                     } catch (GeneralSecurityException e) {
                         throw new EncryptionException(INVALID_KEYS_ERROR, e.getMessage(),
@@ -205,6 +220,7 @@ public class OktaRepository {
         public static final int INVALID_KEYS_ERROR = 4;
         public static final int KEYGUARD_AUTHENTICATION_ERROR = 5;
         public static final int DECRYPT_ERROR = 6;
+        public static final int ILLEGAL_BLOCK_SIZE = 7;
 
         private int mType;
 
