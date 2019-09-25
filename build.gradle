@@ -61,6 +61,7 @@ ext {
     androidxLibVersion = "1.1.0"
     espressoVersion = "3.2.0"
     uiautomatorVersion = "2.2.0"
+    securityVersion = "1.0.0-alpha02"
 
     // Gradle plugin version
     checkstyleVersion = "8.6"
