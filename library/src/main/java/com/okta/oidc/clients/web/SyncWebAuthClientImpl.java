@@ -22,11 +22,14 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
 
@@ -63,6 +66,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static androidx.annotation.RestrictTo.Scope.TESTS;
 import static com.okta.oidc.AuthenticationResultHandler.ResultType;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_IN;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_OUT;
@@ -234,6 +238,33 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     }
 
     @NonNull
+    @VisibleForTesting
+    public Result processEmailVerification(AuthorizeResponse authResponse) {
+        Result result;
+        try {
+            ProviderConfiguration config = mOktaState.getProviderConfiguration();
+            if (config == null) {
+                result = Result.error(new AuthorizationException("No provider configuration found",
+                        null));
+            } else if (!config.issuer.equals(authResponse.getIssuer())) {
+                result = Result.error(new AuthorizationException(
+                        String.format("Email verification issuer mismatch expected %s, received %s",
+                                config.issuer, authResponse.getIssuer()), null));
+            } else if (!TextUtils.isEmpty(authResponse.getSessionHint())) {
+                result = authResponse.getSessionHint().equals(AuthorizeResponse.AUTHENTICATED) ?
+                        Result.authenticated() :
+                        Result.unauthenticated(authResponse.getLoginHint());
+            } else {
+                result = Result.error(new
+                        AuthorizationException("Email verification unknown error", null));
+            }
+        } catch (OktaRepository.EncryptionException e) {
+            result = Result.error(AuthorizationException.EncryptionErrors.byEncryptionException(e));
+        }
+        return result;
+    }
+
+    @NonNull
     private Result processSignInResult(StateResult result) {
         if (result == null) {
             return Result.error(new AuthorizationException("Result is empty",
@@ -251,7 +282,13 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                     WebRequest authorizedRequest = mOktaState.getAuthorizeRequest();
                     ProviderConfiguration providerConfiguration =
                             mOktaState.getProviderConfiguration();
+                    AuthorizeResponse authResponse =
+                            (AuthorizeResponse) result.getAuthorizationResponse();
+                    if (isVerificationFlow((authResponse))) {
+                        return processEmailVerification(authResponse);
+                    }
                     validateResult(result.getAuthorizationResponse(), authorizedRequest);
+
                     TokenRequest request = tokenExchange(
                             (AuthorizeResponse) result.getAuthorizationResponse(),
                             providerConfiguration,
@@ -313,6 +350,8 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             return Result.error(EncryptionErrors.byEncryptionException(e));
         } catch (AuthorizationException e) {
             return Result.error(e);
+        } catch (NullPointerException e) {
+            return Result.error(new AuthorizationException(e.getMessage(), e));
         } finally {
             resetCurrentState();
         }
@@ -330,6 +369,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             case ERROR:
                 return Result.error(result.getException());
             case LOGGED_OUT:
+                removeTokens(getSessionClient());
                 return Result.success();
             default:
                 return Result.error(new AuthorizationException("StateResult with invalid status: "
@@ -349,5 +389,40 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     @Override
     public SyncSessionClient getSessionClient() {
         return this.mSessionClient;
+    }
+
+    @Override
+    public int signOut(@NonNull final Activity activity) {
+        return signOut(activity, ALL);
+    }
+
+    @Override
+    public int signOut(@NonNull final Activity activity, int flags) {
+        try {
+            mSignOutStatus = SUCCESS;
+            mSignOutFlags = flags;
+            revokeTokens(getSessionClient());
+            if ((flags & SIGN_OUT_SESSION) == SIGN_OUT_SESSION) {
+                Result result = signOutOfOkta(activity);
+                if (!result.isSuccess()) {
+                    Log.w(TAG, "Failed to clear session", result.getError());
+                    mSignOutStatus |= FAILED_CLEAR_SESSION;
+                }
+            }
+            return mSignOutStatus;
+        } catch (IOException e) {
+            Log.w(TAG, "Canceled", e);
+            return FAILED_ALL;
+        }
+    }
+
+    @RestrictTo(TESTS)
+    public int getFlags() {
+        return mSignOutFlags;
+    }
+
+    @RestrictTo(TESTS)
+    public int getSignOutStatus() {
+        return mSignOutStatus;
     }
 }

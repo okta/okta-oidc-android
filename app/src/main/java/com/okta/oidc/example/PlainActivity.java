@@ -29,10 +29,12 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.biometric.BiometricPrompt;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
@@ -50,6 +52,12 @@ import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.GuardedEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
+
+import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_DATA;
+import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_SESSION;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_REFRESH_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.SUCCESS;
 
 /**
  * For testing call back path for regular activity.
@@ -73,12 +81,16 @@ public class PlainActivity extends Activity {
     @VisibleForTesting
     OIDCConfig mOidcConfig;
 
+    private BiometricPrompt mPrompt;
+
     private static final String PREF_FINGERPRINT = "fingerprint";
     private TextView mTvStatus;
+    private Button mSignOutOfOkta;
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
     private Button mSignInBrowser;
+    private Button mSocialLogin;
     private Button mRefreshToken;
     private Button mRevokeRefresh;
     private Button mRevokeAccess;
@@ -111,7 +123,9 @@ public class PlainActivity extends Activity {
         setContentView(R.layout.plain_activity);
         mCancel = findViewById(R.id.cancel);
         mSignInBrowser = findViewById(R.id.sign_in);
+        mSocialLogin = findViewById(R.id.sign_in_social);
         mCheckExpired = findViewById(R.id.check_expired);
+        mSignOutOfOkta = findViewById(R.id.sign_out_of_okta);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
@@ -128,6 +142,15 @@ public class PlainActivity extends Activity {
 
         mSignInBrowser.setOnClickListener(v -> {
             showNetworkProgress(true);
+            mWebAuth.signIn(this, null);
+        });
+
+        mSocialLogin.setOnClickListener(v -> {
+            showNetworkProgress(true);
+            mPayload = new AuthenticationPayload.Builder()
+                    .setIdp(BuildConfig.IDP)
+                    .setIdpScope(BuildConfig.IDP_SCOPE)
+                    .build();
             mWebAuth.signIn(this, mPayload);
         });
 
@@ -172,7 +195,6 @@ public class PlainActivity extends Activity {
             }
             getSharedPreferences(PlainActivity.class.getName(), MODE_PRIVATE).edit()
                     .putBoolean(PREF_FINGERPRINT, isChecked).apply();
-
         });
 
         mCheckExpired.setOnClickListener(v -> {
@@ -338,21 +360,47 @@ public class PlainActivity extends Activity {
             }
         });
 
-        mSignOut.setOnClickListener(v -> {
-            showNetworkProgress(true);
-
+        mSignOutOfOkta.setOnClickListener(v -> {
             mWebAuth.signOutOfOkta(this);
         });
-        mClearData.setOnClickListener(v -> {
 
+        mSignOut.setOnClickListener(v -> {
+            showNetworkProgress(true);
+            mWebAuth.signOut(this, new RequestCallback<Integer, AuthorizationException>() {
+                @Override
+                public void onSuccess(@NonNull Integer result) {
+                    showNetworkProgress(false);
+                    mTvStatus.setText("");
+                    if (result == SUCCESS) {
+                        mTvStatus.setText("Signed out all");
+                        showSignedOutMode();
+                    }
+                    if ((result & FAILED_CLEAR_SESSION) == FAILED_CLEAR_SESSION) {
+                        mTvStatus.append("FAILED_CLEAR_SESSION\n");
+                    }
+                    if ((result & FAILED_REVOKE_ACCESS_TOKEN) == FAILED_REVOKE_ACCESS_TOKEN) {
+                        mTvStatus.append("FAILED_REVOKE_ACCESS_TOKEN\n");
+                    }
+                    if ((result & FAILED_REVOKE_REFRESH_TOKEN) == FAILED_REVOKE_REFRESH_TOKEN) {
+                        mTvStatus.append("FAILED_REVOKE_REFRESH_TOKEN\n");
+                    }
+                    if ((result & FAILED_CLEAR_DATA) == FAILED_CLEAR_DATA) {
+                        mTvStatus.append("FAILED_CLEAR_DATA\n");
+                    }
+                }
+
+                @Override
+                public void onError(@Nullable String msg,
+                                    @Nullable AuthorizationException exception) {
+                    //NO-OP
+                }
+            });
+        });
+
+        mClearData.setOnClickListener(v -> {
             mSessionClient.clear();
             mTvStatus.setText("clear data");
             showSignedOutMode();
-        });
-
-        mSignInBrowser.setOnClickListener(v -> {
-            showNetworkProgress(true);
-            mWebAuth.signIn(this, mPayload);
         });
 
         //Example of config
@@ -397,11 +445,22 @@ public class PlainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CREDENTIALS && resultCode == RESULT_OK) {
-            if (mCurrentEncryptionManager.getCipher() == null) {
-                mCurrentEncryptionManager.recreateCipher();
+        if (requestCode == REQUEST_CODE_CREDENTIALS) {
+            if (resultCode == RESULT_OK) {
+                if (mCurrentEncryptionManager.getCipher() == null) {
+                    mCurrentEncryptionManager.recreateCipher();
+                }
+                mTvStatus.setText("Device authenticated");
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Device not authenticated exiting.",
+                        Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Error code: " + resultCode + " " +
+                                data.getStringExtra(BiometricPromptActivity.ERROR_MESSAGE),
+                        Toast.LENGTH_SHORT).show();
+                finish();
             }
-            mTvStatus.setText("Device authenticated");
         } else {
             mWebAuth.handleActivityResult(requestCode, resultCode, data);
         }
@@ -426,6 +485,9 @@ public class PlainActivity extends Activity {
                             //this only clears the session.
                             mTvStatus.setText("signedOutOfOkta");
                             showNetworkProgress(false);
+                            if (!mWebAuth.getSessionClient().isAuthenticated()) {
+                                showSignedOutMode();
+                            }
                         }
                     }
 
@@ -464,7 +526,6 @@ public class PlainActivity extends Activity {
         showNetworkProgress(false);
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -477,16 +538,20 @@ public class PlainActivity extends Activity {
 
     private void showAuthenticatedMode() {
         mGetProfile.setVisibility(View.VISIBLE);
+        mSignOutOfOkta.setVisibility(View.VISIBLE);
         mSignOut.setVisibility(View.VISIBLE);
         mClearData.setVisibility(View.VISIBLE);
         mRefreshToken.setVisibility(View.VISIBLE);
         mRevokeContainer.setVisibility(View.VISIBLE);
         mSignInBrowser.setVisibility(View.GONE);
+        mSocialLogin.setVisibility(View.GONE);
     }
 
     private void showSignedOutMode() {
         mSignInBrowser.setVisibility(View.VISIBLE);
+        mSocialLogin.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
+        mSignOutOfOkta.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
         mClearData.setVisibility(View.GONE);
@@ -525,15 +590,9 @@ public class PlainActivity extends Activity {
     }
 
     private void showKeyguard() {
-        KeyguardManager keyguardManager =
-                (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-        Intent intent = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            intent = keyguardManager.createConfirmDeviceCredentialIntent("Confirm credentials", "");
-        }
-        if (intent != null) {
-            startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
-        }
+        //Delegate to a FragmentActivity.
+        Intent intent = new Intent(this, BiometricPromptActivity.class);
+        startActivityForResult(intent, REQUEST_CODE_CREDENTIALS);
     }
 
     /**

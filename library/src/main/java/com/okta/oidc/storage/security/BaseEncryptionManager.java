@@ -59,6 +59,7 @@ abstract class BaseEncryptionManager implements EncryptionManager {
     protected String mBlockMode;
     protected String mEncryptionPadding;
     protected String mTransformationString;
+    protected boolean mIsStrongBoxBacked;
 
     private static final int RSA_KEY_SIZE = 2048;
     // RSA doesn't support encryption of lot amount of data.
@@ -227,8 +228,10 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         PublicKey unrestricted = KeyFactory.getInstance(key.getAlgorithm())
                 .generatePublic(new X509EncodedKeySpec(key.getEncoded()));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !mIsStrongBoxBacked) {
             // from https://code.google.com/p/android/issues/detail?id=197719
+            // This workaround of using the OAEP spec is not compatible when strong box is used.
+            // Currently the only device is the PIXEL 3.
             OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1",
                     MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
 

@@ -25,11 +25,15 @@ import org.robolectric.util.Pair;
 
 import java.util.Map;
 
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP;
+import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP_SCOPE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -121,5 +125,38 @@ public class AuthClientPayloadTest {
         assertEquals(authenticationPayload.getState(), payload.getState());
         assertArrayEquals(authenticationPayload.getAdditionalParameters().keySet().toArray(), payload.getAdditionalParameters().keySet().toArray());
         assertArrayEquals(authenticationPayload.getAdditionalParameters().values().toArray(), payload.getAdditionalParameters().values().toArray());
+    }
+
+    @Test
+    public void setIdp() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setIdp("MyIDP")
+                .build();
+        assertEquals("MyIDP", payload.getAdditionalParameters().get(IDP));
+    }
+
+    @Test
+    public void setIdpScope() {
+        AuthenticationPayload payload = new AuthenticationPayload.Builder()
+                .setIdpScope("email", "openid", "profile")
+                .build();
+        assertEquals("email openid profile", payload.getAdditionalParameters().get(IDP_SCOPE));
+    }
+
+    @Test
+    public void addPayload() {
+        AuthenticationPayload payload = TestValues.getAuthenticationPayload(new Pair<>(PARAMETER_KEY, PARAMETER_VALUE));
+
+        AuthenticationPayload copy = new AuthenticationPayload.Builder().copyPayload(payload)
+                .build();
+
+        assertEquals(payload.getLoginHint(), copy.getLoginHint());
+        assertEquals(payload.getState(), copy.getState());
+        assertEquals(payload.getAdditionalParameters(), copy.getAdditionalParameters());
+
+        AuthenticationPayload copyWithNewHint = new AuthenticationPayload.Builder().copyPayload(payload)
+                .setLoginHint("NewHint")
+                .build();
+        assertNotEquals(payload.getLoginHint(), copyWithNewHint.getLoginHint());
     }
 }

@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
+import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.clients.sessions.SessionClient;
@@ -47,6 +48,7 @@ class WebAuthClientImpl implements WebAuthClient {
     private SyncWebAuthClient mSyncAuthClient;
     private SessionClient mSessionImpl;
     private volatile Future<?> mFutureTask;
+    private String mLoginHint;
 
     WebAuthClientImpl(Executor executor, OIDCConfig oidcConfig,
                       Context context,
@@ -130,10 +132,20 @@ class WebAuthClientImpl implements WebAuthClient {
     public void signIn(@NonNull final Activity activity, AuthenticationPayload payload) {
         registerActivityLifeCycle(activity);
         cancelFuture();
+        //add the login hint if it exists.
+        if (payload == null && mLoginHint != null) {
+            payload = new AuthenticationPayload.Builder().setLoginHint(mLoginHint).build();
+        } else if (mLoginHint != null) {
+            payload = new AuthenticationPayload.Builder()
+                    .copyPayload(payload)
+                    .setLoginHint(mLoginHint)
+                    .build();
+        }
+        final AuthenticationPayload finalPayload = payload;
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
-                Result result = mSyncAuthClient.signIn(activity, payload);
+                Result result = mSyncAuthClient.signIn(activity, finalPayload);
                 processSignInResult(result);
             } catch (InterruptedException e) {
                 mDispatcher.submitResults(() -> {
@@ -146,26 +158,22 @@ class WebAuthClientImpl implements WebAuthClient {
     }
 
     private void processSignInResult(Result result) {
-        if (result.isSuccess()) {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onSuccess(
-                            AuthorizationStatus.AUTHORIZED);
-                }
-            });
-        } else if (result.isCancel()) {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onCancel();
-                }
-            });
+        if (result.getStatus() == AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED) {
+            mLoginHint = result.getLoginHint();
         } else {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onError("Authorization error",
-                            result.getError());
-                }
-            });
+            mLoginHint = null;
+        }
+
+        if (mResultCb == null) {
+            return; //do nothing since no callback registered.
+        }
+        if (result.isSuccess()) {
+            mDispatcher.submitResults(() -> mResultCb.onSuccess(result.getStatus()));
+        } else if (result.isCancel()) {
+            mDispatcher.submitResults(() -> mResultCb.onCancel());
+        } else {
+            mDispatcher.submitResults(() -> mResultCb.onError("Authorization error",
+                    result.getError()));
         }
     }
 
@@ -189,26 +197,16 @@ class WebAuthClientImpl implements WebAuthClient {
     }
 
     private void processSignOutResult(Result result) {
+        if (mResultCb == null) {
+            return; //do nothing since no callback registered.
+        }
         if (result.isSuccess()) {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onSuccess(
-                            AuthorizationStatus.SIGNED_OUT);
-                }
-            });
+            mDispatcher.submitResults(() -> mResultCb.onSuccess(AuthorizationStatus.SIGNED_OUT));
         } else if (result.isCancel()) {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onCancel();
-                }
-            });
+            mDispatcher.submitResults(() -> mResultCb.onCancel());
         } else {
-            mDispatcher.submitResults(() -> {
-                if (mResultCb != null) {
-                    mResultCb.onError("Log out error",
-                            result.getError());
-                }
-            });
+            mDispatcher.submitResults(() -> mResultCb.onError("Log out error",
+                    result.getError()));
         }
     }
 
@@ -225,6 +223,25 @@ class WebAuthClientImpl implements WebAuthClient {
     @Override
     public SessionClient getSessionClient() {
         return mSessionImpl;
+    }
+
+    @Override
+    public void signOut(@NonNull final Activity activity,
+                        RequestCallback<Integer, AuthorizationException> callback) {
+        signOut(activity, ALL, callback);
+    }
+
+    @Override
+    public void signOut(@NonNull final Activity activity, int flags,
+                        RequestCallback<Integer, AuthorizationException> callback) {
+        mFutureTask = mDispatcher.submit(() -> {
+            final int status = mSyncAuthClient.signOut(activity, flags);
+            mDispatcher.submitResults(() -> {
+                if (callback != null) {
+                    callback.onSuccess(status);
+                }
+            });
+        });
     }
 
     private void cancelFuture() {

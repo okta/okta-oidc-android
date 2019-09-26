@@ -88,6 +88,13 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             mOktaState.save(authRequest);
             AuthorizeResponse authResponse = request.executeRequest(mHttpClient);
             checkIfCanceled();
+            //native sign in depends on okta-java-sdk to do self registration.
+            //This flow should never happen but if it does throw a exception.
+            if (isVerificationFlow(authResponse)) {
+                return Result.error(
+                        new AuthorizationException("Email verification required. Session: "
+                                + authResponse.getSessionHint(), null));
+            }
 
             validateResult(authResponse, authRequest);
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
@@ -117,5 +124,25 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     @Override
     public SyncSessionClient getSessionClient() {
         return this.sessionClient;
+    }
+
+    @Override
+    public int signOut() {
+        return signOut(ALL);
+    }
+
+    @Override
+    public int signOut(int flags) {
+        try {
+            mSignOutStatus = SUCCESS;
+            mSignOutFlags = flags;
+            revokeTokens(getSessionClient());
+            removeTokens(getSessionClient());
+            return mSignOutStatus;
+        } catch (IOException e) {
+            return FAILED_ALL;
+        } finally {
+            resetCurrentState();
+        }
     }
 }

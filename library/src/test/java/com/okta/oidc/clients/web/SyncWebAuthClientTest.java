@@ -15,14 +15,17 @@
 
 package com.okta.oidc.clients.web;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import androidx.fragment.app.FragmentActivity;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
 import com.okta.oidc.AuthenticationResultHandler;
+import com.okta.oidc.AuthorizationStatus;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaResultFragment;
@@ -30,10 +33,12 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
+import com.okta.oidc.results.Result;
 import com.okta.oidc.storage.OktaRepository;
 import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.SharedPreferenceStorage;
@@ -43,15 +48,18 @@ import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.HttpClientFactory;
+import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
+import org.robolectric.Robolectric;
 import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
@@ -68,11 +76,14 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -236,5 +247,43 @@ public class SyncWebAuthClientTest {
         assertEquals(stateResult[0].getStatus(), AuthenticationResultHandler.Status.AUTHORIZED);
         assertEquals(response.getState(), CUSTOM_STATE);
         assertEquals(response.getCode(), CUSTOM_CODE);
+    }
+
+    @Test
+    public void signOutWithNoData() {
+        mSyncWebAuth.getSessionClient().clear();
+        Result result = mSyncWebAuth.signOutOfOkta(Robolectric.setupActivity(FragmentActivity.class));
+        assertNotNull(result.getError());
+        Assert.assertTrue(result.getError().getCause() instanceof NullPointerException);
+    }
+
+    @Test
+    public void signInEmailAuthenticated() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_AUTHENTICATED, mEndPoint.getUrl())));
+
+        Assert.assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Result result = mSyncWebAuth.processEmailVerification(response);
+        assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_AUTHENTICATED, result.getStatus());
+        assertNull(result.getLoginHint());
+    }
+
+    @Test
+    public void signInEmailUnauthenticated() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_UNAUTHENTICATED, mEndPoint.getUrl())));
+
+        Assert.assertTrue(mSyncWebAuth.isVerificationFlow(response));
+        Result result = mSyncWebAuth.processEmailVerification(response);
+        assertEquals(AuthorizationStatus.EMAIL_VERIFICATION_UNAUTHENTICATED, result.getStatus());
+        assertEquals(TestValues.LOGIN_HINT, result.getLoginHint());
+    }
+
+    @Test
+    public void invalidTyeHint() throws AuthorizationException {
+        AuthorizeResponse response = AuthorizeResponse.
+                fromUri(Uri.parse(String.format(TestValues.EMAIL_INVALID_TYPE, mEndPoint.getUrl())));
+
+        assertFalse(mSyncWebAuth.isVerificationFlow(response));
     }
 }

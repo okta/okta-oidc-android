@@ -83,10 +83,20 @@ public class TestValues {
     public static final String ERROR_DESCRIPTION = "error_description";
 
     public static final String PROMPT = "none";
-
     //Token response
     public static final String TYPE_BEARER = "Bearer";
     public static final String EXPIRES_IN = "3600";
+
+    //URI responses for email verification
+    public static final String EMAIL_AUTHENTICATED = "com.test:/callback?iss=%s&" +
+            "type_hint=ACTIVATION&session_hint=AUTHENTICATED&login_hint=LOGIN_HINT";
+
+    public static final String EMAIL_UNAUTHENTICATED = "com.test:/callback?iss=%s&" +
+            "type_hint=ACTIVATION&session_hint=UNAUTHENTICATED&login_hint=LOGIN_HINT";
+
+    public static final String EMAIL_INVALID_TYPE = "com.test:/callback?iss=%s&" +
+            "type_hint=INVALIDTYPE&session_hint=UNAUTHENTICATED&login_hint=LOGIN_HINT";
+
 
     public static OIDCConfig getConfigWithUrl(String url) {
         return new OIDCConfig.Builder()

@@ -16,6 +16,8 @@
 package com.okta.oidc.clients;
 
 import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
@@ -23,6 +25,8 @@ import androidx.annotation.WorkerThread;
 
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaState;
+import com.okta.oidc.Tokens;
+import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
@@ -43,8 +47,18 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static androidx.annotation.RestrictTo.Scope.TESTS;
+
+import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_DATA;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_REFRESH_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.REMOVE_TOKENS;
+import static com.okta.oidc.clients.BaseAuth.REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.REVOKE_REFRESH_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.TOKEN_DECRYPT;
 import static com.okta.oidc.clients.State.IDLE;
 import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCELED_AUTH_FLOW;
+import static com.okta.oidc.util.AuthorizationException.TYPE_ENCRYPTION_ERROR;
 
 /**
  * @hide This is a helper for authentication. It contains the APIs for getting
@@ -52,9 +66,12 @@ import static com.okta.oidc.util.AuthorizationException.GeneralErrors.USER_CANCE
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class AuthAPI {
+    private static final String TAG = "AuthClientImpl";
     protected OktaState mOktaState;
     protected OIDCConfig mOidcConfig;
     protected OktaHttpClient mHttpClient;
+    protected int mSignOutFlags;
+    protected int mSignOutStatus;
 
     protected AtomicBoolean mCancel = new AtomicBoolean();
     protected AtomicReference<WeakReference<BaseRequest>> mCurrentRequest =
@@ -93,6 +110,17 @@ public class AuthAPI {
         return HttpRequestBuilder.newConfigurationRequest()
                 .config(mOidcConfig)
                 .createRequest();
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    public boolean isVerificationFlow(AuthorizeResponse response)
+            throws AuthorizationException {
+        if (!TextUtils.isEmpty(response.getError())) {
+            throw new AuthorizationException(response.getErrorDescription(), null);
+        }
+        String typeHint = response.getTypeHint();
+        return !TextUtils.isEmpty(typeHint) &&
+                typeHint.equals(AuthorizeResponse.ACTIVATION);
     }
 
     protected void validateResult(WebResponse authResponse, WebRequest authorizedRequest)
@@ -143,13 +171,65 @@ public class AuthAPI {
     }
 
     /*
-     * Since sign-in is a collection of network ops. This method is used to check after each
-     * network call if cancel was called. So even if the previous network call was successful
-     * this check will stop further progress.
+     * Since sign-in/revokeTokens is a collection of network ops. This method is used to check
+     * after each network call if cancel was called. So even if the previous network call was
+     * successful this check will stop further progress.
      */
     protected void checkIfCanceled() throws IOException {
         if (mCancel.get()) {
             throw new IOException("Canceled");
         }
+    }
+
+    private int revoke(SyncSessionClient client, int tokenType) {
+        try {
+            Tokens tokens = client.getTokens();
+            if (tokens != null) {
+                client.revokeToken(tokenType == REVOKE_ACCESS_TOKEN ? tokens.getAccessToken()
+                        : tokens.getRefreshToken());
+            }
+            return 0;
+        } catch (AuthorizationException e) {
+            Log.w(TAG, "Revoke token failure", e);
+            int status = tokenType == REVOKE_ACCESS_TOKEN ? FAILED_REVOKE_ACCESS_TOKEN
+                    : FAILED_REVOKE_REFRESH_TOKEN;
+            if (e.type == TYPE_ENCRYPTION_ERROR) {
+                status |= TOKEN_DECRYPT;
+            }
+            return status;
+        }
+    }
+
+    protected void removeTokens(SyncSessionClient client) {
+        if ((mSignOutFlags & REMOVE_TOKENS) == REMOVE_TOKENS) {
+            if ((mSignOutStatus & FAILED_REVOKE_REFRESH_TOKEN) == 0 &&
+                    (mSignOutStatus & FAILED_REVOKE_ACCESS_TOKEN) == 0) {
+                client.clear();
+            } else {
+                mSignOutStatus |= FAILED_CLEAR_DATA;
+            }
+        }
+    }
+
+    protected void revokeTokens(SyncSessionClient client) throws IOException {
+        if ((mSignOutFlags & REVOKE_ACCESS_TOKEN) == REVOKE_ACCESS_TOKEN) {
+            mSignOutStatus |= revoke(client, REVOKE_ACCESS_TOKEN);
+        }
+        checkIfCanceled();
+
+        if ((mSignOutFlags & REVOKE_REFRESH_TOKEN) == REVOKE_REFRESH_TOKEN) {
+            mSignOutStatus |= revoke(client, REVOKE_REFRESH_TOKEN);
+        }
+        checkIfCanceled();
+    }
+
+    @RestrictTo(TESTS)
+    public int getSignOutFlags() {
+        return mSignOutFlags;
+    }
+
+    @RestrictTo(TESTS)
+    public int getSignOutStatus() {
+        return mSignOutStatus;
     }
 }

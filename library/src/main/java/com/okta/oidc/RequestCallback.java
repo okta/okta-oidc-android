@@ -19,7 +19,7 @@ import androidx.annotation.NonNull;
 
 /**
  * Callback for a authorize request that does not use the Chrome custom tabs as a user agent.
- * Requests such as getting provider configuration, user profiles, token requests.
+ * Requests such as getting provider configuration, user profiles, token requests, sign out.
  *
  * @param <T> the type this request will return on authorized.
  * @param <U> the {@link com.okta.oidc.util.AuthorizationException} type of exception in error

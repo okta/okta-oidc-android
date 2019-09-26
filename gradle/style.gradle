@@ -11,7 +11,7 @@ configurations {
 }
 
 dependencies {
-    xslt "net.sf.saxon:saxon:${rootProject.saxonVersion}"
+    xslt "net.sf.saxon:saxon:8.7"
 }
 
 task checkAllSource(type: Checkstyle) {

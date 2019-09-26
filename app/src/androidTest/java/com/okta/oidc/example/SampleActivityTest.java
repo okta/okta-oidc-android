@@ -247,7 +247,7 @@ public class SampleActivityTest {
     @Test
     public void testB_signInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
-                .setLoginHint("devex@okta.com")
+                .setLoginHint(BuildConfig.USERNAME)
                 .addParameter("max_age", "5000")
                 .build();
 

@@ -22,6 +22,7 @@ import androidx.test.rule.ActivityTestRule;
 import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 import androidx.test.uiautomator.Until;
@@ -46,12 +47,19 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static com.okta.oidc.example.Utils.CHROME_STABLE;
 import static com.okta.oidc.example.Utils.ID_CLOSE_BROWSER;
+import static com.okta.oidc.example.Utils.ID_GOOGLE_FORGOT_PW;
+import static com.okta.oidc.example.Utils.ID_GOOGLE_ID_NEXT;
+import static com.okta.oidc.example.Utils.ID_GOOGLE_PW_NEXT;
+import static com.okta.oidc.example.Utils.ID_GOOGLE_USERNAME;
+import static com.okta.oidc.example.Utils.ID_SUBMIT;
 import static com.okta.oidc.example.Utils.NETWORK_TIMEOUT;
 import static com.okta.oidc.example.Utils.SAMPLE_APP;
 import static com.okta.oidc.example.Utils.TRANSITION_TIMEOUT;
 import static com.okta.oidc.example.Utils.USERNAME;
+import static com.okta.oidc.example.Utils.acceptChromePrivacyOption;
 import static com.okta.oidc.example.Utils.customTabInteraction;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -126,7 +134,7 @@ public class PlainActivityTest {
 
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
         assertNotNull(activityRule.getActivity().mSessionClient.getTokens());
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out_of_okta)).check(matches(isDisplayed()));
     }
 
     @Test
@@ -208,8 +216,8 @@ public class PlainActivityTest {
     @Test
     public void test9_signOutOfOkta() {
         signInIfNotAlready();
-        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
-        onView(withId(R.id.sign_out)).perform(click());
+        onView(withId(R.id.sign_out_of_okta)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out_of_okta)).perform(click());
 
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
         mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
@@ -236,7 +244,7 @@ public class PlainActivityTest {
     @Test
     public void testB_signInWithPayload() throws UiObjectNotFoundException {
         activityRule.getActivity().mPayload = new AuthenticationPayload.Builder()
-                .setLoginHint("devex@okta.com")
+                .setLoginHint(BuildConfig.USERNAME)
                 .addParameter("max_age", "5000")
                 .build();
 
@@ -308,6 +316,7 @@ public class PlainActivityTest {
         onView(withId(R.id.biometric)).check(matches(isNotChecked()));
     }
 
+    @Test
     public void testF_checkIfTokenExpired() {
         signInIfNotAlready();
         onView(withId(R.id.check_expired)).check(matches(isDisplayed()));
@@ -315,5 +324,51 @@ public class PlainActivityTest {
         onView(withId(R.id.status))
                 .check(matches(withText(containsString("token not expired"))));
         test9_signOutOfOkta(); //clear the browser to reset state.
+    }
+
+    @Test
+    public void testG_signOut() {
+        signInIfNotAlready();
+        onView(withId(R.id.sign_out)).check(matches(isDisplayed()));
+        onView(withId(R.id.sign_out)).perform(click());
+
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+        onView(withId(R.id.sign_in));
+    }
+
+    @Test
+    public void testG_socialLogin() throws UiObjectNotFoundException {
+        onView(withId(R.id.sign_in_social)).withFailureHandler((error, viewMatcher) -> {
+            onView(withId(R.id.clear_data)).check(matches(isDisplayed()));
+            onView(withId(R.id.clear_data)).perform(click());
+        }).check(matches(isDisplayed()));
+
+        onView(withId(R.id.sign_in_social)).perform(click());
+
+        mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
+        acceptChromePrivacyOption(mDevice);
+        UiSelector selector = new UiSelector();
+
+        UiObject username = mDevice.findObject(selector.resourceId(ID_GOOGLE_USERNAME));
+        username.setText(BuildConfig.IDP_USERNAME);
+        UiObject idNext = mDevice.findObject(selector.resourceId(ID_GOOGLE_ID_NEXT));
+        idNext.click();
+
+        UiObject forgotPassword = mDevice.findObject(selector.resourceId(ID_GOOGLE_FORGOT_PW));
+        forgotPassword.waitForExists(TRANSITION_TIMEOUT);
+
+        UiObject2 uiPassword = mDevice.findObject(By.clazz(android.widget.EditText.class));
+        uiPassword.setText(BuildConfig.IDP_PASSWORD);
+        UiObject next = mDevice.findObject(selector.resourceId(ID_GOOGLE_PW_NEXT));
+        next.click();
+        mDevice.wait(Until.findObject(By.pkg(SAMPLE_APP)), TRANSITION_TIMEOUT);
+
+
+        //wait for token exchange
+        getProgressBar().waitUntilGone(NETWORK_TIMEOUT);
+        //check if get profile is visible
+        getProfileButton().waitForExists(TRANSITION_TIMEOUT);
+        onView(withId(R.id.get_profile)).check(matches(isDisplayed()));
     }
 }
