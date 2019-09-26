@@ -17,6 +17,7 @@ package com.okta.oidc;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -157,17 +158,26 @@ public class OIDCConfig {
         }
 
         void validate() {
-            if (mClientId == null || mClientId.isEmpty()) {
+            if (TextUtils.isEmpty(mClientId)) {
                 throw new IllegalStateException("No client id specified");
             }
-            if (mRedirectUri == null || mRedirectUri.isEmpty()) {
+            if (TextUtils.isEmpty(mRedirectUri)) {
                 throw new IllegalStateException("No redirect uri specified");
             }
-            if (mEndSessionRedirectUri == null || mEndSessionRedirectUri.isEmpty()) {
+            if (TextUtils.isEmpty(mEndSessionRedirectUri)) {
                 throw new IllegalStateException("No end session specified");
             }
-            if (mDiscoveryUri == null || mDiscoveryUri.isEmpty()) {
+            if (TextUtils.isEmpty(mDiscoveryUri)) {
                 throw new IllegalStateException("No discovery uri specified");
+            }
+            if (mScopes == null) {
+                throw new IllegalStateException("No scopes specified");
+            }
+            //check for empty scope
+            for (String scope : mScopes) {
+                if (TextUtils.isEmpty(scope)) {
+                    throw new IllegalStateException("Individual scopes cannot be null or empty");
+                }
             }
         }
     }
@@ -273,14 +283,8 @@ public class OIDCConfig {
                 }
                 JSONObject json = new JSONObject(writer.toString());
                 readConfiguration(json);
-            } catch (IOException e) {
-                Log.e(TAG, "", e);
-                return null;
-            } catch (JSONException e) {
-                Log.e(TAG, "", e);
-                return null;
-            } catch (JsonSyntaxException e) {
-                Log.e(TAG, "", e);
+            } catch (IOException | JSONException | JsonSyntaxException e) {
+                Log.e(TAG, "Invalid JSON file", e);
                 return null;
             }
             return this;
