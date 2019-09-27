@@ -142,7 +142,7 @@ public class PlainActivity extends Activity {
 
         mSignInBrowser.setOnClickListener(v -> {
             showNetworkProgress(true);
-            mWebAuth.signIn(this, null);
+            mWebAuth.signIn(this, mPayload);
         });
 
         mSocialLogin.setOnClickListener(v -> {
