@@ -485,6 +485,7 @@ public final class AuthorizationException extends Exception {
         public static final int INVALID_KEYS_ERROR = 5003;
         public static final int KEYGUARD_AUTHENTICATION_ERROR = 5004;
         public static final int DECRYPT_ERROR = 5005;
+        public static final int ILLEGAL_BLOCK_SIZE = 5006;
 
         public static final AuthorizationException OTHER =
                 new AuthorizationException(TYPE_ENCRYPTION_ERROR, OTHER_ERROR,
@@ -512,7 +513,11 @@ public final class AuthorizationException extends Exception {
                 case EncryptionException.INVALID_KEYS_ERROR:
                     return new AuthorizationException(TYPE_ENCRYPTION_ERROR, INVALID_KEYS_ERROR,
                             "Keys are invalid. " + exception.getLocalizedMessage(),
-                            null, null, null);
+                            exception.getMessage(), null, null);
+                case EncryptionException.ILLEGAL_BLOCK_SIZE:
+                    return new AuthorizationException(TYPE_ENCRYPTION_ERROR, ILLEGAL_BLOCK_SIZE,
+                            "Illegal block size. " + exception.getLocalizedMessage(),
+                            exception.getMessage(), null, null);
                 default:
                     return EncryptionErrors.OTHER;
             }

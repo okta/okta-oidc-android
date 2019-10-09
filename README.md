@@ -15,6 +15,7 @@
   - [Using JSON configuration file](#Using-JSON-configuration-file)
 - [Sign in with a browser](#Sign-in-with-a-browser)
   - [onActivityResult override](#onActivityResult-override)
+  - [Social login](#Social-login)
 - [Sign in with your own UI](#Sign-in-with-your-own-UI)
 - [Sign out](#Sign-out)
   - [Clear browser session](#Clear-browser-session)
@@ -56,7 +57,7 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:1.0.3'
+implementation 'com.okta.android:oidc-androidx:1.0.4'
 ```
 
 ### Sample app
@@ -252,6 +253,21 @@ public class PlainActivity extends Activity {
 }
 ```
 
+### Social login
+
+To use another identity provider such as [Google][IDP-Google] or [Facebook][IDP-Facebook], first [step up the identity provider in Okta][IDP]. Once your setup is complete you can sign in using the social login provider.
+
+```java
+AuthenticationPayload payload = new AuthenticationPayload.Builder()
+    .setIdp("appID_or_clientID_of_your_idp")
+    .setIdpScope("scope_of_your_idp")
+    .build();
+
+client.signIn(this, payload);
+```
+
+Sign in will be redirected to the page of the specified IDP.
+
 ## Sign in with your own UI
 
 If you would like to use your own in-app user interface instead
@@ -322,6 +338,42 @@ Tokens can be removed from the device by simply calling:
 ```
 
 After this the user is signed out.
+
+#### Sign out wrapper
+
+You can also call `signOut()` which wraps all these steps in one call.
+
+```java
+ authClient.signOut(this, new RequestCallback<Integer, AuthorizationException>() {
+    @Override
+    public void onSuccess(@NonNull Integer result) {
+        if (result == SUCCESS) {
+            //signed out
+        }
+        if ((result & FAILED_CLEAR_SESSION) == FAILED_CLEAR_SESSION) {
+            //session not cleared
+        }
+        if ((result & FAILED_REVOKE_ACCESS_TOKEN) == FAILED_REVOKE_ACCESS_TOKEN) {
+            //access token revocation failed.
+        }
+        if ((result & FAILED_REVOKE_REFRESH_TOKEN) == FAILED_REVOKE_REFRESH_TOKEN) {
+            //refresh token revocation failed.
+        }
+        if ((result & FAILED_CLEAR_DATA) == FAILED_CLEAR_DATA) {
+            //failed to remove data.
+        }
+    }
+
+    @Override
+    public void onError(@Nullable String msg, @Nullable AuthorizationException exception) {
+        //NO-OP
+    }
+});
+```
+
+If any step fails, it will still process to the next step. It is recommended to do these steps individually to give your application more control of the sign out process.
+
+**Note** `signOut()` does not save the application state so if the activity is destroyed during these steps you should call it again to start the sign out process over.
 
 ## Using the Tokens
 
@@ -754,3 +806,6 @@ if (true) { //provide option to login using different clients.
 [on-activity-result]: https://developer.android.com/reference/android/app/Activity.html#onActivityResult(int,%20int,%20android.content.Intent)
 [session-token]: https://developer.okta.com/docs/reference/api/sessions/#session-token
 [chrome-custom-tabs]: https://developer.chrome.com/multidevice/android/customtabs
+[IDP]: https://developer.okta.com/docs/concepts/social-login/#features
+[IDP-Google]: https://developer.okta.com/docs/guides/add-an-external-idp/google/before-you-begin/
+[IDP-Facebook]: https://developer.okta.com/docs/guides/add-an-external-idp/facebook/before-you-begin/

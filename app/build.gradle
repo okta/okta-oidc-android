@@ -4,7 +4,7 @@ apply from: "${rootDir}/gradle/okta-common.gradle"
 
 android {
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 23
         compileSdkVersion 29
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
@@ -53,6 +53,7 @@ dependencies {
     implementation 'androidx.fragment:fragment:' + rootProject.androidxLibVersion
     implementation 'androidx.annotation:annotation:' + rootProject.androidxLibVersion
     implementation 'androidx.appcompat:appcompat:' + rootProject.androidxLibVersion
+    implementation 'androidx.security:security-crypto:' + rootProject.securityVersion
 
     implementation "com.google.android.material:material:1.0.0"
     implementation 'androidx.biometric:biometric:1.0.0-beta02'

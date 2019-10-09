@@ -58,6 +58,8 @@ import com.okta.oidc.storage.SharedPreferenceStorage;
 import com.okta.oidc.storage.security.DefaultEncryptionManager;
 import com.okta.oidc.util.AuthorizationException;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -134,7 +136,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     @VisibleForTesting
     SharedPreferenceStorage mStorageOidc;
     @VisibleForTesting
-    SharedPreferenceStorage mStorageOAuth2;
+    EncryptedSharedPreferenceStorage mEncryptedSharedPref;
 
     /**
      * The Authentication API client.
@@ -169,7 +171,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mEditText = findViewById(R.id.login_hint);
 
-        mStorageOAuth2 = new SharedPreferenceStorage(this, "OAUTH2");
         mStorageOidc = new SharedPreferenceStorage(this);
         boolean checked = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .getBoolean(PREF_SWITCH, true);
@@ -425,16 +426,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         MyConnectionFactory factory = new MyConnectionFactory();
         factory.setClientType(MyConnectionFactory.USE_SYNC_OK_HTTP);
 
-        boolean isEmulator = isEmulator();
+        try {
+            mEncryptedSharedPref = new EncryptedSharedPreferenceStorage(this);
+        } catch (GeneralSecurityException | IOException ex) {
+            Log.d(TAG, "Unable to initialize EncryptedSharedPreferenceStorage", ex);
+        }
+
         mWebOAuth2 = new Okta.WebAuthBuilder()
                 .withConfig(mOAuth2Config)
                 .withContext(getApplicationContext())
-                .withStorage(mStorageOAuth2)
-                .withCallbackExecutor(null)
-                .withEncryptionManager(new DefaultEncryptionManager(this))
-                .setRequireHardwareBackedKeyStore(!isEmulator)
-                .withTabColor(0)
-                .supportedBrowsers(FIRE_FOX)
+                .withStorage(mEncryptedSharedPref)
+                .withEncryptionManager(new NoEncryption())
+                .setRequireHardwareBackedKeyStore(!isEmulator())
+                .supportedBrowsers(FIRE_FOX) //chrome is always supported by default
                 .create();
 
         mSessionOAuth2Client = mWebOAuth2.getSessionClient();
@@ -445,7 +449,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
                 .withEncryptionManager(new DefaultEncryptionManager(this))
-                .setRequireHardwareBackedKeyStore(!isEmulator)
+                .setRequireHardwareBackedKeyStore(!isEmulator())
                 .withTabColor(0)
                 .withOktaHttpClient(factory.build())
                 .supportedBrowsers(FIRE_FOX);
