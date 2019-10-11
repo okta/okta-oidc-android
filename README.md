@@ -405,27 +405,32 @@ In `onSuccess` the userinfo returned is a `UserInfo` with the [response properti
 
 ### Performing authorized requests
 
-In addition to the built in endpoints, you can use the client interface to perform your own authorized requests, whatever they might be. You can call `authorizedRequest` requests and have the access token automatically added to the `Authorization` header with the standard OAuth 2.0 prefix of `Bearer`.
+Authorized request to your own server endpoints will need to add the `Authorization` header with the `access token`, prefixed by the standard OAuth 2.0 of `Bearer`.
+If you are using Android's standard `HttpURLConnection` you can set the headers like the following:
 
 ```java
-final Uri uri;
-Map<String, String> properties = new HashMap<>();
-properties.put("queryparam", "queryparam");
-Map<String, String> postParameters = new HashMap<>();
-postParameters.put("postparam", "postparam");
+try {
+    Tokens token = client.getSessionClient.getTokens();
+    URL url = new URL("yourCustomUrl");
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Authorization", "Bearer " + token.getAccessToken());
+} catch (AuthorizationException e) {
+    //handle error
+}
+```
 
-client.getSessionClient().authorizedRequest(uri, properties,
-                postParameters, ConnectionParameters.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
-    @Override
-    public void onSuccess(@NonNull JSONObject result) {
-        //handle JSONObject result.
-    }
+If you are using `OkHttp` you can set the headers in the `Request` like the following:
 
-    @Override
-    public void onError(String error, AuthorizationException exception) {
-        //handle failed request
-    }
-});
+```java
+try {
+    Tokens token = client.getSessionClient.getTokens();
+    Request request = new Request.Builder()
+        .url("yourCustomUrl")
+        .addHeader("Authorization", "Bearer " + token.getAccessToken())
+        .build();
+} catch (AuthorizationException e) {
+    //handle error
+}
 ```
 
 ### Refresh a Token
