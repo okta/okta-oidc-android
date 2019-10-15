@@ -35,6 +35,7 @@
   - [Storage](#Storage)
   - [Encryption](#Encryption)
   - [Hardware-backed keystore](#Hardware-backed-keystore)
+  - [Encryption and decryption errors](#Encryption-and-decryption-errors)
 - [Advanced techniques](#Advanced-techniques)
   - [Sign in with a sessionToken (Async)](#Sign-in-with-a-sessionToken-(Async))
   - [Sign in with a sessionToken (Sync)](#Sign-in-with-a-sessionToken-(Sync))
@@ -661,8 +662,31 @@ client = new Okta.WebAuthBuilder()
 
 Encryption is applied to all data that is stored by the library. You can specify your own encryption algorithm with the following steps:
 
-1. Build your own implementation of `EncryptionManager`
-2. Provide it within selected Okta Client Builder
+Build your own implementation of `EncryptionManager`
+
+```java
+public class CustomEncryptionManager implements EncryptionManager {
+    @Override
+    public String encrypt(String data) throws GeneralSecurityException {
+        //encryt data
+        return encryptedData;
+    }
+
+    @Override
+    public String decrypt(String encryptedData) throws GeneralSecurityException {
+        if (value != null && value.length() > 0) {
+            //decrypt data
+            return decryptedData;
+        } else {
+            return null;
+        }
+    }
+    //...
+    //...
+}
+```
+
+Provide it within selected Okta Client Builder
 
 ```java
 client = new Okta.WebAuthBuilder()
@@ -675,11 +699,12 @@ client = new Okta.WebAuthBuilder()
     .create();
 ```
 
+This will allow the SDK to use your `CustomEncryptionManager`, if you want to disable encryption you can simply return the parameter that was passed into encrypt and decrypt.
 The SDK provides two implementations of `EncryptionManager`
 
 ## DefaultEncryptionManager
 
-Private keys are stored in KeyStore. Does not require device authentication to use the keys. Compatible with API19 and up.
+Private keys are stored in KeyStore. Does not require device authentication to use the keys. Compatible with API19 and up. This is a RSA implementation that
 
 ## GuardedEncryptionManager
 
@@ -688,6 +713,48 @@ Private keys are stored in KeyStore. Requires device authentication to use the k
 ### Hardware-backed keystore
 
 The default `EncryptionManager` provides a check to see if the device supports hardware-backed keystore. If you implement your own `EncryptionManager` you'll have to implement this check. You can return `true` to tell the default storage that the device have a hardware-backed keystore. The [storage](#Storage) and [encrytion](#Encryption) mechanisms work together to ensure that data is stored securely.
+
+### Encryption and decryption errors
+
+Most of the encrytion errors encountered are due to the key being invalidated. This means that the initial key that was used to encrypt the data have become inaccessible. Once this happens it is impossible to recover the encrypted data. To recover from this you must clear the data:
+
+```java
+@Override
+public void onError(@Nullable String msg, AuthorizationException error) {
+    if (error.type == ILLEGAL_BLOCK_SIZE &&
+        error.code == EncryptionErrors.ILLEGAL_BLOCK_SIZE) {
+        authClient.clear();
+    }
+}
+```
+
+#### Why am I getting invalid key errors
+
+A invalid key error usually means that the initial key that was used to encrypt the data have become inaccessible. The following is a list of possible causes:
+
+1. Keys are invalidated by security policies on the device. For example some devices invalidate keys when switching from PIN to Pattern lock. The policy differs by device and OS version.
+
+2. Keys are inaccessible when application is uninstall but data is backed up. For example when the application is uninstalled but the shared preferences remain. When attempting to sign-in the SDK will attempt to decrypt this data and fail, to resolve the error simply clear the data and try again. This usually happens during development when uninstalling and reinstalling is common.
+
+3. Keys are lost during application updates. Sometimes keys are inaccessible when updating the application. When this happens it is best to recover by clearing the data. This will require users to sign-in to the appication again.
+
+4. Encryption bug with the underlying OS. The SDK uses a workaround for a known [RSA issue](https://issuetracker.google.com/issues/37075898). If the workaround is not working on your device it is best to implement a [custom encryption manager](#Encryption) and handle the encrytion by using a encryption algorithm that the device supports. For example if using [androidx.security.crypto library](https://developer.android.com/reference/androidx/security/crypto/EncryptedSharedPreferences) as the custom encrytion manager, we need to [disable encryption](https://github.com/okta/okta-oidc-android/blob/encrypted_sharedpref/app/src/main/java/com/okta/oidc/example/NoEncryption.java) then implement the [encrypted storage](https://github.com/okta/okta-oidc-android/blob/encrypted_sharedpref/app/src/main/java/com/okta/oidc/example/EncryptedSharedPreferenceStorage.java).
+
+```java
+EncryptedSharedPreferenceStorage storage = null;
+try {
+    storage = new EncryptedSharedPreferenceStorage(this);
+} catch (GeneralSecurityException | IOException ex) {
+    Log.d(TAG, "Unable to initialize EncryptedSharedPreferenceStorage", ex);
+}
+
+authClient = new Okta.WebAuthBuilder()
+    .withConfig(config)
+    .withContext(getApplicationContext())
+    .withEncryptionManager(new NoEncryption())
+    .withStorage(storage)
+    .create();
+```
 
 ## Advanced techniques
 
