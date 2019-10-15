@@ -93,6 +93,7 @@ public interface SessionClient extends BaseSessionClient {
      * @param method         the http method {@link ConnectionParameters.RequestMethod}
      * @param cb             the RequestCallback to be executed when request is finished.
      */
+    @Deprecated
     void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
                            @Nullable Map<String, String> postParameters,
                            @NonNull ConnectionParameters.RequestMethod method,

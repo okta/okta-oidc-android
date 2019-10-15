@@ -1,15 +1,22 @@
 apply plugin: "com.android.library"
-apply from: "${rootDir}/gradle/android-common.gradle"
-if (project.rootProject.file('local.properties').exists()) {
-    apply from: 'publish.gradle'
-}
+apply from: "${rootDir}/gradle/okta-common.gradle"
 apply from: "${rootDir}/gradle/style.gradle"
 
-
 android {
-
     defaultConfig {
-        project.archivesBaseName = "oidc-androidx"
+        compileSdkVersion rootProject.ext.compileSdkVersion
+        buildToolsVersion rootProject.ext.buildToolsVersion
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.compileSdkVersion
+        versionCode rootProject.ext.versionNum
+        versionName rootProject.ext.versionName
+        archivesBaseName = "oidc-androidx"
+    }
+
+    lintOptions {
+        warningsAsErrors true
+        abortOnError true
+        disable 'TrulyRandom', 'GradleDependency'
     }
 
     testOptions {
@@ -53,32 +60,34 @@ buildscript {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation "androidx.browser:browser:1.0.0"
-    implementation "androidx.fragment:fragment:1.0.0"
-    implementation "androidx.core:core:1.0.2"
+    implementation "com.google.code.gson:gson:${rootProject.gsonVersion}"
+    implementation "androidx.browser:browser:${rootProject.browserVersion}"
+    implementation "androidx.fragment:fragment:${rootProject.androidxLibVersion}"
+    implementation "androidx.core:core:${rootProject.androidxLibVersion}"
     testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
-    testImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
-    testImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"
     testImplementation "io.jsonwebtoken:jjwt-jackson:${rootProject.jsonWebTokenVersion}"
     testImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
         exclude group: 'org.json', module: 'json'
     }
     testImplementation "junit:junit:${rootProject.junitVersion}"
     testImplementation "org.mockito:mockito-core:${rootProject.mockitoVersion}"
-    testImplementation 'org.mockito:mockito-inline:2.13.0'
+    testImplementation "org.mockito:mockito-inline:${rootProject.mockitoVersion}"
     testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
     testImplementation "com.squareup.assertj:assertj-android:${rootProject.assertjVersion}"
     testImplementation "com.squareup.okhttp3:mockwebserver:${rootProject.okhttpVersion}"
     testImplementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
-    testImplementation 'org.assertj:assertj-core:3.10.0'
-    testImplementation 'io.jsonwebtoken:jjwt-api:0.10.5'
-    testImplementation 'io.jsonwebtoken:jjwt-impl:0.10.5'
-    testImplementation('io.jsonwebtoken:jjwt-orgjson:0.10.5') {
+    testImplementation "org.assertj:assertj-core:${rootProject.assertjCoreVersion}"
+    testImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
+    testImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"
+    testImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
         exclude group: 'org.json', module: 'json' //provided by Android natively
     }
 }
 
 dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
+}
+
+if (project.rootProject.file('local.properties').exists()) {
+    apply from: 'publish.gradle'
 }

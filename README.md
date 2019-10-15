@@ -15,6 +15,7 @@
   - [Using JSON configuration file](#Using-JSON-configuration-file)
 - [Sign in with a browser](#Sign-in-with-a-browser)
   - [onActivityResult override](#onActivityResult-override)
+  - [Social login](#Social-login)
 - [Sign in with your own UI](#Sign-in-with-your-own-UI)
 - [Sign out](#Sign-out)
   - [Clear browser session](#Clear-browser-session)
@@ -57,7 +58,7 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:1.0.3'
+implementation 'com.okta.android:oidc-androidx:1.0.4'
 ```
 
 ### Sample app
@@ -253,6 +254,21 @@ public class PlainActivity extends Activity {
 }
 ```
 
+### Social login
+
+To use another identity provider such as [Google][IDP-Google] or [Facebook][IDP-Facebook], first [step up the identity provider in Okta][IDP]. Once your setup is complete you can sign in using the social login provider.
+
+```java
+AuthenticationPayload payload = new AuthenticationPayload.Builder()
+    .setIdp("appID_or_clientID_of_your_idp")
+    .setIdpScope("scope_of_your_idp")
+    .build();
+
+client.signIn(this, payload);
+```
+
+Sign in will be redirected to the page of the specified IDP.
+
 ## Sign in with your own UI
 
 If you would like to use your own in-app user interface instead
@@ -324,6 +340,42 @@ Tokens can be removed from the device by simply calling:
 
 After this the user is signed out.
 
+#### Sign out wrapper
+
+You can also call `signOut()` which wraps all these steps in one call.
+
+```java
+ authClient.signOut(this, new RequestCallback<Integer, AuthorizationException>() {
+    @Override
+    public void onSuccess(@NonNull Integer result) {
+        if (result == SUCCESS) {
+            //signed out
+        }
+        if ((result & FAILED_CLEAR_SESSION) == FAILED_CLEAR_SESSION) {
+            //session not cleared
+        }
+        if ((result & FAILED_REVOKE_ACCESS_TOKEN) == FAILED_REVOKE_ACCESS_TOKEN) {
+            //access token revocation failed.
+        }
+        if ((result & FAILED_REVOKE_REFRESH_TOKEN) == FAILED_REVOKE_REFRESH_TOKEN) {
+            //refresh token revocation failed.
+        }
+        if ((result & FAILED_CLEAR_DATA) == FAILED_CLEAR_DATA) {
+            //failed to remove data.
+        }
+    }
+
+    @Override
+    public void onError(@Nullable String msg, @Nullable AuthorizationException exception) {
+        //NO-OP
+    }
+});
+```
+
+If any step fails, it will still process to the next step. It is recommended to do these steps individually to give your application more control of the sign out process.
+
+**Note** `signOut()` does not save the application state so if the activity is destroyed during these steps you should call it again to start the sign out process over.
+
 ## Using the Tokens
 
 Once the user is authorized you can use the client object to call the OIDC endpoints, in order to access this API you need to get a `sessionClient`
@@ -354,27 +406,32 @@ In `onSuccess` the userinfo returned is a `UserInfo` with the [response properti
 
 ### Performing authorized requests
 
-In addition to the built in endpoints, you can use the client interface to perform your own authorized requests, whatever they might be. You can call `authorizedRequest` requests and have the access token automatically added to the `Authorization` header with the standard OAuth 2.0 prefix of `Bearer`.
+Authorized request to your own server endpoints will need to add the `Authorization` header with the `access token`, prefixed by the standard OAuth 2.0 of `Bearer`.
+If you are using Android's standard `HttpURLConnection` you can set the headers like the following:
 
 ```java
-final Uri uri;
-Map<String, String> properties = new HashMap<>();
-properties.put("queryparam", "queryparam");
-Map<String, String> postParameters = new HashMap<>();
-postParameters.put("postparam", "postparam");
+try {
+    Tokens token = client.getSessionClient.getTokens();
+    URL url = new URL("yourCustomUrl");
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Authorization", "Bearer " + token.getAccessToken());
+} catch (AuthorizationException e) {
+    //handle error
+}
+```
 
-client.getSessionClient().authorizedRequest(uri, properties,
-                postParameters, ConnectionParameters.RequestMethod.POST, new RequestCallback<JSONObject, AuthorizationException>() {
-    @Override
-    public void onSuccess(@NonNull JSONObject result) {
-        //handle JSONObject result.
-    }
+If you are using `OkHttp` you can set the headers in the `Request` like the following:
 
-    @Override
-    public void onError(String error, AuthorizationException exception) {
-        //handle failed request
-    }
-});
+```java
+try {
+    Tokens token = client.getSessionClient.getTokens();
+    Request request = new Request.Builder()
+        .url("yourCustomUrl")
+        .addHeader("Authorization", "Bearer " + token.getAccessToken())
+        .build();
+} catch (AuthorizationException e) {
+    //handle error
+}
 ```
 
 ### Refresh a Token
@@ -792,3 +849,6 @@ if (true) { //provide option to login using different clients.
 [on-activity-result]: https://developer.android.com/reference/android/app/Activity.html#onActivityResult(int,%20int,%20android.content.Intent)
 [session-token]: https://developer.okta.com/docs/reference/api/sessions/#session-token
 [chrome-custom-tabs]: https://developer.chrome.com/multidevice/android/customtabs
+[IDP]: https://developer.okta.com/docs/concepts/social-login/#features
+[IDP-Google]: https://developer.okta.com/docs/guides/add-an-external-idp/google/before-you-begin/
+[IDP-Facebook]: https://developer.okta.com/docs/guides/add-an-external-idp/facebook/before-you-begin/
