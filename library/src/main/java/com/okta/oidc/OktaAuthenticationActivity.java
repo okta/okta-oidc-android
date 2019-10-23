@@ -43,6 +43,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.M;
 import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
 import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
 
@@ -170,7 +172,8 @@ public class OktaAuthenticationActivity extends Activity {
     protected String getBrowser() {
         PackageManager pm = getPackageManager();
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
-        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, 0);
+        int flag = SDK_INT >= M ? PackageManager.MATCH_ALL : 0;
+        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, flag);
         List<String> customTabsBrowsers = new ArrayList<>();
         for (ResolveInfo info : resolveInfoList) {
             Intent serviceIntent = new Intent();
