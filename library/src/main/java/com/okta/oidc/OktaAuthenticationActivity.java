@@ -185,6 +185,10 @@ public class OktaAuthenticationActivity extends Activity {
                 return browser;
             }
         }
+        //Use first compatible browser on list.
+        if (!customTabsBrowsers.isEmpty()) {
+            return customTabsBrowsers.get(0);
+        }
         return null;
     }
 
