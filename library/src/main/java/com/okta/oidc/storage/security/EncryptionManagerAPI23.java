@@ -84,12 +84,14 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
                 // if this parameter set to not positive
                 // builder.setInvalidatedByBiometricEnrollment(mIsAuthenticateUserRequired);
             }
+            /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 // In Android P was introduced new way to persist keystore - StrongBox
                 // If device doesn't support StrongBox, it will use TEE implementation if present.
                 builder.setIsStrongBoxBacked(isStrongBoxBacked);
                 mIsStrongBoxBacked = isStrongBoxBacked;
             }
+            */
 
             if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
