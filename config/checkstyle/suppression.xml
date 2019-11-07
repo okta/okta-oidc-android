@@ -42,6 +42,7 @@
     <suppress checks="Javadoc" files="DefaultConnectionFactory\.java" />
     <suppress checks="Javadoc" files="HttpClientImpl\.java" />
     <suppress checks="Javadoc" files="AuthenticationResultHandler\.java" />
+    <suppress checks="Javadoc" files="BaseEncryptionManager\.java" />
 
     <!-- Suppress javadoc for packages-->
     <suppress checks="Javadoc" files="com[\\/]okta[\\/]oidc[\\/]net[\\/]request" />
