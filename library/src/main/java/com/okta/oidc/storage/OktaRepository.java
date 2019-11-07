@@ -17,12 +17,12 @@ package com.okta.oidc.storage;
 
 import android.content.Context;
 import android.os.Build;
-import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.storage.security.BaseEncryptionManager;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.security.GeneralSecurityException;
@@ -80,7 +80,7 @@ public class OktaRepository {
                     try {
                         encryptedData = getEncrypted(persistable.persist());
                         storage.save(getHashed(persistable.getKey()), encryptedData);
-                    } catch (UserNotAuthenticatedException e) {
+                    } catch (BaseEncryptionManager.OktaUserNotAuthenticateException e) {
                         String error = "Failed during encrypt data: " + e.getMessage();
                         throw new EncryptionException(ENCRYPT_ERROR, error, e.getCause());
                     } catch (IllegalBlockSizeException e) {
@@ -130,7 +130,7 @@ public class OktaRepository {
                 if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     try {
                         data = getDecrypted(data);
-                    } catch (UserNotAuthenticatedException e) {
+                    } catch (BaseEncryptionManager.OktaUserNotAuthenticateException e) {
                         String error = "User not authenticated and try to decrypt data: " +
                                 e.getMessage();
                         throw new EncryptionException(KEYGUARD_AUTHENTICATION_ERROR, error,
