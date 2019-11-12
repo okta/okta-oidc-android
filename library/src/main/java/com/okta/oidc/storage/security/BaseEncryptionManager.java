@@ -15,7 +15,6 @@
 
 package com.okta.oidc.storage.security;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.StrongBoxUnavailableException;
@@ -23,6 +22,7 @@ import android.security.keystore.UserNotAuthenticatedException;
 import android.util.Base64;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -47,7 +47,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
 
-abstract class BaseEncryptionManager implements EncryptionManager {
+@RestrictTo(RestrictTo.Scope.LIBRARY)
+public abstract class BaseEncryptionManager implements EncryptionManager {
     private static final String TAG = BaseEncryptionManager.class.getSimpleName();
     private static final String DEFAULT_CHARSET = "UTF-8";
     private static final int MS_TO_SECOND = 1000;
@@ -352,8 +353,7 @@ abstract class BaseEncryptionManager implements EncryptionManager {
         return (System.currentTimeMillis() - initCipherStart) / MS_TO_SECOND;
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    public static class OktaUserNotAuthenticateException extends UserNotAuthenticatedException {
+    public static class OktaUserNotAuthenticateException extends InvalidKeyException {
         OktaUserNotAuthenticateException(String message, Throwable cause) {
             super(message, cause);
         }
