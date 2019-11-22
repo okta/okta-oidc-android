@@ -168,7 +168,7 @@ Use this JSON file to create a `configuration`:
 
 ```java
 OIDCConfig config = new OIDCConfig.Builder()
-    .withJsonFile(this, R.id.okta_oidc_config)
+    .withJsonFile(this, R.raw.okta_oidc_config)
     .create();
 ```
 
@@ -818,12 +818,12 @@ Multiple `AuthClient` are supported. However for `WebAuthClient` only one callba
 
 ```java
 OIDCConfig configFirstApp = new OIDCConfig.Builder()
-    .withJsonFile(this, R.id.okta_oidc_config_first)
+    .withJsonFile(this, R.raw.okta_oidc_config_first)
     .create();
 
 //config file with different domain, client_id than config_first but same redirect_uri
 OIDCConfig configSecondApp = new OIDCConfig.Builder()
-    .withJsonFile(this, R.id.okta_oidc_config_second)
+    .withJsonFile(this, R.raw.okta_oidc_config_second)
     .create();
 
 WebAuthClient webAuthFirstApp = new Okta.WebAuthBuilder()
