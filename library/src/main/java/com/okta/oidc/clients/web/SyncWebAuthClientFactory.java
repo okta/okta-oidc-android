@@ -17,9 +17,9 @@ package com.okta.oidc.clients.web;
 
 import android.content.Context;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
+import com.okta.oidc.CustomTabOptions;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.OktaHttpClient;
@@ -27,13 +27,12 @@ import com.okta.oidc.storage.OktaStorage;
 import com.okta.oidc.storage.security.EncryptionManager;
 
 public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient> {
-    @ColorInt
-    private int mCustomTabColor;
+    private CustomTabOptions mCustomTabOptions;
     private String[] mSupportedBrowsers;
 
-    public SyncWebAuthClientFactory(@ColorInt int customTabColor,
+    public SyncWebAuthClientFactory(CustomTabOptions customTabOptions,
                                     @Nullable String... supportedBrowsers) {
-        mCustomTabColor = customTabColor;
+        mCustomTabOptions = customTabOptions;
         mSupportedBrowsers = supportedBrowsers;
     }
 
@@ -47,6 +46,6 @@ public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient
                                           boolean cacheMode) {
         return new SyncWebAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
                 httpClient, requireHardwareBackedKeyStore, cacheMode,
-                mCustomTabColor, mSupportedBrowsers);
+                mCustomTabOptions, mSupportedBrowsers);
     }
 }

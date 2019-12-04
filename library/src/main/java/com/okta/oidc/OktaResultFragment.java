@@ -38,12 +38,12 @@ public class OktaResultFragment extends Fragment {
     private Intent logoutIntent;
 
     public static void addLoginFragment(WebRequest request,
-                                        int customColor,
+                                        CustomTabOptions customTabOptions,
                                         FragmentActivity activity,
                                         String[] browsers) {
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.authIntent = createAuthIntent(activity, request.toUri(),
-                customColor, browsers);
+                customTabOptions, browsers);
 
         activity.getSupportFragmentManager()
                 .beginTransaction()
@@ -52,11 +52,11 @@ public class OktaResultFragment extends Fragment {
     }
 
     public static void addLogoutFragment(WebRequest request,
-                                         int customColor,
+                                         CustomTabOptions customTabOptions,
                                          FragmentActivity activity,
                                          String[] browsers) {
         OktaResultFragment fragment = new OktaResultFragment();
-        fragment.logoutIntent = createAuthIntent(activity, request.toUri(), customColor,
+        fragment.logoutIntent = createAuthIntent(activity, request.toUri(), customTabOptions,
                 browsers);
         activity.getSupportFragmentManager()
                 .beginTransaction()
@@ -92,12 +92,13 @@ public class OktaResultFragment extends Fragment {
                 .findFragmentByTag(AUTHENTICATION_REQUEST);
     }
 
-    public static Intent createAuthIntent(Activity activity, Uri request, int customColor,
+    public static Intent createAuthIntent(Activity activity, Uri request,
+                                          CustomTabOptions customTabOptions,
                                           String[] browsers) {
         Intent intent = new Intent(activity, OktaAuthenticationActivity.class);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_BROWSERS, browsers);
         intent.putExtra(OktaAuthenticationActivity.EXTRA_AUTH_URI, request);
-        intent.putExtra(OktaAuthenticationActivity.EXTRA_TAB_OPTIONS, customColor);
+        intent.putExtra(OktaAuthenticationActivity.EXTRA_TAB_OPTIONS, customTabOptions);
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         return intent;
     }

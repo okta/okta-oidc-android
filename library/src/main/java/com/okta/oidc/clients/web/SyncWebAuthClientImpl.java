@@ -37,6 +37,7 @@ import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthenticationResultHandler;
 import com.okta.oidc.AuthenticationResultHandler.AuthResultListener;
 import com.okta.oidc.AuthenticationResultHandler.StateResult;
+import com.okta.oidc.CustomTabOptions;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.OktaRedirectActivity;
 import com.okta.oidc.clients.AuthAPI;
@@ -81,7 +82,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private static final String TAG = SyncWebAuthClientImpl.class.getSimpleName();
 
     private String[] mSupportedBrowsers;
-    private int mCustomTabColor;
+    private CustomTabOptions mCustomTabOptions;
     private SyncSessionClient mSessionClient;
     private AuthenticationResultHandler mHandler;
 
@@ -92,12 +93,12 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                           OktaHttpClient httpClient,
                           boolean requireHardwareBackedKeyStore,
                           boolean cacheMode,
-                          int customTabColor,
+                          CustomTabOptions customTabOptions,
                           String... supportedBrowsers) {
         super(oidcConfig, context, oktaStorage, encryptionManager, requireHardwareBackedKeyStore,
                 cacheMode);
         mSupportedBrowsers = supportedBrowsers;
-        mCustomTabColor = customTabColor;
+        mCustomTabOptions = customTabOptions;
         mHttpClient = httpClient;
         mSessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, mOktaState, mHttpClient);
@@ -183,10 +184,10 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
 
         if (activity instanceof FragmentActivity) {
-            addLoginFragment(request, mCustomTabColor, (FragmentActivity) activity,
+            addLoginFragment(request, mCustomTabOptions, (FragmentActivity) activity,
                     mSupportedBrowsers);
         } else {
-            Intent intent = createAuthIntent(activity, request.toUri(), mCustomTabColor,
+            Intent intent = createAuthIntent(activity, request.toUri(), mCustomTabOptions,
                     mSupportedBrowsers);
             activity.startActivityForResult(intent, REQUEST_CODE_SIGN_IN);
         }
@@ -313,11 +314,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
         if (activity instanceof FragmentActivity) {
-            addLogoutFragment(request, mCustomTabColor, (FragmentActivity) activity,
+            addLogoutFragment(request, mCustomTabOptions, (FragmentActivity) activity,
                     mSupportedBrowsers);
         } else {
             Intent intent = createAuthIntent(activity, request.toUri(),
-                    mCustomTabColor, mSupportedBrowsers);
+                    mCustomTabOptions, mSupportedBrowsers);
             activity.startActivityForResult(intent, REQUEST_CODE_SIGN_OUT);
         }
         mHandler.setAuthenticationListener((result, type) -> {

@@ -17,10 +17,10 @@ package com.okta.oidc.clients.web;
 
 import android.content.Context;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import com.okta.oidc.CustomTabOptions;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.clients.ClientFactory;
 import com.okta.oidc.net.OktaHttpClient;
@@ -32,15 +32,14 @@ import java.util.concurrent.Executor;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
     private Executor mCallbackExecutor;
-    @ColorInt
-    private int mCustomTabColor;
+    private CustomTabOptions mCustomTabOptions;
     private String[] mSupportedBrowser;
 
     public WebAuthClientFactory(@Nullable Executor callbackExecutor,
-                                @ColorInt int customTabColor,
+                                CustomTabOptions customTabOptions,
                                 @Nullable String... supportedBrowser) {
         mCallbackExecutor = callbackExecutor;
-        mCustomTabColor = customTabColor;
+        mCustomTabOptions = customTabOptions;
         mSupportedBrowser = supportedBrowser;
     }
 
@@ -54,6 +53,6 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       boolean cacheMode) {
         return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
                 encryptionManager, httpClient, requireHardwareBackedKeyStore, cacheMode,
-                mCustomTabColor, mSupportedBrowser);
+                mCustomTabOptions, mSupportedBrowser);
     }
 }

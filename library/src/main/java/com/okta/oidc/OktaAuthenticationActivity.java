@@ -92,11 +92,12 @@ public class OktaAuthenticationActivity extends Activity {
     @VisibleForTesting
     protected boolean mAuthStarted = false;
     private Uri mAuthUri;
+
     /**
-     * The M custom tab color.
+     * The custom tab options.
      */
     @VisibleForTesting
-    protected int mCustomTabColor;
+    protected CustomTabOptions mCustomTabOptions;
     private boolean mResultSent = false;
 
     @Override
@@ -111,7 +112,7 @@ public class OktaAuthenticationActivity extends Activity {
 
         if (bundle != null) {
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
-            mCustomTabColor = bundle.getInt(EXTRA_TAB_OPTIONS, -1);
+            mCustomTabOptions = bundle.getParcelable(EXTRA_TAB_OPTIONS);
             mAuthStarted = bundle.getBoolean(EXTRA_AUTH_STARTED, false);
             if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
                 //login encountered exception pass same intent back to activity to handle.
@@ -131,7 +132,7 @@ public class OktaAuthenticationActivity extends Activity {
         super.onSaveInstanceState(outState);
         outState.putBoolean(EXTRA_AUTH_STARTED, mAuthStarted);
         outState.putParcelable(EXTRA_AUTH_URI, mAuthUri);
-        outState.putInt(EXTRA_TAB_OPTIONS, mCustomTabColor);
+        outState.putParcelable(EXTRA_TAB_OPTIONS, mCustomTabOptions);
     }
 
     @Override
@@ -202,8 +203,21 @@ public class OktaAuthenticationActivity extends Activity {
     @VisibleForTesting
     protected Intent createBrowserIntent(String packageName, CustomTabsSession session) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
-        if (mCustomTabColor > 0) {
-            intentBuilder.setToolbarColor(mCustomTabColor);
+        if (mCustomTabOptions != null) {
+            if (mCustomTabOptions.getCustomTabColor() != 0) {
+                intentBuilder.setToolbarColor(mCustomTabOptions.getCustomTabColor());
+            }
+            if (mCustomTabOptions.getStartExitResId() != 0 &&
+                    mCustomTabOptions.getStartEnterResId() != 0) {
+                intentBuilder.setStartAnimations(this,
+                        mCustomTabOptions.getStartEnterResId(),
+                        mCustomTabOptions.getStartExitResId());
+            }
+            if (mCustomTabOptions.getEndEnterResId() != 0 &&
+                    mCustomTabOptions.getEndExitResId() != 0) {
+                intentBuilder.setExitAnimations(this, mCustomTabOptions.getEndEnterResId(),
+                        mCustomTabOptions.getEndExitResId());
+            }
         }
         CustomTabsIntent tabsIntent = intentBuilder.build();
         tabsIntent.intent.setPackage(packageName);

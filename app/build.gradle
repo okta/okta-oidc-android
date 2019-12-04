@@ -56,7 +56,7 @@ dependencies {
     implementation 'androidx.security:security-crypto:' + rootProject.securityVersion
 
     implementation "com.google.android.material:material:1.0.0"
-    implementation 'androidx.biometric:biometric:1.0.0-beta02'
+    implementation 'androidx.biometric:biometric:1.0.0'
     implementation 'com.okta.authn.sdk:okta-authn-sdk-api:1.0.0'
     implementation('com.okta.authn.sdk:okta-authn-sdk-impl:1.0.0') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'

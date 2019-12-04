@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.CustomTabOptions;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.RequestCallback;
 import com.okta.oidc.RequestDispatcher;
@@ -57,9 +58,9 @@ class WebAuthClientImpl implements WebAuthClient {
                       OktaHttpClient httpClient,
                       boolean requireHardwareBackedKeyStore,
                       boolean cacheMode,
-                      int customTabColor,
+                      CustomTabOptions customTabOptions,
                       String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabColor, supportedBrowsers)
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabOptions, supportedBrowsers)
                 .createClient(oidcConfig, context, oktaStorage, encryptionManager,
                         httpClient, requireHardwareBackedKeyStore, cacheMode);
         mSessionImpl = new SessionClientFactoryImpl(executor)

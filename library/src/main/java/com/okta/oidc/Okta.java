@@ -15,6 +15,7 @@
 
 package com.okta.oidc;
 
+import androidx.annotation.AnimRes;
 import androidx.annotation.ColorInt;
 
 import com.okta.oidc.clients.AuthClient;
@@ -40,7 +41,7 @@ public class Okta {
      */
     public static class WebAuthBuilder extends OktaBuilder<WebAuthClient, WebAuthBuilder> {
         private Executor mCallbackExecutor;
-        private int mCustomTabColor;
+        private CustomTabOptions customTabOptions = new CustomTabOptions();
         private String[] mSupportedBrowsers;
 
         /**
@@ -62,7 +63,33 @@ public class Okta {
          * @return current builder
          */
         public WebAuthBuilder withTabColor(@ColorInt int customTabColor) {
-            mCustomTabColor = customTabColor;
+            customTabOptions.setCustomTabColor(customTabColor);
+            return this;
+        }
+
+        /**
+         * Sets entrance animations when transitioning to chrome custom tab.
+         *
+         * @param enterResId Resource ID of the "enter" animation for the browser.
+         * @param exitResId  Resource ID of the "exit" animation for the application.
+         * @return current builder
+         */
+        public WebAuthBuilder withStartAnimation(@AnimRes int enterResId, @AnimRes int exitResId) {
+            customTabOptions.setStartEnterResId(enterResId);
+            customTabOptions.setStartExitResId(exitResId);
+            return this;
+        }
+
+        /**
+         * Sets exit animations when transitioning out of chrome custom tab.
+         *
+         * @param enterResId Resource ID of the "enter" animation for the application.
+         * @param exitResId  Resource ID of the "exit" animation for the browser.
+         * @return current builder
+         */
+        public WebAuthBuilder withExitAnimation(@AnimRes int enterResId, @AnimRes int exitResId) {
+            customTabOptions.setEndEnterResId(enterResId);
+            customTabOptions.setEndExitResId(exitResId);
             return this;
         }
 
@@ -91,7 +118,7 @@ public class Okta {
         @Override
         public WebAuthClient create() {
             super.withAuthenticationClientFactory(new WebAuthClientFactory(mCallbackExecutor,
-                    mCustomTabColor, mSupportedBrowsers));
+                    customTabOptions, mSupportedBrowsers));
             return createAuthClient();
         }
     }
@@ -101,7 +128,7 @@ public class Okta {
      */
     public static class SyncWebAuthBuilder extends
             OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
-        private int mCustomTabColor;
+        private CustomTabOptions customTabOptions = new CustomTabOptions();
         private String[] mSupportedBrowsers;
 
         /**
@@ -111,7 +138,35 @@ public class Okta {
          * @return current builder
          */
         public SyncWebAuthBuilder withTabColor(@ColorInt int customTabColor) {
-            mCustomTabColor = customTabColor;
+            customTabOptions.setCustomTabColor(customTabColor);
+            return this;
+        }
+
+        /**
+         * Sets entrance animations when transitioning to chrome custom tab.
+         *
+         * @param enterResId Resource ID of the "enter" animation for the browser.
+         * @param exitResId  Resource ID of the "exit" animation for the application.
+         * @return current builder
+         */
+        public SyncWebAuthBuilder withStartAnimation(@AnimRes int enterResId,
+                                                     @AnimRes int exitResId) {
+            customTabOptions.setStartEnterResId(enterResId);
+            customTabOptions.setStartExitResId(exitResId);
+            return this;
+        }
+
+        /**
+         * Sets exit animations when transitioning out of chrome custom tab.
+         *
+         * @param enterResId Resource ID of the "enter" animation for the application.
+         * @param exitResId  Resource ID of the "exit" animation for the browser.
+         * @return current builder
+         */
+        public SyncWebAuthBuilder withExitAnimation(@AnimRes int enterResId,
+                                                    @AnimRes int exitResId) {
+            customTabOptions.setEndEnterResId(enterResId);
+            customTabOptions.setEndExitResId(exitResId);
             return this;
         }
 
@@ -140,7 +195,7 @@ public class Okta {
         @Override
         public SyncWebAuthClient create() {
             super.withAuthenticationClientFactory(
-                    new SyncWebAuthClientFactory(mCustomTabColor, mSupportedBrowsers));
+                    new SyncWebAuthClientFactory(customTabOptions, mSupportedBrowsers));
             return createAuthClient();
         }
     }

@@ -72,7 +72,14 @@ public class OktaAuthClientActivityTest {
         mAuthorizeSuccessWithExtras = new Intent(mContext, OktaAuthenticationActivityMock.class);
         mAuthorizeSuccessWithExtras.putExtra(EXTRA_AUTH_URI, Uri.parse(CUSTOM_URL));
         mAuthorizeSuccessWithExtras.putExtra(EXTRA_BROWSERS, new String[]{FIRE_FOX});
-        mAuthorizeSuccessWithExtras.putExtra(EXTRA_TAB_OPTIONS, 100);
+        CustomTabOptions customTabOptions = new CustomTabOptions();
+        customTabOptions.setCustomTabColor(100);
+        customTabOptions.setStartEnterResId(200);
+        customTabOptions.setStartExitResId(201);
+        customTabOptions.setEndEnterResId(202);
+        customTabOptions.setEndExitResId(203);
+
+        mAuthorizeSuccessWithExtras.putExtra(EXTRA_TAB_OPTIONS, customTabOptions);
 
         mAuthorizeWithException = new Intent(mContext, OktaAuthenticationActivityMock.class);
         mAuthorizeWithException.putExtra(EXTRA_EXCEPTION,
@@ -107,7 +114,11 @@ public class OktaAuthClientActivityTest {
                 .hasData(Uri.parse(CUSTOM_URL));
 
         assertTrue(mActivityController.get().mSupportedBrowsers.contains(FIRE_FOX));
-        assertEquals(mActivityController.get().mCustomTabColor, 100);
+        assertEquals(mActivityController.get().mCustomTabOptions.getCustomTabColor(), 100);
+        assertEquals(mActivityController.get().mCustomTabOptions.getStartEnterResId(), 200);
+        assertEquals(mActivityController.get().mCustomTabOptions.getStartExitResId(), 201);
+        assertEquals(mActivityController.get().mCustomTabOptions.getEndEnterResId(), 202);
+        assertEquals(mActivityController.get().mCustomTabOptions.getEndExitResId(), 203);
 
         Intent intent = new Intent(mContext, OktaAuthenticationActivityMock.class);
         intent.setAction(REDIRECT_ACTION);
