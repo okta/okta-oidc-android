@@ -53,6 +53,7 @@ public class OktaResultFragmentTest {
     private OIDCConfig mConfig;
     private ProviderConfiguration mProviderConfig;
     private FragmentActivity mActivity;
+    private CustomTabOptions mCustomTabOptions = new CustomTabOptions();
 
     @Mock
     AuthenticationResultHandler.AuthResultListener listener;
@@ -80,7 +81,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseLoginSuccess() throws AuthorizationException {
-        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.setData(Uri.parse("com.okta.test:/authorize?state=" + CUSTOM_STATE));
@@ -98,7 +99,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseLoginFailed() throws AuthorizationException {
-        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.setData(Uri.parse("com.okta.test:/authorize?error=" + ERROR));
@@ -117,7 +118,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseLogoutSuccess() throws AuthorizationException {
-        OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.setData(Uri.parse("com.okta.test:/logout?state=" + CUSTOM_STATE));
@@ -135,7 +136,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseLogoutFailed() throws AuthorizationException {
-        OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.setData(Uri.parse("com.okta.test:/logout?error=" + ERROR));
@@ -154,7 +155,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseWithEmptyIntent() throws AuthorizationException {
-        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.putExtra("RANDOM_KEY", "RANDOM_VALUE");
@@ -174,7 +175,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseWithInvalidJsonErrorInIntent() throws AuthorizationException {
-        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.putExtra(EXTRA_EXCEPTION, "RANDOM_VALUE");
@@ -193,7 +194,7 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseWithValidJsonErrorInIntent() throws AuthorizationException {
-        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), 0, mActivity, new String[]{});
+        OktaResultFragment.addLoginFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
         intent.putExtra(EXTRA_EXCEPTION, TestValues.getAuthorizationExceptionError());

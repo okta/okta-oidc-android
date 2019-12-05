@@ -425,6 +425,8 @@ public class PlainActivity extends Activity {
                 .withEncryptionManager(mCurrentEncryptionManager)
                 .setRequireHardwareBackedKeyStore(!isEmulator)
                 .withTabColor(0)
+                .withStartAnimation(R.anim.pull_in_bottom, R.anim.push_out_right)
+                .withExitAnimation(R.anim.push_out_bottom, R.anim.pull_in_bottom)
                 .withOktaHttpClient(factory.build())
                 .supportedBrowsers(FIRE_FOX)
                 .create();

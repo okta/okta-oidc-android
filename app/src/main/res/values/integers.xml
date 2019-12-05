@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="screen_transition_duration">300</integer>
+    <integer name="screen_transition_duration_long">1000</integer>
+    <integer name="screen_transition_duration_short">500</integer>
+</resources>
