@@ -212,6 +212,8 @@ public class OktaAuthenticationActivity extends Activity {
                 intentBuilder.setStartAnimations(this,
                         mCustomTabOptions.getStartEnterResId(),
                         mCustomTabOptions.getStartExitResId());
+                overridePendingTransition(mCustomTabOptions.getStartEnterResId(),
+                        mCustomTabOptions.getStartExitResId());
             }
             if (mCustomTabOptions.getEndEnterResId() != 0 &&
                     mCustomTabOptions.getEndExitResId() != 0) {
