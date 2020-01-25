@@ -63,7 +63,7 @@ dependencies {
     implementation "com.google.code.gson:gson:${rootProject.gsonVersion}"
     implementation "androidx.browser:browser:${rootProject.browserVersion}"
     implementation "androidx.fragment:fragment:${rootProject.androidxLibVersion}"
-    implementation "androidx.core:core:${rootProject.androidxLibVersion}"
+    implementation "androidx.core:core:${rootProject.appcompatVersion}"
     testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
     testImplementation "io.jsonwebtoken:jjwt-jackson:${rootProject.jsonWebTokenVersion}"
     testImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
