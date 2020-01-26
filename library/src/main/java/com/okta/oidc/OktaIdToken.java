@@ -304,27 +304,28 @@ public class OktaIdToken {
                     new IllegalStateException("JWT Header 'alg' of [" + mHeader.alg + "] " +
                             "is not supported, only RSA256 signatures are supported"));
         }
+        if (providerConfig.issuer != null) {
+            if (!mClaims.iss.equals(providerConfig.issuer)) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        new IllegalStateException("Issuer mismatch"));
+            }
 
-        if (!mClaims.iss.equals(providerConfig.issuer)) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("Issuer mismatch"));
-        }
+            Uri issuerUri = Uri.parse(mClaims.iss);
+            if (!issuerUri.getScheme().equals("https")) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        new IllegalStateException("Issuer must be an https URL"));
+            }
 
-        Uri issuerUri = Uri.parse(mClaims.iss);
-        if (!issuerUri.getScheme().equals("https")) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("Issuer must be an https URL"));
-        }
+            if (TextUtils.isEmpty(issuerUri.getHost())) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        new IllegalStateException("Issuer host can not be empty"));
+            }
 
-        if (TextUtils.isEmpty(issuerUri.getHost())) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("Issuer host can not be empty"));
-        }
-
-        if (issuerUri.getFragment() != null || issuerUri.getQueryParameterNames().size() > 0) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException(
-                            "Issuer URL contains query parameters or fragment components"));
+            if (issuerUri.getFragment() != null || issuerUri.getQueryParameterNames().size() > 0) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        new IllegalStateException(
+                                "Issuer URL contains query parameters or fragment components"));
+            }
         }
 
         String clientId = config.getClientId();

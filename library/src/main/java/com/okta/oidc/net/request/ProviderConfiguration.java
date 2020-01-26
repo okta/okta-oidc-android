@@ -23,6 +23,7 @@ import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
+import com.okta.oidc.CustomConfiguration;
 import com.okta.oidc.storage.Persistable;
 
 /**
@@ -83,6 +84,17 @@ public class ProviderConfiguration implements Persistable {
     @VisibleForTesting
     public ProviderConfiguration() {
         //NO-OP
+    }
+
+    public ProviderConfiguration(CustomConfiguration config) {
+        authorization_endpoint = config.getAuthorizationEndpoint();
+        token_endpoint = config.getTokenEndpoint();
+        userinfo_endpoint = config.getUserInfoEndpoint();
+        jwks_uri = config.getJwksUri();
+        registration_endpoint = config.getRegistrationEndpoint();
+        introspection_endpoint = config.getIntrospectionEndpoint();
+        revocation_endpoint = config.getRevocationEndpoint();
+        end_session_endpoint = config.getEndSessionEndpoint();
     }
 
     void validate(boolean isOAuth2) throws IllegalArgumentException {

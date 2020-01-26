@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import com.okta.oidc.AuthenticationPayload;
+import com.okta.oidc.CustomConfiguration;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.IntrospectRequest;
@@ -47,7 +48,7 @@ import io.jsonwebtoken.security.Keys;
 
 public class TestValues {
     public static final String CUSTOM_URL = "https://com.okta.test/";
-    public static final String CUSTOM_OAUTH2_URL = "https://com.okta.test/oauth2/default/";
+    public static final String CUSTOM_OAUTH2_URL = "https://com.okta.test/oauth2/default/.well-known/oauth-authorization-server";
     public static final String WELL_KNOWN_OAUTH = ".well-known/oauth-authorization-server";
     public static final String WELL_KNOWN_OIDC = ".well-known/openid-configuration";
 
@@ -120,6 +121,19 @@ public class TestValues {
         configuration.end_session_endpoint = url + END_SESSION_ENDPOINT;
         configuration.userinfo_endpoint = url + USERINFO_ENDPOINT;
         return configuration;
+    }
+
+    public static CustomConfiguration getCustomConfiguration(String url) {
+        return new CustomConfiguration.Builder()
+                .authorizationEndpoint(url + AUTHORIZATION_ENDPOINT)
+                .endSessionEndpoint(url + END_SESSION_ENDPOINT)
+                .introspectionEndpoint(url + INTROSPECT_ENDPOINT)
+                .jwksUri(url + JWKS_ENDPOINT)
+                .registrationEndpoint(url + REGISTRATION_ENDPOINT)
+                .tokenEndpoint(url + TOKEN_ENDPOINT)
+                .userInfoEndpoint(url + USERINFO_ENDPOINT)
+                .revocationEndpoint(url + REVOCATION_ENDPOINT)
+                .create();
     }
 
     public static ProviderConfiguration getOAuth2ProviderConfiguration(String url) {

@@ -21,6 +21,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RawRes;
 
 import com.google.gson.Gson;
@@ -68,14 +69,16 @@ import static com.okta.oidc.net.request.ProviderConfiguration.OPENID_CONFIGURATI
  */
 public class OIDCConfig {
     private static final String TAG = OIDCConfig.class.getSimpleName();
-    private static final String OAUTH2 = "oauth2";
     private AccountInfo mAccount;
     private boolean mIsOAuth2Configuration;
+    private CustomConfiguration mCustomConfiguration;
 
     private OIDCConfig(AccountInfo account) {
         mAccount = account;
-        mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2)
-                && !mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE);
+        if (mAccount.mDiscoveryUri != null) {
+            mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2_CONFIGURATION_RESOURCE)
+                    && !mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE);
+        }
     }
 
     /**
@@ -109,11 +112,16 @@ public class OIDCConfig {
 
     /**
      * Returns the discovery uri for the authorization server. It is formed by appending the
-     * well known location of the discovery document to the issuer.
+     * well known location of the discovery document to the issuer. Can be null if the authorization
+     * server does not provide a discovery end point.
      *
-     * @return The Uri where the discovery document can be found
+     * @return The Uri where the discovery document can be found or null if not provided.
      */
+    @Nullable
     public Uri getDiscoveryUri() {
+        if (mAccount.mDiscoveryUri == null) {
+            return null;
+        }
         if (mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE)
                 || mAccount.mDiscoveryUri.contains(OAUTH2_CONFIGURATION_RESOURCE)) {
             return Uri.parse(mAccount.mDiscoveryUri);
@@ -142,6 +150,16 @@ public class OIDCConfig {
         return mAccount.mScopes;
     }
 
+    /**
+     * Returns the custom configuration if set.
+     *
+     * @return custom configuration
+     */
+    @Nullable
+    public CustomConfiguration getCustomConfiguration() {
+        return mCustomConfiguration;
+    }
+
     private static class AccountInfo {
         @SerializedName("client_id")
         String mClientId;
@@ -157,7 +175,7 @@ public class OIDCConfig {
         AccountInfo() {
         }
 
-        void validate() {
+        void validate(boolean useCustomConfig) {
             if (TextUtils.isEmpty(mClientId)) {
                 throw new IllegalStateException("No client id specified");
             }
@@ -167,7 +185,8 @@ public class OIDCConfig {
             if (TextUtils.isEmpty(mEndSessionRedirectUri)) {
                 throw new IllegalStateException("No end session specified");
             }
-            if (TextUtils.isEmpty(mDiscoveryUri)) {
+            if (!useCustomConfig && TextUtils.isEmpty(mDiscoveryUri)) {
+                //Check for other
                 throw new IllegalStateException("No discovery uri specified");
             }
             if (mScopes == null) {
@@ -187,6 +206,7 @@ public class OIDCConfig {
      */
     public static class Builder {
         private AccountInfo mAccountInfo;
+        private CustomConfiguration mCustomConfiguration;
 
         /**
          * Instantiates a new Builder.
@@ -201,8 +221,10 @@ public class OIDCConfig {
          * @return the config
          */
         public OIDCConfig create() {
-            mAccountInfo.validate();
-            return new OIDCConfig(mAccountInfo);
+            mAccountInfo.validate(mCustomConfiguration != null);
+            OIDCConfig config = new OIDCConfig(mAccountInfo);
+            config.mCustomConfiguration = mCustomConfiguration;
+            return config;
         }
 
         /**
@@ -261,6 +283,19 @@ public class OIDCConfig {
          */
         public Builder scopes(@NonNull String... scopes) {
             mAccountInfo.mScopes = scopes;
+            return this;
+        }
+
+        /**
+         * Optional custom configuration. This can be used if authorization provider does not
+         * provide a discovery endpoint. If discoveryUri is set this value will be ignored,
+         * Open ID provider configuration will be fetched using the discoveryUri.
+         *
+         * @param customConfiguration the custom configuration if no discoveryUri is provided.
+         * @return current builder
+         */
+        public Builder customConfiguration(@NonNull CustomConfiguration customConfiguration) {
+            mCustomConfiguration = customConfiguration;
             return this;
         }
 

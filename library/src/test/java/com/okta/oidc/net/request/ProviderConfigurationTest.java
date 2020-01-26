@@ -25,8 +25,17 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import static com.okta.oidc.util.TestValues.AUTHORIZATION_ENDPOINT;
 import static com.okta.oidc.util.TestValues.CUSTOM_OAUTH2_URL;
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
+import static com.okta.oidc.util.TestValues.END_SESSION_ENDPOINT;
+import static com.okta.oidc.util.TestValues.INTROSPECT_ENDPOINT;
+import static com.okta.oidc.util.TestValues.JWKS_ENDPOINT;
+import static com.okta.oidc.util.TestValues.REGISTRATION_ENDPOINT;
+import static com.okta.oidc.util.TestValues.REVOCATION_ENDPOINT;
+import static com.okta.oidc.util.TestValues.TOKEN_ENDPOINT;
+import static com.okta.oidc.util.TestValues.USERINFO_ENDPOINT;
+import static com.okta.oidc.util.TestValues.getCustomConfiguration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -78,5 +87,19 @@ public class ProviderConfigurationTest {
         other.validate(false);
         assertNotNull(other);
         assertEquals(other.persist(), json);
+    }
+
+    @Test
+    public void useCustomConfiguration() {
+        ProviderConfiguration config =
+                new ProviderConfiguration(getCustomConfiguration(CUSTOM_URL));
+        assertEquals(CUSTOM_URL + END_SESSION_ENDPOINT, config.end_session_endpoint);
+        assertEquals(CUSTOM_URL + AUTHORIZATION_ENDPOINT, config.authorization_endpoint);
+        assertEquals(CUSTOM_URL + REVOCATION_ENDPOINT, config.revocation_endpoint);
+        assertEquals(CUSTOM_URL + JWKS_ENDPOINT, config.jwks_uri);
+        assertEquals(CUSTOM_URL + INTROSPECT_ENDPOINT, config.introspection_endpoint);
+        assertEquals(CUSTOM_URL + TOKEN_ENDPOINT, config.token_endpoint);
+        assertEquals(CUSTOM_URL + USERINFO_ENDPOINT, config.userinfo_endpoint);
+        assertEquals(CUSTOM_URL + REGISTRATION_ENDPOINT, config.registration_endpoint);
     }
 }
