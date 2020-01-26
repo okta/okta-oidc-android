@@ -23,7 +23,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.RestrictTo;
 
 /**
- * Custom tab options for color and animation transitions.
+ * Custom tab options for browser. Color, animation, transitions, etc
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class CustomTabOptions implements Parcelable {
@@ -40,6 +40,8 @@ public class CustomTabOptions implements Parcelable {
     private int mEndEnterResId;
     @AnimRes
     private int mEndExitResId;
+
+    private int mBrowserMatchAllFlag;
 
     public int getCustomTabColor() {
         return mCustomTabColor;
@@ -81,6 +83,14 @@ public class CustomTabOptions implements Parcelable {
         mEndExitResId = endExitResId;
     }
 
+    public int getBrowserMatchAllFlag() {
+        return mBrowserMatchAllFlag;
+    }
+
+    public void setBrowserMatchAllFlag(int browserMatchAll) {
+        mBrowserMatchAllFlag = browserMatchAll;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -93,6 +103,7 @@ public class CustomTabOptions implements Parcelable {
         dest.writeInt(mStartExitResId);
         dest.writeInt(mEndEnterResId);
         dest.writeInt(mEndExitResId);
+        dest.writeInt(mBrowserMatchAllFlag);
     }
 
     public static final Parcelable.Creator<CustomTabOptions> CREATOR =
@@ -105,6 +116,7 @@ public class CustomTabOptions implements Parcelable {
                     options.setStartExitResId(source.readInt());
                     options.setEndEnterResId(source.readInt());
                     options.setEndExitResId(source.readInt());
+                    options.setBrowserMatchAllFlag(source.readInt());
                     return options;
                 }
 
