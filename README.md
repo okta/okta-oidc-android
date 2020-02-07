@@ -131,11 +131,11 @@ webClient.registerCallback(new ResultCallback<AuthorizationStatus, Authorization
 
 The `client` can now be used to authenticate users and authorize access.
 
-**Note**: `.well-known/openid-configuration` or `.well-known/oauth-authorization-server` will be appended to your `discoveryUri` if it is missing.
+**Note**: `.well-known/openid-configuration` will be appended to your `discoveryUri` if it is missing.
 
-- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}` then `.well-known/oauth-authorization-server` is added.
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}` then `.well-known/openid-configuration` is added.
 - `discoveryUri` is: `https://{yourOktaDomain}` then `.well-known/openid-configuration` is added.
-- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/default` then `.well-known/oauth-authorization-server` is added.
+- `discoveryUri` is: `https://{yourOktaDomain}/oauth2/default` then `.well-known/openid-configuration` is added.
 - `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/openid-configuration` nothing is added.
 - `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server` nothing is added.
 
@@ -169,6 +169,26 @@ Use this JSON file to create a `configuration`:
 ```java
 OIDCConfig config = new OIDCConfig.Builder()
     .withJsonFile(this, R.raw.okta_oidc_config)
+    .create();
+```
+## Configuration without discoveryUri
+
+It is recommended to use `discoveryUri` to retrieve your authorization providers configuration.
+But if your provider does not have a `discoveryUri` you can provide the URIs to the endpoints
+yourself like the following:
+
+```java
+CustomConfiguration config = new CustomConfiguration.Builder()
+    .tokenEndpoint("{yourTokenEndpoint}")
+    .authorizationEndpoint("{yourAuthorizeEndpoint}")
+    .create();
+        
+mOidcConfig = new OIDCConfig.Builder()
+    .clientId(BuildConfig.CLIENT_ID)
+    .redirectUri(BuildConfig.REDIRECT_URI)
+    .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
+    .scopes(BuildConfig.SCOPES)
+    .customConfiguration(config)
     .create();
 ```
 

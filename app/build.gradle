@@ -51,12 +51,12 @@ android {
 dependencies {
     implementation project(':library')
     implementation 'androidx.fragment:fragment:' + rootProject.androidxLibVersion
-    implementation 'androidx.annotation:annotation:' + rootProject.androidxLibVersion
-    implementation 'androidx.appcompat:appcompat:' + rootProject.androidxLibVersion
+    implementation 'androidx.annotation:annotation:' + rootProject.appcompatVersion
+    implementation 'androidx.appcompat:appcompat:' + rootProject.appcompatVersion
     implementation 'androidx.security:security-crypto:' + rootProject.securityVersion
 
     implementation "com.google.android.material:material:1.0.0"
-    implementation 'androidx.biometric:biometric:1.0.0'
+    implementation 'androidx.biometric:biometric:1.0.1'
     implementation 'com.okta.authn.sdk:okta-authn-sdk-api:1.0.0'
     implementation('com.okta.authn.sdk:okta-authn-sdk-impl:1.0.0') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
@@ -69,7 +69,7 @@ dependencies {
     // Assertions
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.ext:truth:1.2.0'
-    androidTestImplementation 'com.google.truth:truth:1.0'
+    androidTestImplementation 'com.google.truth:truth:1.0.1'
 
     // AndroidJUnitRunner and JUnit Rules
     androidTestImplementation 'androidx.test:runner:1.2.0'
@@ -86,7 +86,7 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion
     androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
 
-    androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.24.1'
+    androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.1'
 
     androidTestImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
     androidTestImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"

@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.okta.oidc.util.TestValues.WELL_KNOWN_OAUTH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -77,7 +78,8 @@ public class ConfigurationRequestTest {
         mClientFactory = new HttpClientFactory();
         mClientFactory.setClientType(mClientType);
         mHttpClient = mClientFactory.build();
-        OIDCConfig configOAuth2 = TestValues.getConfigWithUrl(url + "/oauth2/default/");
+        OIDCConfig configOAuth2 =
+                TestValues.getConfigWithUrl(url + "/oauth2/default/" + WELL_KNOWN_OAUTH);
         mRequestOAuth2 = HttpRequestBuilder.newConfigurationRequest()
                 .config(configOAuth2)
                 .createRequest();

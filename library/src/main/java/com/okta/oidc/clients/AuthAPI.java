@@ -16,6 +16,7 @@
 package com.okta.oidc.clients;
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -91,12 +92,17 @@ public class AuthAPI {
     protected ProviderConfiguration obtainNewConfiguration() throws AuthorizationException {
         try {
             ProviderConfiguration config = mOktaState.getProviderConfiguration();
-            if (config == null ||
-                    !mOidcConfig.getDiscoveryUri().toString().contains(config.issuer)) {
-                mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
-                ConfigurationRequest request = configurationRequest();
-                mCurrentRequest.set(new WeakReference<>(request));
-                config = request.executeRequest(mHttpClient);
+            Uri discoveryUri = mOidcConfig.getDiscoveryUri();
+            if (discoveryUri != null) {
+                if (config == null || !discoveryUri.toString().contains(config.issuer)) {
+                    mOktaState.setCurrentState(State.OBTAIN_CONFIGURATION);
+                    ConfigurationRequest request = configurationRequest();
+                    mCurrentRequest.set(new WeakReference<>(request));
+                    config = request.executeRequest(mHttpClient);
+                    mOktaState.save(config);
+                }
+            } else {
+                config = new ProviderConfiguration(mOidcConfig.getCustomConfiguration());
                 mOktaState.save(config);
             }
             return config;

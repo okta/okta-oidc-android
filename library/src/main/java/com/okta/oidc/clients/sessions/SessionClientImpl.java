@@ -55,6 +55,9 @@ class SessionClientImpl implements SessionClient {
                 mDispatcher.submitResults(() -> cb.onSuccess(userInfo));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            } catch (Exception ex) {
+                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                        new AuthorizationException(ex.getMessage(), ex)));
             }
         });
     }
@@ -70,6 +73,9 @@ class SessionClientImpl implements SessionClient {
                 mDispatcher.submitResults(() -> cb.onSuccess(introspectInfo));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            } catch (Exception ex) {
+                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                        new AuthorizationException(ex.getMessage(), ex)));
             }
         });
     }
@@ -84,6 +90,9 @@ class SessionClientImpl implements SessionClient {
                 mDispatcher.submitResults(() -> cb.onSuccess(isRevoke));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            } catch (Exception ex) {
+                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                        new AuthorizationException(ex.getMessage(), ex)));
             }
         });
     }
@@ -99,6 +108,9 @@ class SessionClientImpl implements SessionClient {
                 mDispatcher.submitResults(() -> cb.onSuccess(result));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            } catch (Exception ex) {
+                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                        new AuthorizationException(ex.getMessage(), ex)));
             }
         });
     }
@@ -122,6 +134,9 @@ class SessionClientImpl implements SessionClient {
                 mDispatcher.submitResults(() -> cb.onSuccess(result));
             } catch (AuthorizationException ae) {
                 mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+            } catch (Exception ex) {
+                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                        new AuthorizationException(ex.getMessage(), ex)));
             }
         });
     }

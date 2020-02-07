@@ -15,6 +15,9 @@
 
 package com.okta.oidc;
 
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 import androidx.annotation.AnimRes;
 import androidx.annotation.ColorInt;
 
@@ -105,6 +108,21 @@ public class Okta {
             return this;
         }
 
+        /**
+         * Sets the supported browsers query to use the MATCH_ALL intent flag.
+         *
+         * @param matchAll set true to use {@link android.content.pm.PackageManager#MATCH_ALL}
+         * @return current builder
+         */
+        public WebAuthBuilder browserMatchAll(boolean matchAll) {
+            int flag = 0;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && matchAll) {
+                flag = PackageManager.MATCH_ALL;
+            }
+            customTabOptions.setBrowserMatchAllFlag(flag);
+            return this;
+        }
+
         @Override
         protected WebAuthBuilder toThis() {
             return this;
@@ -179,6 +197,21 @@ public class Okta {
          */
         public SyncWebAuthBuilder supportedBrowsers(String... browsers) {
             mSupportedBrowsers = browsers;
+            return this;
+        }
+
+        /**
+         * Sets the supported browsers query to use the MATCH_ALL intent flag.
+         *
+         * @param matchAll set true to use {@link android.content.pm.PackageManager#MATCH_ALL}
+         * @return current builder
+         */
+        public SyncWebAuthBuilder browserMatchAll(boolean matchAll) {
+            int flag = 0;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && matchAll) {
+                flag = PackageManager.MATCH_ALL;
+            }
+            customTabOptions.setBrowserMatchAllFlag(flag);
             return this;
         }
 

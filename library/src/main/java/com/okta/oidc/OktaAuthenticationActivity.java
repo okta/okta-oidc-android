@@ -99,6 +99,7 @@ public class OktaAuthenticationActivity extends Activity {
     @VisibleForTesting
     protected CustomTabOptions mCustomTabOptions;
     private boolean mResultSent = false;
+    private int mMatchFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +114,9 @@ public class OktaAuthenticationActivity extends Activity {
         if (bundle != null) {
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
             mCustomTabOptions = bundle.getParcelable(EXTRA_TAB_OPTIONS);
+            if (mCustomTabOptions != null) {
+                mMatchFlag = mCustomTabOptions.getBrowserMatchAllFlag();
+            }
             mAuthStarted = bundle.getBoolean(EXTRA_AUTH_STARTED, false);
             if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
                 //login encountered exception pass same intent back to activity to handle.
@@ -171,7 +175,7 @@ public class OktaAuthenticationActivity extends Activity {
     protected String getBrowser() {
         PackageManager pm = getPackageManager();
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
-        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, 0);
+        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, mMatchFlag);
         List<String> customTabsBrowsers = new ArrayList<>();
         for (ResolveInfo info : resolveInfoList) {
             Intent serviceIntent = new Intent();

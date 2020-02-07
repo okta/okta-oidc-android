@@ -47,11 +47,19 @@ import static org.mockito.Mockito.when;
 public class OIDCConfigTest {
     private OIDCConfig mConfig;
     private OIDCConfig mConfigOAuth2;
+    private OIDCConfig mWithCustomConfig;
 
     @Before
     public void setUp() throws Exception {
         mConfig = TestValues.getConfigWithUrl(CUSTOM_URL);
         mConfigOAuth2 = TestValues.getConfigWithUrl(CUSTOM_OAUTH2_URL);
+        mWithCustomConfig = new OIDCConfig.Builder()
+                .clientId(CLIENT_ID)
+                .redirectUri(REDIRECT_URI)
+                .endSessionRedirectUri(END_SESSION_URI)
+                .scopes(SCOPES)
+                .customConfiguration(TestValues.getCustomConfiguration(CUSTOM_URL))
+                .create();
     }
 
     @Test
@@ -106,8 +114,7 @@ public class OIDCConfigTest {
     public void getDiscoveryUriOAuth2() {
         Uri uri = mConfigOAuth2.getDiscoveryUri();
         assertNotNull(uri);
-        assertEquals(uri, Uri.parse(CUSTOM_OAUTH2_URL +
-                ProviderConfiguration.OAUTH2_CONFIGURATION_RESOURCE));
+        assertEquals(uri, Uri.parse(CUSTOM_OAUTH2_URL));
         assertTrue(mConfigOAuth2.isOAuth2Configuration());
     }
 
@@ -116,6 +123,24 @@ public class OIDCConfigTest {
         String[] scopes = mConfig.getScopes();
         assertNotNull(scopes);
         assertArrayEquals(SCOPES, scopes);
+    }
+
+    @Test
+    public void customConfiguration() {
+        CustomConfiguration configuration = mWithCustomConfig.getCustomConfiguration();
+        assertNotNull(configuration);
+        assertEquals(TestValues.getCustomConfiguration(CUSTOM_URL).getAuthorizationEndpoint(),
+                configuration.getAuthorizationEndpoint());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void invalidConfiguration() {
+        new OIDCConfig.Builder()
+                .clientId(CLIENT_ID)
+                .redirectUri(REDIRECT_URI)
+                .endSessionRedirectUri(END_SESSION_URI)
+                .scopes(SCOPES)
+                .create();
     }
 
     @Test

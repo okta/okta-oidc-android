@@ -165,6 +165,8 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         } catch (JSONException ex) {
             throw AuthorizationException.fromTemplate(
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR, ex);
+        } catch (AuthorizationException ae) {
+            throw ae;
         } catch (Exception e) {
             throw AuthorizationException.fromTemplate(AuthorizationException
                     .GeneralErrors.NETWORK_ERROR, e);
