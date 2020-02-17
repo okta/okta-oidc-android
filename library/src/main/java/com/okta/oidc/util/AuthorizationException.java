@@ -20,7 +20,7 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import androidx.util.ArrayMap;
+import androidx.collection.ArrayMap;
 
 import com.okta.oidc.storage.OktaRepository.EncryptionException;
 
