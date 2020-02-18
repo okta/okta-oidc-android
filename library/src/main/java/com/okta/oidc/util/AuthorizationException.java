@@ -16,11 +16,11 @@ package com.okta.oidc.util;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.util.ArrayMap;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.collection.ArrayMap;
 
 import com.okta.oidc.storage.OktaRepository.EncryptionException;
 
