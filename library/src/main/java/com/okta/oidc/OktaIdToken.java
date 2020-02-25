@@ -90,7 +90,8 @@ public class OktaIdToken {
     String mSignature;
 
     private static final Long MILLIS_PER_SECOND = 1000L;
-    private static final Long TEN_MINUTES_IN_SECONDS = 600L;
+    private static final int SECONDS_IN_ONE_MINUTE = 60;
+    private static final Long TEN_MINUTES_IN_SECONDS = 10L * SECONDS_IN_ONE_MINUTE;
 
     /**
      * The address in the claims section.
@@ -301,62 +302,62 @@ public class OktaIdToken {
 
         if (!"RS256".equals(mHeader.alg)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("JWT Header 'alg' of [" + mHeader.alg + "] " +
-                            "is not supported, only RSA256 signatures are supported"));
+                    AuthorizationException.TokenValidationError
+                            .createNotSupportedAlgorithmException(mHeader.alg));
         }
         if (providerConfig.issuer != null) {
             if (!mClaims.iss.equals(providerConfig.issuer)) {
                 throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                        new IllegalStateException("Issuer mismatch"));
+                        AuthorizationException.TokenValidationError.ISSUER_MISMATCH);
             }
 
             Uri issuerUri = Uri.parse(mClaims.iss);
             if (!issuerUri.getScheme().equals("https")) {
                 throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                        new IllegalStateException("Issuer must be an https URL"));
+                        AuthorizationException.TokenValidationError.ISSUER_NOT_HTTPS_URL);
             }
 
             if (TextUtils.isEmpty(issuerUri.getHost())) {
                 throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                        new IllegalStateException("Issuer host can not be empty"));
+                        AuthorizationException.TokenValidationError.ISSUER_HOST_EMPTY);
             }
 
             if (issuerUri.getFragment() != null || issuerUri.getQueryParameterNames().size() > 0) {
                 throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                        new IllegalStateException(
-                                "Issuer URL contains query parameters or fragment components"));
+                        AuthorizationException.TokenValidationError
+                                .ISSUER_URL_CONTAIN_OTHER_COMPONENTS);
             }
         }
 
         String clientId = config.getClientId();
         if (!this.mClaims.aud.contains(clientId)) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("Audience mismatch"));
+                    AuthorizationException.TokenValidationError.AUDIENCE_MISMATCH);
         }
 
         long nowInSeconds = clock.getCurrentTimeMillis() / MILLIS_PER_SECOND;
         if (nowInSeconds > mClaims.exp) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("ID Token expired"));
+                    AuthorizationException.TokenValidationError.ID_TOKEN_EXPIRED);
         }
 
         if (Math.abs(nowInSeconds - mClaims.iat) > TEN_MINUTES_IN_SECONDS) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("Issued at time is more than 10 minutes "
-                            + "before or after the current time"));
+                    AuthorizationException.TokenValidationError.createWrongTokenIssuedTime(
+                            TEN_MINUTES_IN_SECONDS.intValue() / SECONDS_IN_ONE_MINUTE));
         }
 
         if (GrantTypes.AUTHORIZATION_CODE.equals(request.getGrantType())) {
             String expectedNonce = request.getNonce();
             if (!TextUtils.equals(mClaims.nonce, expectedNonce)) {
                 throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                        new IllegalStateException("Nonce mismatch"));
+                        AuthorizationException.TokenValidationError.NONCE_MISMATCH);
             }
         }
 
         if (request.getMaxAge() != null && mClaims.auth_time <= 0) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    new IllegalStateException("max_age provided but auth_time is missing"));
+                    AuthorizationException.TokenValidationError.AUTH_TIME_MISSING);
         }
     }
 
