@@ -129,7 +129,12 @@ public final class AuthorizationException extends Exception {
     /**
      * The error type for persistence specific errors.
      */
-    public static final int TYPE_ENCRYPTION_ERROR = 4;
+    public static final int TYPE_ENCRYPTION_ERROR = 5;
+
+    /**
+     * The error type for OAuth token validation errors.
+     */
+    public static final int TYPE_OAUTH_VALIDATION_TOKEN_ERROR = 6;
 
     @VisibleForTesting
     static final String KEY_TYPE = "type";
@@ -524,6 +529,63 @@ public final class AuthorizationException extends Exception {
         }
     }
 
+    /**
+     * Error codes related to failed during token validation.
+     */
+    public static final class TokenValidationError {
+        public static final int NOT_SUPPORTED_ALGORITHM_ERROR = 6000;
+        public static final int ISSUER_MISMATCH_ERROR = 6001;
+        public static final int ISSUER_NOT_HTTPS_URL_ERROR = 6002;
+        public static final int ISSUER_HOST_EMPTY_ERROR = 6003;
+        public static final int ISSUER_URL_CONTAIN_OTHER_COMPONENTS_ERROR = 6004;
+        public static final int AUDIENCE_MISMATCH_ERROR = 6005;
+        public static final int ID_TOKEN_EXPIRED_ERROR = 6006;
+        public static final int ID_TOKEN_WRONG_ISSUED_TIME_ERROR = 6007;
+        public static final int NONCE_MISMATCH_ERROR = 6008;
+        public static final int AUTH_TIME_MISSING_ERROR = 6009;
+
+        public static AuthorizationException createNotSupportedAlgorithmException(String alg) {
+            return tokenValidationEx(NOT_SUPPORTED_ALGORITHM_ERROR,
+                    "JWT Header 'alg' of [" + alg + "] " +
+                    "is not supported, only RSA256 signatures are supported");
+        }
+
+        public static final AuthorizationException ISSUER_MISMATCH =
+                tokenValidationEx(ISSUER_MISMATCH_ERROR, "Issuer mismatch");
+
+        public static final AuthorizationException ISSUER_NOT_HTTPS_URL =
+                tokenValidationEx(ISSUER_NOT_HTTPS_URL_ERROR,
+                        "Issuer must be an https URL");
+
+        public static final AuthorizationException ISSUER_HOST_EMPTY =
+                tokenValidationEx(ISSUER_HOST_EMPTY_ERROR,
+                        "Issuer host can not be empty");
+
+        public static final AuthorizationException ISSUER_URL_CONTAIN_OTHER_COMPONENTS =
+                tokenValidationEx(ISSUER_URL_CONTAIN_OTHER_COMPONENTS_ERROR,
+                        "Issuer URL contains query parameters or fragment components");
+
+        public static final AuthorizationException AUDIENCE_MISMATCH =
+                tokenValidationEx(AUDIENCE_MISMATCH_ERROR, "Audience mismatch");
+
+        public static final AuthorizationException ID_TOKEN_EXPIRED =
+                tokenValidationEx(ID_TOKEN_EXPIRED_ERROR, "ID Token expired");
+
+        public static AuthorizationException createWrongTokenIssuedTime(int minutes) {
+            return tokenValidationEx(ID_TOKEN_WRONG_ISSUED_TIME_ERROR,
+                    "Issued at time is more than "
+                            + minutes + " minutes before or after the current time");
+        }
+
+        public static final AuthorizationException NONCE_MISMATCH =
+                tokenValidationEx(NONCE_MISMATCH_ERROR, "Nonce mismatch");
+
+        public static final AuthorizationException AUTH_TIME_MISSING =
+                tokenValidationEx(AUTH_TIME_MISSING_ERROR,
+                        "max_age provided but auth_time is missing");
+
+    }
+
     private static AuthorizationException generalEx(int code, @Nullable String errorDescription) {
         return new AuthorizationException(
                 TYPE_GENERAL_ERROR, code, null, errorDescription, null, null);
@@ -542,6 +604,11 @@ public final class AuthorizationException extends Exception {
     private static AuthorizationException registrationEx(int code, @Nullable String error) {
         return new AuthorizationException(
                 TYPE_OAUTH_REGISTRATION_ERROR, code, error, null, null, null);
+    }
+
+    private static AuthorizationException tokenValidationEx(int code, @Nullable String error) {
+        return new AuthorizationException(
+                TYPE_OAUTH_VALIDATION_TOKEN_ERROR, code, null, error, null, null);
     }
 
     /**
