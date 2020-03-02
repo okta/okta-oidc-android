@@ -141,9 +141,9 @@ public class WireMockTest {
 
         //samples sdk test
         activityRule.getActivity().mOidcConfig = new OIDCConfig.Builder()
-                .clientId("0oajqehiy6p81NVzA0h7")
-                .redirectUri("com.oktapreview.samples-test:/callback")
-                .endSessionRedirectUri("com.oktapreview.samples-test:/logout")
+                .clientId("0oalpui4tcMY8u7RX0h7")
+                .redirectUri("com.oidc.sdk.sample:/callback")
+                .endSessionRedirectUri("com.oidc.sdk.sample:/logout")
                 .scopes("openid", "profile", "offline_access")
                 .discoveryUri("https://127.0.0.1:8443")
                 .create();
@@ -192,8 +192,7 @@ public class WireMockTest {
         mockConfigurationRequest(aResponse()
                 .withStatus(HTTP_OK)
                 .withBody(getAsset(mMockContext, "configuration.json")));
-
-        String redirect = String.format("com.oktapreview.samples-test:/callback?code=%s&state=%s",
+        String redirect = String.format("dev-486177.oktapreview.com:/callback?code=%s&state=%s",
                 FAKE_CODE, FAKE_STATE);
         mockWebAuthorizeRequest(aResponse().withStatus(HTTP_MOVED_TEMP)
                 .withHeader("Location", redirect));
@@ -208,7 +207,7 @@ public class WireMockTest {
             onView(withId(R.id.clear_data)).perform(click());
         }).check(matches(isDisplayed()));
         onView(withId(R.id.sign_in)).perform(click());
-        
+
         mDevice.wait(Until.findObject(By.pkg(CHROME_STABLE)), TRANSITION_TIMEOUT);
 
         UiSelector selector = new UiSelector();
