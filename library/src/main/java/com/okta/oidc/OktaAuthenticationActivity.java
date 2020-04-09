@@ -280,7 +280,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
      * Called when the service is disconnected.
      */
     public void onServiceDisconnected() {
-        mAuthStarted = true;
+        mAuthStarted = false;
     }
 
     private void sendResult(int rc, Intent intent) {
