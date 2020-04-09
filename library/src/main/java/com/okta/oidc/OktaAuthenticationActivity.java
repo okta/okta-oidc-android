@@ -16,7 +16,6 @@
 package com.okta.oidc;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -52,7 +51,7 @@ import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
  * @see "Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
  * @see "Implementing the Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
  */
-public class OktaAuthenticationActivity extends Activity {
+public class OktaAuthenticationActivity extends Activity implements ServiceConnectionCallback {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
     /**
      * The Extra auth started.
@@ -253,29 +252,34 @@ public class OktaAuthenticationActivity extends Activity {
      * @param browserPackage the browser package
      */
     @VisibleForTesting
-    protected void bindServiceAndStart(@NonNull final String browserPackage) {
+    protected void bindServiceAndStart(@NonNull String browserPackage) {
         if (mConnection != null) {
             return;
         }
-        mConnection = new CustomTabsServiceConnection() {
-            @Override
-            public void onServiceDisconnected(ComponentName componentName) {
-                mAuthStarted = false;
-            }
-
-            @Override
-            public void onCustomTabsServiceConnected(ComponentName componentName,
-                                                     CustomTabsClient customTabsClient) {
-                CustomTabsSession session = null;
-                if (customTabsClient != null) {
-                    customTabsClient.warmup(0);
-                    session = createSession(customTabsClient);
-                }
-                mAuthStarted = true;
-                startActivity(createBrowserIntent(browserPackage, session));
-            }
-        };
+        mConnection = new ServiceConnection(browserPackage, this);
         CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
+    }
+
+    /**
+     * Called when the service is connected.
+     * @param browserPackage browser package
+     * @param customTabsClient a CustomTabsClient
+     */
+    public void onServiceConnected(String browserPackage, CustomTabsClient customTabsClient) {
+        CustomTabsSession session = null;
+        if (customTabsClient != null) {
+            customTabsClient.warmup(0);
+            session = createSession(customTabsClient);
+        }
+        mAuthStarted = true;
+        startActivity(createBrowserIntent(browserPackage, session));
+    }
+
+    /**
+     * Called when the service is disconnected.
+     */
+    public void onServiceDisconnected() {
+        mAuthStarted = false;
     }
 
     private void sendResult(int rc, Intent intent) {
