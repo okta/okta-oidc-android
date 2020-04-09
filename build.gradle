@@ -9,7 +9,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.android.tools.build:gradle:3.6.2'
         classpath 'org.owasp:dependency-check-gradle:5.2.2'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -36,12 +36,12 @@ subprojects {
 }
 
 ext {
-    versionNum = 13
-    versionName = "1.0.11"
+    versionNum = 14
+    versionName = "1.0.12"
     versionDate = new Date()
     minSdkVersion = 19
     compileSdkVersion = 29
-    buildToolsVersion = "29.0.2"
+    buildToolsVersion = "29.0.3"
     browserVersion = '1.2.0'
     appcompatVersion = '1.1.0'
     // SDK dependency versions
@@ -58,7 +58,7 @@ ext {
     assertjCoreVersion = '3.14.0'
     assertjVersion = "1.2.0"
 
-    androidxLibVersion = "1.2.0"
+    androidxLibVersion = "1.2.4"
     espressoVersion = "3.2.0"
     uiautomatorVersion = "2.2.0"
     securityVersion = "1.0.0-alpha02"
