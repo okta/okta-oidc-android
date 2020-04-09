@@ -23,7 +23,7 @@ import androidx.browser.customtabs.CustomTabsClient;
 /*package*/ interface ServiceConnectionCallback {
     /**
      * Called when the service is connected.
-     * @param browserPackage
+     * @param browserPackage browser package
      * @param client a CustomTabsClient
      */
     void onServiceConnected(String browserPackage,

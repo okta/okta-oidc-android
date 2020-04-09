@@ -17,21 +17,21 @@ package com.okta.oidc;
 
 import android.content.ComponentName;
 
-import java.lang.ref.WeakReference;
-
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Implementation for the CustomTabsServiceConnection that avoids leaking the
- * ServiceConnectionCallback
+ * ServiceConnectionCallback.
  */
 /*package*/ final class ServiceConnection extends CustomTabsServiceConnection {
     private final String mBrowserPackage;
     // A weak reference to the ServiceConnectionCallback to avoid leaking it.
     private WeakReference<ServiceConnectionCallback> mConnectionCallbackWr;
 
-    public ServiceConnection(String browserPackage,
+    ServiceConnection(String browserPackage,
                              ServiceConnectionCallback connectionCallback) {
         mBrowserPackage = browserPackage;
         mConnectionCallbackWr = new WeakReference<>(connectionCallback);
