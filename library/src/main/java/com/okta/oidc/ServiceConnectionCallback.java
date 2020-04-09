@@ -12,19 +12,25 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
+
 package com.okta.oidc;
 
-import androidx.annotation.NonNull;
+import androidx.browser.customtabs.CustomTabsClient;
 
-import static com.okta.oidc.util.JsonStrings.CHROME;
+/**
+ * Callback for events when connecting and disconnecting from Custom Tabs Service.
+ */
+/*package*/ interface ServiceConnectionCallback {
+    /**
+     * Called when the service is connected.
+     * @param browserPackage
+     * @param client a CustomTabsClient
+     */
+    void onServiceConnected(String browserPackage,
+                            CustomTabsClient client);
 
-public class OktaAuthenticationActivityMock extends OktaAuthenticationActivity {
-
-    protected String getBrowser() {
-        return CHROME;
-    }
-
-    protected void bindServiceAndStart(@NonNull final String browserPackage) {
-        onServiceConnected(browserPackage, null);
-    }
+    /**
+     * Called when the service is disconnected.
+     */
+    void onServiceDisconnected();
 }
