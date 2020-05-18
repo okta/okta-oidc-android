@@ -157,6 +157,9 @@ public class OktaRepository {
                     }
                 }
 
+                if (cacheMode) {
+                    cacheStorage.put(key, data);
+                }
             }
             return persistable.restore(data);
         }
