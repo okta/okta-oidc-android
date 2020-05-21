@@ -58,6 +58,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -195,6 +196,7 @@ public class HttpResponseTest {
         int contentLength = response.getContentLength();
         int status = response.getStatusCode();
 
+        assertThrows(HttpStatusCodeException.class, response::asJson);
         assertEquals(HTTP_NOT_FOUND, status);
         assertNotNull(headers);
         assertEquals(contentLength, CONFIGURATION_NOT_FOUND.length());

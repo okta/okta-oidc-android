@@ -109,8 +109,7 @@ public final class HttpResponse {
     public JSONObject asJson() throws IOException, JSONException {
         if (mStatusCode < HttpURLConnection.HTTP_OK ||
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-            throw new IOException("Invalid status code " + mStatusCode +
-                    " " + mHttpClient.getResponseMessage());
+            throw new HttpStatusCodeException(mStatusCode, mHttpClient.getResponseMessage());
         }
         InputStream is = getContent();
         if (is == null) {
