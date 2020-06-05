@@ -743,7 +743,7 @@ Most of the encrytion errors encountered are due to the key being invalidated. T
 public void onError(@Nullable String msg, AuthorizationException error) {
     if (error.type == ILLEGAL_BLOCK_SIZE &&
         error.code == EncryptionErrors.ILLEGAL_BLOCK_SIZE) {
-        authClient.clear();
+        sessionClient.clear();
     }
 }
 ```
