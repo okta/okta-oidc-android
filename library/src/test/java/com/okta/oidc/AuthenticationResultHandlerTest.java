@@ -48,6 +48,7 @@ import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -234,6 +235,8 @@ public class AuthenticationResultHandlerTest {
         assertNotNull(stateResult[0]);
         assertEquals(stateResult[0].getStatus(), Status.ERROR);
         assertEquals(stateResult[0].getException().code, AuthorizationRequestErrors.OTHER.code);
+        assertNotNull(stateResult[0].getException().getCause());
+        assertTrue(stateResult[0].getException().getCause() instanceof NullPointerException);
         assertEquals(stateType[0], ResultType.SIGN_IN);
         assertNull(AuthenticationResultHandler.handler().mCachedResult);
         assertNull(AuthenticationResultHandler.handler().mCachedResultType);

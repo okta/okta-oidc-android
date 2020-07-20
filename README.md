@@ -58,7 +58,7 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:1.0.13'
+implementation 'com.okta.android:oidc-androidx:1.0.14'
 ```
 
 ### Sample app

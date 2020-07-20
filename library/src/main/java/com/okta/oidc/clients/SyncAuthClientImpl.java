@@ -40,6 +40,8 @@ import com.okta.oidc.util.AuthorizationException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
+import static com.okta.oidc.util.AuthorizationException.AuthorizationRequestErrors.OTHER;
+
 class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
     private SyncSessionClient sessionClient;
 
@@ -110,7 +112,7 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
         } catch (IOException e) {
             return Result.cancel();
         } catch (Exception e) {
-            return Result.error(AuthorizationException.AuthorizationRequestErrors.OTHER);
+            return Result.error(new AuthorizationException(OTHER.code, e.getMessage(), e));
         } finally {
             resetCurrentState();
         }

@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.ID_TOKEN;
 import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
@@ -33,6 +34,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
@@ -46,6 +48,21 @@ public class TokensTest {
             TestValues.REFRESH_TOKEN,
             INVALID_EXPIRES_IN,
             TextUtils.join(" ", VALID_SCOPES));
+
+    @Test
+    public void validateEmptyScopeIsAccepted() {
+        Tokens tokens = new Tokens(ID_TOKEN,
+                ACCESS_TOKEN,
+                REFRESH_TOKEN,
+                VALID_EXPIRES_IN,
+                null, System.currentTimeMillis());
+        assertNotNull(tokens);
+        assertEquals(ACCESS_TOKEN, tokens.getAccessToken());
+        assertEquals(REFRESH_TOKEN, tokens.getRefreshToken());
+        assertEquals(ID_TOKEN, tokens.getIdToken());
+        assertEquals(VALID_EXPIRES_IN, tokens.getExpiresIn());
+        assertNull(tokens.getScope());
+    }
 
     @Test
     public void validateTokenInit() {

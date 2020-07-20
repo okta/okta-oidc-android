@@ -781,12 +781,22 @@ public final class AuthorizationException extends Exception {
     }
 
     /**
-     * Instantiates an authorization request with description and root cause information.
+     * Instantiates an authorization exception with description and root cause information.
      */
     public AuthorizationException(
             @NonNull String errorDescription,
             @Nullable Throwable rootCause) {
         this(TYPE_GENERAL_ERROR, TYPE_GENERAL_ERROR, null, errorDescription, null, rootCause);
+    }
+
+    /**
+     * Instantiates an authorization exception with error code, description and root cause.
+     */
+    public AuthorizationException(
+            int code,
+            @NonNull String errorDescription,
+            @Nullable Throwable rootCause) {
+        this(TYPE_GENERAL_ERROR, code, null, errorDescription, null, rootCause);
     }
 
     /**
