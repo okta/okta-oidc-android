@@ -70,7 +70,7 @@ public class ConnectionParameters {
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     public static final String USER_AGENT_HEADER = "okta-oidc-android/" + Build.VERSION.SDK_INT +
-            " " + BuildConfig.APPLICATION_ID + "/" + BuildConfig.VERSION_NAME;
+            " " + BuildConfig.LIBRARY_PACKAGE_NAME + "/" + BuildConfig.VERSION_NAME;
 
     /**
      * The enum Request method.

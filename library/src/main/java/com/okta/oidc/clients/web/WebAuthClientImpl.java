@@ -246,7 +246,7 @@ class WebAuthClientImpl implements WebAuthClient {
     }
 
     private void cancelFuture() {
-        if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
+        if (mFutureTask != null && (!mFutureTask.isDone() && !mFutureTask.isCancelled())) {
             mFutureTask.cancel(true);
         }
     }

@@ -32,6 +32,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_IN;
 import static com.okta.oidc.OktaResultFragment.REQUEST_CODE_SIGN_OUT;
+import static com.okta.oidc.util.AuthorizationException.AuthorizationRequestErrors.OTHER;
 
 /**
  * @hide Handle the call back data from chrome custom tabs.
@@ -83,8 +84,8 @@ public class AuthenticationResultHandler {
                     result = StateResult.exception(AuthorizationException
                             .fromJson(data.getExtras().getString(EXTRA_EXCEPTION, "")));
                 } catch (NullPointerException | IllegalArgumentException e) {
-                    result = StateResult.exception(
-                            AuthorizationException.AuthorizationRequestErrors.OTHER);
+                    result = StateResult.exception(new AuthorizationException(OTHER.code,
+                            e.getMessage(), e));
                 } catch (JSONException je) {
                     result = StateResult.exception(
                             AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR);

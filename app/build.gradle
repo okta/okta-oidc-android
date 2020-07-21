@@ -86,7 +86,7 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion
     androidTestImplementation 'org.hamcrest:hamcrest-integration:1.3'
 
-    androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.25.1'
+    androidTestImplementation 'com.github.tomakehurst:wiremock-standalone:2.26.3'
 
     androidTestImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
     androidTestImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"

@@ -15,6 +15,8 @@
 
 package com.okta.oidc;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
@@ -62,7 +64,8 @@ public class Tokens {
     public Tokens(@NonNull TokenResponse response) {
         this(response.getIdToken(), response.getAccessToken(),
                 response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
-                response.getScope().split(" "), response.getExpiresAt());
+                TextUtils.isEmpty(response.getScope()) ? null : response.getScope().split(" "),
+                response.getExpiresAt());
     }
 
     /**
