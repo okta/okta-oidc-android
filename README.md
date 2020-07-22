@@ -61,6 +61,26 @@ Add the `Okta OIDC` dependency to your `build.gradle` file:
 implementation 'com.okta.android:oidc-androidx:1.0.14'
 ```
 
+The SDK requires Java 8 support.
+To enable, add the following following to your `build.gradle` file
+
+```gradle
+android {
+    ...
+    ...
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    // For Kotlin projects
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+```
+
+For more details on Java 8 support for your Android projects, refer to the [Android developer documentations](#https://developer.android.com/studio/write/java8-support)
+
 ### Sample app
 
 A sample is contained within this repository. For more information on how to
