@@ -1,17 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.okta.oidc">
+  xmlns:tools="http://schemas.android.com/tools"
+  package="com.okta.oidc">
 
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <application>
         <activity
             android:name="com.okta.oidc.OktaAuthenticationActivity"
             android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:autoRemoveFromRecents="true"
+            tools:targetApi="lollipop" />
 
         <activity
             android:name="com.okta.oidc.OktaRedirectActivity"
-            android:exported="true">
+            android:exported="true"
+            android:autoRemoveFromRecents="true"
+            tools:targetApi="lollipop">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
