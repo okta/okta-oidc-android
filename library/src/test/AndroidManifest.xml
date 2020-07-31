@@ -7,8 +7,9 @@
         <activity
             android:name="com.okta.oidc.OktaAuthenticationActivity"
             android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+          />
 
         <activity
             android:name="com.okta.oidc.OktaRedirectActivity"
