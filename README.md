@@ -81,6 +81,12 @@ android {
 
 For more details on Java 8 support for your Android projects, refer to the [Android developer documentations](#https://developer.android.com/studio/write/java8-support)
 
+Add the following to your proguard rules:
+
+```txt
+-keep class com.okta.oidc.** { *; }
+```
+
 ### Sample app
 
 A sample is contained within this repository. For more information on how to
