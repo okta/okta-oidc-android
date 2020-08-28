@@ -15,6 +15,7 @@
 
 package com.okta.oidc;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -24,6 +25,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Browser;
 import android.util.Log;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,8 +43,10 @@ import com.okta.oidc.util.AuthorizationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
@@ -75,6 +81,11 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
      */
     static final String EXTRA_BROWSERS = "com.okta.auth.BROWSERS";
 
+    /**
+     * Web view browser.
+     */
+    public static final String WEB_VIEW = "com.android.webview";
+
     private static final String CHROME_STABLE = "com.android.chrome";
     private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
     private static final String CHROME_BETA = "com.android.chrome.beta";
@@ -100,6 +111,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     protected CustomTabOptions mCustomTabOptions;
     private boolean mResultSent = false;
     private int mMatchFlag;
+    private boolean mUseWebView = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +147,35 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             }
         }
         mSupportedBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
+        if (mSupportedBrowsers.contains(WEB_VIEW) && mAuthUri != null) {
+            initializeWebView();
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void initializeWebView() {
+        mUseWebView = true;
+        setContentView(R.layout.oidc_webview_layout);
+        WebView webView = findViewById(R.id.okta_oidc_webview);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
+        webView.loadUrl(mAuthUri.toString(), headers);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // Replace with redirect scheme from appAuthRedirectScheme
+                if (url.contains("{redirectScheme}")) {
+                    Intent redirect = new Intent(Intent.ACTION_VIEW);
+                    redirect.setData(Uri.parse(url));
+                    startActivity(redirect);
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -152,6 +193,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             // The custom tab was closed without getting a result.
             sendResult(RESULT_CANCELED, null);
         } else {
+            if (mUseWebView) return;
             String browser = getBrowser();
             if (browser != null && !mResultSent) {
                 bindServiceAndStart(browser);
@@ -266,7 +308,8 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
 
     /**
      * Called when the service is connected.
-     * @param browserPackage browser package
+     *
+     * @param browserPackage   browser package
      * @param customTabsClient a CustomTabsClient
      */
     public void onServiceConnected(String browserPackage, CustomTabsClient customTabsClient) {

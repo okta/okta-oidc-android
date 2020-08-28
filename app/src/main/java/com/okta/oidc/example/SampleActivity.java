@@ -452,7 +452,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .setRequireHardwareBackedKeyStore(!isEmulator())
                 .withTabColor(0)
                 .withOktaHttpClient(factory.build())
-                .supportedBrowsers(FIRE_FOX);
+                .supportedBrowsers("com.android.webview");
 
         mWebAuth = builder.create();
 
