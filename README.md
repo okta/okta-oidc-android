@@ -348,7 +348,43 @@ if (!sessionClient.isAuthenticated()) {
 
 ```
 
-**Note**: To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn/#application-types). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a [sessionToken][session-token]. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/custom-sign-in). The Authentication SDK is only available for API 24 and above. If using API < 24, we recommend using [chrome custom tabs][[chrome-custom-tabs]] but if you must implement a native UI then we've provided a set of [authn-android](https://github.com/okta/okta-oidc-android/tree/authn_android) libraries built using bazel's desugar tool.
+### Okta Java Authentication Setup
+
+To get a **sessionToken**, you must use [Okta's Authentication API](https://developer.okta.com/docs/api/resources/authn). You can use [Okta Java Authentication SDK](https://github.com/okta/okta-auth-java) to get a [sessionToken][session-token]. An example of using the Authentication API can be found [here](https://github.com/okta/samples-android/tree/master/sign-in-kotlin). The Authentication SDK is only available for API 24 and above. If using API < 24, you must use Android Studio 4.0 or higher with [Java 8+ API desugaring][java-8-api].
+
+To enable Java 8+ API support, add the following to your gradle file:
+
+```gradle
+android {
+    ...
+    ...
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+    // If using kotlin
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+dependencies {
+    ...
+    ...
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
+    implementation 'com.okta.android:oidc-androidx:1.0.16'
+    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.0'
+    implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.0') {
+        exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
+    }
+}
+```
+
+Add the following to your proguard file:
+
+```text
+-keep class com.okta.** { *; }
+```
 
 ## Sign out
 
@@ -898,3 +934,4 @@ if (true) { //provide option to login using different clients.
 [IDP]: https://developer.okta.com/docs/concepts/social-login/#features
 [IDP-Google]: https://developer.okta.com/docs/guides/add-an-external-idp/google/before-you-begin/
 [IDP-Facebook]: https://developer.okta.com/docs/guides/add-an-external-idp/facebook/before-you-begin/
+[java-8-api]:https://developer.android.com/studio/write/java8-support#library-desugaring
