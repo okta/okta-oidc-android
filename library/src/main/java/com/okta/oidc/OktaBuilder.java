@@ -191,9 +191,6 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
         if (mEncryptionManager == null) {
             mEncryptionManager = new DefaultEncryptionManager(mContext);
         }
-        if (mClient == null) {
-            mClient = new HttpClientImpl();
-        }
         if (mStorage == null) {
             mStorage = new SharedPreferenceStorage(mContext);
         }
