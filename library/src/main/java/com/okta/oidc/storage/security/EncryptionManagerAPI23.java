@@ -18,6 +18,8 @@ package com.okta.oidc.storage.security;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
@@ -73,8 +75,13 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
                     .setBlockModes(blockMode)
                     .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
                     .setEncryptionPaddings(encryptionPadding)
-                    .setUserAuthenticationRequired(mIsAuthenticateUserRequired)
-                    .setUserAuthenticationValidityDurationSeconds(mValidityDurationSeconds);
+                    .setUserAuthenticationRequired(mIsAuthenticateUserRequired);
+            if (VERSION.SDK_INT >= VERSION_CODES.R) {
+                builder.setUserAuthenticationParameters(mValidityDurationSeconds,
+                        KeyProperties.AUTH_BIOMETRIC_STRONG | KeyProperties.AUTH_DEVICE_CREDENTIAL);
+            } else {
+                builder.setUserAuthenticationValidityDurationSeconds(mValidityDurationSeconds);
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // If fingerprints list changed or will be empty
