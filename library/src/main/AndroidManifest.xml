@@ -2,6 +2,12 @@
   xmlns:tools="http://schemas.android.com/tools"
   package="com.okta.oidc">
 
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <application>
         <activity

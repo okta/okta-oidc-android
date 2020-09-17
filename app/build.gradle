@@ -5,7 +5,8 @@ apply from: "${rootDir}/gradle/okta-common.gradle"
 android {
     defaultConfig {
         minSdkVersion 23
-        compileSdkVersion 29
+        compileSdkVersion 30
+        targetSdkVersion 30
         applicationId "com.okta.oidc.example"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
