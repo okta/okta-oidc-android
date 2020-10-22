@@ -39,7 +39,7 @@ ext {
     versionNum = 18
     versionName = "1.0.16"
     versionDate = new Date()
-    minSdkVersion = 19
+    minSdkVersion = 21
     compileSdkVersion = 30
     buildToolsVersion = "29.0.3"
     browserVersion = '1.2.0'

@@ -49,7 +49,7 @@ You can learn more on the [Okta + Android](https://developer.okta.com/code/andro
 
 ### Requirements
 
-Okta OIDC SDK supports Android API 19 and above. [Chrome custom tab][chrome-custom-tabs] enabled browsers
+Okta OIDC SDK supports Android API 21 and above. [Chrome custom tab][chrome-custom-tabs] enabled browsers
 are needed by the library for browser initiated authorization. An Okta developer account is needed to run the sample.
 It is recommended that your app extends [FragmentActivity][fragment-activity] or any extensions of it. If you are extending [Activity][activity], you have to override [onActivityResult](#onActivityResult-override).
 
