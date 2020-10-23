@@ -70,9 +70,7 @@ class EncryptionManagerAPI18 extends BaseEncryptionManager {
                             "CN = Secured Preference Store, O = Devliving Online"))
                     .setStartDate(startDate.getTime())
                     .setEndDate(endDate.getTime());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                builder.setKeySize(keySize);
-            }
+            builder.setKeySize(keySize);
             if (seed != null && seed.length > 0) {
                 SecureRandom random = new SecureRandom(seed);
                 generator.initialize(builder.build(), random);
