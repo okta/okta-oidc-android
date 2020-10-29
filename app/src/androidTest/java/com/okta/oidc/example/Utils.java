@@ -70,8 +70,8 @@ final class Utils {
     public static final String ID_GOOGLE_PW_NEXT = "passwordNext";
 
     public static final String TEXT_SEND_PUSH = "Send Push";
-    public static final String TEXT_APPROVE = "Approve";
-    public static final String TEXT_DENY = "Deny";
+    public static final String TEXT_APPROVE = "Yes, it's me";
+    public static final String TEXT_DENY = "No, it's not me";
 
     public static String PASSWORD = BuildConfig.PASSWORD;
     public static String USERNAME = BuildConfig.USERNAME;
