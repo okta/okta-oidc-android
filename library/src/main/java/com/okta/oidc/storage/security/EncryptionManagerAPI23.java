@@ -60,6 +60,12 @@ class EncryptionManagerAPI23 extends BaseEncryptionManager {
         this.mTransformationString = mKeyStoreAlgorithm + "/" + mBlockMode
                 + "/OAEPWithSHA-256AndMGF1Padding";
         this.mIsAuthenticateUserRequired = isAuthenticateUserRequired;
+        // Starting API 30, if you want user verification each time when use private key
+        // you should provide 0 instead -1
+        // https://developer.android.com/reference/kotlin/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationParameters(kotlin.Int,%20kotlin.Int)
+        if (VERSION.SDK_INT >= VERSION_CODES.R && userAuthenticationValidityDurationSeconds == -1) {
+            userAuthenticationValidityDurationSeconds = 0;
+        }
         this.mValidityDurationSeconds = userAuthenticationValidityDurationSeconds;
         prepare(context, initCipherOnCreate);
     }
