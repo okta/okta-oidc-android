@@ -153,6 +153,8 @@ The `client` can now be used to authenticate users and authorize access.
 
 ### Discovery URI Guidance
 
+For more information about Okta Authorization Servers please see https://developer.okta.com/docs/concepts/auth-servers/
+
 **Note**: `.well-known/openid-configuration` will be appended to your `discoveryUri` if it is missing.
 
 - `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}` then `.well-known/openid-configuration` is added.
