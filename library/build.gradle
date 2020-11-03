@@ -11,6 +11,7 @@ android {
         versionCode rootProject.ext.versionNum
         versionName rootProject.ext.versionName
         archivesBaseName = "oidc-androidx"
+        consumerProguardFiles 'proguard-rules.pro'
     }
 
     lintOptions {
