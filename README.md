@@ -157,6 +157,8 @@ webClient.registerCallback(new ResultCallback<AuthorizationStatus, Authorization
 
 The `client` can now be used to authenticate users and authorize access.
 
+### Discovery URI Guidance
+
 **Note**: `.well-known/openid-configuration` will be appended to your `discoveryUri` if it is missing.
 
 - `discoveryUri` is: `https://{yourOktaDomain}/oauth2/${authServerId}` then `.well-known/openid-configuration` is added.
