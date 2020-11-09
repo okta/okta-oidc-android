@@ -115,6 +115,11 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             mCustomTabOptions = bundle.getParcelable(EXTRA_TAB_OPTIONS);
             if (mCustomTabOptions != null) {
                 mMatchFlag = mCustomTabOptions.getBrowserMatchAllFlag();
+                int startEnterResId = mCustomTabOptions.getStartEnterResId();
+                int startExitResId = mCustomTabOptions.getStartExitResId();
+                if (startEnterResId != 0 && startExitResId != 0) {
+                    overridePendingTransition(startEnterResId, startExitResId);
+                }
             }
             mAuthStarted = bundle.getBoolean(EXTRA_AUTH_STARTED, false);
             if (bundle.getString(EXTRA_EXCEPTION, null) != null) {
@@ -287,6 +292,11 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             mResultSent = true;
             setResult(rc, intent);
             finish();
+            if (mCustomTabOptions != null && mCustomTabOptions.getEndEnterResId() != 0
+                    && mCustomTabOptions.getEndExitResId() != 0) {
+                overridePendingTransition(mCustomTabOptions.getEndEnterResId(),
+                        mCustomTabOptions.getEndExitResId());
+            }
         }
     }
 
