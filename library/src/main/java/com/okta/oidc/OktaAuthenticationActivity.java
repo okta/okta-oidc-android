@@ -42,7 +42,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static android.content.Intent.FLAG_ACTIVITY_NO_HISTORY;
 import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
 import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
 
@@ -233,7 +232,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         CustomTabsIntent tabsIntent = intentBuilder.build();
         tabsIntent.intent.setPackage(packageName);
         tabsIntent.intent.setData(mAuthUri);
-        tabsIntent.intent.setFlags(FLAG_ACTIVITY_NO_HISTORY);
         Bundle headers = new Bundle();
         headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);

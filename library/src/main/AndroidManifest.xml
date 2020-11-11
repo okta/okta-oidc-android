@@ -21,6 +21,7 @@
         <activity
             android:name="com.okta.oidc.OktaRedirectActivity"
             android:exported="true"
+            android:launchMode="singleInstance"
             android:autoRemoveFromRecents="true"
             tools:targetApi="lollipop">
             <intent-filter>
