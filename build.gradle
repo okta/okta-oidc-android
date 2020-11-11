@@ -36,8 +36,8 @@ subprojects {
 }
 
 ext {
-    versionNum = 18
-    versionName = "1.0.16"
+    versionNum = 19
+    versionName = "1.0.17"
     versionDate = new Date()
     minSdkVersion = 21
     compileSdkVersion = 30
