@@ -42,6 +42,7 @@ import com.okta.authn.sdk.client.AuthenticationClients;
 import com.okta.authn.sdk.resource.AuthenticationResponse;
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthorizationStatus;
+import com.okta.oidc.CustomConfiguration;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.RequestCallback;
@@ -458,13 +459,47 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
         mSessionClient = mWebAuth.getSessionClient();
 
+
+        // From the discovery endpoint. https://{yourOktaDomain}/..well-known/openid-configuration?client_id={yourOIDCclientID}
+        // For example https://dev-486177.oktapreview.com/.well-known/openid-configuration?client_id=0oalpui4tcMY8u7RX0h7
+        // will return a json file with the following URL information:
+
+        // "authorization_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/authorize",
+        // "token_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/token",
+        // "userinfo_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/userinfo",
+        // "registration_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/clients/0oalpui4tcMY8u7RX0h7",
+        // "jwks_uri": "https://dev-486177.oktapreview.com/oauth2/v1/keys?client_id=0oalpui4tcMY8u7RX0h7",
+        // "introspection_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/introspect",
+        // "revocation_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/revoke",
+        // "end_session_endpoint": "https://dev-486177.oktapreview.com/oauth2/v1/logout",
+
+        CustomConfiguration customConfiguration = new CustomConfiguration.Builder()
+                .authorizationEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/authorize")
+                .endSessionEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/logout")
+                .introspectionEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/introspect")
+                .jwksUri("https://dev-486177.oktapreview.com/oauth2/v1/keys?client_id=0oalpui4tcMY8u7RX0h7")
+                .registrationEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/clients/0oalpui4tcMY8u7RX0h7")
+                .tokenEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/token")
+                .userInfoEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/userinfo")
+                .revocationEndpoint("https://dev-486177.oktapreview.com/oauth2/v1/revoke")
+                .create();
+
+
+        mOidcConfig = new OIDCConfig.Builder()
+                .clientId(BuildConfig.CLIENT_ID)
+                .redirectUri(BuildConfig.REDIRECT_URI)
+                .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
+                .scopes(BuildConfig.SCOPES)
+                //.discoveryUri(BuildConfig.DISCOVERY_URI) // this is not needed since the custom configuration is used
+                .customConfiguration(customConfiguration) // set the custom configuration this is discovery uri endpoint.
+                .create();
+
         mAuthClient = new Okta.AuthBuilder()
                 .withConfig(mOidcConfig)
                 .withContext(getApplicationContext())
-                .withStorage(new SharedPreferenceStorage(this))
-                .withEncryptionManager(new DefaultEncryptionManager(this))
+                .withStorage(mEncryptedSharedPref)
+                .withEncryptionManager(new NoEncryption())
                 .setRequireHardwareBackedKeyStore(false)
-                .withCallbackExecutor(null)
                 .create();
 
         mSessionNonWebClient = mAuthClient.getSessionClient();
