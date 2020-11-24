@@ -68,8 +68,6 @@ public class ConnectionParametersTest {
     public void setUp() throws Exception {
         mConnParams = new ParameterBuilder()
                 .setRequestMethod(RequestMethod.POST)
-                .setConnectionTimeoutMs(1000)
-                .setReadTimeOutMs(1000)
                 .setPostParameter("post1", "post1")
                 .setRequestProperty("prop1", "prop1")
                 .setPostParameters(Collections.singletonMap("post2", "post2"))
@@ -97,16 +95,6 @@ public class ConnectionParametersTest {
     }
 
     @Test
-    public void connectionTimeoutMs() {
-        assertEquals(mConnParams.connectionTimeoutMs(), 1000);
-    }
-
-    @Test
-    public void readTimeOutMs() {
-        assertEquals(mConnParams.readTimeOutMs(), 1000);
-    }
-
-    @Test
     public void getEncodedPostParameters() {
         assertNotNull(mConnParams.getEncodedPostParameters());
     }
@@ -115,8 +103,6 @@ public class ConnectionParametersTest {
     public void create() throws UnsupportedEncodingException {
         ConnectionParameters parameters = new ParameterBuilder()
                 .setRequestMethod(RequestMethod.POST)
-                .setConnectionTimeoutMs(1000)
-                .setReadTimeOutMs(1000)
                 .setRequestType(RequestType.AUTHORIZE)
                 .setPostParameter("post1", "post1")
                 .setRequestProperty("prop1", "prop1")
@@ -126,8 +112,6 @@ public class ConnectionParametersTest {
 
         mConnParams = new ParameterBuilder()
                 .setRequestMethod(RequestMethod.POST)
-                .setConnectionTimeoutMs(1000)
-                .setReadTimeOutMs(1000)
                 .setRequestType(RequestType.AUTHORIZE)
                 .setPostParameter("post1", "post1")
                 .setRequestProperty("prop1", "prop1")
@@ -135,13 +119,11 @@ public class ConnectionParametersTest {
                 .setRequestProperties(Collections.singletonMap("prop2", "prop2"))
                 .create();
 
-        assertEquals(parameters.connectionTimeoutMs(), mConnParams.connectionTimeoutMs());
         String decode1 = new String(parameters.getEncodedPostParameters(), DEFAULT_ENCODING);
         String decode2 = new String(mConnParams.getEncodedPostParameters(), DEFAULT_ENCODING);
         assertEquals(decode1, decode2);
         assertEquals(parameters.getRequestType(), mConnParams.getRequestType());
         assertEquals(parameters.postParameters(), mConnParams.postParameters());
-        assertEquals(parameters.readTimeOutMs(), mConnParams.readTimeOutMs());
         assertEquals(parameters.requestProperties(), mConnParams.requestProperties());
         assertEquals(parameters.requestMethod(), mConnParams.requestMethod());
     }
@@ -208,9 +190,8 @@ public class ConnectionParametersTest {
         Date start = DateUtil.getNow();
         ConnectionParameters parameters = new ParameterBuilder()
                 .setRequestMethod(RequestMethod.GET)
-                .setReadTimeOutMs(2000)
                 .create();
-        HttpClientImpl httpClient = new HttpClientImpl();
+        HttpClientImpl httpClient = new HttpClientImpl(5000, 2000);
         httpClient.connect(Uri.parse(url.toString()), parameters);
 
         try {

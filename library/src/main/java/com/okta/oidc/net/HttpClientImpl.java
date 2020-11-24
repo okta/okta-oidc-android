@@ -42,6 +42,18 @@ public class HttpClientImpl implements OktaHttpClient {
 
     private HttpURLConnection mUrlConnection;
 
+    private final int connectionTimeoutMs;
+    private final int readTimeoutMs;
+
+    public HttpClientImpl() {
+        this(CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
+    }
+
+    public HttpClientImpl(int connectionTimeoutMs, int readTimeoutMs) {
+        this.connectionTimeoutMs = connectionTimeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
+    }
+
     /*
      * TLS v1.1, v1.2 in Android supports starting from API 16.
      * But it enabled by default starting from API 20.
@@ -65,8 +77,8 @@ public class HttpClientImpl implements OktaHttpClient {
             enableTlsV1_2(mUrlConnection);
         }
 
-        conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
-        conn.setReadTimeout(READ_TIMEOUT_MS);
+        conn.setConnectTimeout(connectionTimeoutMs);
+        conn.setReadTimeout(readTimeoutMs);
         conn.setInstanceFollowRedirects(false);
 
         Map<String, String> requestProperties = params.requestProperties();
