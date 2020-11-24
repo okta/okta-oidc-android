@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 
 import com.okta.oidc.net.request.TLSSocketFactory;
@@ -35,7 +36,7 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpClientImpl implements OktaHttpClient {
     private static final int CONNECTION_TIMEOUT_MS = 15_000;
     private static final int READ_TIMEOUT_MS = 10_000;
