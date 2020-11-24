@@ -43,6 +43,9 @@ import okhttp3.Response;
  * A OktaHttpClient implementation using OkHttpClient.
  */
 public class OkHttp implements OktaHttpClient {
+    private static final int CONNECTION_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private static final String TAG = "OkHttp";
     /**
      * The constant sOkHttpClient.
@@ -72,8 +75,8 @@ public class OkHttp implements OktaHttpClient {
     protected Request buildRequest(Uri uri, ConnectionParameters param) {
         if (sOkHttpClient == null) {
             sOkHttpClient = new OkHttpClient.Builder()
-                    .readTimeout(param.readTimeOutMs(), TimeUnit.MILLISECONDS)
-                    .connectTimeout(param.connectionTimeoutMs(), TimeUnit.MILLISECONDS)
+                    .connectTimeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                    .readTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
                     .build();
         }
         Request.Builder requestBuilder = new Request.Builder().url(uri.toString());

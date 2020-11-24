@@ -89,8 +89,6 @@ public class ConnectionParameters {
     private RequestMethod mRequestMethod;
     private Map<String, String> mRequestProperties;
     private Map<String, String> mPostParameters;
-    private int mConnectionTimeoutMs;
-    private int mReadTimeOutMs;
     private RequestType mRequestType;
 
     /**
@@ -101,8 +99,6 @@ public class ConnectionParameters {
     ConnectionParameters(ParameterBuilder builder) {
         mRequestMethod = builder.mRequestMethod;
         mRequestProperties = builder.mRequestProperties;
-        mReadTimeOutMs = builder.mReadTimeOutMs;
-        mConnectionTimeoutMs = builder.mConnectionTimeoutMs;
         mPostParameters = builder.mPostParameters;
         mRequestType = builder.mRequestType;
     }
@@ -166,19 +162,25 @@ public class ConnectionParameters {
     /**
      * Connection timeout ms int.
      *
+     * @deprecated connection timeout should be configured in an OktaHttpClient subclass.
+     *
      * @return the int
      */
+    @Deprecated
     public int connectionTimeoutMs() {
-        return mConnectionTimeoutMs > 0 ? mConnectionTimeoutMs : DEFAULT_CONNECTION_TIMEOUT_MS;
+        return DEFAULT_CONNECTION_TIMEOUT_MS;
     }
 
     /**
      * Read time out ms int.
      *
+     * @deprecated read timeout should be configured in an OktaHttpClient subclass.
+     *
      * @return the int
      */
+    @Deprecated
     public int readTimeOutMs() {
-        return mReadTimeOutMs > 0 ? mReadTimeOutMs : DEFAULT_READ_TIMEOUT_MS;
+        return DEFAULT_READ_TIMEOUT_MS;
     }
 
     /**
@@ -207,8 +209,6 @@ public class ConnectionParameters {
         private RequestMethod mRequestMethod;
         private Map<String, String> mRequestProperties;
         private Map<String, String> mPostParameters;
-        private int mConnectionTimeoutMs = -1;
-        private int mReadTimeOutMs = -1;
         private RequestType mRequestType;
 
         /**
@@ -268,28 +268,6 @@ public class ConnectionParameters {
                 mRequestProperties = new HashMap<>();
             }
             mRequestProperties.putAll(map);
-            return this;
-        }
-
-        /**
-         * Sets connection timeout ms.
-         *
-         * @param timeOut the time out
-         * @return the builder
-         */
-        public ParameterBuilder setConnectionTimeoutMs(int timeOut) {
-            mConnectionTimeoutMs = timeOut;
-            return this;
-        }
-
-        /**
-         * Sets read time out ms.
-         *
-         * @param readTimeOut the read time out
-         * @return the builder
-         */
-        public ParameterBuilder setReadTimeOutMs(int readTimeOut) {
-            mReadTimeOutMs = readTimeOut;
             return this;
         }
 

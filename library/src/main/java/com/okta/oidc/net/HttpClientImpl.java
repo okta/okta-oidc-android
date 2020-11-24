@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 
 import com.okta.oidc.net.request.TLSSocketFactory;
@@ -35,9 +36,24 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
-@VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HttpClientImpl implements OktaHttpClient {
+    private static final int CONNECTION_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private HttpURLConnection mUrlConnection;
+
+    private final int connectionTimeoutMs;
+    private final int readTimeoutMs;
+
+    public HttpClientImpl() {
+        this(CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
+    }
+
+    public HttpClientImpl(int connectionTimeoutMs, int readTimeoutMs) {
+        this.connectionTimeoutMs = connectionTimeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
+    }
 
     /*
      * TLS v1.1, v1.2 in Android supports starting from API 16.
@@ -62,8 +78,8 @@ public class HttpClientImpl implements OktaHttpClient {
             enableTlsV1_2(mUrlConnection);
         }
 
-        conn.setConnectTimeout(params.connectionTimeoutMs());
-        conn.setReadTimeout(params.readTimeOutMs());
+        conn.setConnectTimeout(connectionTimeoutMs);
+        conn.setReadTimeout(readTimeoutMs);
         conn.setInstanceFollowRedirects(false);
 
         Map<String, String> requestProperties = params.requestProperties();
