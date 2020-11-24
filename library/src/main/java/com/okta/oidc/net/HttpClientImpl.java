@@ -62,8 +62,8 @@ public class HttpClientImpl implements OktaHttpClient {
             enableTlsV1_2(mUrlConnection);
         }
 
-        conn.setConnectTimeout(params.connectionTimeoutMs());
-        conn.setReadTimeout(params.readTimeOutMs());
+        conn.setConnectTimeout(15_000);
+        conn.setReadTimeout(10_000);
         conn.setInstanceFollowRedirects(false);
 
         Map<String, String> requestProperties = params.requestProperties();

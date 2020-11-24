@@ -72,8 +72,8 @@ public class OkHttp implements OktaHttpClient {
     protected Request buildRequest(Uri uri, ConnectionParameters param) {
         if (sOkHttpClient == null) {
             sOkHttpClient = new OkHttpClient.Builder()
-                    .readTimeout(param.readTimeOutMs(), TimeUnit.MILLISECONDS)
-                    .connectTimeout(param.connectionTimeoutMs(), TimeUnit.MILLISECONDS)
+                    .readTimeout(10_000, TimeUnit.MILLISECONDS)
+                    .connectTimeout(15_000, TimeUnit.MILLISECONDS)
                     .build();
         }
         Request.Builder requestBuilder = new Request.Builder().url(uri.toString());
