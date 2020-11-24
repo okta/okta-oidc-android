@@ -37,6 +37,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
 public class HttpClientImpl implements OktaHttpClient {
+    private static final int CONNECTION_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private HttpURLConnection mUrlConnection;
 
     /*
@@ -62,8 +65,8 @@ public class HttpClientImpl implements OktaHttpClient {
             enableTlsV1_2(mUrlConnection);
         }
 
-        conn.setConnectTimeout(15_000);
-        conn.setReadTimeout(10_000);
+        conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+        conn.setReadTimeout(READ_TIMEOUT_MS);
         conn.setInstanceFollowRedirects(false);
 
         Map<String, String> requestProperties = params.requestProperties();
