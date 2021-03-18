@@ -153,7 +153,7 @@ The `client` can now be used to authenticate users and authorize access.
 
 ### Discovery URI Guidance
 
-For more information about Okta Authorization Servers please see https://developer.okta.com/docs/concepts/auth-servers/
+Be aware that other apps will reject tokens that do not have `aud` claim set to audience value configured in authorization server. If you require your token to be validated in other apps - make sure you have created custom authorization server for your apps at https://yourOktaDomain-admin.okta.com/admin/oauth2/as specifying the audience for which token is intended for and created respective `OIDCConfig` with proper issuer/discoveryUri, do not use auth servers with audience set to Okta org itself (as it can only be used with Okta org in the userinfo request to get user claims). For more information about Okta Authorization Servers please see https://developer.okta.com/docs/concepts/auth-servers/
 
 **Note**: `.well-known/openid-configuration` will be appended to your `discoveryUri` if it is missing.
 
