@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.ProviderException;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -222,7 +223,18 @@ public abstract class BaseEncryptionManager implements EncryptionManager {
     }
 
     private void initEncodeCipher(String keyAlias, int mode) throws GeneralSecurityException {
-        PublicKey key = mKeyStore.getCertificate(keyAlias).getPublicKey();
+        Certificate certificate = mKeyStore.getCertificate(keyAlias);
+        if (certificate == null) {
+            KeyStore.PrivateKeyEntry entry =
+                    (KeyStore.PrivateKeyEntry) mKeyStore.getEntry(keyAlias, null);
+            certificate = entry.getCertificate();
+        }
+
+        if (certificate == null) {
+            throw new GeneralSecurityException("Unable to retrieve certificate");
+        }
+
+        PublicKey key = certificate.getPublicKey();
 
         // workaround for using public key
         // from https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.html#known-issues
