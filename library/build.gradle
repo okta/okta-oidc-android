@@ -12,6 +12,8 @@ android {
         versionName rootProject.ext.versionName
         archivesBaseName = "oidc-androidx"
         consumerProguardFiles 'proguard-rules.pro'
+
+        buildConfigField "String", "VERSION_NAME", "\"${rootProject.ext.versionName}\""
     }
 
     lintOptions {
