@@ -184,8 +184,12 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
 
         if (activity instanceof FragmentActivity) {
-            addLoginFragment(request, mCustomTabOptions, (FragmentActivity) activity,
-                    mSupportedBrowsers);
+            activity.runOnUiThread(() -> addLoginFragment(
+                request,
+                mCustomTabOptions,
+                (FragmentActivity) activity,
+                mSupportedBrowsers
+            ));
         } else {
             Intent intent = createAuthIntent(activity, request.toUri(), mCustomTabOptions,
                     mSupportedBrowsers);
@@ -314,8 +318,12 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
         if (activity instanceof FragmentActivity) {
-            addLogoutFragment(request, mCustomTabOptions, (FragmentActivity) activity,
-                    mSupportedBrowsers);
+            activity.runOnUiThread(() -> addLogoutFragment(
+                request,
+                mCustomTabOptions,
+                (FragmentActivity) activity,
+                mSupportedBrowsers
+            ));
         } else {
             Intent intent = createAuthIntent(activity, request.toUri(),
                     mCustomTabOptions, mSupportedBrowsers);
