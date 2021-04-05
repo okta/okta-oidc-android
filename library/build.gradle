@@ -68,10 +68,6 @@ dependencies {
     implementation "androidx.fragment:fragment:${rootProject.androidxLibVersion}"
     implementation "androidx.core:core:${rootProject.androidxCore}"
     testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
-    testImplementation "io.jsonwebtoken:jjwt-jackson:${rootProject.jsonWebTokenVersion}"
-    testImplementation("io.jsonwebtoken:jjwt-orgjson:${rootProject.jsonWebTokenVersion}") {
-        exclude group: 'org.json', module: 'json'
-    }
     testImplementation "junit:junit:${rootProject.junitVersion}"
     testImplementation "org.mockito:mockito-core:${rootProject.mockitoVersion}"
     testImplementation "org.mockito:mockito-inline:${rootProject.mockitoVersion}"
