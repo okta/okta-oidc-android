@@ -370,7 +370,7 @@ dependencies {
     ...
     ...
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
-    implementation 'com.okta.android:oidc-androidx:1.0.16'
+    implementation 'com.okta.android:oidc-androidx:1.0.19'
     implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.0'
     implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.0') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
