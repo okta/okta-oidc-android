@@ -8,4 +8,4 @@
 
 - [#242](https://github.com/okta/okta-oidc-android/pull/242) Publish to maven central rather than jcenter.
 - Remove support for non androidx variant.
-- Changed artifact name from `com.okta.android:oidc-androidx` to `com.okta.android:oidc-android`
+- Changed artifact name from `com.okta.android:oidc-androidx` to `com.okta.android:okta-oidc-android`
