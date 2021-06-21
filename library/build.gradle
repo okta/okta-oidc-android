@@ -87,6 +87,6 @@ dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
 }
 
-if (project.rootProject.file('local.properties').exists()) {
-    apply from: 'publish.gradle'
+if (hasProperty('NEXUS_USERNAME')) {
+    apply from: 'maven-push.gradle'
 }
