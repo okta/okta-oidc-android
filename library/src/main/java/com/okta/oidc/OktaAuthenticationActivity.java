@@ -111,6 +111,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         }
 
         if (bundle != null) {
+            bundle.setClassLoader(CustomTabOptions.class.getClassLoader());
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
             mCustomTabOptions = bundle.getParcelable(EXTRA_TAB_OPTIONS);
             if (mCustomTabOptions != null) {
