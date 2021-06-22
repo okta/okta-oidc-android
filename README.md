@@ -1,6 +1,5 @@
 [<img src="https://aws1.discourse-cdn.com/standard14/uploads/oktadev/original/1X/0c6402653dfb70edc661d4976a43a46f33e5e919.png" align="right" width="256px"/>](https://devforum.okta.com/)
 [![CI Status](http://img.shields.io/travis/okta/okta-oidc-android.svg?style=flat)](https://travis-ci.org/okta/okta-oidc-android)
-[![Download](https://api.bintray.com/packages/okta/com.okta.android/okta-oidc-android/images/download.svg) ](https://bintray.com/okta/com.okta.android/okta-oidc-android/_latestVersion)
 
 # Okta OpenID Connect & OAuth 2.0 Library
 
@@ -58,7 +57,7 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:oidc-androidx:1.0.17'
+implementation 'com.okta.android:okta-oidc-android:1.0.19'
 ```
 
 The SDK requires Java 8 support.
@@ -370,7 +369,7 @@ dependencies {
     ...
     ...
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.10'
-    implementation 'com.okta.android:oidc-androidx:1.0.19'
+    implementation 'com.okta.android:okta-oidc-android:1.0.19'
     implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.0'
     implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.0') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
