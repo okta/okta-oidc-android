@@ -305,7 +305,7 @@ public final class AuthorizationException extends Exception {
          * resulting in the response being discarded.
          */
         public static final AuthorizationException STATE_MISMATCH =
-                generalEx(9, "Response state param did not match request state");
+                generalEx(1009, "Response state param did not match request state");
 
         private static final Map<String, AuthorizationException> STRING_TO_EXCEPTION =
                 exceptionMapByString(
