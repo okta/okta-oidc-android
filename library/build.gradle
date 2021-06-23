@@ -5,7 +5,6 @@ apply from: "${rootDir}/gradle/style.gradle"
 android {
     defaultConfig {
         compileSdkVersion rootProject.ext.compileSdkVersion
-        buildToolsVersion rootProject.ext.buildToolsVersion
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.compileSdkVersion
         versionCode rootProject.ext.versionNum
@@ -49,16 +48,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-}
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${rootProject.bintrayVersion}"
-        classpath "com.github.dcendents:android-maven-gradle-plugin:${rootProject.gradlePluginVersion}"
     }
 }
 
