@@ -437,7 +437,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withContext(getApplicationContext())
                 .withStorage(mEncryptedSharedPref)
                 .withEncryptionManager(new NoEncryption())
-                .useHardwareBackedKeyStoreIfAvailable()
+                .setRequireHardwareBackedKeyStore(!isEmulator())
                 .supportedBrowsers(FIRE_FOX) //chrome is always supported by default
                 .create();
 
@@ -449,7 +449,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .withStorage(mStorageOidc)
                 .withCallbackExecutor(null)
                 .withEncryptionManager(new DefaultEncryptionManager(this))
-                .useHardwareBackedKeyStoreIfAvailable()
+                .setRequireHardwareBackedKeyStore(!isEmulator())
                 .withTabColor(0)
                 .withOktaHttpClient(factory.build())
                 .supportedBrowsers(FIRE_FOX);

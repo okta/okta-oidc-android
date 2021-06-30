@@ -23,7 +23,6 @@ import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
-import com.okta.oidc.OktaBuilder;
 import com.okta.oidc.storage.security.EncryptionManager;
 import com.okta.oidc.storage.security.DefaultEncryptionManager;
 
@@ -62,7 +61,7 @@ public class EncryptionTest {
     @Test
     public void checkHardwareKeystore() {
         boolean hardwareBacked = mEncryptionManager.isHardwareBackedKeyStore();
-        if (OktaBuilder.isEmulator()) {
+        if (SampleActivity.isEmulator()) {
             //API 26, isHardwareBackedKeyStore on emulator return true
             if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
                 assertFalse(hardwareBacked);
