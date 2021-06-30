@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and limitations under the
  * License.
  */
-
 package com.okta.oidc;
 
 import android.app.Activity;
@@ -22,27 +21,18 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Browser;
-import android.util.Log;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
-import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsService;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
-import androidx.browser.customtabs.CustomTabsSession;
-
 import com.okta.oidc.util.AuthorizationException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
 import static com.okta.oidc.net.ConnectionParameters.USER_AGENT_HEADER;
 import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
 
@@ -52,7 +42,7 @@ import static com.okta.oidc.net.ConnectionParameters.X_OKTA_USER_AGENT;
  * @see "Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/auth-overview/#authorization-code-with-pkce-flow>"
  * @see "Implementing the Authorization Code with PKCE flow <https://developer.okta.com/authentication-guide/implementing-authentication/auth-code-pkce/>"
  */
-public class OktaAuthenticationActivity extends Activity implements ServiceConnectionCallback {
+public class OktaAuthenticationActivity extends Activity {
     private static final String TAG = OktaAuthenticationActivity.class.getSimpleName();
     /**
      * The Extra auth started.
@@ -74,17 +64,14 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
      * The Extra browsers.
      */
     static final String EXTRA_BROWSERS = "com.okta.auth.BROWSERS";
-
     private static final String CHROME_STABLE = "com.android.chrome";
     private static final String CHROME_SYSTEM = "com.google.android.apps.chrome";
     private static final String CHROME_BETA = "com.android.chrome.beta";
-
     /**
      * The M supported browsers.
      */
     @VisibleForTesting
     protected Set<String> mPreferredBrowsers = new LinkedHashSet<>();
-
     private CustomTabsServiceConnection mConnection;
     /**
      * The M auth started.
@@ -92,7 +79,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     @VisibleForTesting
     protected boolean mAuthStarted = false;
     private Uri mAuthUri;
-
     /**
      * The custom tab options.
      */
@@ -100,7 +86,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     protected CustomTabOptions mCustomTabOptions;
     private boolean mResultSent = false;
     private int mMatchFlag;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,7 +95,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         } else {
             bundle = savedInstanceState;
         }
-
         if (bundle != null) {
             bundle.setClassLoader(CustomTabOptions.class.getClassLoader());
             mAuthUri = bundle.getParcelable(EXTRA_AUTH_URI);
@@ -136,16 +120,13 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         }
         mPreferredBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
     }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         outState.putBoolean(EXTRA_AUTH_STARTED, mAuthStarted);
         outState.putParcelable(EXTRA_AUTH_URI, mAuthUri);
         outState.putParcelable(EXTRA_TAB_OPTIONS, mCustomTabOptions);
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -155,14 +136,14 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         } else {
             String browser = getBrowser();
             if (browser != null && !mResultSent) {
-                bindServiceAndStart(browser);
+                mAuthStarted = true;
+                createCustomTabsIntent(browser).launchUrl(this, mAuthUri);
             } else {
                 sendResult(RESULT_OK, getIntent().putExtra(EXTRA_EXCEPTION,
                         AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
             }
         }
     }
-
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -171,7 +152,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             sendResult(RESULT_OK, intent);
         }
     }
-
     /**
      * Gets the chrome custom tab web browser package.
      *
@@ -183,46 +163,37 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         PackageManager pm = getPackageManager();
         Intent serviceIntent = new Intent();
         serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
-
         List<ResolveInfo> resolveInfoList = pm.queryIntentServices(serviceIntent, mMatchFlag);
         List<String> customTabsBrowsersPackages = new ArrayList<>();
-
         for (ResolveInfo info : resolveInfoList) {
             customTabsBrowsersPackages.add(info.serviceInfo.packageName);
         }
-
         // Return Preferred Browser
         for (String browser : mPreferredBrowsers) {
             if (customTabsBrowsersPackages.contains(browser)) {
                 return browser;
             }
         }
-
         //Use first compatible browser on list.
         if (!customTabsBrowsersPackages.isEmpty()) {
             return customTabsBrowsersPackages.get(0);
         }
-
         return null;
     }
-
     /**
      * Create custom tabs intent.
      *
      * @param packageName the package name
-     * @param session     the session
      * @return the intent
      */
     @VisibleForTesting
-    protected CustomTabsIntent createCustomTabsIntent(String packageName, CustomTabsSession session) {
-        CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
-
+    protected CustomTabsIntent createCustomTabsIntent(String packageName) {
+        CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
         if (mCustomTabOptions != null) {
             if (mCustomTabOptions.getCustomTabColor() != 0) {
                 CustomTabColorSchemeParams customTabBuilder = new CustomTabColorSchemeParams.Builder()
                         .setToolbarColor(mCustomTabOptions.getCustomTabColor())
                         .build();
-
                 intentBuilder.setDefaultColorSchemeParams(customTabBuilder);
             }
             if (mCustomTabOptions.getStartExitResId() != 0 &&
@@ -239,65 +210,12 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
                         mCustomTabOptions.getEndExitResId());
             }
         }
-
         CustomTabsIntent tabsIntent = intentBuilder.build();
         tabsIntent.intent.setPackage(packageName);
-
         Bundle headers = new Bundle();
         headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);
-
         return tabsIntent;
-    }
-
-    @Nullable
-    private CustomTabsSession createSession(@NonNull CustomTabsClient client) {
-        CustomTabsSession session = client.newSession(null);
-        if (session == null) {
-            Log.d(TAG, "Failed to create custom tabs session through custom tabs client");
-            return null;
-        }
-        if (mAuthUri != null) {
-            session.mayLaunchUrl(mAuthUri, null, Collections.emptyList());
-        }
-        return session;
-    }
-
-    /**
-     * Bind service and start.
-     *
-     * @param browserPackage the browser package
-     */
-    @VisibleForTesting
-    protected void bindServiceAndStart(@NonNull String browserPackage) {
-        if (mConnection != null) {
-            return;
-        }
-        mConnection = new ServiceConnection(browserPackage, this);
-        CustomTabsClient.bindCustomTabsService(this, browserPackage, mConnection);
-    }
-
-    /**
-     * Called when the service is connected.
-     *
-     * @param browserPackage   browser package
-     * @param customTabsClient a CustomTabsClient
-     */
-    public void onServiceConnected(String browserPackage, CustomTabsClient customTabsClient) {
-        CustomTabsSession session = null;
-        if (customTabsClient != null) {
-            customTabsClient.warmup(0);
-            session = createSession(customTabsClient);
-        }
-        mAuthStarted = true;
-        createCustomTabsIntent(browserPackage, session).launchUrl(this, mAuthUri);
-    }
-
-    /**
-     * Called when the service is disconnected.
-     */
-    public void onServiceDisconnected() {
-        mAuthStarted = false;
     }
 
     private void sendResult(int rc, Intent intent) {
@@ -312,7 +230,6 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             }
         }
     }
-
     @Override
     protected void onDestroy() {
         if (mConnection != null) {
