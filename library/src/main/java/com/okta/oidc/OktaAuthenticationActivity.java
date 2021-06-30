@@ -140,6 +140,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
         outState.putBoolean(EXTRA_AUTH_STARTED, mAuthStarted);
         outState.putParcelable(EXTRA_AUTH_URI, mAuthUri);
         outState.putParcelable(EXTRA_TAB_OPTIONS, mCustomTabOptions);
@@ -215,6 +216,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     @VisibleForTesting
     protected CustomTabsIntent createCustomTabsIntent(String packageName, CustomTabsSession session) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
+
         if (mCustomTabOptions != null) {
             if (mCustomTabOptions.getCustomTabColor() != 0) {
                 CustomTabColorSchemeParams customTabBuilder = new CustomTabColorSchemeParams.Builder()
@@ -237,13 +239,15 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
                         mCustomTabOptions.getEndExitResId());
             }
         }
+
         CustomTabsIntent tabsIntent = intentBuilder.build();
         tabsIntent.intent.setPackage(packageName);
-        tabsIntent.intent.setData(mAuthUri);
+
         Bundle headers = new Bundle();
         headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);
-        return tabsIntent.intent;
+
+        return tabsIntent;
     }
 
     @Nullable
@@ -275,7 +279,8 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
 
     /**
      * Called when the service is connected.
-     * @param browserPackage browser package
+     *
+     * @param browserPackage   browser package
      * @param customTabsClient a CustomTabsClient
      */
     public void onServiceConnected(String browserPackage, CustomTabsClient customTabsClient) {
@@ -285,7 +290,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             session = createSession(customTabsClient);
         }
         mAuthStarted = true;
-        startActivity(createBrowserIntent(browserPackage, session));
+        createCustomTabsIntent(browserPackage, session).launchUrl(this, mAuthUri);
     }
 
     /**
