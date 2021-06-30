@@ -113,7 +113,7 @@ public class OktaAuthClientActivityTest {
         Assertions.assertThat(mShadowActivity.getNextStartedActivity())
                 .hasData(Uri.parse(CUSTOM_URL));
 
-        assertTrue(mActivityController.get().mSupportedBrowsers.contains(FIRE_FOX));
+        assertTrue(mActivityController.get().mPreferredBrowsers.contains(FIRE_FOX));
         assertEquals(mActivityController.get().mCustomTabOptions.getCustomTabColor(), 100);
         assertEquals(mActivityController.get().mCustomTabOptions.getStartEnterResId(), 200);
         assertEquals(mActivityController.get().mCustomTabOptions.getStartExitResId(), 201);

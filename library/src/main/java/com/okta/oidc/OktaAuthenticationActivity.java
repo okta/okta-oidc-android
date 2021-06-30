@@ -82,7 +82,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
      * The M supported browsers.
      */
     @VisibleForTesting
-    protected Set<String> mSupportedBrowsers = new LinkedHashSet<>();
+    protected Set<String> mPreferredBrowsers = new LinkedHashSet<>();
 
     private CustomTabsServiceConnection mConnection;
     /**
@@ -130,10 +130,10 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             }
             String[] list = bundle.getStringArray(EXTRA_BROWSERS);
             if (list != null) {
-                mSupportedBrowsers.addAll(Arrays.asList(list));
+                mPreferredBrowsers.addAll(Arrays.asList(list));
             }
         }
-        mSupportedBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
+        mPreferredBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
     }
 
     @Override
@@ -179,26 +179,28 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     @VisibleForTesting
     protected String getBrowser() {
         PackageManager pm = getPackageManager();
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
-        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, mMatchFlag);
-        List<String> customTabsBrowsers = new ArrayList<>();
+        Intent serviceIntent = new Intent();
+        serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
+
+        List<ResolveInfo> resolveInfoList = pm.queryIntentServices(serviceIntent, mMatchFlag);
+        List<String> customTabsBrowsersPackages = new ArrayList<>();
+
         for (ResolveInfo info : resolveInfoList) {
-            Intent serviceIntent = new Intent();
-            serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
-            serviceIntent.setPackage(info.activityInfo.packageName);
-            if (pm.resolveService(serviceIntent, 0) != null) {
-                customTabsBrowsers.add(info.activityInfo.packageName);
-            }
+            customTabsBrowsersPackages.add(info.serviceInfo.packageName);
         }
-        for (String browser : mSupportedBrowsers) {
-            if (customTabsBrowsers.contains(browser)) {
+
+        // Return Preferred Browser
+        for (String browser : mPreferredBrowsers) {
+            if (customTabsBrowsersPackages.contains(browser)) {
                 return browser;
             }
         }
+
         //Use first compatible browser on list.
-        if (!customTabsBrowsers.isEmpty()) {
-            return customTabsBrowsers.get(0);
+        if (!customTabsBrowsersPackages.isEmpty()) {
+            return customTabsBrowsersPackages.get(0);
         }
+
         return null;
     }
 
