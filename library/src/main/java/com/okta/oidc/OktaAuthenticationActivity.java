@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsService;
@@ -205,18 +206,22 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     }
 
     /**
-     * Create browser intent intent.
+     * Create custom tabs intent.
      *
      * @param packageName the package name
      * @param session     the session
      * @return the intent
      */
     @VisibleForTesting
-    protected Intent createBrowserIntent(String packageName, CustomTabsSession session) {
+    protected CustomTabsIntent createCustomTabsIntent(String packageName, CustomTabsSession session) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder(session);
         if (mCustomTabOptions != null) {
             if (mCustomTabOptions.getCustomTabColor() != 0) {
-                intentBuilder.setToolbarColor(mCustomTabOptions.getCustomTabColor());
+                CustomTabColorSchemeParams customTabBuilder = new CustomTabColorSchemeParams.Builder()
+                        .setToolbarColor(mCustomTabOptions.getCustomTabColor())
+                        .build();
+
+                intentBuilder.setDefaultColorSchemeParams(customTabBuilder);
             }
             if (mCustomTabOptions.getStartExitResId() != 0 &&
                     mCustomTabOptions.getStartEnterResId() != 0) {
