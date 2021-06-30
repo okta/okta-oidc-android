@@ -16,6 +16,7 @@
 package com.okta.oidc;
 
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -166,6 +167,15 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
     }
 
     /**
+     * Sets true to hardware backed keystore if have hardware supported.
+     * Hardware backed keystore is required for storing data.
+     */
+    public T useHardwareBackedKeyStoreIfAvailable() {
+        mRequireHardwareBackedKeyStore = !isEmulator();
+        return toThis();
+    }
+
+    /**
      * Sets if hardware backed keystore is required for storing data. If true and the device
      * doesn't have hardware support then no data will be persisted on the device.
      *
@@ -197,5 +207,21 @@ public abstract class OktaBuilder<A, T extends OktaBuilder<A, T>> {
         return this.mClientFactory.createClient(mOidcConfig,
                 mContext, mStorage, mEncryptionManager,
                 mClient, mRequireHardwareBackedKeyStore, mCacheMode);
+    }
+
+    /**
+     * Check if the device is a emulator.
+     *
+     * @return true if it is emulator
+     */
+    public static boolean isEmulator() {
+        return Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Google")
+                || Build.PRODUCT.contains("sdk_gphone")
+                || Build.DEVICE.contains("generic");
     }
 }
