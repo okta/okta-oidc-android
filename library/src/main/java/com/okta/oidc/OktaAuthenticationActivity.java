@@ -86,6 +86,7 @@ public class OktaAuthenticationActivity extends Activity {
     protected CustomTabOptions mCustomTabOptions;
     private boolean mResultSent = false;
     private int mMatchFlag;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,6 +121,7 @@ public class OktaAuthenticationActivity extends Activity {
         }
         mPreferredBrowsers.addAll(Arrays.asList(CHROME_STABLE, CHROME_SYSTEM, CHROME_BETA));
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -127,6 +129,7 @@ public class OktaAuthenticationActivity extends Activity {
         outState.putParcelable(EXTRA_AUTH_URI, mAuthUri);
         outState.putParcelable(EXTRA_TAB_OPTIONS, mCustomTabOptions);
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -135,15 +138,23 @@ public class OktaAuthenticationActivity extends Activity {
             sendResult(RESULT_CANCELED, null);
         } else {
             String browser = getBrowser();
-            if (browser != null && !mResultSent) {
+
+            try {
                 mAuthStarted = true;
                 createCustomTabsIntent(browser).launchUrl(this, mAuthUri);
-            } else {
-                sendResult(RESULT_OK, getIntent().putExtra(EXTRA_EXCEPTION,
-                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
+            } catch (Exception e) {
+                mAuthStarted = false;
+
+                sendResult(RESULT_OK, getIntent().putExtra(
+                        EXTRA_EXCEPTION,
+                        AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()
+                ));
+
+                throw e;
             }
         }
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -152,6 +163,7 @@ public class OktaAuthenticationActivity extends Activity {
             sendResult(RESULT_OK, intent);
         }
     }
+
     /**
      * Gets the chrome custom tab web browser package.
      *
@@ -180,14 +192,15 @@ public class OktaAuthenticationActivity extends Activity {
         }
         return null;
     }
+
     /**
      * Create custom tabs intent.
      *
-     * @param packageName the package name
+     * @param packageBrowser the package name
      * @return the intent
      */
     @VisibleForTesting
-    protected CustomTabsIntent createCustomTabsIntent(String packageName) {
+    protected CustomTabsIntent createCustomTabsIntent(String packageBrowser) {
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
         if (mCustomTabOptions != null) {
             if (mCustomTabOptions.getCustomTabColor() != 0) {
@@ -196,8 +209,7 @@ public class OktaAuthenticationActivity extends Activity {
                         .build();
                 intentBuilder.setDefaultColorSchemeParams(customTabBuilder);
             }
-            if (mCustomTabOptions.getStartExitResId() != 0 &&
-                    mCustomTabOptions.getStartEnterResId() != 0) {
+            if (mCustomTabOptions.getStartExitResId() != 0 && mCustomTabOptions.getStartEnterResId() != 0) {
                 intentBuilder.setStartAnimations(this,
                         mCustomTabOptions.getStartEnterResId(),
                         mCustomTabOptions.getStartExitResId());
@@ -211,10 +223,15 @@ public class OktaAuthenticationActivity extends Activity {
             }
         }
         CustomTabsIntent tabsIntent = intentBuilder.build();
-        tabsIntent.intent.setPackage(packageName);
+
+        if (packageBrowser != null) {
+            tabsIntent.intent.setPackage(packageBrowser);
+        }
+
         Bundle headers = new Bundle();
         headers.putString(X_OKTA_USER_AGENT, USER_AGENT_HEADER);
         tabsIntent.intent.putExtra(Browser.EXTRA_HEADERS, headers);
+
         return tabsIntent;
     }
 
@@ -230,6 +247,7 @@ public class OktaAuthenticationActivity extends Activity {
             }
         }
     }
+
     @Override
     protected void onDestroy() {
         if (mConnection != null) {

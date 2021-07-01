@@ -44,7 +44,7 @@ public class Okta {
      */
     public static class WebAuthBuilder extends OktaBuilder<WebAuthClient, WebAuthBuilder> {
         private Executor mCallbackExecutor;
-        private CustomTabOptions customTabOptions = new CustomTabOptions();
+        private final CustomTabOptions customTabOptions = new CustomTabOptions();
         private String[] mSupportedBrowsers;
 
         /**
@@ -144,9 +144,8 @@ public class Okta {
     /**
      * The synchronous web authentication client builder.
      */
-    public static class SyncWebAuthBuilder extends
-            OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
-        private CustomTabOptions customTabOptions = new CustomTabOptions();
+    public static class SyncWebAuthBuilder extends OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
+        private final CustomTabOptions customTabOptions = new CustomTabOptions();
         private String[] mSupportedBrowsers;
 
         /**
