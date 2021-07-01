@@ -26,7 +26,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.browser.customtabs.CustomTabColorSchemeParams;
 import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.browser.customtabs.CustomTabsService;
-import androidx.browser.customtabs.CustomTabsServiceConnection;
 import com.okta.oidc.util.AuthorizationException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +71,7 @@ public class OktaAuthenticationActivity extends Activity {
      */
     @VisibleForTesting
     protected Set<String> mPreferredBrowsers = new LinkedHashSet<>();
-    private CustomTabsServiceConnection mConnection;
+
     /**
      * The M auth started.
      */
@@ -248,12 +247,4 @@ public class OktaAuthenticationActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        if (mConnection != null) {
-            unbindService(mConnection);
-            mConnection = null;
-        }
-        super.onDestroy();
-    }
 }
