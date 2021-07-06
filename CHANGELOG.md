@@ -1,3 +1,14 @@
+# 1.0.20
+
+### Bug Fix
+
+- [#244](https://github.com/okta/okta-oidc-android/pull/244) Fix unmarshall exception during onCreate on some samsung devices.
+
+### Other
+
+- [#245](https://github.com/okta/okta-oidc-android/pull/245) Update error code to remove duplicate, and follow pattern of other error codes.
+- [#246](https://github.com/okta/okta-oidc-android/pull/246) Update build and 3rd party dependencies.
+
 # 1.0.19
 
 ### Bug Fix
