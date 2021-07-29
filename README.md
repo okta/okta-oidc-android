@@ -54,6 +54,8 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 
 ### Installation
 
+**Note:** If you're updating from 1.0.18 or earlier, we changed the maven coordinates, and where it's hosted. See the [CHANGELOG](/CHANGELOG.md/#1019) for more information.
+
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
