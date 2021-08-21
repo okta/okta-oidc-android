@@ -47,6 +47,19 @@ public interface AuthClient extends BaseAuth<SessionClient> {
                 RequestCallback<Result, AuthorizationException> cb);
 
     /**
+     * Sign in with a session token. This is for signing in without using the implicit flow.
+     * A session token can be obtained by using the AuthClient API. For more information
+     * about different types of
+     * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
+     *
+     * @param deviceSecret the token exchange device secret
+     * @param subjectToken the subject_token (id_token) associated with the device secret
+     * @param cb           the @{@link RequestCallback}
+     */
+    void signIn(String deviceSecret, String subjectToken,
+                RequestCallback<Result, AuthorizationException> cb);
+
+    /**
      * Attempt to cancel the current api request. Does not guarantee that the current call
      * will not finish.
      */

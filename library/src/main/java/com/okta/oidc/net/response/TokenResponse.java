@@ -35,6 +35,7 @@ public class TokenResponse implements Persistable {
     private String scope;
     private String refresh_token;
     private String id_token;
+    private String device_secret;
     private long expiresAt = -1;
 
     @NonNull
@@ -64,6 +65,8 @@ public class TokenResponse implements Persistable {
     public String getIdToken() {
         return id_token;
     }
+
+    public String getDeviceSecret() { return device_secret; }
 
     public TokenResponse() {
         //NO-OP

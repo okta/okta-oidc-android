@@ -31,6 +31,7 @@ import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.BaseRequest;
 import com.okta.oidc.net.request.ConfigurationRequest;
+import com.okta.oidc.net.request.DeviceSecretTokenRequest;
 import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -52,9 +53,11 @@ import static androidx.annotation.RestrictTo.Scope.TESTS;
 
 import static com.okta.oidc.clients.BaseAuth.FAILED_CLEAR_DATA;
 import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_DEVICE_SECRET;
 import static com.okta.oidc.clients.BaseAuth.FAILED_REVOKE_REFRESH_TOKEN;
 import static com.okta.oidc.clients.BaseAuth.REMOVE_TOKENS;
 import static com.okta.oidc.clients.BaseAuth.REVOKE_ACCESS_TOKEN;
+import static com.okta.oidc.clients.BaseAuth.REVOKE_DEVICE_SECRET;
 import static com.okta.oidc.clients.BaseAuth.REVOKE_REFRESH_TOKEN;
 import static com.okta.oidc.clients.BaseAuth.TOKEN_DECRYPT;
 import static com.okta.oidc.clients.State.IDLE;
@@ -158,6 +161,19 @@ public class AuthAPI {
                 .createRequest();
     }
 
+    @WorkerThread
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    public DeviceSecretTokenRequest deviceSecretTokenExchange(ProviderConfiguration configuration,
+                                                              String deviceSecret, String idToken)
+            throws AuthorizationException {
+        return HttpRequestBuilder.newDeviceSecretTokenRequest()
+                .providerConfiguration(configuration)
+                .config(mOidcConfig)
+                .actorToken(deviceSecret)
+                .subjectToken(idToken)
+                .createRequest();
+    }
+
     protected void resetCurrentState() {
         mCancel.set(false);
         mOktaState.setCurrentState(IDLE);
@@ -191,14 +207,20 @@ public class AuthAPI {
         try {
             Tokens tokens = client.getTokens();
             if (tokens != null) {
-                client.revokeToken(tokenType == REVOKE_ACCESS_TOKEN ? tokens.getAccessToken()
-                        : tokens.getRefreshToken());
+                if (tokenType == REVOKE_DEVICE_SECRET) {
+                    if (tokens.getDeviceSecret() != null && !tokens.getDeviceSecret().equalsIgnoreCase("")) {
+                        client.revokeToken(tokens.getDeviceSecret());
+                    }
+                } else {
+                    client.revokeToken(tokenType == REVOKE_ACCESS_TOKEN ? tokens.getAccessToken()
+                            : tokens.getRefreshToken());
+                }
             }
             return 0;
         } catch (AuthorizationException e) {
             Log.w(TAG, "Revoke token failure", e);
             int status = tokenType == REVOKE_ACCESS_TOKEN ? FAILED_REVOKE_ACCESS_TOKEN
-                    : FAILED_REVOKE_REFRESH_TOKEN;
+                    : tokenType == FAILED_REVOKE_REFRESH_TOKEN ? FAILED_REVOKE_REFRESH_TOKEN : FAILED_REVOKE_DEVICE_SECRET;
             if (e.type == TYPE_ENCRYPTION_ERROR) {
                 status |= TOKEN_DECRYPT;
             }
@@ -209,7 +231,8 @@ public class AuthAPI {
     protected void removeTokens(SyncSessionClient client) {
         if ((mSignOutFlags & REMOVE_TOKENS) == REMOVE_TOKENS) {
             if ((mSignOutStatus & FAILED_REVOKE_REFRESH_TOKEN) == 0 &&
-                    (mSignOutStatus & FAILED_REVOKE_ACCESS_TOKEN) == 0) {
+                    (mSignOutStatus & FAILED_REVOKE_ACCESS_TOKEN) == 0 &&
+                    (mSignOutStatus & FAILED_REVOKE_DEVICE_SECRET) == 0) {
                 client.clear();
             } else {
                 mSignOutStatus |= FAILED_CLEAR_DATA;
@@ -225,6 +248,11 @@ public class AuthAPI {
 
         if ((mSignOutFlags & REVOKE_REFRESH_TOKEN) == REVOKE_REFRESH_TOKEN) {
             mSignOutStatus |= revoke(client, REVOKE_REFRESH_TOKEN);
+        }
+        checkIfCanceled();
+
+        if ((mSignOutFlags & REVOKE_DEVICE_SECRET) == REVOKE_DEVICE_SECRET) {
+            mSignOutStatus |= revoke(client, REVOKE_DEVICE_SECRET);
         }
         checkIfCanceled();
     }

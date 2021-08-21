@@ -64,7 +64,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
     protected ProviderConfiguration mProviderConfiguration;
 
     //if set, used to verify idtoken auth_Time
-    private String mMaxAge;
+    protected String mMaxAge;
 
     TokenRequest() {
     }

@@ -27,6 +27,10 @@ public final class GrantTypes {
      * The grant type for refreshing a access token.
      */
     public static final String REFRESH_TOKEN = "refresh_token";
+    /**
+     * The grant type for exchanging a device secret.
+     */
+    public static final String  DEVICE_SECRET = "urn:ietf:params:oauth:grant-type:token-exchange";
 
     private GrantTypes() {
         throw new AssertionError();

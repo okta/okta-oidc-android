@@ -56,6 +56,10 @@ public class HttpRequestBuilder {
         return new TokenExchange().requestType(TOKEN_EXCHANGE);
     }
 
+    public static DeviceSecretTokenExchange newDeviceSecretTokenRequest() {
+        return new DeviceSecretTokenExchange().requestType(TOKEN_EXCHANGE);
+    }
+
     public static RevokeToken newRevokeTokenRequest() {
         return new RevokeToken().requestType(REVOKE_TOKEN);
     }
@@ -196,7 +200,7 @@ public class HttpRequestBuilder {
         protected void validate(boolean isConfigurationRequest) throws AuthorizationException {
             super.validate(isConfigurationRequest);
             if (mAuthRequest == null || mAuthResponse == null) {
-                throwException("Missing auth request or response");
+                throwException("Missing auth request or response"); 
             }
         }
 
@@ -215,6 +219,45 @@ public class HttpRequestBuilder {
             validate(false);
             mGrantType = GrantTypes.AUTHORIZATION_CODE;
             return new TokenRequest(this);
+        }
+    }
+
+    public static class DeviceSecretTokenExchange extends Builder<DeviceSecretTokenExchange> {
+        String mGrantType;
+        String mActorToken;
+        String mSubjectToken;
+
+        private DeviceSecretTokenExchange() {
+        }
+
+        @Override
+        DeviceSecretTokenExchange toThis() {
+            return this;
+        }
+
+        public DeviceSecretTokenExchange actorToken(String actorToken) {
+            mActorToken = actorToken;
+            return this;
+        }
+
+        public DeviceSecretTokenExchange subjectToken(String subjectToken) {
+            mSubjectToken = subjectToken;
+            return this;
+        }
+
+        @Override
+        protected void validate(boolean isConfigurationRequest) throws AuthorizationException {
+            super.validate(isConfigurationRequest);
+            if (mConfig.getAudience() == null || mConfig.getAudience().equalsIgnoreCase("")) {
+                throwException("Missing authorization server audience");
+            }
+        }
+
+        @Override
+        public DeviceSecretTokenRequest createRequest() throws AuthorizationException {
+            validate(false);
+            mGrantType = GrantTypes.DEVICE_SECRET;
+            return new DeviceSecretTokenRequest(this);
         }
     }
 

@@ -32,6 +32,7 @@ android {
         buildConfigField "String", "IDP", travis ? '""' : properties.getProperty('test.idp', '""')
         buildConfigField "String", "IDP_USERNAME", travis ? '""' : properties.getProperty('test.idp_username', '""')
         buildConfigField "String", "IDP_PASSWORD", travis ? '""' : properties.getProperty('test.idp_password', '""')
+        buildConfigField "String", "AUDIENCE", travis ? '""' : properties.getProperty('test.audience', '""')
 
         // Make sure this is consistent with the redirect URI used in
         // res/raw/okta_oidc_config

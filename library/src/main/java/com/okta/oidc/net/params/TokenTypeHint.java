@@ -31,6 +31,18 @@ public final class TokenTypeHint {
      * The type of token is a refresh_token.
      */
     public static final String REFRESH_TOKEN = "refresh_token";
+    /**
+     * The type of token is a device_secret.
+     */
+    public static final String DEVICE_SECRET = "device_secret";
+    /**
+     * The type of actor token.
+     */
+    public static final String ACTOR_TOKEN_TYPE = "urn:x-oath:params:oauth:token-type:device-secret";
+    /**
+     * The type of subject token.
+     */
+    public static final String SUBJECT_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:id_token";
 
     private TokenTypeHint() {
         throw new AssertionError();

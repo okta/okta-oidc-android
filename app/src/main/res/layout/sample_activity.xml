@@ -81,6 +81,13 @@
                     tools:ignore="HardcodedText" />
 
                 <Button
+                    android:id="@+id/sign_in_device_secret"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Sign In With Device Secret"
+                    tools:ignore="HardcodedText" />
+
+                <Button
                     android:id="@+id/get_profile"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -136,6 +143,13 @@
                     tools:ignore="HardcodedText" />
 
                 <Button
+                    android:id="@+id/revoke_device_secret"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Revoke device secret"
+                    tools:ignore="HardcodedText" />
+
+                <Button
                     android:id="@+id/revoke_access"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -147,6 +161,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Instrospect refresh token"
+                    tools:ignore="HardcodedText" />
+
+                <Button
+                    android:id="@+id/introspect_device_secret"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Instrospect device secret"
                     tools:ignore="HardcodedText" />
 
                 <Button

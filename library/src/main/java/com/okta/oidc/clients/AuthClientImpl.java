@@ -85,6 +85,31 @@ class AuthClientImpl implements AuthClient {
     }
 
     @Override
+    @AnyThread
+    public void signIn(String deviceSecret, String subjectToken,
+                RequestCallback<Result, AuthorizationException> cb) {
+        cancelFuture();
+        mFutureTask = mDispatcher.submit(() -> {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            Result result = mSyncNativeAuthClient.signIn(deviceSecret, subjectToken);
+            if (result.isSuccess()) {
+                mDispatcher.submitResults(() -> {
+                    if (cb != null) {
+                        cb.onSuccess(result);
+                    }
+
+                });
+            } else {
+                mDispatcher.submitResults(() -> {
+                    if (cb != null) {
+                        cb.onError(result.getError().error, result.getError());
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
     public void cancel() {
         mDispatcher.runTask(() -> {
             mSyncNativeAuthClient.cancel();

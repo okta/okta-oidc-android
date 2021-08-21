@@ -26,6 +26,8 @@ import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.OktaHttpClient;
+import com.okta.oidc.net.request.DeviceSecretTokenRequest;
+import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -102,6 +104,32 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
             TokenRequest requestToken = tokenExchange(authResponse, providerConfiguration,
                     authRequest);
+            mCurrentRequest.set(new WeakReference<>(requestToken));
+            TokenResponse tokenResponse = requestToken.executeRequest(mHttpClient);
+
+            mOktaState.save(tokenResponse);
+            return Result.success();
+        } catch (AuthorizationException e) {
+            return Result.error(e);
+        } catch (IOException e) {
+            return Result.cancel();
+        } catch (Exception e) {
+            return Result.error(new AuthorizationException(OTHER.code, e.getMessage(), e));
+        } finally {
+            resetCurrentState();
+        }
+    }
+
+    @WorkerThread
+    @Override
+    public Result signIn(String deviceSecret, String subjectToken) {
+        try {
+            mCancel.set(false);
+            ProviderConfiguration providerConfiguration = obtainNewConfiguration();
+            checkIfCanceled();
+
+            mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
+            DeviceSecretTokenRequest requestToken = deviceSecretTokenExchange(providerConfiguration, deviceSecret, subjectToken);
             mCurrentRequest.set(new WeakReference<>(requestToken));
             TokenResponse tokenResponse = requestToken.executeRequest(mHttpClient);
 

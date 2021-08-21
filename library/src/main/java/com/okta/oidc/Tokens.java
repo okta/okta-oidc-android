@@ -34,6 +34,7 @@ public class Tokens {
     private int mExpiresIn;
     private String[] mScope;
     private long mExpiresAt;
+    private String mDeviceSecret;
 
     /**
      * Instantiates a new Tokens.
@@ -44,15 +45,17 @@ public class Tokens {
      * @param expiresIn    the expires in
      * @param scope        the scope
      * @param expiresAt    the expiration.
+     * @param deviceSecret the device secret
      */
     Tokens(String idToken, String accessToken, String refreshToken, int expiresIn, String[] scope,
-            long expiresAt) {
+            long expiresAt, String deviceSecret) {
         mIdToken = idToken;
         mAccessToken = accessToken;
         mRefreshToken = refreshToken;
         mExpiresIn = expiresIn;
         mScope = scope;
         mExpiresAt = expiresAt;
+        mDeviceSecret = deviceSecret;
     }
 
     /**
@@ -65,7 +68,7 @@ public class Tokens {
         this(response.getIdToken(), response.getAccessToken(),
                 response.getRefreshToken(), Integer.parseInt(response.getExpiresIn()),
                 TextUtils.isEmpty(response.getScope()) ? null : response.getScope().split(" "),
-                response.getExpiresAt());
+                response.getExpiresAt(), response.getDeviceSecret());
     }
 
     /**
@@ -89,6 +92,17 @@ public class Tokens {
     public String getAccessToken() {
         return mAccessToken;
     }
+
+    /**
+     * The current device secret, if available.
+     *
+     * @return device secret
+     */
+    @Nullable
+    public String getDeviceSecret() {
+        return mDeviceSecret;
+    }
+
 
     /**
      * The most recent refresh token received from the server, if available.

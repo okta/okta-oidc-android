@@ -48,6 +48,7 @@ import com.okta.oidc.RequestCallback;
 import com.okta.oidc.ResultCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.AuthClient;
+import com.okta.oidc.clients.BaseAuth;
 import com.okta.oidc.clients.sessions.SessionClient;
 import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.net.params.TokenTypeHint;
@@ -75,6 +76,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private static final String TAG = "SampleActivity";
     private static final String PREF_SWITCH = "switch";
     private static final String PREF_NON_WEB = "nonweb";
+    private static final String PREF_DEV_SECRET_ACTOR = "devactor";
+    private static final String PREF_DEV_SECRET_SUBJECT = "devsubject";
     /**
      * Authorization client using chrome custom tab as a user agent.
      */
@@ -102,15 +105,18 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     private TextView mTvStatus;
     private Button mSignInBrowser;
     private Button mSignInNative;
+    private Button mSignInDeviceSecret;
     private Button mSignOut;
     private Button mGetProfile;
     private Button mClearData;
 
     private Button mRefreshToken;
     private Button mRevokeRefresh;
+    private Button mRevokeDeviceSecret;
     private Button mRevokeAccess;
     private Button mIntrospectRefresh;
     private Button mIntrospectAccess;
+    private Button mIntrospectDeviceSecret;
     private Button mIntrospectId;
     private Button mCheckExpired;
     private Button mCancel;
@@ -155,16 +161,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mCheckExpired = findViewById(R.id.check_expired);
         mSignInBrowser = findViewById(R.id.sign_in);
         mSignInNative = findViewById(R.id.sign_in_native);
+        mSignInDeviceSecret =findViewById(R.id.sign_in_device_secret);
         mSignOut = findViewById(R.id.sign_out);
         mClearData = findViewById(R.id.clear_data);
         mRevokeContainer = findViewById(R.id.revoke_token);
         mRevokeAccess = findViewById(R.id.revoke_access);
         mRevokeRefresh = findViewById(R.id.revoke_refresh);
+        mRevokeDeviceSecret = findViewById(R.id.revoke_device_secret);
         mRefreshToken = findViewById(R.id.refresh_token);
         mGetProfile = findViewById(R.id.get_profile);
         mProgressBar = findViewById(R.id.progress_horizontal);
         mTvStatus = findViewById(R.id.status);
         mIntrospectRefresh = findViewById(R.id.introspect_refresh);
+        mIntrospectDeviceSecret = findViewById(R.id.introspect_device_secret);
         mIntrospectAccess = findViewById(R.id.introspect_access);
         mIntrospectId = findViewById(R.id.introspect_id);
         mSwitch = findViewById(R.id.switch1);
@@ -215,6 +224,33 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             @Override
                             public void onError(String error, AuthorizationException exception) {
                                 mTvStatus.setText("RefreshToken Introspect error");
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+                        }
+                );
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
+        });
+
+        mIntrospectDeviceSecret.setOnClickListener(v -> {
+            showNetworkProgress(true);
+            SessionClient client = getSessionClient();
+            String deviceSecret;
+            try {
+                deviceSecret = client.getTokens().getDeviceSecret();
+                client.introspectToken(deviceSecret, TokenTypeHint.DEVICE_SECRET,
+                        new RequestCallback<IntrospectInfo, AuthorizationException>() {
+                            @Override
+                            public void onSuccess(@NonNull IntrospectInfo result) {
+                                mTvStatus.setText("DeviceSecret is active: " + result.isActive() +
+                                        "\n" + "Sid: " + result.getSid());
+                                mProgressBar.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onError(String error, AuthorizationException exception) {
+                                mTvStatus.setText("DeviceSecret Introspect error");
                                 mProgressBar.setVisibility(View.GONE);
                             }
                         }
@@ -288,6 +324,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 @Override
                 public void onError(String error, AuthorizationException exception) {
                     mTvStatus.setText(exception.errorDescription);
+                    Log.e(TAG, "error: " + error);
+                    exception.printStackTrace();
                     showNetworkProgress(false);
                 }
             });
@@ -315,6 +353,37 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                                     AuthorizationException exception) {
                                     Log.d(TAG, exception.error +
                                             " revokeRefreshToken onError " + error, exception);
+                                    mTvStatus.setText(error);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+                            });
+                }
+            } catch (AuthorizationException e) {
+                Log.d(TAG, "", e);
+            }
+        });
+
+        mRevokeDeviceSecret.setOnClickListener(v -> {
+            SessionClient client = getSessionClient();
+            try {
+                Tokens tokens = client.getTokens();
+                if (tokens != null && tokens.getDeviceSecret() != null) {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    client.revokeToken(client.getTokens().getDeviceSecret(),
+                            new RequestCallback<Boolean, AuthorizationException>() {
+                                @Override
+                                public void onSuccess(@NonNull Boolean result) {
+                                    String status = "Revoke device secret : " + result;
+                                    Log.d(TAG, status);
+                                    mTvStatus.setText(status);
+                                    mProgressBar.setVisibility(View.GONE);
+                                }
+
+                                @Override
+                                public void onError(String error,
+                                                    AuthorizationException exception) {
+                                    Log.d(TAG, exception.error +
+                                            " revokeDeviceSecret onError " + error, exception);
                                     mTvStatus.setText(error);
                                     mProgressBar.setVisibility(View.GONE);
                                 }
@@ -380,6 +449,43 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             client.signIn(this, mPayload);
         });
 
+        mSignInDeviceSecret.setOnClickListener(v -> {
+            String actor = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
+                    .getString(PREF_DEV_SECRET_ACTOR, null);
+            String subject = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
+                    .getString(PREF_DEV_SECRET_SUBJECT, null);
+
+            if (actor == null || subject == null) {
+                Log.e(TAG, "Either actor or subject tokens could not be retrieved from storage");
+                return;
+            }
+            mAuthClient.signIn(actor, subject, new RequestCallback<Result, AuthorizationException>() {
+                @Override
+                public void onSuccess(@NonNull Result result) {
+                    String status = "Client Secret token exchange : " + result.getStatus();
+                    Log.d(TAG, status);
+                    mTvStatus.setText(status);
+
+                    showAuthenticatedMode();
+                    showNetworkProgress(false);
+                    mIsSessionSignIn = true;
+                    mProgressBar.setVisibility(View.GONE);
+
+                    try {
+                        Log.d(TAG, "new id token: " + mSessionClient.getTokens().getIdToken());
+                    } catch (Exception e) {Log.e(TAG, e.getMessage()); e.printStackTrace();}
+                }
+                @Override
+                public void onError(String error,
+                                    AuthorizationException exception) {
+                    Log.d(TAG, exception.error +
+                            " Client Secret token exchange onError " + error, exception);
+                    mTvStatus.setText(error);
+                    mProgressBar.setVisibility(View.GONE);
+                }
+            });
+        });
+
         mSignInNative.setOnClickListener(v -> {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             Fragment prev = getSupportFragmentManager().findFragmentByTag("signin");
@@ -412,6 +518,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
                 .scopes(BuildConfig.SCOPES)
                 .discoveryUri(BuildConfig.DISCOVERY_URI)
+                .audience(BuildConfig.AUDIENCE)
                 .create();
 
         mOAuth2Config = new OIDCConfig.Builder()
@@ -490,9 +597,22 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 new ResultCallback<AuthorizationStatus, AuthorizationException>() {
                     @Override
                     public void onSuccess(@NonNull AuthorizationStatus status) {
-                        Log.d("SampleActivity", "AUTHORIZED");
                         if (status == AuthorizationStatus.AUTHORIZED) {
                             mTvStatus.setText("authentication authorized");
+
+                            SessionClient client = getSessionClient();
+                            try {
+                                Log.d(TAG, "secret: " + client.getTokens().getDeviceSecret());
+                                Log.d(TAG, "subject: " + client.getTokens().getIdToken());
+                                getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                                        .putString(PREF_DEV_SECRET_ACTOR, client.getTokens().getDeviceSecret()).apply();
+                                getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                                        .putString(PREF_DEV_SECRET_SUBJECT, client.getTokens().getIdToken()).apply();
+                            } catch (AuthorizationException ae) {
+                                Log.e(TAG, "Error saving client secret: " + ae.getMessage());
+                                ae.printStackTrace();
+                            }
+
                             showAuthenticatedMode();
                             showNetworkProgress(false);
                             mIsSessionSignIn = false;
@@ -583,6 +703,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         mRevokeContainer.setVisibility(View.VISIBLE);
         mSignInBrowser.setVisibility(View.GONE);
         mSignInNative.setVisibility(View.GONE);
+        mSignInDeviceSecret.setVisibility(View.GONE);
     }
 
     private void showSignedOutMode() {
@@ -592,6 +713,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         } else {
             mSignInNative.setVisibility(View.GONE);
         }
+        mSignInDeviceSecret.setVisibility(View.VISIBLE);
         mGetProfile.setVisibility(View.GONE);
         mSignOut.setVisibility(View.GONE);
         mRefreshToken.setVisibility(View.GONE);
@@ -664,6 +786,19 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                                 mIsSessionSignIn = true;
                                                 showAuthenticatedMode();
                                                 showNetworkProgress(false);
+
+                                                SessionClient client = getSessionClient();
+                                                try {
+                                                    Log.d(TAG, "secret: " + client.getTokens().getDeviceSecret());
+                                                    Log.d(TAG, "subject: " + client.getTokens().getIdToken());
+                                                    getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                                                            .putString(PREF_DEV_SECRET_ACTOR, client.getTokens().getDeviceSecret()).apply();
+                                                    getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE).edit()
+                                                            .putString(PREF_DEV_SECRET_SUBJECT, client.getTokens().getIdToken()).apply();
+                                                } catch (AuthorizationException ae) {
+                                                    Log.e(TAG, "Error saving client secret: " + ae.getMessage());
+                                                    ae.printStackTrace();
+                                                }
                                             }
 
                                             @Override

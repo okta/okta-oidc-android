@@ -31,6 +31,10 @@ public interface BaseAuth<S> {
      */
     int REVOKE_REFRESH_TOKEN = 0x00000002;
     /**
+     * When set, signing out will attempt to revoke the refresh token.
+     */
+    int REVOKE_DEVICE_SECRET = 0x00000020;
+    /**
      * When set, signing out will attempt to remove tokens from persistent storage.
      */
     int REMOVE_TOKENS = 0x00000004;
@@ -42,7 +46,7 @@ public interface BaseAuth<S> {
     /**
      * Internal use only. For performing all operations.
      */
-    int ALL = SIGN_OUT_SESSION | REVOKE_ACCESS_TOKEN | REVOKE_REFRESH_TOKEN | REMOVE_TOKENS;
+    int ALL = SIGN_OUT_SESSION | REVOKE_ACCESS_TOKEN | REVOKE_REFRESH_TOKEN | REMOVE_TOKENS | REVOKE_DEVICE_SECRET;
 
     /**
      * Status returned when sign out steps have all completed.
@@ -61,6 +65,10 @@ public interface BaseAuth<S> {
      */
     int FAILED_REVOKE_REFRESH_TOKEN = REVOKE_REFRESH_TOKEN;
     /**
+     * Bitwise status returned when revoking refresh token failed.
+     */
+    int FAILED_REVOKE_DEVICE_SECRET = REVOKE_DEVICE_SECRET;
+    /**
      * Bitwise status returned when clearing data failed.
      */
     int FAILED_CLEAR_DATA = REMOVE_TOKENS;
@@ -74,7 +82,7 @@ public interface BaseAuth<S> {
      * Internal use only. Initial status is all ops have failed.
      */
     int FAILED_ALL = FAILED_CLEAR_SESSION | FAILED_REVOKE_ACCESS_TOKEN |
-            FAILED_REVOKE_REFRESH_TOKEN | FAILED_CLEAR_DATA;
+            FAILED_REVOKE_REFRESH_TOKEN | FAILED_CLEAR_DATA | FAILED_REVOKE_DEVICE_SECRET;
 
     /**
      * Gets session client.

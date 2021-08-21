@@ -39,6 +39,7 @@ public final class IntrospectInfo {
     private String iss;
     private String jti;
     private String uid;
+    private String sid;
 
     /**
      * Indicates whether the token is active or not.
@@ -156,6 +157,15 @@ public final class IntrospectInfo {
      */
     public String getJti() {
         return jti;
+    }
+
+    /**
+     * The sid associated the device secret.
+     *
+     * @return the sid
+     */
+    public String getSid() {
+        return sid;
     }
 
     /**

@@ -45,6 +45,18 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
     Result signIn(String sessionToken, @Nullable AuthenticationPayload payload);
 
     /**
+     * Sign in with a session token. This is for logging in without using the implicit flow.
+     * A session token can be obtained by using the AuthClient API. For more information
+     * about different types of
+     * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
+     *
+     * @param deviceSecret the device secret
+     * @param subjectToken      the subject_token (id_token) returned with the device_secret on /authorize request
+     * @return the {@link Result authorizationResult}
+     */
+    Result signIn(String deviceSecret, String subjectToken);
+
+    /**
      * Attempt to cancel the current api request. Does not guarantee that the current call
      * will not finish.
      */

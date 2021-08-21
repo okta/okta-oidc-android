@@ -63,6 +63,7 @@ import static com.okta.oidc.net.request.ProviderConfiguration.OPENID_CONFIGURATI
  *     .endSessionRedirectUri("{endSessionUri}")
  *     .scopes("openid", "profile", "offline_access")
  *     .discoveryUri("https://{yourOktaDomain}")
+ *     .audience("api://default")
  *     .create();
  * }
  * </pre>
@@ -109,6 +110,13 @@ public class OIDCConfig {
     public Uri getEndSessionRedirectUri() {
         return Uri.parse(mAccount.mEndSessionRedirectUri);
     }
+
+    /**
+     * Returns the audience of the Authorization Server
+     *
+     * @return the audience
+     */
+    public String getAudience() { return mAccount.mAudience; }
 
     /**
      * Returns the discovery uri for the authorization server. It is formed by appending the
@@ -171,6 +179,8 @@ public class OIDCConfig {
         String[] mScopes;
         @SerializedName("discovery_uri")
         String mDiscoveryUri;
+        @SerializedName("audience")
+                String mAudience;
 
         AccountInfo() {
         }
@@ -270,6 +280,17 @@ public class OIDCConfig {
          */
         public Builder discoveryUri(@NonNull String discoveryUri) {
             mAccountInfo.mDiscoveryUri = discoveryUri;
+            return this;
+        }
+
+        /**
+         * The audience for the authorization server.
+         *
+         * @param audience the audience of the authorization server
+         * @return current builder
+         */
+        public Builder audience(@NonNull String audience) {
+            mAccountInfo.mAudience = audience;
             return this;
         }
 

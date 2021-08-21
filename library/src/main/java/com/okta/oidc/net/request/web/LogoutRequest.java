@@ -74,6 +74,7 @@ public class LogoutRequest extends WebRequest {
         String id_token_hint; //required
         String post_logout_redirect_uri; //required
         String state;
+        String device_secret;
 
         Uri toUri() {
             Uri.Builder uriBuilder = Uri.parse(end_session_endpoint).buildUpon()
@@ -81,6 +82,7 @@ public class LogoutRequest extends WebRequest {
             appendOptionalParams(uriBuilder, "post_logout_redirect_uri",
                     post_logout_redirect_uri);
             appendOptionalParams(uriBuilder, "state", state);
+            appendOptionalParams(uriBuilder, "device_secret", device_secret);
             return uriBuilder.build();
         }
 
@@ -139,6 +141,11 @@ public class LogoutRequest extends WebRequest {
             return this;
         }
 
+        public Builder deviceSecret(@Nullable String deviceSecret) {
+            mParameters.device_secret = deviceSecret;
+            return this;
+        }
+
         public Builder provideConfiguration(@NonNull ProviderConfiguration providerConfiguration) {
             mParameters.end_session_endpoint = providerConfiguration.end_session_endpoint;
             return this;
@@ -146,6 +153,7 @@ public class LogoutRequest extends WebRequest {
 
         public Builder tokenResponse(@NonNull TokenResponse tokenResponse) {
             mParameters.id_token_hint = tokenResponse.getIdToken();
+            mParameters.device_secret = tokenResponse.getDeviceSecret();
             return this;
         }
 
