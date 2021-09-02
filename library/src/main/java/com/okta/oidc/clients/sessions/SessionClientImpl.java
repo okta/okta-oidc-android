@@ -62,9 +62,9 @@ class SessionClientImpl implements SessionClient {
     }
 
     public void introspectToken(
-        String token,
-        String tokenType,
-        final RequestCallback<IntrospectInfo, AuthorizationException> cb
+            String token,
+            String tokenType,
+            final RequestCallback<IntrospectInfo, AuthorizationException> cb
     ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -82,8 +82,8 @@ class SessionClientImpl implements SessionClient {
     }
 
     public void revokeToken(
-        String token,
-        final RequestCallback<Boolean, AuthorizationException> cb
+            String token,
+            final RequestCallback<Boolean, AuthorizationException> cb
     ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -123,11 +123,11 @@ class SessionClientImpl implements SessionClient {
 
     @Override
     public void authorizedRequest(
-        @NonNull Uri uri,
-        @Nullable Map<String, String> properties,
-        @Nullable Map<String, String> postParameters,
-        @NonNull ConnectionParameters.RequestMethod method,
-        final RequestCallback<JSONObject, AuthorizationException> cb
+            @NonNull Uri uri,
+            @Nullable Map<String, String> properties,
+            @Nullable Map<String, String> postParameters,
+            @NonNull ConnectionParameters.RequestMethod method,
+            final RequestCallback<JSONObject, AuthorizationException> cb
     ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
