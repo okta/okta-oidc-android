@@ -47,7 +47,6 @@ class SessionClientImpl implements SessionClient {
     }
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
-        cancelFuture();
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
@@ -62,9 +61,11 @@ class SessionClientImpl implements SessionClient {
         });
     }
 
-    public void introspectToken(String token, String tokenType,
-                                final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
-        cancelFuture();
+    public void introspectToken(
+        String token,
+        String tokenType,
+        final RequestCallback<IntrospectInfo, AuthorizationException> cb
+    ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
@@ -80,9 +81,10 @@ class SessionClientImpl implements SessionClient {
         });
     }
 
-    public void revokeToken(String token,
-                            final RequestCallback<Boolean, AuthorizationException> cb) {
-        cancelFuture();
+    public void revokeToken(
+        String token,
+        final RequestCallback<Boolean, AuthorizationException> cb
+    ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
@@ -100,7 +102,6 @@ class SessionClientImpl implements SessionClient {
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
-        cancelFuture();
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
@@ -121,11 +122,13 @@ class SessionClientImpl implements SessionClient {
     }
 
     @Override
-    public void authorizedRequest(@NonNull Uri uri, @Nullable Map<String, String> properties,
-                                  @Nullable Map<String, String> postParameters,
-                                  @NonNull ConnectionParameters.RequestMethod method,
-                                  final RequestCallback<JSONObject, AuthorizationException> cb) {
-        cancelFuture();
+    public void authorizedRequest(
+        @NonNull Uri uri,
+        @Nullable Map<String, String> properties,
+        @Nullable Map<String, String> postParameters,
+        @NonNull ConnectionParameters.RequestMethod method,
+        final RequestCallback<JSONObject, AuthorizationException> cb
+    ) {
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
