@@ -33,13 +33,15 @@ import java.util.concurrent.Executor;
 public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
     private Executor mCallbackExecutor;
     private CustomTabOptions mCustomTabOptions;
+    private boolean mIsResultFragmentEnabled;
     private String[] mSupportedBrowser;
 
     public WebAuthClientFactory(@Nullable Executor callbackExecutor,
                                 CustomTabOptions customTabOptions,
+                                boolean isResultFragmentEnabled,
                                 @Nullable String... supportedBrowser) {
         mCallbackExecutor = callbackExecutor;
-        mCustomTabOptions = customTabOptions;
+        mIsResultFragmentEnabled = isResultFragmentEnabled;
         mSupportedBrowser = supportedBrowser;
     }
 
@@ -53,6 +55,6 @@ public class WebAuthClientFactory implements ClientFactory<WebAuthClient> {
                                       boolean cacheMode) {
         return new WebAuthClientImpl(mCallbackExecutor, oidcConfig, context, oktaStorage,
                 encryptionManager, httpClient, requireHardwareBackedKeyStore, cacheMode,
-                mCustomTabOptions, mSupportedBrowser);
+                mIsResultFragmentEnabled, mCustomTabOptions, mSupportedBrowser);
     }
 }

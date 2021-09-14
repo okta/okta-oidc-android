@@ -85,6 +85,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
     private CustomTabOptions mCustomTabOptions;
     private SyncSessionClient mSessionClient;
     private AuthenticationResultHandler mHandler;
+    private boolean mIsResultFragmentEnabled;
 
     SyncWebAuthClientImpl(OIDCConfig oidcConfig,
                           Context context,
@@ -94,11 +95,13 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                           boolean requireHardwareBackedKeyStore,
                           boolean cacheMode,
                           CustomTabOptions customTabOptions,
+                          boolean IsResultFragmentEnabled,
                           String... supportedBrowsers) {
         super(oidcConfig, context, oktaStorage, encryptionManager, requireHardwareBackedKeyStore,
                 cacheMode);
         mSupportedBrowsers = supportedBrowsers;
         mCustomTabOptions = customTabOptions;
+        mIsResultFragmentEnabled = IsResultFragmentEnabled;
         mHttpClient = httpClient;
         mSessionClient = new SyncSessionClientFactoryImpl()
                 .createClient(oidcConfig, mOktaState, mHttpClient);
@@ -183,7 +186,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
 
-        if (activity instanceof FragmentActivity) {
+        if (activity instanceof FragmentActivity && mIsResultFragmentEnabled) {
             activity.runOnUiThread(() -> addLoginFragment(
                 request,
                 mCustomTabOptions,
@@ -317,7 +320,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
-        if (activity instanceof FragmentActivity) {
+        if (activity instanceof FragmentActivity && mIsResultFragmentEnabled) {
             activity.runOnUiThread(() -> addLogoutFragment(
                 request,
                 mCustomTabOptions,

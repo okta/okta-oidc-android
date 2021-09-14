@@ -45,6 +45,7 @@ public class Okta {
     public static class WebAuthBuilder extends OktaBuilder<WebAuthClient, WebAuthBuilder> {
         private Executor mCallbackExecutor;
         private CustomTabOptions customTabOptions = new CustomTabOptions();
+        private boolean mIsResultFragmentEnabled = true;
         private String[] mSupportedBrowsers;
 
         /**
@@ -136,7 +137,7 @@ public class Okta {
         @Override
         public WebAuthClient create() {
             super.withAuthenticationClientFactory(new WebAuthClientFactory(mCallbackExecutor,
-                    customTabOptions, mSupportedBrowsers));
+                    customTabOptions, mIsResultFragmentEnabled, mSupportedBrowsers));
             return createAuthClient();
         }
     }
@@ -147,6 +148,7 @@ public class Okta {
     public static class SyncWebAuthBuilder extends
             OktaBuilder<SyncWebAuthClient, SyncWebAuthBuilder> {
         private CustomTabOptions customTabOptions = new CustomTabOptions();
+        private boolean mIsResultFragmentEnabled = true;
         private String[] mSupportedBrowsers;
 
         /**
@@ -228,7 +230,7 @@ public class Okta {
         @Override
         public SyncWebAuthClient create() {
             super.withAuthenticationClientFactory(
-                    new SyncWebAuthClientFactory(customTabOptions, mSupportedBrowsers));
+                    new SyncWebAuthClientFactory(customTabOptions, mIsResultFragmentEnabled, mSupportedBrowsers));
             return createAuthClient();
         }
     }

@@ -58,9 +58,10 @@ class WebAuthClientImpl implements WebAuthClient {
                       OktaHttpClient httpClient,
                       boolean requireHardwareBackedKeyStore,
                       boolean cacheMode,
+                      boolean isResultFragmentEnabled,
                       CustomTabOptions customTabOptions,
                       String... supportedBrowsers) {
-        mSyncAuthClient = new SyncWebAuthClientFactory(customTabOptions, supportedBrowsers)
+        mSyncAuthClient = new SyncWebAuthClientFactory(customTabOptions, isResultFragmentEnabled, supportedBrowsers)
                 .createClient(oidcConfig, context, oktaStorage, encryptionManager,
                         httpClient, requireHardwareBackedKeyStore, cacheMode);
         mSessionImpl = new SessionClientFactoryImpl(executor)

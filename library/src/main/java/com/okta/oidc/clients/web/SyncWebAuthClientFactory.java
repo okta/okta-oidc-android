@@ -29,10 +29,13 @@ import com.okta.oidc.storage.security.EncryptionManager;
 public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient> {
     private CustomTabOptions mCustomTabOptions;
     private String[] mSupportedBrowsers;
+    private boolean mIsResultFragmentEnabled;
 
     public SyncWebAuthClientFactory(CustomTabOptions customTabOptions,
+                                    boolean isResultFragmentEnabled,
                                     @Nullable String... supportedBrowsers) {
         mCustomTabOptions = customTabOptions;
+        mIsResultFragmentEnabled = isResultFragmentEnabled;
         mSupportedBrowsers = supportedBrowsers;
     }
 
@@ -46,6 +49,6 @@ public class SyncWebAuthClientFactory implements ClientFactory<SyncWebAuthClient
                                           boolean cacheMode) {
         return new SyncWebAuthClientImpl(oidcConfig, context, oktaStorage, encryptionManager,
                 httpClient, requireHardwareBackedKeyStore, cacheMode,
-                mCustomTabOptions, mSupportedBrowsers);
+                mCustomTabOptions, mIsResultFragmentEnabled, mSupportedBrowsers);
     }
 }
