@@ -33,6 +33,7 @@ import com.okta.oidc.util.AuthorizationException;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
@@ -40,10 +41,12 @@ class SessionClientImpl implements SessionClient {
     private SyncSessionClient mSyncSessionClient;
     private RequestDispatcher mDispatcher;
     private volatile Future<?> mFutureTask;
+    private final CopyOnWriteArrayList<RequestCallback<Tokens, AuthorizationException>> refreshTokenRequestCallbacks;
 
     SessionClientImpl(Executor callbackExecutor, SyncSessionClient syncSessionClient) {
         mSyncSessionClient = syncSessionClient;
         mDispatcher = new RequestDispatcher(callbackExecutor);
+        refreshTokenRequestCallbacks = new CopyOnWriteArrayList<>();
     }
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
@@ -82,7 +85,6 @@ class SessionClientImpl implements SessionClient {
 
     public void revokeToken(String token,
                             final RequestCallback<Boolean, AuthorizationException> cb) {
-        cancelFuture();
         mFutureTask = mDispatcher.submit(() -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
@@ -100,19 +102,39 @@ class SessionClientImpl implements SessionClient {
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
-        cancelFuture();
-        mFutureTask = mDispatcher.submit(() -> {
-            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-            try {
-                Tokens result = mSyncSessionClient.refreshToken();
-                mDispatcher.submitResults(() -> cb.onSuccess(result));
-            } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
-            } catch (Exception ex) {
-                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
-                        new AuthorizationException(ex.getMessage(), ex)));
-            }
-        });
+        if (refreshTokenRequestCallbacks.isEmpty()) {
+            refreshTokenRequestCallbacks.add(cb);
+            cancelFuture();
+            mFutureTask = mDispatcher.submit(() -> {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                try {
+                    Tokens result = mSyncSessionClient.refreshToken();
+                    mDispatcher.submitResults(() -> {
+                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                            callback.onSuccess(result);
+                        }
+                        refreshTokenRequestCallbacks.clear();
+                    });
+                } catch (AuthorizationException ae) {
+                    mDispatcher.submitResults(() -> {
+                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                            callback.onError(ae.error, ae);
+                        }
+                        refreshTokenRequestCallbacks.clear();
+                    });
+                } catch (Exception ex) {
+                    mDispatcher.submitResults(() -> {
+                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                            callback.onError(ex.getMessage(),
+                                new AuthorizationException(ex.getMessage(), ex));
+                        }
+                        refreshTokenRequestCallbacks.clear();
+                    });
+                }
+            });
+        } else {
+            refreshTokenRequestCallbacks.add(cb);
+        }
     }
 
     @Override
