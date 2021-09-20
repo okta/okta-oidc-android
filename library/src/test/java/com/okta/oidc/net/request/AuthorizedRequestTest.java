@@ -44,7 +44,6 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -126,10 +125,5 @@ public class AuthorizedRequestTest {
         mExpectedEx.expectMessage("Invalid status code 401 Client Error");
         mEndPoint.enqueueReturnInvalidClient();
         mRequest.executeRequest(new OkHttp());
-    }
-
-    @Test
-    public void testFailure() {
-        fail();
     }
 }

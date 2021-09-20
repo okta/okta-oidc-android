@@ -15,7 +15,6 @@
 
 package com.okta.oidc.clients.web;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -33,7 +32,6 @@ import com.okta.oidc.OktaState;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.ConfigurationRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
-import com.okta.oidc.net.request.RevokeTokenRequest;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
@@ -47,8 +45,6 @@ import com.okta.oidc.util.CodeVerifierUtil;
 import com.okta.oidc.util.EncryptionManagerStub;
 import com.okta.oidc.util.HttpClientFactory;
 import com.okta.oidc.util.MockEndPoint;
-import com.okta.oidc.util.HttpClientFactory;
-import com.okta.oidc.util.MockRequestCallback;
 import com.okta.oidc.util.TestValues;
 
 import org.json.JSONException;
@@ -76,14 +72,12 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
-import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
