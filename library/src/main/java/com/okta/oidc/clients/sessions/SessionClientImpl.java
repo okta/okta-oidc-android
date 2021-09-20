@@ -32,6 +32,9 @@ import com.okta.oidc.util.AuthorizationException;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -41,12 +44,12 @@ class SessionClientImpl implements SessionClient {
     private SyncSessionClient mSyncSessionClient;
     private RequestDispatcher mDispatcher;
     private volatile Future<?> mFutureTask;
-    private final CopyOnWriteArrayList<RequestCallback<Tokens, AuthorizationException>> refreshTokenRequestCallbacks;
+    private final List<RequestCallback<Tokens, AuthorizationException>> refreshTokenRequestCallbacks;
 
     SessionClientImpl(Executor callbackExecutor, SyncSessionClient syncSessionClient) {
         mSyncSessionClient = syncSessionClient;
         mDispatcher = new RequestDispatcher(callbackExecutor);
-        refreshTokenRequestCallbacks = new CopyOnWriteArrayList<>();
+        refreshTokenRequestCallbacks = new ArrayList<>();
     }
 
     public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
@@ -102,38 +105,49 @@ class SessionClientImpl implements SessionClient {
     public void refreshToken(final RequestCallback<Tokens, AuthorizationException> cb) {
         //Wrap the callback from the app because we want to be consistent in
         //returning a Tokens object instead of a TokenResponse.
-        if (refreshTokenRequestCallbacks.isEmpty()) {
+        boolean isEmpty;
+        if (Thread.holdsLock(refreshTokenRequestCallbacks)) {
+            throw new RuntimeException("refreshToken can't be called from callback.");
+        }
+        synchronized (refreshTokenRequestCallbacks) {
+            isEmpty = refreshTokenRequestCallbacks.isEmpty();
             refreshTokenRequestCallbacks.add(cb);
+        }
+        if (isEmpty) {
             cancelFuture();
             mFutureTask = mDispatcher.submit(() -> {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 try {
                     Tokens result = mSyncSessionClient.refreshToken();
                     mDispatcher.submitResults(() -> {
-                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
-                            callback.onSuccess(result);
+                        synchronized (refreshTokenRequestCallbacks) {
+                            for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                                callback.onSuccess(result);
+                            }
+                            refreshTokenRequestCallbacks.clear();
                         }
-                        refreshTokenRequestCallbacks.clear();
                     });
                 } catch (AuthorizationException ae) {
                     mDispatcher.submitResults(() -> {
-                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
-                            callback.onError(ae.error, ae);
+                        synchronized (refreshTokenRequestCallbacks) {
+                            for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                                callback.onError(ae.error, ae);
+                            }
+                            refreshTokenRequestCallbacks.clear();
                         }
-                        refreshTokenRequestCallbacks.clear();
                     });
                 } catch (Exception ex) {
                     mDispatcher.submitResults(() -> {
-                        for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
-                            callback.onError(ex.getMessage(),
-                                new AuthorizationException(ex.getMessage(), ex));
+                        synchronized (refreshTokenRequestCallbacks) {
+                            for (RequestCallback<Tokens, AuthorizationException> callback : refreshTokenRequestCallbacks) {
+                                callback.onError(ex.getMessage(),
+                                        new AuthorizationException(ex.getMessage(), ex));
+                            }
+                            refreshTokenRequestCallbacks.clear();
                         }
-                        refreshTokenRequestCallbacks.clear();
                     });
                 }
             });
-        } else {
-            refreshTokenRequestCallbacks.add(cb);
         }
     }
 
