@@ -220,6 +220,7 @@ class SessionClientImpl implements SessionClient {
     }
 
     private static class CallbackWrapper<T, U extends Exception> implements RequestCallback<T, U> {
+        private static final int MAX_WAIT_MINUTES = 5;
         private final RequestCallback<T, U> delegate;
         private final CountDownLatch latch = new CountDownLatch(1);
 
@@ -239,7 +240,7 @@ class SessionClientImpl implements SessionClient {
 
         boolean waitForCallback() {
             try {
-                return latch.await(5, TimeUnit.MINUTES);
+                return latch.await(MAX_WAIT_MINUTES, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
