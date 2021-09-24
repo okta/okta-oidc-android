@@ -35,15 +35,19 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 class SessionClientImpl implements SessionClient {
-    private SyncSessionClient mSyncSessionClient;
-    private RequestDispatcher mDispatcher;
+    private final SyncSessionClient mSyncSessionClient;
+    private final RequestDispatcher mDispatcher;
     private volatile Future<?> mFutureTask;
     private final List<RequestCallback<Tokens, AuthorizationException>>
             refreshTokenRequestCallbacks;
+    private final Executor serialExecutor = Executors.newSingleThreadExecutor();
 
     SessionClientImpl(Executor callbackExecutor, SyncSessionClient syncSessionClient) {
         mSyncSessionClient = syncSessionClient;
@@ -51,17 +55,17 @@ class SessionClientImpl implements SessionClient {
         refreshTokenRequestCallbacks = new ArrayList<>();
     }
 
-    public void getUserProfile(final RequestCallback<UserInfo, AuthorizationException> cb) {
-        cancelFuture();
-        mFutureTask = mDispatcher.submit(() -> {
+    public void getUserProfile(RequestCallback<UserInfo, AuthorizationException> cb) {
+        CallbackWrapper<UserInfo, AuthorizationException> wrapper = new CallbackWrapper<>(cb);
+        executeSerial(wrapper, () -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 UserInfo userInfo = mSyncSessionClient.getUserProfile();
-                mDispatcher.submitResults(() -> cb.onSuccess(userInfo));
+                mDispatcher.submitResults(() -> wrapper.onSuccess(userInfo));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> wrapper.onError(ae.error, ae));
             } catch (Exception ex) {
-                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                mDispatcher.submitResults(() -> wrapper.onError(ex.getMessage(),
                         new AuthorizationException(ex.getMessage(), ex)));
             }
         });
@@ -69,17 +73,17 @@ class SessionClientImpl implements SessionClient {
 
     public void introspectToken(String token, String tokenType,
                                 final RequestCallback<IntrospectInfo, AuthorizationException> cb) {
-        cancelFuture();
-        mFutureTask = mDispatcher.submit(() -> {
+        CallbackWrapper<IntrospectInfo, AuthorizationException> wrapper = new CallbackWrapper<>(cb);
+        executeSerial(wrapper, () -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 IntrospectInfo introspectInfo = mSyncSessionClient
                         .introspectToken(token, tokenType);
-                mDispatcher.submitResults(() -> cb.onSuccess(introspectInfo));
+                mDispatcher.submitResults(() -> wrapper.onSuccess(introspectInfo));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> wrapper.onError(ae.error, ae));
             } catch (Exception ex) {
-                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                mDispatcher.submitResults(() -> wrapper.onError(ex.getMessage(),
                         new AuthorizationException(ex.getMessage(), ex)));
             }
         });
@@ -87,16 +91,16 @@ class SessionClientImpl implements SessionClient {
 
     public void revokeToken(String token,
                             final RequestCallback<Boolean, AuthorizationException> cb) {
-        cancelFuture();
-        mFutureTask = mDispatcher.submit(() -> {
+        CallbackWrapper<Boolean, AuthorizationException> wrapper = new CallbackWrapper<>(cb);
+        executeSerial(wrapper, () -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 Boolean isRevoke = mSyncSessionClient.revokeToken(token);
-                mDispatcher.submitResults(() -> cb.onSuccess(isRevoke));
+                mDispatcher.submitResults(() -> wrapper.onSuccess(isRevoke));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> wrapper.onError(ae.error, ae));
             } catch (Exception ex) {
-                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                mDispatcher.submitResults(() -> wrapper.onError(ex.getMessage(),
                         new AuthorizationException(ex.getMessage(), ex)));
             }
         });
@@ -109,13 +113,13 @@ class SessionClientImpl implements SessionClient {
         if (Thread.holdsLock(refreshTokenRequestCallbacks)) {
             throw new RuntimeException("refreshToken can't be called from callback.");
         }
+        CallbackWrapper<Tokens, AuthorizationException> wrapper = new CallbackWrapper<>(cb);
         synchronized (refreshTokenRequestCallbacks) {
             isEmpty = refreshTokenRequestCallbacks.isEmpty();
-            refreshTokenRequestCallbacks.add(cb);
+            refreshTokenRequestCallbacks.add(wrapper);
         }
         if (isEmpty) {
-            cancelFuture();
-            mFutureTask = mDispatcher.submit(() -> {
+            executeSerial(wrapper, () -> {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
                 try {
                     Tokens result = mSyncSessionClient.refreshToken();
@@ -164,17 +168,17 @@ class SessionClientImpl implements SessionClient {
                                   @Nullable Map<String, String> postParameters,
                                   @NonNull ConnectionParameters.RequestMethod method,
                                   final RequestCallback<JSONObject, AuthorizationException> cb) {
-        cancelFuture();
-        mFutureTask = mDispatcher.submit(() -> {
+        CallbackWrapper<JSONObject, AuthorizationException> wrapper = new CallbackWrapper<>(cb);
+        executeSerial(wrapper, () -> {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 JSONObject result = mSyncSessionClient
                         .authorizedRequest(uri, properties, postParameters, method);
-                mDispatcher.submitResults(() -> cb.onSuccess(result));
+                mDispatcher.submitResults(() -> wrapper.onSuccess(result));
             } catch (AuthorizationException ae) {
-                mDispatcher.submitResults(() -> cb.onError(ae.error, ae));
+                mDispatcher.submitResults(() -> wrapper.onError(ae.error, ae));
             } catch (Exception ex) {
-                mDispatcher.submitResults(() -> cb.onError(ex.getMessage(),
+                mDispatcher.submitResults(() -> wrapper.onError(ex.getMessage(),
                         new AuthorizationException(ex.getMessage(), ex)));
             }
         });
@@ -204,6 +208,43 @@ class SessionClientImpl implements SessionClient {
     private void cancelFuture() {
         if (mFutureTask != null && (!mFutureTask.isDone() || !mFutureTask.isCancelled())) {
             mFutureTask.cancel(true);
+        }
+    }
+
+    private void executeSerial(CallbackWrapper<?, ?> callback, Runnable runnable) {
+        serialExecutor.execute(() -> {
+            cancelFuture();
+            mFutureTask = mDispatcher.submit(runnable);
+            callback.waitForCallback();
+        });
+    }
+
+    private static class CallbackWrapper<T, U extends Exception> implements RequestCallback<T, U> {
+        private static final int MAX_WAIT_MINUTES = 5;
+        private final RequestCallback<T, U> delegate;
+        private final CountDownLatch latch = new CountDownLatch(1);
+
+        CallbackWrapper(RequestCallback<T, U> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override public void onSuccess(@NonNull T result) {
+            delegate.onSuccess(result);
+            latch.countDown();
+        }
+
+        @Override public void onError(String error, U exception) {
+            delegate.onError(error, exception);
+            latch.countDown();
+        }
+
+        boolean waitForCallback() {
+            try {
+                return latch.await(MAX_WAIT_MINUTES, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return false;
         }
     }
 }

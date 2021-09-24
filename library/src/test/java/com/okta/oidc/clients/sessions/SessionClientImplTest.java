@@ -72,8 +72,8 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -384,5 +384,35 @@ public class SessionClientImplTest {
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
                     || "interrupted".equals(errorMessage));
         }
+    }
+
+    @Test
+    public void requestsAreRunInSerial() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(2);
+        MockRequestCallback<UserInfo, AuthorizationException> userProfileCallback
+                = new MockRequestCallback<>(latch);
+
+        mEndPoint.enqueueUserInfoSuccess();
+        mSessionClient.getUserProfile(userProfileCallback);
+
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
+        mEndPoint.enqueueTokenSuccess(jws);
+        MockRequestCallback<Tokens, AuthorizationException> refreshCallback = new MockRequestCallback<>(latch);
+        mSessionClient.refreshToken(refreshCallback);
+
+        latch.await();
+
+        UserInfo userInfoResult = userProfileCallback.getResult();
+        assertNotNull(userInfoResult);
+        assertEquals("John Doe", userInfoResult.get("name"));
+        assertEquals("Jimmy", userInfoResult.get("nickname"));
+
+        Tokens result = refreshCallback.getResult();
+        TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
+                TokenResponse.class);
+        assertEquals(original.getIdToken(), result.getIdToken());
+        assertEquals(original.getRefreshToken(), result.getRefreshToken());
+        assertEquals(original.getIdToken(), result.getIdToken());
     }
 }
