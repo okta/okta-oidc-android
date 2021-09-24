@@ -18,12 +18,14 @@ package com.okta.oidc.clients.sessions;
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.google.gson.Gson;
 import com.okta.oidc.OIDCConfig;
 import com.okta.oidc.Okta;
 import com.okta.oidc.OktaState;
+import com.okta.oidc.RequestCallback;
 import com.okta.oidc.Tokens;
 import com.okta.oidc.clients.web.WebAuthClient;
 import com.okta.oidc.net.ConnectionParameters;
@@ -77,6 +79,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -170,6 +173,54 @@ public class SessionClientImplTest {
         assertEquals(original.getIdToken(), result.getIdToken());
         assertEquals(original.getRefreshToken(), result.getRefreshToken());
         assertEquals(original.getIdToken(), result.getIdToken());
+    }
+
+    @Test
+    public void refreshTokenInParallel() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(2);
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
+        mEndPoint.enqueueTokenSuccess(jws);
+        MockRequestCallback<Tokens, AuthorizationException> cb = new MockRequestCallback<>(latch);
+        MockRequestCallback<Tokens, AuthorizationException> cb2 = new MockRequestCallback<>(latch);
+        new Thread(() -> mSessionClient.refreshToken(cb)).start();
+        new Thread(() -> mSessionClient.refreshToken(cb2)).start();
+        latch.await();
+        Tokens result = cb.getResult();
+        Tokens result2 = cb2.getResult();
+        TokenResponse original = mGson.fromJson(String.format(TOKEN_SUCCESS, jws),
+                TokenResponse.class);
+        assertEquals(original.getIdToken(), result.getIdToken());
+        assertEquals(original.getRefreshToken(), result.getRefreshToken());
+        assertEquals(original.getIdToken(), result.getIdToken());
+        assertEquals(result, result2);
+    }
+
+    @Test
+    public void refreshTokenFailureInParallelCallbackCycle() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        String nonce = CodeVerifierUtil.generateRandomState();
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), nonce, mConfig.getClientId());
+        mEndPoint.enqueueTokenSuccess(jws);
+        MockRequestCallback<Tokens, AuthorizationException> errorCb = new MockRequestCallback<>(latch);
+        RequestCallback<Tokens, AuthorizationException> cb = new RequestCallback<Tokens, AuthorizationException>() {
+            @Override
+            public void onSuccess(@NonNull Tokens result) {
+                try {
+                    mSessionClient.refreshToken(errorCb);
+                } catch (RuntimeException runtimeException) {
+                    assertEquals(runtimeException.getMessage(), "refreshToken can't be called from callback.");
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(String error, AuthorizationException exception) {
+                fail();
+            }
+        };
+        mSessionClient.refreshToken(cb);
+        latch.await();
     }
 
     @Test
