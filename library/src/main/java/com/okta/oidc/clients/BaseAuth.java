@@ -31,7 +31,7 @@ public interface BaseAuth<S> {
      */
     int REVOKE_REFRESH_TOKEN = 0x00000002;
     /**
-     * When set, signing out will attempt to revoke the refresh token.
+     * When set, signing out will attempt to revoke the device secret.
      */
     int REVOKE_DEVICE_SECRET = 0x00000020;
     /**

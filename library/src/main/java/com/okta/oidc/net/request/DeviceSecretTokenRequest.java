@@ -2,6 +2,7 @@ package com.okta.oidc.net.request;
 
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
@@ -45,11 +46,7 @@ public class DeviceSecretTokenRequest extends TokenRequest {
         params.put("actor_token_type", TokenTypeHint.ACTOR_TOKEN_TYPE);
         params.put("subject_token", b.mSubjectToken);
         params.put("subject_token_type", TokenTypeHint.SUBJECT_TOKEN_TYPE);
-        //requires API 24
-        //params.put("scope", Arrays.stream(b.mConfig.getScopes()).reduce("", (a, e) -> a + " " + e));
-        String scope = b.mConfig.getScopes()[0];
-        for (int i=1; i<b.mConfig.getScopes().length; scope += " " + b.mConfig.getScopes()[i++])
-        params.put("scope", scope);
+        params.put("scope", TextUtils.join(" ", b.mConfig.getScopes()).replace("device_sso", ""));
         params.put("audience", b.mConfig.getAudience());
         return params;
     }

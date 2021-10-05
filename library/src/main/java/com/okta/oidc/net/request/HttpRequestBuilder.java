@@ -248,7 +248,7 @@ public class HttpRequestBuilder {
         @Override
         protected void validate(boolean isConfigurationRequest) throws AuthorizationException {
             super.validate(isConfigurationRequest);
-            if (mConfig.getAudience() == null || mConfig.getAudience().equalsIgnoreCase("")) {
+            if (mConfig.getAudience() == null || mConfig.getAudience().isEmpty()) {
                 throwException("Missing authorization server audience");
             }
         }

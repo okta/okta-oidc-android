@@ -387,6 +387,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                     mProgressBar.setVisibility(View.GONE);
                                 }
                             });
+                } else {
+                    String status = "No Device Secret in Token Store";
+                    Log.d(TAG, status);
+                    mTvStatus.setText(status);
+                    mProgressBar.setVisibility(View.GONE);
                 }
             } catch (AuthorizationException e) {
                 Log.d(TAG, "", e);
