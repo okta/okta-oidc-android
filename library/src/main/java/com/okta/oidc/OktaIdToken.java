@@ -69,6 +69,10 @@ public class OktaIdToken {
         long getCurrentTimeMillis();
     }
 
+    public interface Validator {
+        void validate(OktaIdToken oktaIdToken) throws AuthorizationException;
+    }
+
     /**
      * The header of a idToken.
      * {@link Header}
@@ -292,11 +296,10 @@ public class OktaIdToken {
      * Validate.
      *
      * @param request the request
-     * @param clock   the clock
      * @throws AuthorizationException the authorization exception
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY)
-    public void validate(TokenRequest request, Clock clock) throws AuthorizationException {
+    public void validate(TokenRequest request, Validator validator) throws AuthorizationException {
         final OIDCConfig config = request.getConfig();
         ProviderConfiguration providerConfig = request.getProviderConfiguration();
 
@@ -335,17 +338,7 @@ public class OktaIdToken {
                     AuthorizationException.TokenValidationError.AUDIENCE_MISMATCH);
         }
 
-        long nowInSeconds = clock.getCurrentTimeMillis() / MILLIS_PER_SECOND;
-        if (nowInSeconds > mClaims.exp) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    AuthorizationException.TokenValidationError.ID_TOKEN_EXPIRED);
-        }
-
-        if (Math.abs(nowInSeconds - mClaims.iat) > TEN_MINUTES_IN_SECONDS) {
-            throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
-                    AuthorizationException.TokenValidationError.createWrongTokenIssuedTime(
-                            TEN_MINUTES_IN_SECONDS.intValue() / SECONDS_IN_ONE_MINUTE));
-        }
+        validator.validate(this);
 
         if (GrantTypes.AUTHORIZATION_CODE.equals(request.getGrantType())) {
             String expectedNonce = request.getNonce();
@@ -358,6 +351,29 @@ public class OktaIdToken {
         if (request.getMaxAge() != null && mClaims.auth_time <= 0) {
             throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
                     AuthorizationException.TokenValidationError.AUTH_TIME_MISSING);
+        }
+    }
+
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    public static final class DefaultValidator implements Validator {
+        private final Clock clock;
+
+        public DefaultValidator(Clock clock) {
+            this.clock = clock;
+        }
+
+        @Override public void validate(OktaIdToken oktaIdToken) throws AuthorizationException {
+            long nowInSeconds = clock.getCurrentTimeMillis() / MILLIS_PER_SECOND;
+            if (nowInSeconds > oktaIdToken.mClaims.exp) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        AuthorizationException.TokenValidationError.ID_TOKEN_EXPIRED);
+            }
+
+            if (Math.abs(nowInSeconds - oktaIdToken.mClaims.iat) > TEN_MINUTES_IN_SECONDS) {
+                throw AuthorizationException.fromTemplate(ID_TOKEN_VALIDATION_ERROR,
+                        AuthorizationException.TokenValidationError.createWrongTokenIssuedTime(
+                                TEN_MINUTES_IN_SECONDS.intValue() / SECONDS_IN_ONE_MINUTE));
+            }
         }
     }
 

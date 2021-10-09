@@ -72,9 +72,11 @@ public class OIDCConfig {
     private AccountInfo mAccount;
     private boolean mIsOAuth2Configuration;
     private CustomConfiguration mCustomConfiguration;
+    private final OktaIdToken.Validator idTokenValidator;
 
-    private OIDCConfig(AccountInfo account) {
+    private OIDCConfig(AccountInfo account, OktaIdToken.Validator idTokenValidator) {
         mAccount = account;
+        this.idTokenValidator = idTokenValidator;
         if (mAccount.mDiscoveryUri != null) {
             mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2_CONFIGURATION_RESOURCE)
                     && !mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE);
@@ -160,6 +162,10 @@ public class OIDCConfig {
         return mCustomConfiguration;
     }
 
+    public OktaIdToken.Validator getIdTokenValidator() {
+        return idTokenValidator;
+    }
+
     private static class AccountInfo {
         @SerializedName("client_id")
         String mClientId;
@@ -207,6 +213,7 @@ public class OIDCConfig {
     public static class Builder {
         private AccountInfo mAccountInfo;
         private CustomConfiguration mCustomConfiguration;
+        private OktaIdToken.Validator idTokenValidator = new OktaIdToken.DefaultValidator(System::currentTimeMillis);
 
         /**
          * Instantiates a new Builder.
@@ -222,7 +229,7 @@ public class OIDCConfig {
          */
         public OIDCConfig create() {
             mAccountInfo.validate(mCustomConfiguration != null);
-            OIDCConfig config = new OIDCConfig(mAccountInfo);
+            OIDCConfig config = new OIDCConfig(mAccountInfo, idTokenValidator);
             config.mCustomConfiguration = mCustomConfiguration;
             return config;
         }
@@ -296,6 +303,11 @@ public class OIDCConfig {
          */
         public Builder customConfiguration(@NonNull CustomConfiguration customConfiguration) {
             mCustomConfiguration = customConfiguration;
+            return this;
+        }
+
+        public Builder idTokenValidator(@NonNull OktaIdToken.Validator idTokenValidator) {
+            this.idTokenValidator = idTokenValidator;
             return this;
         }
 

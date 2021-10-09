@@ -157,7 +157,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
                             AuthorizationException.GeneralErrors.ID_TOKEN_PARSING_ERROR,
                             ex);
                 }
-                idToken.validate(this, System::currentTimeMillis);
+                idToken.validate(this, mConfig.getIdTokenValidator());
             }
             return tokenResponse;
         } catch (IOException ex) {
