@@ -27,7 +27,6 @@ import com.okta.oidc.clients.sessions.SyncSessionClient;
 import com.okta.oidc.clients.sessions.SyncSessionClientFactoryImpl;
 import com.okta.oidc.net.OktaHttpClient;
 import com.okta.oidc.net.request.DeviceSecretTokenRequest;
-import com.okta.oidc.net.request.HttpRequestBuilder;
 import com.okta.oidc.net.request.NativeAuthorizeRequest;
 import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
@@ -129,7 +128,8 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             checkIfCanceled();
 
             mOktaState.setCurrentState(State.TOKEN_EXCHANGE);
-            DeviceSecretTokenRequest requestToken = deviceSecretTokenExchange(providerConfiguration, deviceSecret, subjectToken);
+            DeviceSecretTokenRequest requestToken =
+                    deviceSecretTokenExchange(providerConfiguration, deviceSecret, subjectToken);
             mCurrentRequest.set(new WeakReference<>(requestToken));
             TokenResponse tokenResponse = requestToken.executeRequest(mHttpClient);
 

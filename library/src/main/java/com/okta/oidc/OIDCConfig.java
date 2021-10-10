@@ -112,7 +112,7 @@ public class OIDCConfig {
     }
 
     /**
-     * Returns the audience of the Authorization Server
+     * Returns the audience of the Authorization Server.
      *
      * @return the audience
      */

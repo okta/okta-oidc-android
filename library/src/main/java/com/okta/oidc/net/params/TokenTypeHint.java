@@ -38,7 +38,8 @@ public final class TokenTypeHint {
     /**
      * The type of actor token.
      */
-    public static final String ACTOR_TOKEN_TYPE = "urn:x-oath:params:oauth:token-type:device-secret";
+    public static final String ACTOR_TOKEN_TYPE =
+            "urn:x-oath:params:oauth:token-type:device-secret";
     /**
      * The type of subject token.
      */

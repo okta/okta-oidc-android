@@ -51,7 +51,8 @@ public interface SyncAuthClient extends BaseAuth<SyncSessionClient> {
      * <a href=https://developer.okta.com/authentication-guide/auth-overview/#choosing-an-oauth-2-0-flow>AuthClient flows</a>
      *
      * @param deviceSecret the device secret
-     * @param subjectToken      the subject_token (id_token) returned with the device_secret on /authorize request
+     * @param subjectToken the subject_token (id_token) returned with the device_secret
+     *                     on /authorize request
      * @return the {@link Result authorizationResult}
      */
     Result signIn(String deviceSecret, String subjectToken);

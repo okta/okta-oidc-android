@@ -200,7 +200,7 @@ public class HttpRequestBuilder {
         protected void validate(boolean isConfigurationRequest) throws AuthorizationException {
             super.validate(isConfigurationRequest);
             if (mAuthRequest == null || mAuthResponse == null) {
-                throwException("Missing auth request or response"); 
+                throwException("Missing auth request or response");
             }
         }
 

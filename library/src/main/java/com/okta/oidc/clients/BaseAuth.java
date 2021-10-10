@@ -46,8 +46,8 @@ public interface BaseAuth<S> {
     /**
      * Internal use only. For performing all operations.
      */
-    int ALL = SIGN_OUT_SESSION | REVOKE_ACCESS_TOKEN | REVOKE_REFRESH_TOKEN | REMOVE_TOKENS | REVOKE_DEVICE_SECRET;
-
+    int ALL = SIGN_OUT_SESSION | REVOKE_ACCESS_TOKEN | REVOKE_REFRESH_TOKEN |
+            REMOVE_TOKENS | REVOKE_DEVICE_SECRET;
     /**
      * Status returned when sign out steps have all completed.
      */

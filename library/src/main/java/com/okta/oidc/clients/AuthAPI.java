@@ -208,7 +208,8 @@ public class AuthAPI {
             Tokens tokens = client.getTokens();
             if (tokens != null) {
                 if (tokenType == REVOKE_DEVICE_SECRET) {
-                    if (tokens.getDeviceSecret() != null && !tokens.getDeviceSecret().equalsIgnoreCase("")) {
+                    if (tokens.getDeviceSecret() != null &&
+                            !tokens.getDeviceSecret().equalsIgnoreCase("")) {
                         client.revokeToken(tokens.getDeviceSecret());
                     }
                 } else {
@@ -220,7 +221,8 @@ public class AuthAPI {
         } catch (AuthorizationException e) {
             Log.w(TAG, "Revoke token failure", e);
             int status = tokenType == REVOKE_ACCESS_TOKEN ? FAILED_REVOKE_ACCESS_TOKEN
-                    : tokenType == FAILED_REVOKE_REFRESH_TOKEN ? FAILED_REVOKE_REFRESH_TOKEN : FAILED_REVOKE_DEVICE_SECRET;
+                    : tokenType == FAILED_REVOKE_REFRESH_TOKEN ? FAILED_REVOKE_REFRESH_TOKEN
+                    : FAILED_REVOKE_DEVICE_SECRET;
             if (e.type == TYPE_ENCRYPTION_ERROR) {
                 status |= TOKEN_DECRYPT;
             }
