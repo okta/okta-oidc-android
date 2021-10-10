@@ -26,6 +26,7 @@ import org.robolectric.annotation.Config;
 
 
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
+import static com.okta.oidc.util.TestValues.DEVICE_SECRET;
 import static com.okta.oidc.util.TestValues.ID_TOKEN;
 import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
 import static com.okta.oidc.util.TestValues.VALID_EXPIRES_IN;
@@ -47,7 +48,8 @@ public class TokensTest {
             TestValues.ID_TOKEN,
             TestValues.REFRESH_TOKEN,
             INVALID_EXPIRES_IN,
-            TextUtils.join(" ", VALID_SCOPES));
+            TextUtils.join(" ", VALID_SCOPES),
+            DEVICE_SECRET);
 
     @Test
     public void validateEmptyScopeIsAccepted() {
@@ -55,13 +57,14 @@ public class TokensTest {
                 ACCESS_TOKEN,
                 REFRESH_TOKEN,
                 VALID_EXPIRES_IN,
-                null, System.currentTimeMillis());
+                null, System.currentTimeMillis(), DEVICE_SECRET);
         assertNotNull(tokens);
         assertEquals(ACCESS_TOKEN, tokens.getAccessToken());
         assertEquals(REFRESH_TOKEN, tokens.getRefreshToken());
         assertEquals(ID_TOKEN, tokens.getIdToken());
         assertEquals(VALID_EXPIRES_IN, tokens.getExpiresIn());
         assertNull(tokens.getScope());
+        assertEquals(DEVICE_SECRET, tokens.getDeviceSecret());
     }
 
     @Test
@@ -70,7 +73,7 @@ public class TokensTest {
                 ACCESS_TOKEN,
                 REFRESH_TOKEN,
                 VALID_EXPIRES_IN,
-                VALID_SCOPES, System.currentTimeMillis());
+                VALID_SCOPES, System.currentTimeMillis(), DEVICE_SECRET);
 
         assertNotNull(tokens);
         assertEquals(ACCESS_TOKEN, tokens.getAccessToken());
@@ -78,6 +81,7 @@ public class TokensTest {
         assertEquals(ID_TOKEN, tokens.getIdToken());
         assertEquals(VALID_EXPIRES_IN, tokens.getExpiresIn());
         assertArrayEquals(VALID_SCOPES, tokens.getScope());
+        assertEquals(DEVICE_SECRET, tokens.getDeviceSecret());
     }
 
     @Test
@@ -105,7 +109,9 @@ public class TokensTest {
                 ACCESS_TOKEN,
                 REFRESH_TOKEN,
                 VALID_EXPIRES_IN,
-                VALID_SCOPES, System.currentTimeMillis());
+                VALID_SCOPES,
+                System.currentTimeMillis(),
+                DEVICE_SECRET);
         assertFalse(tokens.isAccessTokenExpired());
     }
 
@@ -115,7 +121,9 @@ public class TokensTest {
                 ACCESS_TOKEN,
                 REFRESH_TOKEN,
                 1, //expires in 1 sec
-                VALID_SCOPES, System.currentTimeMillis());
+                VALID_SCOPES,
+                System.currentTimeMillis(),
+                DEVICE_SECRET);
         Thread.sleep(1000);
         assertTrue(tokens.isAccessTokenExpired());
     }

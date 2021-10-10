@@ -60,6 +60,7 @@ public class TestValues {
     public static final String ACCESS_TOKEN = "ACCESS_TOKEN";
     public static final String ID_TOKEN = "ID_TOKEN";
     public static final String REFRESH_TOKEN = "REFRESH_TOKEN";
+    public static final String DEVICE_SECRET = "DEVICE_SECRET";
     public static final String SESSION_TOKEN = "SESSION_TOKEN";
     public static final String EXCHANGE_CODE = "EXCHANGE_CODE";
     public static final String CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
@@ -270,7 +271,8 @@ public class TestValues {
                         ID_TOKEN,
                         REFRESH_TOKEN,
                         Integer.toString(VALID_EXPIRES_IN),
-                        TextUtils.join(" ", VALID_SCOPES))
+                        TextUtils.join(" ", VALID_SCOPES),
+                        DEVICE_SECRET)
         );
     }
 
@@ -290,11 +292,12 @@ public class TestValues {
         return new EncryptedPersistableMock("data");
     }
 
-    public static String generatePayloadTokenResponse(String accessToken, String idToken, String refreshToken, String expiresIn, String scope) {
+    public static String generatePayloadTokenResponse(String accessToken, String idToken, String refreshToken, String expiresIn, String scope, String deviceSecret) {
         return "{\"access_token\"=\"" + accessToken + "\", " +
                 "\"id_token\"=\"" + idToken + "\", " +
                 "\"refresh_token\"=\"" + refreshToken + "\", " +
                 "\"expires_in\"=\"" + expiresIn + "\", " +
-                "\"scope\"=\"" + scope + "\"}";
+                "\"scope\"=\"" + scope + "\", " +
+                "\"device_secret\"=\"" + deviceSecret + "\"}";
     }
 }
