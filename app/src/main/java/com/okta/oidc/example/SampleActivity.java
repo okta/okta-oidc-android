@@ -16,7 +16,6 @@
 package com.okta.oidc.example;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -457,7 +456,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
         });
 
         mSignInDeviceSecret.setOnClickListener(v -> {
-            NativeSSOTokens tokens = getNativeSSOTokens();
+            NativeSsoTokens tokens = getNativeSsoTokens();
 
             if (tokens.secret == null || tokens.subject == null) {
                 Log.e(TAG, "actor or subject tokens could not be retrieved from storage");
@@ -616,7 +615,7 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                                 String subject = client.getTokens().getIdToken();
                                 Log.d(TAG, "secret: " + secret);
                                 Log.d(TAG, "subject: " + subject);
-                                saveNativeSSOTokens(new NativeSSOTokens(secret, subject));
+                                saveNativeSsoTokens(new NativeSsoTokens(secret, subject));
                             } catch (AuthorizationException ae) {
                                 Log.e(TAG, "Error saving client secret: " +
                                         ae.getMessage());
@@ -787,40 +786,41 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                             public void handleSuccess(AuthenticationResponse successResponse) {
                                 String sessionToken = successResponse.getSessionToken();
                                 mAuthClient.signIn(sessionToken, mPayload,
-                                    new RequestCallback<Result,
-                                            AuthorizationException>() {
-                                        @Override
-                                        public void onSuccess(
-                                                @NonNull Result result) {
-                                            mTvStatus.setText("authentication authorized");
-                                            mIsSessionSignIn = true;
-                                            showAuthenticatedMode();
-                                            showNetworkProgress(false);
-                                            SessionClient client = getSessionClient();
+                                        new RequestCallback<Result,
+                                                AuthorizationException>() {
+                                            @Override
+                                            public void onSuccess(
+                                                    @NonNull Result result) {
+                                                mTvStatus.setText("authentication authorized");
+                                                mIsSessionSignIn = true;
+                                                showAuthenticatedMode();
+                                                showNetworkProgress(false);
+                                                SessionClient client = getSessionClient();
 
-                                            try {
-                                                String secret =
-                                                        client.getTokens().getDeviceSecret();
-                                                String subject =
-                                                        client.getTokens().getIdToken();
-                                                Log.d(TAG, "secret: " + secret);
-                                                Log.d(TAG, "subject: " + subject);
-                                                saveNativeSSOTokens(new NativeSSOTokens(
-                                                        secret, subject
-                                                ));
-                                            } catch (AuthorizationException ae) {
-                                                Log.e(TAG, "Error saving client secret: " +
-                                                        ae.getMessage());
-                                                ae.printStackTrace();
+                                                try {
+                                                    String secret =
+                                                            client.getTokens().getDeviceSecret();
+                                                    String subject =
+                                                            client.getTokens().getIdToken();
+                                                    Log.d(TAG, "secret: " + secret);
+                                                    Log.d(TAG, "subject: " + subject);
+                                                    saveNativeSsoTokens(new NativeSsoTokens(
+                                                            secret, subject
+                                                    ));
+                                                } catch (AuthorizationException ae) {
+                                                    Log.e(TAG, "Error saving client secret: " +
+                                                            ae.getMessage());
+                                                    ae.printStackTrace();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onError(String error,
+                                                                AuthorizationException exception) {
+                                                mTvStatus.setText(error);
                                             }
                                         }
-
-                                        @Override
-                                        public void onError(String error,
-                                                            AuthorizationException exception) {
-                                            mTvStatus.setText(error);
-                                        }
-                                    });
+                                );
                             }
                         }
                 );
@@ -850,17 +850,17 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 || Build.DEVICE.contains("generic");
     }
 
-    private static class NativeSSOTokens {
+    private static class NativeSsoTokens {
         String secret;
         String subject;
 
-        NativeSSOTokens(String secret, String subject) {
+        NativeSsoTokens(String secret, String subject) {
             this.secret = secret;
             this.subject = subject;
         }
     }
 
-    private void saveNativeSSOTokens(@NotNull NativeSSOTokens tokens) {
+    private void saveNativeSsoTokens(@NotNull NativeSsoTokens tokens) {
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .edit().putString(PREF_DEV_SECRET_ACTOR, tokens.secret).apply();
         getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
@@ -868,11 +868,11 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
     }
 
     @NotNull
-    private NativeSSOTokens getNativeSSOTokens() {
+    private NativeSsoTokens getNativeSsoTokens() {
         String actor = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .getString(PREF_DEV_SECRET_ACTOR, null);
         String subject = getSharedPreferences(SampleActivity.class.getName(), MODE_PRIVATE)
                 .getString(PREF_DEV_SECRET_SUBJECT, null);
-        return new NativeSSOTokens(actor, subject);
+        return new NativeSsoTokens(actor, subject);
     }
 }
