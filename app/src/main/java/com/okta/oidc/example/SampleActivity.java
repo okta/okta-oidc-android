@@ -465,32 +465,33 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
             }
             mAuthClient.signIn(actor, subject,
                     new RequestCallback<Result, AuthorizationException>() {
-                @Override
-                public void onSuccess(@NonNull Result result) {
-                    String status = "Client Secret token exchange : " + result.getStatus();
-                    Log.d(TAG, status);
-                    mTvStatus.setText(status);
+                        @Override
+                        public void onSuccess(@NonNull Result result) {
+                            String status = "Client Secret token exchange : " + result.getStatus();
+                            Log.d(TAG, status);
+                            mTvStatus.setText(status);
 
-                    showAuthenticatedMode();
-                    showNetworkProgress(false);
-                    mIsSessionSignIn = true;
-                    mProgressBar.setVisibility(View.GONE);
+                            showAuthenticatedMode();
+                            showNetworkProgress(false);
+                            mIsSessionSignIn = true;
+                            mProgressBar.setVisibility(View.GONE);
 
-                    try {
-                        Log.d(TAG, "new id token: " +
-                            mSessionClient.getTokens().getIdToken());
-                    } catch (Exception e) {
-                        Log.e(TAG, e.getMessage()); e.printStackTrace();
+                            try {
+                                Log.d(TAG, "new id token: " +
+                                    mSessionClient.getTokens().getIdToken());
+                            } catch (Exception e) {
+                                Log.e(TAG, e.getMessage()); e.printStackTrace();
+                            }
+                        }
+                        @Override
+                        public void onError(String error, AuthorizationException exception) {
+                            Log.d(TAG, exception.error +
+                                    " Client Secret token exchange onError " + error, exception);
+                            mTvStatus.setText(error);
+                            mProgressBar.setVisibility(View.GONE);
+                        }
                     }
-                }
-                @Override
-                public void onError(String error, AuthorizationException exception) {
-                    Log.d(TAG, exception.error +
-                            " Client Secret token exchange onError " + error, exception);
-                    mTvStatus.setText(error);
-                    mProgressBar.setVisibility(View.GONE);
-                }
-            });
+            );
         });
 
         mSignInNative.setOnClickListener(v -> {
@@ -609,10 +610,8 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
 
                             SessionClient client = getSessionClient();
                             try {
-                                Log.d(TAG, "secret: " +
-                                    client.getTokens().getDeviceSecret());
-                                Log.d(TAG, "subject: " +
-                                    client.getTokens().getIdToken());
+                                Log.d(TAG, "secret: " + client.getTokens().getDeviceSecret());
+                                Log.d(TAG, "subject: " + client.getTokens().getIdToken());
                                 getSharedPreferences(SampleActivity.class.getName(),
                                     MODE_PRIVATE).edit()
                                     .putString(PREF_DEV_SECRET_ACTOR,
@@ -770,66 +769,67 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 }
                 mAuthenticationClient.authenticate(username, password.toCharArray(),
                         null, new AuthenticationStateHandlerAdapter() {
-                    @Override
-                    public void handleUnknown(
-                            AuthenticationResponse authenticationResponse) {
-                        SampleActivity.this.runOnUiThread(() -> {
-                            showNetworkProgress(false);
-                            mTvStatus.setText(authenticationResponse.getStatus().name());
-                        });
-                    }
-
-                    @Override
-                    public void handleLockedOut(AuthenticationResponse lockedOut) {
-                        SampleActivity.this.runOnUiThread(() -> {
-                            showNetworkProgress(false);
-                            mTvStatus.setText("Account locked out");
-                        });
-                    }
-
-                    @Override
-                    public void handleSuccess(AuthenticationResponse successResponse) {
-                        String sessionToken = successResponse.getSessionToken();
-                        mAuthClient.signIn(sessionToken, mPayload,
-                        new RequestCallback<Result,
-                                AuthorizationException>() {
                             @Override
-                            public void onSuccess(
-                                    @NonNull Result result) {
-                                mTvStatus.setText("authentication authorized");
-                                mIsSessionSignIn = true;
-                                showAuthenticatedMode();
-                                showNetworkProgress(false);
-
-                                SessionClient client = getSessionClient();
-                                try {
-                                    Log.d(TAG, "secret: " +
-                                        client.getTokens().getDeviceSecret());
-                                    Log.d(TAG, "subject: " +
-                                        client.getTokens().getIdToken());
-                                    getSharedPreferences(SampleActivity.class.getName(),
-                                        MODE_PRIVATE).edit()
-                                        .putString(PREF_DEV_SECRET_ACTOR, client.getTokens()
-                                        .getDeviceSecret()).apply();
-                                    getSharedPreferences(SampleActivity.class.getName(),
-                                        MODE_PRIVATE).edit()
-                                        .putString(PREF_DEV_SECRET_SUBJECT, client.getTokens()
-                                        .getIdToken()).apply();
-                                } catch (AuthorizationException ae) {
-                                    Log.e(TAG, "Error saving client secret: " +
-                                            ae.getMessage());
-                                    ae.printStackTrace();
-                                }
+                            public void handleUnknown(
+                                    AuthenticationResponse authenticationResponse) {
+                                SampleActivity.this.runOnUiThread(() -> {
+                                    showNetworkProgress(false);
+                                    mTvStatus.setText(authenticationResponse.getStatus().name());
+                                });
                             }
 
                             @Override
-                            public void onError(String error,
-                                                AuthorizationException exception) {
-                                mTvStatus.setText(error);
+                            public void handleLockedOut(AuthenticationResponse lockedOut) {
+                                SampleActivity.this.runOnUiThread(() -> {
+                                    showNetworkProgress(false);
+                                    mTvStatus.setText("Account locked out");
+                                });
                             }
-                        });
-                    }
-                });
+
+                            @Override
+                            public void handleSuccess(AuthenticationResponse successResponse) {
+                                String sessionToken = successResponse.getSessionToken();
+                                mAuthClient.signIn(sessionToken, mPayload,
+                                new RequestCallback<Result,
+                                        AuthorizationException>() {
+                                    @Override
+                                    public void onSuccess(
+                                            @NonNull Result result) {
+                                        mTvStatus.setText("authentication authorized");
+                                        mIsSessionSignIn = true;
+                                        showAuthenticatedMode();
+                                        showNetworkProgress(false);
+
+                                        SessionClient client = getSessionClient();
+                                        try {
+                                            Log.d(TAG, "secret: " +
+                                                client.getTokens().getDeviceSecret());
+                                            Log.d(TAG, "subject: " +
+                                                client.getTokens().getIdToken());
+                                            getSharedPreferences(SampleActivity.class.getName(),
+                                                MODE_PRIVATE).edit()
+                                                .putString(PREF_DEV_SECRET_ACTOR, client
+                                                        .getTokens().getDeviceSecret()).apply();
+                                            getSharedPreferences(SampleActivity.class.getName(),
+                                                MODE_PRIVATE).edit()
+                                                    .putString(PREF_DEV_SECRET_SUBJECT,
+                                                        client.getTokens().getIdToken()).apply();
+                                        } catch (AuthorizationException ae) {
+                                            Log.e(TAG, "Error saving client secret: " +
+                                                    ae.getMessage());
+                                            ae.printStackTrace();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(String error,
+                                                        AuthorizationException exception) {
+                                        mTvStatus.setText(error);
+                                    }
+                                });
+                            }
+                        }
+                );
             } catch (AuthenticationException e) {
                 Log.e(TAG, Log.getStackTraceString(e));
                 runOnUiThread(() -> {
