@@ -65,7 +65,7 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest);
         assertNotNull(idToken);
         assertNotNull(idToken.mHeader);
         assertNotNull(idToken.mClaims);
@@ -82,35 +82,7 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
-    }
-
-    @Test
-    public void validateExpiredToken() throws AuthorizationException {
-        mExpectedEx.expect(AuthorizationException.class);
-        String jws = TestValues.getExpiredJwt(CUSTOM_URL, CUSTOM_NONCE, mConfig.getClientId());
-        OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
-        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
-        TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
-                        getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
-    }
-
-    @Test
-    public void validateIssuedAtTimeout() throws AuthorizationException {
-        mExpectedEx.expect(AuthorizationException.class);
-        OktaIdToken token = OktaIdToken.parseIdToken(JsonStrings.VALID_ID_TOKEN);
-
-        String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, CUSTOM_NONCE,
-                mConfig.getClientId());
-        OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
-        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
-
-        TokenRequest tokenRequest =
-                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
-                        getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest);
     }
 
     @Test
