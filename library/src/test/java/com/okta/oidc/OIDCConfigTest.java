@@ -17,6 +17,7 @@ package com.okta.oidc;
 import android.net.Uri;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
+import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -169,5 +170,25 @@ public class OIDCConfigTest {
         assertEquals(mConfig.getEndSessionRedirectUri(), config.getEndSessionRedirectUri());
         assertEquals(mConfig.getRedirectUri(), config.getRedirectUri());
         assertArrayEquals(mConfig.getScopes(), config.getScopes());
+        assertEquals(OktaIdToken.DefaultValidator.class, config.getIdTokenValidator().getClass());
+    }
+
+    @Test
+    public void testBuilderWithCustomIdTokenValidator() {
+        OIDCConfig config = new OIDCConfig.Builder()
+                .discoveryUri(CUSTOM_OAUTH2_URL)
+                .clientId(CLIENT_ID)
+                .redirectUri(REDIRECT_URI)
+                .endSessionRedirectUri(END_SESSION_URI)
+                .scopes(SCOPES)
+                .idTokenValidator(new TestValidator())
+                .create();
+        assertEquals(TestValidator.class, config.getIdTokenValidator().getClass());
+    }
+
+    static final class TestValidator implements OktaIdToken.Validator {
+        @Override public void validate(OktaIdToken oktaIdToken) throws AuthorizationException {
+
+        }
     }
 }

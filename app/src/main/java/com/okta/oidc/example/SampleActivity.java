@@ -412,9 +412,6 @@ public class SampleActivity extends AppCompatActivity implements SignInDialog.Si
                 .endSessionRedirectUri(BuildConfig.END_SESSION_URI)
                 .scopes(BuildConfig.SCOPES)
                 .discoveryUri(BuildConfig.DISCOVERY_URI)
-                .idTokenValidator(oktaIdToken -> {
-                    // Empty means always valid!
-                })
                 .create();
 
         mOAuth2Config = new OIDCConfig.Builder()

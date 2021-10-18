@@ -65,10 +65,27 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest, new OktaIdToken.DefaultValidator(System::currentTimeMillis));
         assertNotNull(idToken);
         assertNotNull(idToken.mHeader);
         assertNotNull(idToken.mClaims);
+    }
+
+    @Test
+    public void validateWithCustomValidatorThatAlwaysThrowsException() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+
+        String jwt = TestValues.getJwt(CUSTOM_URL, CUSTOM_NONCE, mConfig.getClientId(),
+                "fakeaud");
+        OktaIdToken idToken = OktaIdToken.parseIdToken(jwt);
+        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
+
+        TokenRequest tokenRequest =
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
+                        getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
+        idToken.validate(tokenRequest, oktaIdToken -> {
+            throw new AuthorizationException("Expected", null);
+        });
     }
 
     @Test
@@ -82,7 +99,7 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse(CUSTOM_STATE, CUSTOM_CODE), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest, new OktaIdToken.DefaultValidator(System::currentTimeMillis));
     }
 
     @Test
@@ -94,13 +111,25 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest, new OktaIdToken.DefaultValidator(System::currentTimeMillis));
+    }
+
+    @Test
+    public void validateExpiredTokenWithEmptyValidator() throws AuthorizationException {
+        String jws = TestValues.getExpiredJwt(CUSTOM_URL, CUSTOM_NONCE, mConfig.getClientId());
+        OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
+        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
+        TokenRequest tokenRequest =
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
+                        getAuthorizeResponse("state", "code"), mConfiguration);
+        idToken.validate(tokenRequest, oktaIdToken -> {
+            // Do nothing, which shouldn't throw any exceptions.
+        });
     }
 
     @Test
     public void validateIssuedAtTimeout() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        OktaIdToken token = OktaIdToken.parseIdToken(JsonStrings.VALID_ID_TOKEN);
 
         String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, CUSTOM_NONCE,
                 mConfig.getClientId());
@@ -110,7 +139,22 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, System::currentTimeMillis);
+        idToken.validate(tokenRequest, new OktaIdToken.DefaultValidator(System::currentTimeMillis));
+    }
+
+    @Test
+    public void validateIssuedAtTimeoutWithEmptyValidator() throws AuthorizationException {
+        String jws = TestValues.getJwtIssuedAtTimeout(CUSTOM_URL, CUSTOM_NONCE,
+                mConfig.getClientId());
+        OktaIdToken idToken = OktaIdToken.parseIdToken(jws);
+        String verifier = CodeVerifierUtil.generateRandomCodeVerifier();
+
+        TokenRequest tokenRequest =
+                TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
+                        getAuthorizeResponse("state", "code"), mConfiguration);
+        idToken.validate(tokenRequest, oktaIdToken -> {
+            // Do nothing, which shouldn't throw any exceptions.
+        });
     }
 
     @Test
