@@ -371,6 +371,8 @@ public class OktaIdToken {
         private final Clock clock;
 
         /**
+         * The default ID Token validator.
+         *
          * @param clock the clock to use for the time validation.
          */
         public DefaultValidator(Clock clock) {
