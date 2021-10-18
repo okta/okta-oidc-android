@@ -370,6 +370,9 @@ public class OktaIdToken {
     public static final class DefaultValidator implements Validator {
         private final Clock clock;
 
+        /**
+         * @param clock the clock to use for the time validation.
+         */
         public DefaultValidator(Clock clock) {
             this.clock = clock;
         }
