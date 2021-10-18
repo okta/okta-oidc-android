@@ -162,6 +162,11 @@ public class OIDCConfig {
         return mCustomConfiguration;
     }
 
+    /**
+     * Returns the ID Token Validator.
+     *
+     * @return the ID Token Validator.
+     */
     public OktaIdToken.Validator getIdTokenValidator() {
         return idTokenValidator;
     }
@@ -311,7 +316,7 @@ public class OIDCConfig {
          * Optional custom ID Token validator. This can be used to fine tune the checks that are
          * done before saving the Tokens.
          *
-         * If not specified, it'll check the claims expiration time is at a future time, as well
+         * <p>If not specified, it'll check the claims expiration time is at a future time, as well
          * as check the issued at time is within a 10 minute window of the current time.
          *
          * @param idTokenValidator the ID Token Validator

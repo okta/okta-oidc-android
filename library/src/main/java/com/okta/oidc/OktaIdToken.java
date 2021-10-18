@@ -363,6 +363,9 @@ public class OktaIdToken {
         }
     }
 
+    /**
+     * The default ID Token Validator.
+     */
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     public static final class DefaultValidator implements Validator {
         private final Clock clock;
@@ -371,6 +374,13 @@ public class OktaIdToken {
             this.clock = clock;
         }
 
+        /**
+         * Checks the claims expiration time is at a future time, as well as check the issued at
+         * time is within a 10 minute window of the current time.
+         *
+         * @param oktaIdToken the OktaIdToken to validate.
+         * @throws AuthorizationException the authorization exception
+         */
         @Override public void validate(OktaIdToken oktaIdToken) throws AuthorizationException {
             long nowInSeconds = clock.getCurrentTimeMillis() / MILLIS_PER_SECOND;
             if (nowInSeconds > oktaIdToken.mClaims.exp) {
