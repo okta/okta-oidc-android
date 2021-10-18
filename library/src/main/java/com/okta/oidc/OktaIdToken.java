@@ -69,7 +69,16 @@ public class OktaIdToken {
         long getCurrentTimeMillis();
     }
 
+    /**
+     * Used to validate time dependant checks in the ID Token before saving the Tokens.
+     */
     public interface Validator {
+        /**
+         * Should validate the time dependant checks in the ID Token.
+         *
+         * @param oktaIdToken the OktaIdToken to validate.
+         * @throws AuthorizationException the authorization exception
+         */
         void validate(OktaIdToken oktaIdToken) throws AuthorizationException;
     }
 
