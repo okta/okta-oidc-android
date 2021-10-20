@@ -37,7 +37,8 @@ import static com.okta.oidc.util.TestValues.getAuthorizeRequest;
 import static com.okta.oidc.util.TestValues.getAuthorizeResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -122,9 +123,9 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, oktaIdToken -> {
-            // Do nothing, which shouldn't throw any exceptions.
-        });
+        OktaIdToken.Validator validator = mock(OktaIdToken.Validator.class);
+        idToken.validate(tokenRequest, validator);
+        verify(validator).validate(idToken);
     }
 
     @Test
@@ -152,9 +153,9 @@ public class OktaIdTokenTest {
         TokenRequest tokenRequest =
                 TestValues.getTokenRequest(mConfig, getAuthorizeRequest(mConfig, verifier),
                         getAuthorizeResponse("state", "code"), mConfiguration);
-        idToken.validate(tokenRequest, oktaIdToken -> {
-            // Do nothing, which shouldn't throw any exceptions.
-        });
+        OktaIdToken.Validator validator = mock(OktaIdToken.Validator.class);
+        idToken.validate(tokenRequest, validator);
+        verify(validator).validate(idToken);
     }
 
     @Test
