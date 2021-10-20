@@ -72,9 +72,11 @@ public class OIDCConfig {
     private AccountInfo mAccount;
     private boolean mIsOAuth2Configuration;
     private CustomConfiguration mCustomConfiguration;
+    private final OktaIdToken.Validator idTokenValidator;
 
-    private OIDCConfig(AccountInfo account) {
+    private OIDCConfig(AccountInfo account, OktaIdToken.Validator idTokenValidator) {
         mAccount = account;
+        this.idTokenValidator = idTokenValidator;
         if (mAccount.mDiscoveryUri != null) {
             mIsOAuth2Configuration = mAccount.mDiscoveryUri.contains(OAUTH2_CONFIGURATION_RESOURCE)
                     && !mAccount.mDiscoveryUri.contains(OPENID_CONFIGURATION_RESOURCE);
@@ -160,6 +162,15 @@ public class OIDCConfig {
         return mCustomConfiguration;
     }
 
+    /**
+     * Returns the ID Token Validator.
+     *
+     * @return the ID Token Validator.
+     */
+    public OktaIdToken.Validator getIdTokenValidator() {
+        return idTokenValidator;
+    }
+
     private static class AccountInfo {
         @SerializedName("client_id")
         String mClientId;
@@ -207,6 +218,8 @@ public class OIDCConfig {
     public static class Builder {
         private AccountInfo mAccountInfo;
         private CustomConfiguration mCustomConfiguration;
+        private OktaIdToken.Validator mIdTokenValidator =
+                new OktaIdToken.DefaultValidator(System::currentTimeMillis);
 
         /**
          * Instantiates a new Builder.
@@ -222,7 +235,7 @@ public class OIDCConfig {
          */
         public OIDCConfig create() {
             mAccountInfo.validate(mCustomConfiguration != null);
-            OIDCConfig config = new OIDCConfig(mAccountInfo);
+            OIDCConfig config = new OIDCConfig(mAccountInfo, mIdTokenValidator);
             config.mCustomConfiguration = mCustomConfiguration;
             return config;
         }
@@ -296,6 +309,21 @@ public class OIDCConfig {
          */
         public Builder customConfiguration(@NonNull CustomConfiguration customConfiguration) {
             mCustomConfiguration = customConfiguration;
+            return this;
+        }
+
+        /**
+         * Optional custom ID Token validator. This can be used to fine tune the checks that are
+         * done before saving the Tokens.
+         *
+         * <p>If not specified, it'll check the claims expiration time is at a future time, as well
+         * as check the issued at time is within a 10 minute window of the current time.
+         *
+         * @param idTokenValidator the ID Token Validator
+         * @return current builder
+         */
+        public Builder idTokenValidator(@NonNull OktaIdToken.Validator idTokenValidator) {
+            mIdTokenValidator = idTokenValidator;
             return this;
         }
 
