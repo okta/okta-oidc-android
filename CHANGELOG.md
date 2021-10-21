@@ -1,3 +1,8 @@
+# 1.2.0
+
+### Feature
+- [#281](https://github.com/okta/okta-oidc-android/pull/281) Add ability to customize ID Token validation.
+
 # 1.1.0
 
 ### Feature
