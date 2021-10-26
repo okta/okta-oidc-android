@@ -282,7 +282,7 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
         try {
             startActivity(createBrowserIntent(browserPackage, session));
         } catch (ActivityNotFoundException e) {
-            sendResult(RESULT_OK, getIntent().putExtra(EXTRA_EXCEPTION,
+            sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
                     AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
         }
     }
