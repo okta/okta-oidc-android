@@ -16,6 +16,7 @@
 package com.okta.oidc;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -278,7 +279,12 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
             session = createSession(customTabsClient);
         }
         mAuthStarted = true;
-        startActivity(createBrowserIntent(browserPackage, session));
+        try {
+            startActivity(createBrowserIntent(browserPackage, session));
+        } catch (ActivityNotFoundException e) {
+            sendResult(RESULT_CANCELED, getIntent().putExtra(EXTRA_EXCEPTION,
+                    AuthorizationException.GeneralErrors.NO_BROWSER_FOUND.toJsonString()));
+        }
     }
 
     /**
