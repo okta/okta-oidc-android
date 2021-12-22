@@ -111,11 +111,28 @@ public final class HttpResponse {
                 mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
             throw new HttpStatusCodeException(mStatusCode, mHttpClient.getResponseMessage());
         }
-        InputStream is = getContent();
-        if (is == null) {
+        return getJsonObjectFromResponseInputStream(getContent());
+    }
+
+    public JSONObject asJsonWithErrorDescription() throws IOException, JSONException {
+        if (mStatusCode < HttpURLConnection.HTTP_OK ||
+                mStatusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
+            try {
+                return getJsonObjectFromResponseInputStream(getContent());
+            } catch (Exception any) {
+                throw new HttpStatusCodeException(mStatusCode, mHttpClient.getResponseMessage());
+            }
+        }
+        return getJsonObjectFromResponseInputStream(getContent());
+    }
+
+    private static JSONObject getJsonObjectFromResponseInputStream(
+            final InputStream inputStream
+    ) throws IOException, JSONException {
+        if (inputStream == null) {
             throw new IOException("Input stream must not be null");
         }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         Writer writer = new StringWriter();
         String line = reader.readLine();
         while (line != null) {
