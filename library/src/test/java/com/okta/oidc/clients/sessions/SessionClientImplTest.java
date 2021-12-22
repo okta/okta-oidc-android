@@ -233,6 +233,7 @@ public class SessionClientImplTest {
         assertNull(cb.getResult());
         assertNotNull(cb.getException());
         assertEquals(cb.getException().getMessage(), "Invalid status code 401 Client Error");
+        assertEquals(cb.getException().type, TYPE_OAUTH_TOKEN_ERROR);
     }
 
     @Test
