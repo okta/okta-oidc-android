@@ -1,3 +1,13 @@
+# 1.2.2
+
+### Bug Fix
+- [#293](https://github.com/okta/okta-oidc-android/pull/293) Fixes ambiguous error codes.
+
+# 1.2.1
+
+### Bug Fix
+- [#288](https://github.com/okta/okta-oidc-android/pull/288) Fix for ActivityNotFoundException.
+
 # 1.2.0
 
 ### Feature

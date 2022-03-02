@@ -128,7 +128,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
         TokenResponse tokenResponse;
         try {
             response = openConnection(client);
-            JSONObject json = response.asJson();
+            JSONObject json = response.asJsonWithErrorDescription();
             if (json.has(AuthorizationException.PARAM_ERROR)) {
                 try {
                     final String error = json.getString(AuthorizationException.PARAM_ERROR);
