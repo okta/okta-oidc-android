@@ -15,22 +15,12 @@
 
 package com.okta.oidc;
 
-import static android.app.Activity.RESULT_OK;
-import static com.okta.oidc.AuthenticationResultHandler.handler;
-import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.okta.oidc.net.request.ProviderConfiguration;
@@ -47,6 +37,11 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import static android.app.Activity.RESULT_OK;
+import static com.okta.oidc.AuthenticationResultHandler.handler;
+import static com.okta.oidc.OktaAuthenticationActivity.EXTRA_EXCEPTION;
+import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -123,29 +118,6 @@ public class OktaResultFragmentTest {
 
     @Test
     public void handleAuthorizationResponseLogoutSuccess() throws AuthorizationException {
-        OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
-        handler().setAuthenticationListener(listener);
-        Intent intent = new Intent();
-        intent.setData(Uri.parse("com.okta.test:/logout?state=" + CUSTOM_STATE));
-
-        getOktaResultFragment(mActivity).onActivityResult(OktaResultFragment.REQUEST_CODE_SIGN_OUT, RESULT_OK, intent);
-
-        ArgumentCaptor<AuthenticationResultHandler.StateResult> resultCapture = ArgumentCaptor.forClass(AuthenticationResultHandler.StateResult.class);
-        ArgumentCaptor<AuthenticationResultHandler.ResultType> resultTypeCapture = ArgumentCaptor.forClass(AuthenticationResultHandler.ResultType.class);
-        verify(listener).postResult(resultCapture.capture(), resultTypeCapture.capture());
-
-        assert (getOktaResultFragment(mActivity) == null);
-        assert (resultCapture.getValue().getStatus() == AuthenticationResultHandler.Status.LOGGED_OUT);
-        assert (resultTypeCapture.getValue() == AuthenticationResultHandler.ResultType.SIGN_OUT);
-    }
-
-    @Test
-    public void handleAuthorizationResponseLogoutSuccessWhenFragmentManagerIsDestroyed() throws AuthorizationException {
-        FragmentManager mockFragmentManager = mock(FragmentManager.class);
-        FragmentActivity spyActivity = spy(mActivity);
-        when(spyActivity.getSupportFragmentManager()).thenReturn(mockFragmentManager);
-        when(mockFragmentManager.isDestroyed()).thenReturn(true);
-
         OktaResultFragment.addLogoutFragment(TestValues.getAuthorizeRequest(mConfig, null), mCustomTabOptions, mActivity, new String[]{});
         handler().setAuthenticationListener(listener);
         Intent intent = new Intent();
