@@ -22,6 +22,7 @@ import android.net.Uri;
 import androidx.annotation.RestrictTo;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 
 import com.okta.oidc.net.request.web.WebRequest;
 
@@ -58,10 +59,12 @@ public class OktaResultFragment extends Fragment {
         OktaResultFragment fragment = new OktaResultFragment();
         fragment.logoutIntent = createAuthIntent(activity, request.toUri(), customTabOptions,
                 browsers);
-        activity.getSupportFragmentManager()
-                .beginTransaction()
-                .add(fragment, AUTHENTICATION_REQUEST)
-                .commit();
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        if (!fragmentManager.isDestroyed()) {
+            fragmentManager.beginTransaction()
+                           .add(fragment, AUTHENTICATION_REQUEST)
+                           .commit();
+        }
     }
 
     @Override
