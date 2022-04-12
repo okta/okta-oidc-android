@@ -27,6 +27,7 @@ import com.okta.oidc.storage.security.EncryptionManager;
 
 import java.security.GeneralSecurityException;
 import java.security.InvalidParameterException;
+import java.security.ProviderException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ import static com.okta.oidc.storage.OktaRepository.EncryptionException.KEYGUARD_
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OktaRepository {
     private static final String TAG = OktaRepository.class.getSimpleName();
+    private static final int MAX_WAIT_TIME_MILLISECONDS_BEFORE_RETRY = 100;
 
     private final OktaStorage storage;
     private EncryptionManager encryptionManager;
@@ -198,14 +200,24 @@ public class OktaRepository {
         if (encryptionManager == null) {
             return value;
         }
-        return encryptionManager.encrypt(value);
+        try {
+            return encryptionManager.encrypt(value);
+        } catch (ProviderException | GeneralSecurityException ex) {
+            sleep();
+            return encryptionManager.encrypt(value);
+        }
     }
 
     private String getDecrypted(String value) throws GeneralSecurityException {
         if (encryptionManager == null) {
             return value;
         }
-        return encryptionManager.decrypt(value);
+        try {
+            return encryptionManager.decrypt(value);
+        } catch (ProviderException | GeneralSecurityException ex) {
+            sleep();
+            return encryptionManager.decrypt(value);
+        }
     }
 
     private String getHashed(String value) {
@@ -214,6 +226,17 @@ public class OktaRepository {
         } catch (Exception ex) {
             Log.d(TAG, "getHashed: ", ex);
             return value;
+        }
+    }
+
+    // Copyright 2017 Google Inc.
+    // https://github.com/google/tink/blob/cb814f1e1b69caf6211046bee083a730625a3cf9/java_src/src/main/java/com/google/crypto/tink/integration/android/AndroidKeystoreAesGcm.java
+    private static void sleep() {
+        int waitTimeMillis = (int) (Math.random() * MAX_WAIT_TIME_MILLISECONDS_BEFORE_RETRY);
+        try {
+            Thread.sleep(waitTimeMillis);
+        } catch (InterruptedException ex) {
+            // Ignored.
         }
     }
 
