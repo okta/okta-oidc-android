@@ -1,3 +1,8 @@
+# 1.2.4
+
+### Bug Fix
+- [#311](https://github.com/okta/okta-oidc-android/pull/311) Sleep and retry when crypto operations fail to fix a bug on Android 10.
+
 # 1.2.3
 
 ### Bug Fix
