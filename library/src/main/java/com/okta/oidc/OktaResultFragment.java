@@ -60,11 +60,9 @@ public class OktaResultFragment extends Fragment {
         fragment.logoutIntent = createAuthIntent(activity, request.toUri(), customTabOptions,
                 browsers);
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
-        if (!fragmentManager.isDestroyed()) {
-            fragmentManager.beginTransaction()
-                           .add(fragment, AUTHENTICATION_REQUEST)
-                           .commit();
-        }
+        fragmentManager.beginTransaction()
+                       .add(fragment, AUTHENTICATION_REQUEST)
+                       .commit();
     }
 
     @Override
