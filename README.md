@@ -59,7 +59,7 @@ It is recommended that your app extends [FragmentActivity][fragment-activity] or
 Add the `Okta OIDC` dependency to your `build.gradle` file:
 
 ```gradle
-implementation 'com.okta.android:okta-oidc-android:1.2.4'
+implementation 'com.okta.android:okta-oidc-android:1.2.5'
 ```
 
 The SDK requires Java 8 support.

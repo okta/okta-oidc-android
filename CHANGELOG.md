@@ -1,3 +1,8 @@
+# 1.2.5
+
+### Bug Fix
+- [#316](https://github.com/okta/okta-oidc-android/pull/316) Fix a crash during login/logout.
+
 # 1.2.4
 
 ### Bug Fix
