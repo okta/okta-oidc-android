@@ -32,6 +32,7 @@ import androidx.annotation.RestrictTo;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Lifecycle;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.AuthenticationResultHandler;
@@ -184,6 +185,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
 
         if (activity instanceof FragmentActivity) {
+            if (!((FragmentActivity) activity).getLifecycle().getCurrentState()
+                    .isAtLeast(Lifecycle.State.RESUMED)) {
+                resetCurrentState();
+                return StateResult.canceled();
+            }
             activity.runOnUiThread(() -> addLoginFragment(
                 request,
                 mCustomTabOptions,
@@ -318,6 +324,11 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<StateResult> resultWrapper = new AtomicReference<>();
         if (activity instanceof FragmentActivity) {
+            if (!((FragmentActivity) activity).getLifecycle().getCurrentState()
+                    .isAtLeast(Lifecycle.State.RESUMED)) {
+                resetCurrentState();
+                return StateResult.canceled();
+            }
             activity.runOnUiThread(() -> addLogoutFragment(
                 request,
                 mCustomTabOptions,
