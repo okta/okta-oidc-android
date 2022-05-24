@@ -126,6 +126,6 @@ dependencyCheck {
 
 configurations.all {
     resolutionStrategy {
-        force 'org.bouncycastle:bcprov-jdk15on:1.65'
+        force 'org.bouncycastle:bcprov-jdk15on:1.70'
     }
 }
