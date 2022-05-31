@@ -1,3 +1,8 @@
+# 1.2.6
+
+### Bug Fix
+- [#319](https://github.com/okta/okta-oidc-android/pull/319) Cancelling a WebAuthClient now returns a cancelled response when the flow has been cancelled.
+
 # 1.2.5
 
 ### Bug Fix
