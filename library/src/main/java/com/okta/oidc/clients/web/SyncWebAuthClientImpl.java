@@ -238,6 +238,9 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
             StateResult authResult = startSignIn(activity, request);
             return processSignInResult(authResult);
         } catch (AuthorizationException e) {
+            if (Thread.currentThread().isInterrupted()) {
+                return Result.cancel();
+            }
             return Result.error(e);
         } catch (IOException | InterruptedException e) {
             return Result.cancel();
