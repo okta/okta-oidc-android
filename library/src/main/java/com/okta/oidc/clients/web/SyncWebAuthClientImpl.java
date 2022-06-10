@@ -15,6 +15,7 @@
 
 package com.okta.oidc.clients.web;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -444,6 +445,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
         return mSignOutFlags;
     }
 
+    @SuppressLint("RestrictedApi")
     @RestrictTo(TESTS)
     public int getSignOutStatus() {
         return mSignOutStatus;

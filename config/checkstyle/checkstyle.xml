@@ -12,19 +12,22 @@ Changed the rule for member name that must start with 'm'
 See suppression.xml for individual files that skipped style checks.
 -->
 <module name="Checker">
-    <property name="fileExtensions" value="java, properties, xml"/>
-
-    <!-- Require UTF-8 encoding for all files -->
-    <property name="charset" value="UTF-8"/>
-
-    <!-- Default severity is error -->
-    <property name="severity" value="warning"/>
+    <!-- 100 char per line max, unless unavoidable -->
+    <module name="LineLength">
+        <property name="max" value="100"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    </module>
 
     <module name="SuppressionFilter">
-        <property name="file" value="config/checkstyle/suppression.xml"/>
+        <property name="file" value="${config_loc}/suppression.xml"/>
     </module>
 
     <module name="TreeWalker">
+
+        <property name="fileExtensions" value="java, properties, xml"/>
+
+        <!-- Default severity is error -->
+        <property name="severity" value="warning"/>
 
         <!--#################################################################-->
         <!--################ NAMING CHECKS ##################################-->
@@ -145,14 +148,6 @@ See suppression.xml for individual files that skipped style checks.
 
         <!-- Star imports are forbidden. -->
         <module name="AvoidStarImport"/>
-
-        <!-- Android imports come first -->
-        <module name="CustomImportOrder">
-            <property name="specialImportsRegExp" value="[^com.android|^dalvik|^android]"/>
-            <property name="sortImportsInGroupAlphabetically" value="true"/>
-            <property name="customImportOrderRules"
-                      value="SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE###STATIC"/>
-        </module>
 
         <!-- Forbid imports from sun.* -->
         <module name="IllegalImport"/>
@@ -299,12 +294,6 @@ See suppression.xml for individual files that skipped style checks.
         -->
         <module name="CommentsIndentation"/>
 
-        <!-- 100 char per line max, unless unavoidable -->
-        <module name="LineLength">
-            <property name="max" value="100"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-        </module>
-
         <!--#################################################################-->
         <!--################ MISC. LANGUAGE CHECKS ##########################-->
         <!--#################################################################-->
@@ -375,9 +364,7 @@ See suppression.xml for individual files that skipped style checks.
 
         <!-- Require Javadoc for all protected and public methods -->
         <module name="JavadocMethod">
-            <property name="scope" value="protected"/>
             <property name="validateThrows" value="true"/>
-            <property name="allowUndeclaredRTE" value="true"/>
             <property name="allowMissingParamTags" value="true"/>
             <property name="allowMissingReturnTag" value="true"/>
         </module>
@@ -406,9 +393,6 @@ See suppression.xml for individual files that skipped style checks.
 
         <!-- Ensure Javadoc tag lines are indented appropriately -->
         <module name="JavadocTagContinuationIndentation"/>
-
-        <!-- Require consistent At-clauses ordering for Javadoc -->
-        <module name="AtclauseOrder"/>
 
         <!-- At-clauses in Javadoc should not be empty -->
         <module name="NonEmptyAtclauseDescription"/>

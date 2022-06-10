@@ -16,6 +16,7 @@ package com.okta.oidc.util;
 
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Pair;
 
 import com.okta.oidc.AuthenticationPayload;
 import com.okta.oidc.CustomConfiguration;
@@ -31,8 +32,6 @@ import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.LogoutResponse;
-
-import org.robolectric.util.Pair;
 
 import java.security.KeyPair;
 import java.util.Arrays;

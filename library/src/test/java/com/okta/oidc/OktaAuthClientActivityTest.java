@@ -23,7 +23,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.okta.oidc.util.AuthorizationException;
 
-import org.assertj.android.api.Assertions;
 import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,8 +91,8 @@ public class OktaAuthClientActivityTest {
         instantiateActivity(mAuthorizeSuccess);
         mActivityController.create().start().resume();
 
-        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
-                .hasData(Uri.parse(CUSTOM_URL));
+        assertThat(mShadowActivity.getNextStartedActivity().getData())
+                .isEqualTo(Uri.parse(CUSTOM_URL));
 
         Intent intent = new Intent(mContext, OktaAuthenticationActivityMock.class);
         intent.setAction(REDIRECT_ACTION);
@@ -102,7 +101,7 @@ public class OktaAuthClientActivityTest {
         mActivityController.newIntent(intent);
 
         assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_OK);
-        Assertions.assertThat(mActivity).isFinishing();
+        assertThat(mActivity.isFinishing()).isTrue();
     }
 
     @Test
@@ -110,8 +109,8 @@ public class OktaAuthClientActivityTest {
         instantiateActivity(mAuthorizeSuccessWithExtras);
         mActivityController.create().start().resume();
 
-        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
-                .hasData(Uri.parse(CUSTOM_URL));
+        assertThat(mShadowActivity.getNextStartedActivity().getData())
+                .isEqualTo(Uri.parse(CUSTOM_URL));
 
         assertTrue(mActivityController.get().mSupportedBrowsers.contains(FIRE_FOX));
         assertEquals(mActivityController.get().mCustomTabOptions.getCustomTabColor(), 100);
@@ -127,7 +126,7 @@ public class OktaAuthClientActivityTest {
         mActivityController.newIntent(intent);
 
         assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_OK);
-        Assertions.assertThat(mActivity).isFinishing();
+        assertThat(mActivity.isFinishing()).isTrue();
     }
 
     @Test
@@ -135,13 +134,13 @@ public class OktaAuthClientActivityTest {
         instantiateActivity(mAuthorizeSuccess);
         mActivityController.create().start().resume();
 
-        Assertions.assertThat(mShadowActivity.getNextStartedActivity())
-                .hasData(Uri.parse(CUSTOM_URL));
+        assertThat(mShadowActivity.getNextStartedActivity().getData())
+                .isEqualTo(Uri.parse(CUSTOM_URL));
 
         mActivityController.pause().resume();
 
         assertThat(mShadowActivity.getResultCode()).isEqualTo(RESULT_CANCELED);
-        Assertions.assertThat(mActivity).isFinishing();
+        assertThat(mActivity.isFinishing()).isTrue();
     }
 
     @Test

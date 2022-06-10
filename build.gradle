@@ -9,17 +9,53 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.android.tools.build:gradle:7.2.1'
         classpath 'org.owasp:dependency-check-gradle:5.3.2'
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.20.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
 allprojects {
+    group = project.property('GROUP')
+    version = project.property('VERSION_NAME')
+
     repositories {
         // Insert local test repo here
         google()
+    }
+
+    configurePublishing(it)
+}
+
+def configurePublishing(Project project) {
+    project.plugins.withId('com.vanniktech.maven.publish.base') {
+        project.apply plugin: 'signing'
+
+        project.mavenPublishing {
+            publishToMavenCentral("DEFAULT")
+            pomFromGradleProperties()
+        }
+
+        if (project.hasProperty('signWithGpgCommand')) {
+            project.afterEvaluate {
+                project.signing {
+                    useGpgCmd()
+                    sign project.publishing.publications
+                }
+            }
+        }
+
+        if (project.hasProperty('signAllPublications')) {
+            project.mavenPublishing {
+                signAllPublications()
+            }
+        }
+
+        if (project.plugins.hasPlugin('com.android.library')) {
+            project.mavenPublishing.configure(new com.vanniktech.maven.publish.AndroidSingleVariantLibrary("release"))
+        }
     }
 }
 
@@ -34,35 +70,30 @@ subprojects {
 }
 
 ext {
-    versionNum = 19
-    versionName = "1.2.6"
-    versionDate = new Date()
     minSdkVersion = 21
-    compileSdkVersion = 30
-    browserVersion = '1.3.0'
-    annotationVersion = '1.2.0'
-    appcompatVersion = '1.3.0'
-    androidxCore = '1.5.0'
+    compileSdkVersion = 31
+    browserVersion = '1.4.0'
+    annotationVersion = '1.3.0'
+    appcompatVersion = '1.4.2'
+    androidxCore = '1.8.0'
     // SDK dependency versions
     gsonVersion = "2.9.0"
 
     // Test dependency versions
-    junitVersion = '4.13'
-    mockitoVersion = "2.28.2"
-    robolectricVersion = '4.3.1'
-    okhttpVersion = '4.9.1'
+    junitVersion = '4.13.2'
+    mockitoVersion = "4.6.1"
+    robolectricVersion = '4.8.1'
+    okhttpVersion = '4.9.3'
     jsonWebTokenVersion = '0.11.2'
     assertjCoreVersion = '3.16.1'
-    assertjVersion = "1.2.0"
 
     androidxLibVersion = '1.3.5'
-    espressoVersion = "3.3.0"
+    espressoVersion = "3.4.0"
     uiautomatorVersion = "2.2.0"
     securityVersion = "1.0.0"
 
     // Gradle plugin version
-    checkstyleVersion = "8.6"
-    saxonVersion = "8.7"
+    checkstyleVersion = "10.3"
 }
 
 task showVersion {

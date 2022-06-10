@@ -1,24 +1,24 @@
 apply plugin: "com.android.library"
 apply from: "${rootDir}/gradle/okta-common.gradle"
 apply from: "${rootDir}/gradle/style.gradle"
+apply plugin: "com.vanniktech.maven.publish.base"
 
 android {
     defaultConfig {
         compileSdkVersion rootProject.ext.compileSdkVersion
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.compileSdkVersion
-        versionCode rootProject.ext.versionNum
-        versionName rootProject.ext.versionName
         archivesBaseName = "oidc-androidx"
         consumerProguardFiles 'proguard-rules.pro'
 
-        buildConfigField "String", "VERSION_NAME", "\"${rootProject.ext.versionName}\""
+        buildConfigField "String", "VERSION_NAME", "\"${property('VERSION_NAME')}\""
     }
 
     lintOptions {
         warningsAsErrors true
         abortOnError true
         disable 'TrulyRandom', 'GradleDependency'
+        baseline file("lint-baseline.xml")
     }
 
     testOptions {
@@ -61,7 +61,6 @@ dependencies {
     testImplementation "org.mockito:mockito-core:${rootProject.mockitoVersion}"
     testImplementation "org.mockito:mockito-inline:${rootProject.mockitoVersion}"
     testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
-    testImplementation "com.squareup.assertj:assertj-android:${rootProject.assertjVersion}"
     testImplementation "com.squareup.okhttp3:mockwebserver:${rootProject.okhttpVersion}"
     testImplementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
     testImplementation "org.assertj:assertj-core:${rootProject.assertjCoreVersion}"
@@ -74,8 +73,4 @@ dependencies {
 
 dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
-}
-
-if (hasProperty('NEXUS_USERNAME')) {
-    apply from: 'maven-push.gradle'
 }

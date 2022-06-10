@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.okta.oidc.util.TestValues.WELL_KNOWN_OAUTH;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -115,7 +116,7 @@ public class ConfigurationRequestTest {
     @Test
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Invalid status code 404 Client Error");
+        mExpectedEx.expectMessage(startsWith("Invalid status code 404"));
         mEndPoint.enqueueConfigurationFailure();
         mRequest.executeRequest(mHttpClient);
     }
