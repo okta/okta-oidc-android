@@ -218,10 +218,10 @@ public class SyncAuthClientTest {
         if (errorMessage == null) {
             assertTrue(mockCallback.getException().getCause() instanceof InterruptedException);
         } else {
-            System.out.println(errorMessage);
             assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
-                    || "interrupted".equals(errorMessage));
+                    || "interrupted".equals(errorMessage)
+                    || "Unexpected end of file from server".equals(errorMessage));
         }
     }
 
