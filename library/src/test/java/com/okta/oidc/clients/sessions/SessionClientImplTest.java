@@ -381,6 +381,7 @@ public class SessionClientImplTest {
         if (errorMessage == null) {
             assertTrue(cb.getException().getCause() instanceof InterruptedException);
         } else {
+            System.out.println(errorMessage);
             assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
                     || "interrupted".equals(errorMessage));
