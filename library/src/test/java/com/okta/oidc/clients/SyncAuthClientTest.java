@@ -73,7 +73,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(ParameterizedRobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -219,12 +218,10 @@ public class SyncAuthClientTest {
         if (errorMessage == null) {
             assertTrue(mockCallback.getException().getCause() instanceof InterruptedException);
         } else {
-            if("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
+            System.out.println(errorMessage);
+            assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
-                    || "interrupted".equals(errorMessage)) {
-            } else {
-                fail("Error message not found: " + errorMessage);
-            }
+                    || "interrupted".equals(errorMessage));
         }
     }
 
