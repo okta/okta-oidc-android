@@ -42,6 +42,7 @@ import org.robolectric.annotation.Config;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -106,7 +107,7 @@ public class AuthorizedRequestTest {
     @Test
     public void executeRequestFailure() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
+        mExpectedEx.expectMessage(startsWith("Invalid status code 401"));
         mEndPoint.enqueueReturnInvalidClient();
         mRequest.executeRequest(mHttpClient);
     }
@@ -122,7 +123,7 @@ public class AuthorizedRequestTest {
     @Test
     public void executeRequestFailureWithOkHttp() throws AuthorizationException {
         mExpectedEx.expect(AuthorizationException.class);
-        mExpectedEx.expectMessage("Invalid status code 401 Client Error");
+        mExpectedEx.expectMessage(startsWith("Invalid status code 401"));
         mEndPoint.enqueueReturnInvalidClient();
         mRequest.executeRequest(new OkHttp());
     }

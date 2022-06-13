@@ -25,7 +25,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 
 import static com.okta.oidc.util.TestValues.CUSTOM_URL;
-import static org.assertj.android.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
@@ -45,7 +45,7 @@ public class OktaRedirectActivityTest {
         OktaRedirectActivity redirectActivity = (OktaRedirectActivity) controller.get();
 
         Intent nextIntent = shadowOf(redirectActivity).getNextStartedActivity();
-        assertThat(nextIntent).hasData(uri);
-        assertThat(redirectActivity).isFinishing();
+        assertThat(nextIntent.getData()).isEqualTo(uri);
+        assertThat(redirectActivity.isFinishing()).isTrue();
     }
 }

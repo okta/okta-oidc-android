@@ -14,6 +14,8 @@
  */
 package com.okta.oidc;
 
+import android.util.Pair;
+
 import com.okta.oidc.util.TestValues;
 
 import org.junit.Before;
@@ -21,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.util.Pair;
 
 import java.util.Map;
 
@@ -30,7 +31,6 @@ import static com.okta.oidc.net.request.web.AuthorizeRequest.IDP_SCOPE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.LOGIN_HINT;
 import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

@@ -67,7 +67,7 @@ import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.EXCHANGE_CODE;
 import static com.okta.oidc.util.TestValues.SESSION_TOKEN;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -220,7 +220,8 @@ public class SyncAuthClientTest {
         } else {
             assertTrue("Socket closed".equals(errorMessage) || "Canceled".equals(errorMessage)
                     || "stream is closed".equals(errorMessage) || "Network error".equals(errorMessage)
-                    || "interrupted".equals(errorMessage));
+                    || "interrupted".equals(errorMessage)
+                    || "Unexpected end of file from server".equals(errorMessage));
         }
     }
 

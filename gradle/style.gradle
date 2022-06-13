@@ -17,7 +17,7 @@ dependencies {
 task checkAllSource(type: Checkstyle) {
     source "src/main/java"
     include "**/*.java"
-    classpath = project.configurations.compile
+    classpath = files()
 }
 
 task failOnCheckstyleWarning {

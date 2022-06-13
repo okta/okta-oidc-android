@@ -54,6 +54,7 @@ public class GuardedEncryptionManager implements EncryptionManager {
      *
      * @param context                                   context
      * @param userAuthenticationValidityDurationSeconds validity duration time in seconds
+     * @throws IllegalStateException if unsupported Android version
      */
     public GuardedEncryptionManager(Context context,
                                     int userAuthenticationValidityDurationSeconds) {

@@ -77,7 +77,7 @@ import static com.okta.oidc.util.TestValues.CUSTOM_CODE;
 import static com.okta.oidc.util.TestValues.CUSTOM_STATE;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

@@ -15,15 +15,12 @@
 
 package com.okta.oidc;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.util.AuthorizationException;
 import com.okta.oidc.util.MockEndPoint;
 import com.okta.oidc.util.TestValues;
@@ -37,6 +34,7 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import static android.app.Activity.RESULT_OK;
 import static com.okta.oidc.AuthenticationResultHandler.handler;
@@ -48,10 +46,8 @@ import static org.mockito.Mockito.verify;
 public class OktaResultFragmentTest {
     private static final String CUSTOM_STATE = "CUSTOM_STATE";
     private static final String ERROR = "ANY_ERROR";
-    private Context mContext;
     private MockEndPoint mEndPoint;
     private OIDCConfig mConfig;
-    private ProviderConfiguration mProviderConfig;
     private FragmentActivity mActivity;
     private CustomTabOptions mCustomTabOptions = new CustomTabOptions();
 
@@ -61,15 +57,14 @@ public class OktaResultFragmentTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         mEndPoint = new MockEndPoint();
         String url = mEndPoint.getUrl();
         mConfig = TestValues.getConfigWithUrl(url);
-        mProviderConfig = TestValues.getProviderConfiguration(url);
         mActivity = Robolectric.buildActivity(FragmentActivity.class).setup().get();
     }
 
     private OktaResultFragment getOktaResultFragment(FragmentActivity activity) {
+        ShadowLooper.runUiThreadTasks();
         Fragment fragment = activity.getSupportFragmentManager()
                 .findFragmentByTag(OktaResultFragment.AUTHENTICATION_REQUEST);
         if (fragment == null) {

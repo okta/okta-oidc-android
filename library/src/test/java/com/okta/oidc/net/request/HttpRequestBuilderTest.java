@@ -234,14 +234,14 @@ public class HttpRequestBuilderTest {
     @Test
     public void postParameters() {
         HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
-                .postParameters(Collections.EMPTY_MAP);
+                .postParameters(Collections.emptyMap());
         assertNotNull(builder.mPostParameters);
     }
 
     @Test
     public void properties() {
         HttpRequestBuilder.Authorized builder = HttpRequestBuilder.newAuthorizedRequest()
-                .properties(Collections.EMPTY_MAP);
+                .properties(Collections.emptyMap());
         assertNotNull(builder.mProperties);
     }
 
