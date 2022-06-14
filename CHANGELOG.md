@@ -1,3 +1,6 @@
+# 1.3.0
+- [#321](https://github.com/okta/okta-oidc-android/pull/321) Update GSON to 2.9.0.
+
 # 1.2.6
 
 ### Bug Fix
