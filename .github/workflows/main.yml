@@ -22,7 +22,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew build :library:test
+        run: ./gradlew build :okta-oidc-android:test
 
       - name: Upload Test Failures
         if: failure()

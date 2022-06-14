@@ -51,7 +51,7 @@ android {
 }
 
 dependencies {
-    implementation project(':library')
+    implementation project(':okta-oidc-android')
     implementation 'androidx.fragment:fragment:' + rootProject.androidxLibVersion
     implementation 'androidx.annotation:annotation:' + rootProject.annotationVersion
     implementation 'androidx.appcompat:appcompat:' + rootProject.appcompatVersion
