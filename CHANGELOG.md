@@ -1,3 +1,6 @@
+# 1.3.1
+- [#325](https://github.com/okta/okta-oidc-android/pull/325) Update transitive dependencies to preserve backwards compatibility (Make them api rather than implementation).
+
 # 1.3.0
 - [#321](https://github.com/okta/okta-oidc-android/pull/321) Update GSON to 2.9.0.
 
