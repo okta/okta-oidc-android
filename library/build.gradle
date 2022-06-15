@@ -52,10 +52,10 @@ android {
 }
 
 dependencies {
-    implementation "com.google.code.gson:gson:${rootProject.gsonVersion}"
-    implementation "androidx.browser:browser:${rootProject.browserVersion}"
-    implementation "androidx.fragment:fragment:${rootProject.androidxLibVersion}"
-    implementation "androidx.core:core:${rootProject.androidxCore}"
+    api "com.google.code.gson:gson:${rootProject.gsonVersion}"
+    api "androidx.browser:browser:${rootProject.browserVersion}"
+    api "androidx.fragment:fragment:${rootProject.androidxLibVersion}"
+    api "androidx.core:core:${rootProject.androidxCore}"
     testImplementation "com.squareup.okhttp3:okhttp-tls:${rootProject.okhttpVersion}"
     testImplementation "junit:junit:${rootProject.junitVersion}"
     testImplementation "org.mockito:mockito-core:${rootProject.mockitoVersion}"
