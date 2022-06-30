@@ -1,3 +1,6 @@
+# 1.3.2
+- [#328](https://github.com/okta/okta-oidc-android/pull/328) Allow HTTPS redirect URLs. Please note, not all user flows will result in a redirect back to the application if this is used.
+
 # 1.3.1
 - [#325](https://github.com/okta/okta-oidc-android/pull/325) Update transitive dependencies to preserve backwards compatibility (Make them api rather than implementation).
 
