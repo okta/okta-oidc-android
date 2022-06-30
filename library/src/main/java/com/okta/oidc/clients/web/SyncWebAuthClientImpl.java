@@ -124,7 +124,7 @@ class SyncWebAuthClientImpl extends AuthAPI implements SyncWebAuthClient {
                 if (activityInfo.name.equals(OktaRedirectActivity.class.getCanonicalName()) &&
                         activityInfo.packageName.equals(activity.getPackageName())) {
                     found = true;
-                } else {
+                } else if (!uri.getScheme().equals("https")) {
                     Log.w(TAG, "Warning! Multiple " +
                             "applications found registered with same scheme");
                     //Another installed app have same url scheme.
