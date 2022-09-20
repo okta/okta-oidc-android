@@ -59,8 +59,8 @@ dependencies {
 
     implementation "com.google.android.material:material:1.6.1"
     implementation 'androidx.biometric:biometric:1.1.0'
-    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.7'
-    implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.7') {
+    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.8'
+    implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.8') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
     }
     implementation 'com.okta.sdk:okta-sdk-okhttp:8.0.0'
