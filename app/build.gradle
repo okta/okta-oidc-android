@@ -63,7 +63,7 @@ dependencies {
     implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.8') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
     }
-    implementation 'com.okta.sdk:okta-sdk-okhttp:8.0.0'
+    implementation 'com.okta.sdk:okta-sdk-okhttp:8.2.2'
     implementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
     androidTestImplementation "androidx.browser:browser:${rootProject.browserVersion}"
     // Core library
