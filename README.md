@@ -82,6 +82,14 @@ android {
 
 For more details on Java 8 support for your Android projects, refer to the [Android developer documentations](#https://developer.android.com/studio/write/java8-support)
 
+### Proguard
+
+The SDK uses GSON for serialization. As a result, proguard/R8 obfuscation can result in incorrect behavior or crashes. To avoid issues with Proguard/R8, add the following rules to proguard-rules.pro:
+
+```
+-keep class com.okta.oidc.** { *; }
+```
+
 ### Sample app
 
 A sample is contained within this repository. For more information on how to
