@@ -15,9 +15,12 @@
 
 package com.okta.oidc.net.response;
 
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.okta.oidc.storage.Persistable;
@@ -36,6 +39,13 @@ public class TokenResponse implements Persistable {
     private String refresh_token;
     private String id_token;
     private long expiresAt = -1;
+
+    @VisibleForTesting
+    public static final String MISSING_ACCESS_TOKEN_ERROR = "access_token is missing";
+    @VisibleForTesting
+    public static final String MISSING_TOKEN_TYPE_ERROR = "token_type is missing";
+    @VisibleForTesting
+    public static final String MISSING_EXPIRES_IN_ERROR = "expires_in is missing";
 
     @NonNull
     public String getAccessToken() {
@@ -81,6 +91,18 @@ public class TokenResponse implements Persistable {
             expiresAt += Integer.parseInt(expires_in) * THOUSAND;
         }
         return expiresAt;
+    }
+
+    public void validate() throws IllegalArgumentException {
+        if (TextUtils.isEmpty(access_token)) {
+            throw new IllegalArgumentException(MISSING_ACCESS_TOKEN_ERROR);
+        }
+        if (TextUtils.isEmpty(token_type)) {
+            throw new IllegalArgumentException(MISSING_TOKEN_TYPE_ERROR);
+        }
+        if (TextUtils.isEmpty(expires_in)) {
+            throw new IllegalArgumentException(MISSING_EXPIRES_IN_ERROR);
+        }
     }
 
     public static final Persistable.Restore<TokenResponse> RESTORE =

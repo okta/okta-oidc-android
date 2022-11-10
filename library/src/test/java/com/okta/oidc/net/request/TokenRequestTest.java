@@ -123,4 +123,13 @@ public class TokenRequestTest {
         TokenResponse response = mRequest.executeRequest(mHttpClient);
         assertNull(response);
     }
+
+    @Test
+    public void executeRequestFailedValidation() throws AuthorizationException {
+        mExpectedEx.expect(AuthorizationException.class);
+        String jws = TestValues.getJwt(mEndPoint.getUrl(), CUSTOM_NONCE, mConfig.getClientId());
+        mEndPoint.enqueueTokenWithMissingRequiredParams(jws);
+        TokenResponse response = mRequest.executeRequest(mHttpClient);
+        assertNull(response);
+    }
 }

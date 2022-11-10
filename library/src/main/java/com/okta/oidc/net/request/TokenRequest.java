@@ -20,6 +20,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+import androidx.annotation.VisibleForTesting;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -46,6 +47,9 @@ import java.util.Map;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationException> {
     private static final String TAG = TokenRequest.class.getSimpleName();
+    @VisibleForTesting
+    public static final String INVALID_RESPONSE_WITH_HTTP_STATUS_CODE_ERROR =
+            "Invalid token response with status code %d";
 
     private String code;
     private String client_assertion;
@@ -146,6 +150,7 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
                 }
             }
             tokenResponse = new Gson().fromJson(json.toString(), TokenResponse.class);
+            tokenResponse.validate();
             tokenResponse.setCreationTime(System.currentTimeMillis());
             if (tokenResponse.getIdToken() != null) {
                 OktaIdToken idToken;
@@ -167,6 +172,15 @@ public class TokenRequest extends BaseRequest<TokenResponse, AuthorizationExcept
                     AuthorizationException.GeneralErrors.JSON_DESERIALIZATION_ERROR, ex);
         } catch (AuthorizationException ae) {
             throw ae;
+        } catch (IllegalArgumentException e) {
+            if (response != null) {
+                throw new AuthorizationException(
+                        String.format(INVALID_RESPONSE_WITH_HTTP_STATUS_CODE_ERROR,
+                                response.getStatusCode()), e);
+            } else {
+                throw AuthorizationException.fromTemplate(AuthorizationException
+                                .GeneralErrors.NETWORK_ERROR, e);
+            }
         } catch (Exception e) {
             throw AuthorizationException.fromTemplate(AuthorizationException
                     .GeneralErrors.NETWORK_ERROR, e);
