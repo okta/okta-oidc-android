@@ -48,6 +48,7 @@ import static com.okta.oidc.util.JsonStrings.INTROSPECT_RESPONSE;
 import static com.okta.oidc.util.JsonStrings.INVALID_CLIENT;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG;
 import static com.okta.oidc.util.JsonStrings.PROVIDER_CONFIG_OAUTH2;
+import static com.okta.oidc.util.JsonStrings.TOKEN_MISSING_PARAMS;
 import static com.okta.oidc.util.JsonStrings.TOKEN_SUCCESS;
 import static com.okta.oidc.util.JsonStrings.UNAUTHORIZED_INVALID_TOKEN;
 import static com.okta.oidc.util.JsonStrings.USER_PROFILE;
@@ -133,6 +134,10 @@ public class MockEndPoint {
 
     public void enqueueTokenSuccess(String idToken) {
         mServer.enqueue(jsonResponse(HTTP_OK, String.format(TOKEN_SUCCESS, idToken)));
+    }
+
+    public void enqueueTokenWithMissingRequiredParams(String idToken) {
+        mServer.enqueue(jsonResponse(HTTP_OK, String.format(TOKEN_MISSING_PARAMS, idToken)));
     }
 
     public void enqueueNativeRequestSuccess(String state, int delaySeconds) {

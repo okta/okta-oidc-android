@@ -27,6 +27,9 @@ import java.util.Arrays;
 
 import static com.okta.oidc.net.response.TokenResponse.RESTORE;
 import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE;
+import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE_WITH_MISSING_ACCESS_TOKEN;
+import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE_WITH_MISSING_EXPIRES_IN;
+import static com.okta.oidc.util.JsonStrings.TOKEN_RESPONSE_WITH_MISSING_TOKEN_TYPE;
 import static com.okta.oidc.util.TestValues.ACCESS_TOKEN;
 import static com.okta.oidc.util.TestValues.EXPIRES_IN;
 import static com.okta.oidc.util.TestValues.ID_TOKEN;
@@ -34,6 +37,7 @@ import static com.okta.oidc.util.TestValues.REFRESH_TOKEN;
 import static com.okta.oidc.util.TestValues.SCOPES;
 import static com.okta.oidc.util.TestValues.TYPE_BEARER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 27)
@@ -79,6 +83,32 @@ public class TokenResponseTest {
     @Test
     public void getKey() {
         assertEquals(mToken.getKey(), RESTORE.getKey());
+    }
+
+    @Test
+    public void validatePasses() {
+        mToken.validate();
+    }
+
+    @Test
+    public void validateThrowsExceptionWhenAccessTokenIsMissing() {
+        mToken = RESTORE.restore(TOKEN_RESPONSE_WITH_MISSING_ACCESS_TOKEN);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, mToken::validate);
+        assertEquals(TokenResponse.MISSING_ACCESS_TOKEN_ERROR, exception.getMessage());
+    }
+
+    @Test
+    public void validateThrowsExceptionWhenTokenTypeIsMissing() {
+        mToken = RESTORE.restore(TOKEN_RESPONSE_WITH_MISSING_TOKEN_TYPE);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, mToken::validate);
+        assertEquals(TokenResponse.MISSING_TOKEN_TYPE_ERROR, exception.getMessage());
+    }
+
+    @Test
+    public void validateThrowsExceptionWhenExpiresInIsMissing() {
+        mToken = RESTORE.restore(TOKEN_RESPONSE_WITH_MISSING_EXPIRES_IN);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, mToken::validate);
+        assertEquals(TokenResponse.MISSING_EXPIRES_IN_ERROR, exception.getMessage());
     }
 
     @Test

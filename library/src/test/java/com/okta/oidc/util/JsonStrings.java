@@ -58,6 +58,12 @@ public interface JsonStrings {
             "    \"id_token\" : \"%s\"" +
             "}";
 
+    String TOKEN_MISSING_PARAMS = "{\n" +
+            "    \"scope\"      : \"openid email profile\",\n" +
+            "    \"refresh_token\" : \"a9VpZDRCeFh3Nkk2VdY\",\n" +
+            "    \"id_token\" : \"%s\"" +
+            "}";
+
     String PROVIDER_CONFIG_OAUTH2 = "{\n" +
             "    \"issuer\": \"https://dev-486177.oktapreview.com/oauth2/default/\",\n" +
             "    \"authorization_endpoint\": \"https://dev-486177.oktapreview.com/oauth2/default/v1/authorize\",\n" +
@@ -236,6 +242,21 @@ public interface JsonStrings {
             "\"ACCESS_TOKEN\",\n\"token_type\" : " +
             "\"Bearer\",\n \"expires_in\" : 3600,\n " +
             "\"scope\" : \"openid profile offline_access\",\n " +
+            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
+
+    String TOKEN_RESPONSE_WITH_MISSING_ACCESS_TOKEN = "{ \"token_type\" : " +
+            "\"Bearer\",\n \"expires_in\" : 3600,\n " +
+            "\"scope\" : \"openid profile offline_access\",\n " +
+            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
+
+    String TOKEN_RESPONSE_WITH_MISSING_TOKEN_TYPE = "{ \"access_token\" : " +
+            "\"ACCESS_TOKEN\",\n \"expires_in\" : 3600,\n " +
+            "\"scope\" : \"openid profile offline_access\",\n " +
+            "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
+
+    String TOKEN_RESPONSE_WITH_MISSING_EXPIRES_IN = "{ \"access_token\" : " +
+            "\"ACCESS_TOKEN\",\n\"token_type\" : " +
+            "\"Bearer\",\n \"scope\" : \"openid profile offline_access\",\n " +
             "\"refresh_token\" : \"REFRESH_TOKEN\",\n\"id_token\" : \"ID_TOKEN\"\n}";
 
     String INVALID_CLIENT = "{\n" +
