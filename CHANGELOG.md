@@ -1,3 +1,6 @@
+# 1.3.3
+- [#341](https://github.com/okta/okta-oidc-android/pull/341) Validate TokenResponse before returning a Token to the user.
+
 # 1.3.2
 - [#328](https://github.com/okta/okta-oidc-android/pull/328) Allow HTTPS redirect URLs. Please note, not all user flows will result in a redirect back to the application if this is used.
 
