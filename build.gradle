@@ -88,7 +88,7 @@ ext {
     assertjCoreVersion = '3.16.1'
 
     androidxLibVersion = '1.5.3'
-    espressoVersion = "3.4.0"
+    espressoVersion = "3.5.0"
     uiautomatorVersion = "2.2.0"
     securityVersion = "1.0.0"
 
