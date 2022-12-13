@@ -45,9 +45,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        pickFirst 'META-INF/okta/version.properties'
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+            pickFirsts += ['META-INF/okta/version.properties']
+        }
     }
+    namespace 'com.okta.oidc.example'
 }
 
 dependencies {
