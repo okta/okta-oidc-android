@@ -14,12 +14,6 @@ android {
         buildConfigField "String", "VERSION_NAME", "\"${property('VERSION_NAME')}\""
     }
 
-    lintOptions {
-        warningsAsErrors true
-        abortOnError true
-        disable 'TrulyRandom', 'GradleDependency'
-        baseline file("lint-baseline.xml")
-    }
 
     testOptions {
         unitTests {
@@ -49,6 +43,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    lint {
+        abortOnError true
+        baseline file('lint-baseline.xml')
+        disable 'TrulyRandom', 'GradleDependency'
+        warningsAsErrors true
+    }
+    namespace 'com.okta.oidc'
 }
 
 dependencies {
