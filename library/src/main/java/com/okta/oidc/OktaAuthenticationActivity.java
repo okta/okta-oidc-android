@@ -180,16 +180,13 @@ public class OktaAuthenticationActivity extends Activity implements ServiceConne
     @VisibleForTesting
     protected String getBrowser() {
         PackageManager pm = getPackageManager();
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.example.com"));
-        List<ResolveInfo> resolveInfoList = pm.queryIntentActivities(browserIntent, mMatchFlag);
+        Intent serviceIntent = new Intent();
+        serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
+        List<ResolveInfo> resolveInfoList = pm.queryIntentServices(serviceIntent, mMatchFlag);
         List<String> customTabsBrowsers = new ArrayList<>();
+
         for (ResolveInfo info : resolveInfoList) {
-            Intent serviceIntent = new Intent();
-            serviceIntent.setAction(CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION);
-            serviceIntent.setPackage(info.activityInfo.packageName);
-            if (pm.resolveService(serviceIntent, 0) != null) {
-                customTabsBrowsers.add(info.activityInfo.packageName);
-            }
+            customTabsBrowsers.add(info.serviceInfo.packageName);
         }
         for (String browser : mSupportedBrowsers) {
             if (customTabsBrowsers.contains(browser)) {
