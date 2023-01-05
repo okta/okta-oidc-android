@@ -1,3 +1,6 @@
+# 1.3.4
+- [#347](https://github.com/okta/okta-oidc-android/pull/347) Use browser querying logic from okta-mobile-kotlin.
+
 # 1.3.3
 - [#341](https://github.com/okta/okta-oidc-android/pull/341) Validate TokenResponse before returning a Token to the user.
 
