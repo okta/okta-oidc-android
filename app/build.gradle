@@ -62,8 +62,8 @@ dependencies {
 
     implementation "com.google.android.material:material:1.7.0"
     implementation 'androidx.biometric:biometric:1.1.0'
-    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.10'
-    implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.10') {
+    implementation 'com.okta.authn.sdk:okta-authn-sdk-api:2.0.11'
+    implementation('com.okta.authn.sdk:okta-authn-sdk-impl:2.0.11') {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
     }
 
@@ -71,6 +71,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'com.okta.sdk:okta-sdk-okhttp:8.2.2'
     implementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
+    implementation "com.squareup.okio:okio:${rootProject.okioVersion}"
+    implementation "com.squareup.okio:okio-jvm:${rootProject.okioVersion}"
     androidTestImplementation "androidx.browser:browser:${rootProject.browserVersion}"
     // Core library
     androidTestImplementation 'androidx.test:core:1.5.0'
@@ -129,10 +131,4 @@ task restoreDeviceSettings(type: Exec) {
 
 dependencyCheck {
     suppressionFile file("../dependency-suppression.xml").toString()
-}
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.bouncycastle:bcprov-jdk15on:1.70'
-    }
 }

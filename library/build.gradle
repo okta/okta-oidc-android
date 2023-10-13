@@ -64,6 +64,8 @@ dependencies {
     testImplementation "org.robolectric:robolectric:${rootProject.robolectricVersion}"
     testImplementation "com.squareup.okhttp3:mockwebserver:${rootProject.okhttpVersion}"
     testImplementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
+    testImplementation "com.squareup.okio:okio:${rootProject.okioVersion}"
+    testImplementation "com.squareup.okio:okio-jvm:${rootProject.okioVersion}"
     testImplementation "org.assertj:assertj-core:${rootProject.assertjCoreVersion}"
     testImplementation "io.jsonwebtoken:jjwt-api:${rootProject.jsonWebTokenVersion}"
     testImplementation "io.jsonwebtoken:jjwt-impl:${rootProject.jsonWebTokenVersion}"
