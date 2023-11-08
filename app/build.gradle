@@ -68,7 +68,7 @@ dependencies {
     }
 
     implementation 'org.yaml:snakeyaml:2.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
     implementation 'com.okta.sdk:okta-sdk-okhttp:8.2.2'
     implementation "com.squareup.okhttp3:okhttp:${rootProject.okhttpVersion}"
     implementation "com.squareup.okio:okio:${rootProject.okioVersion}"
@@ -80,7 +80,7 @@ dependencies {
     // Assertions
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.ext:truth:1.5.0'
-    androidTestImplementation 'com.google.truth:truth:1.1.4'
+    androidTestImplementation 'com.google.truth:truth:1.1.5'
 
     // AndroidJUnitRunner and JUnit Rules
     androidTestImplementation 'androidx.test:runner:1.5.2'
@@ -101,7 +101,7 @@ dependencies {
 }
 
 def adb = System.getenv("ANDROID_HOME") + "/platform-tools/adb"
-task prepareDeviceForUITesting(type: Exec) {
+tasks.register("prepareDeviceForUITesting", Exec) {
     //disable animations for testing
     commandLine adb, 'shell', 'settings', 'put', 'global', 'window_animation_scale', '0'
     commandLine adb, 'shell', 'settings', 'put', 'global', 'transition_animation_scale', '0'
@@ -112,13 +112,13 @@ task prepareDeviceForUITesting(type: Exec) {
     commandLine adb, 'push', 'src/androidTest/assets/mock.keystore.bks', '/sdcard/Download/'
 }
 
-task clearData(type: Exec) {
+tasks.register("clearData", Exec) {
     commandLine adb, 'shell', 'pm', 'clear', 'com.okta.oidc.example'
     commandLine adb, 'shell', 'pm', 'clear', 'com.okta.oidc.example.test'
     commandLine adb, 'shell', 'pm', 'clear', 'com.android.chrome'
 }
 
-task restoreDeviceSettings(type: Exec) {
+tasks.register("restoreDeviceSettings", Exec) {
     //enable animations for testing
     commandLine adb, 'shell', 'settings', 'put', 'global', 'window_animation_scale', '1'
     commandLine adb, 'shell', 'settings', 'put', 'global', 'transition_animation_scale', '1'
