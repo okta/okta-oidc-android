@@ -67,6 +67,7 @@ dependencies {
         exclude group: 'com.okta.sdk', module: 'okta-sdk-httpclient'
     }
 
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
     implementation 'org.yaml:snakeyaml:2.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
     implementation 'com.okta.sdk:okta-sdk-okhttp:8.2.2'
@@ -74,6 +75,7 @@ dependencies {
     implementation "com.squareup.okio:okio:${rootProject.okioVersion}"
     implementation "com.squareup.okio:okio-jvm:${rootProject.okioVersion}"
     androidTestImplementation "androidx.browser:browser:${rootProject.browserVersion}"
+
     // Core library
     androidTestImplementation 'androidx.test:core:1.5.0'
 
