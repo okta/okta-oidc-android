@@ -158,6 +158,12 @@ public class AuthAPI {
                 .createRequest();
     }
 
+    protected void clear() {
+        mOktaState.delete(ProviderConfiguration.RESTORE.getKey());
+        mOktaState.delete(TokenResponse.RESTORE.getKey());
+        mOktaState.delete(WebRequest.RESTORE.getKey());
+    }
+
     protected void resetCurrentState() {
         mCancel.set(false);
         mOktaState.setCurrentState(IDLE);
