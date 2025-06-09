@@ -97,7 +97,7 @@ ext {
     securityVersion = "1.0.0"
 
     // Gradle plugin version
-    checkstyleVersion = "10.12.4"
+    checkstyleVersion = "10.25.0"
 }
 
 tasks.register("showVersion") {
