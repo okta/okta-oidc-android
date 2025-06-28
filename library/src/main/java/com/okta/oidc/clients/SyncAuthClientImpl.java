@@ -108,10 +108,13 @@ class SyncAuthClientImpl extends AuthAPI implements SyncAuthClient {
             mOktaState.save(tokenResponse);
             return Result.success();
         } catch (AuthorizationException e) {
+            clear();
             return Result.error(e);
         } catch (IOException e) {
+            clear();
             return Result.cancel();
         } catch (Exception e) {
+            clear();
             return Result.error(new AuthorizationException(OTHER.code, e.getMessage(), e));
         } finally {
             resetCurrentState();
