@@ -11,7 +11,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:8.11.1'
         classpath 'org.owasp:dependency-check-gradle:5.3.2'
         classpath 'com.vanniktech:gradle-maven-publish-plugin:0.25.2'
         // NOTE: Do not place your application dependencies here; they belong
@@ -26,6 +26,11 @@ allprojects {
     repositories {
         // Insert local test repo here
         google()
+    }
+    configurations.configureEach {
+        resolutionStrategy {
+            force "org.apache.commons:commons-lang3:3.18.0"
+        }
     }
 
     configurePublishing(it)
@@ -83,7 +88,7 @@ ext {
 
     // Test dependency versions
     junitVersion = '4.13.2'
-    mockitoVersion = "4.6.1"
+    mockitoVersion = "5.18.0"
     robolectricVersion = '4.11'
     truthVersion = '1.1.5'
     okhttpVersion = '4.11.0'
@@ -97,7 +102,7 @@ ext {
     securityVersion = "1.0.0"
 
     // Gradle plugin version
-    checkstyleVersion = "10.25.0"
+    checkstyleVersion = "10.26.1"
 }
 
 tasks.register("showVersion") {
