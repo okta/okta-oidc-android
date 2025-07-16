@@ -15,7 +15,6 @@
 
 package com.okta.oidc.storage.security;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Build.VERSION;
@@ -43,7 +42,7 @@ import javax.crypto.Cipher;
 
 import static android.security.keystore.KeyProperties.BLOCK_MODE_ECB;
 
-@TargetApi(Build.VERSION_CODES.M)
+@androidx.annotation.RequiresApi(Build.VERSION_CODES.M)
 class EncryptionManagerAPI23 extends BaseEncryptionManager {
     private static final String TAG = EncryptionManagerAPI23.class.getSimpleName();
 
