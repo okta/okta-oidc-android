@@ -15,7 +15,6 @@
 
 package com.okta.oidc.storage.security;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 
@@ -29,7 +28,7 @@ import javax.crypto.Cipher;
  * A implementation of {@link EncryptionManager} which requires user authentication when
  * using keys by OS. The private keys are locked in the key store.
  */
-@TargetApi(Build.VERSION_CODES.M)
+@androidx.annotation.RequiresApi(Build.VERSION_CODES.M)
 public class GuardedEncryptionManager implements EncryptionManager {
     private static final String KEY_STORE = "AndroidKeyStore";
     private static final String KEY_AUTHORIZE_ALIAS = "smart_authorize_key_for_pin";
@@ -58,19 +57,13 @@ public class GuardedEncryptionManager implements EncryptionManager {
      */
     public GuardedEncryptionManager(Context context,
                                     int userAuthenticationValidityDurationSeconds) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mEncryptionManager = EncryptionManagerFactory
-                    .createEncryptionManager(context,
-                            KEY_STORE,
-                            KEY_AUTHORIZE_ALIAS,
-                            true,
-                            (userAuthenticationValidityDurationSeconds > MIN_VALIDITY_DURATION)
-                                    ? userAuthenticationValidityDurationSeconds
-                                    : MIN_VALIDITY_DURATION,
-                            false);
-        } else {
-            throw new IllegalStateException("This class supports API23+");
-        }
+        mEncryptionManager = EncryptionManagerFactory
+                .createEncryptionManager(context,
+                        KEY_STORE,
+                        KEY_AUTHORIZE_ALIAS,
+                        true,
+                        Math.max(userAuthenticationValidityDurationSeconds, MIN_VALIDITY_DURATION),
+                        false);
     }
 
     @Override

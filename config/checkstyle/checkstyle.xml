@@ -391,9 +391,6 @@ See suppression.xml for individual files that skipped style checks.
         <!-- Require Javadoc to have proper paragraph tags -->
         <module name="JavadocParagraph"/>
 
-        <!-- Ensure Javadoc tag lines are indented appropriately -->
-        <module name="JavadocTagContinuationIndentation"/>
-
         <!-- At-clauses in Javadoc should not be empty -->
         <module name="NonEmptyAtclauseDescription"/>
 

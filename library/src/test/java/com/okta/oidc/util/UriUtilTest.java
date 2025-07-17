@@ -65,7 +65,6 @@ public class UriUtilTest {
         parameters.put("test2", "value2 value3");
         String query = UriUtil.formUrlEncode(parameters);
 
-        assertThat(query.contains("value2+value3"));
         mSanitizer.parseQuery(query);
         for (Map.Entry<String, String> param : parameters.entrySet()) {
             assertThat(mSanitizer.getValue(param.getKey())).isEqualTo(param.getValue());
