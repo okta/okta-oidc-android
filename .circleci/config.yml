@@ -1,0 +1,39 @@
+version: 2.1
+
+orbs:
+  general-platform-helpers: okta/general-platform-helpers@1.9.4
+  android: circleci/android@3.1.0
+  path-filtering: circleci/path-filtering@2.0.2
+
+jobs:
+  snyk-scan:
+    executor:
+      name: android/android_docker
+      tag: 2025.04.1
+    environment:
+      GRADLE_OPTS: '
+      -Dorg.gradle.jvmargs="-Xmx3g -XX:+HeapDumpOnOutOfMemoryError"
+      -Dorg.gradle.daemon=false
+      -Dorg.gradle.workers.max=3
+      -Dkotlin.incremental=false'
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - checkout
+      - general-platform-helpers/step-load-dependencies
+      - general-platform-helpers/step-run-snyk-monitor:
+          scan-all-projects: true
+          skip-unresolved: false
+          run-on-non-main: true
+          additional-arguments: "--configuration-matching=implementation"
+
+workflows:
+  security-scan:
+    jobs:
+      - snyk-scan:
+          context:
+            - static-analysis
+          filters:
+            branches:
+              only:
+                - master
