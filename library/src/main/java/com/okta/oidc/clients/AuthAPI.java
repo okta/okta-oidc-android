@@ -36,6 +36,7 @@ import com.okta.oidc.net.request.ProviderConfiguration;
 import com.okta.oidc.net.request.TokenRequest;
 import com.okta.oidc.net.request.web.AuthorizeRequest;
 import com.okta.oidc.net.request.web.WebRequest;
+import com.okta.oidc.net.response.TokenResponse;
 import com.okta.oidc.net.response.web.AuthorizeResponse;
 import com.okta.oidc.net.response.web.WebResponse;
 import com.okta.oidc.storage.OktaRepository;
@@ -156,6 +157,12 @@ public class AuthAPI {
                 .authRequest(authorizeRequest)
                 .authResponse(response)
                 .createRequest();
+    }
+
+    protected void clear() {
+        mOktaState.delete(ProviderConfiguration.RESTORE.getKey());
+        mOktaState.delete(TokenResponse.RESTORE.getKey());
+        mOktaState.delete(WebRequest.RESTORE.getKey());
     }
 
     protected void resetCurrentState() {
